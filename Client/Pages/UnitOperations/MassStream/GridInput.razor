@@ -1,0 +1,34 @@
+﻿<input type="number"
+       value="@Value"
+       @oninput="HandleInput"
+       @onkeydown="HandleKeyDown"
+       step="any" />
+
+@code {
+    [Parameter] public double Value { get; set; }
+    [Parameter] public EventCallback<double> ValueChanged { get; set; }
+    
+    /* Acción que se dispara al presionar ENTER (ej. recalcular termodinámica) */
+    [Parameter] public EventCallback Execute { get; set; }
+
+    private async Task HandleInput(ChangeEventArgs e)
+    {
+        if (double.TryParse(e.Value?.ToString(), out var result))
+        {
+            Value = result;
+            await ValueChanged.InvokeAsync(Value);
+        }
+    }
+
+    private async Task HandleKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            /* En Blazor, al presionar Enter en un input,
+               el foco suele perderse o el navegador intenta enviar un form.
+               Aquí disparamos la lógica de cálculo pesada.
+            */
+            await Execute.InvokeAsync();
+        }
+    }
+}

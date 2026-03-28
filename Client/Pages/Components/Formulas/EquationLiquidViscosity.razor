@@ -1,0 +1,60 @@
+﻿@* EquationLiquidViscosity.razor *@
+<div class="equation-container">
+    <div class="equation-wrapper">
+        <span class="var">μ</span><sub class="sub">liq</sub> = exp 
+        <span class="bracket">(</span>
+        <span class="var">C</span><sub>1</sub> + 
+        <div class="fraction">
+            <div class="num"><span class="var">C</span><sub>2</sub></div>
+            <div class="den"><span class="var">T</span></div>
+        </div>
+        + <span class="var">C</span><sub>3</sub> ln(<span class="var">T</span>) 
+        + <span class="var">C</span><sub>4</sub><span class="var">T</span><sup><span class="var">C</span><sub>5</sub></sup>
+        <span class="bracket">)</span>
+    </div>
+</div>
+
+<style>
+    .equation-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 2rem;
+        background-color: var(--mud-palette-background-grey);
+        border: 1px dashed var(--mud-palette-action-default);
+        border-radius: 8px;
+        margin-bottom: 2rem;
+        min-height: 120px;
+    }
+
+    .equation-wrapper {
+        font-family: "Times New Roman", serif;
+        font-size: 1.6rem;
+        color: var(--mud-palette-text-primary);
+        user-select: none;
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+    }
+
+    .var { font-style: italic; }
+    .sub { font-size: 0.8rem; vertical-align: sub; }
+    .bracket { font-size: 2.2rem; font-weight: 200; }
+
+    .fraction {
+        display: inline-flex;
+        flex-direction: column;
+        align-items: center;
+        vertical-align: middle;
+        font-size: 1.2rem;
+        margin: 0 0.4rem;
+    }
+
+    .num { border-bottom: 1px solid var(--mud-palette-text-primary); padding: 0 0.5rem; }
+    .den { padding: 0 0.5rem; }
+
+    sup {
+        font-size: 1rem;
+        color: var(--mud-palette-primary);
+    }
+</style>

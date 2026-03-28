@@ -1,0 +1,47 @@
+﻿<MudNavMenu>
+    <MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Dashboard">
+        Dashboard
+    </MudNavLink>
+    
+    <MudNavLink Href="/servers" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Storage">
+        Servers
+    </MudNavLink>
+
+    @* 👇 Ahora este bloque es visible para Developers y Administradores 👇 *@
+    <AuthorizeView Roles="Developer,Administrator">
+        <Authorized>
+            <MudNavGroup Title="Settings" Expanded="true" Icon="@Icons.Material.Filled.Settings">
+                <MudNavLink Href="/users" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.People">
+                    Users
+                </MudNavLink>
+                <MudNavLink Href="/security" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Security">
+                    Security
+                </MudNavLink>
+            </MudNavGroup>
+        </Authorized>
+    </AuthorizeView>
+    <AuthorizeView Roles="Developer">
+        <Authorized>
+            <MudNavGroup Title="Thermodynamical Properties" Icon="@Icons.Material.Filled.DeviceThermostat" Expanded="false">
+            
+                @* Comentario: Enlace hacia nuestra grilla de componentes *@
+                <MudNavLink Href="/components" Icon="@Icons.Material.Filled.Science" Match="NavLinkMatch.Prefix">
+                    Components
+                </MudNavLink>
+
+                @* Comentario: Enlace hacia los métodos termodinámicos (Modelos de Equilibrio) *@
+                <MudNavLink Href="/thermodynamic-methods" Icon="@Icons.Material.Filled.Calculate" Match="NavLinkMatch.Prefix">
+                    Methods
+                </MudNavLink>
+
+            </MudNavGroup>
+        </Authorized>
+    </AuthorizeView>
+
+    <MudNavLink Href="/about" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Info">
+        About
+    </MudNavLink>
+</MudNavMenu>
+
+@code {
+}

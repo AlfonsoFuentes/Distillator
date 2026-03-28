@@ -1,0 +1,99 @@
+﻿/* Hacemos que el componente no genere un contenedor físico que rompa el grid.
+   Así, sus tres celdas hijos se alinean directamente en las columnas del padre.
+*/
+:host {
+    display: contents;
+}
+
+/* ==================== CELDAS BASE ==================== */
+.grid-cell {
+    border-right: 1px solid #b0b0b0; /* --border-color */
+    border-bottom: 1px solid #b0b0b0;
+    padding: 0 !important; /* Quitamos padding para que el input/select llene la celda */
+    display: flex;
+    align-items: center;
+    min-height: 24px;
+    box-sizing: border-box;
+}
+
+/* La etiqueta (primera columna) */
+.label {
+    background-color: #f5f5f5 !important; /* --label-bg */
+    color: #333333; /* --calc-black */
+    padding: 2px 6px !important; /* Este sí lleva padding para el texto estático */
+    font-weight: normal;
+}
+
+/* Celdas de edición */
+.value, .unit {
+    background-color: #ffffff !important;
+}
+
+/* ==================== CONTROLES DE EDICIÓN ==================== */
+input, select {
+    width: 100%;
+    height: 100%;
+    border: none;
+    background-color: transparent !important;
+    font-family: "Segoe UI", Arial, sans-serif;
+    font-size: 12px;
+    color: inherit;
+    outline: none;
+    padding: 0 10px;
+    margin: 0;
+    box-sizing: border-box;
+    transition: background-color 0.2s;
+}
+
+/* Colores dinámicos según estado */
+.user-defined input {
+    color: #4674a6 !important; /* --user-blue */
+}
+
+.calculated input {
+    color: #333333; /* --calc-black */
+}
+
+/* Alineación: Valor a la derecha, Unidad a la izquierda */
+input {
+    text-align: right;
+}
+
+select {
+    text-align: left;
+}
+
+/* Quitar flechas nativas de números */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+input[type="number"] {
+    -moz-appearance: textfield;
+}
+
+/* ==================== INTERACCIÓN (FOCUS & HOVER) ==================== */
+input:focus, select:focus {
+    background-color: #eef5ff !important;
+    box-shadow: inset 0 0 0 1px #4674a6 !important; /* --user-blue */
+    border-radius: 0;
+}
+
+input:hover, select:hover {
+    background-color: #f8faff !important;
+    cursor: pointer;
+}
+
+/* ==================== FLECHA PERSONALIZADA SELECT ==================== */
+select {
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    appearance: none !important;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e") !important;
+    background-repeat: no-repeat !important;
+    background-position: right 6px center !important;
+    background-size: 12px !important;
+    padding-right: 20px !important;
+}

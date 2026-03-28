@@ -1,0 +1,35 @@
+﻿@using System.Net.Http
+@using System.Net.Http.Json
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.AspNetCore.Components.Routing
+@using Microsoft.AspNetCore.Components.Web
+@using Microsoft.AspNetCore.Components.Web.Virtualization
+@using Microsoft.AspNetCore.Components.WebAssembly.Http
+@using Microsoft.JSInterop
+@using Client
+@using Client.Layout
+@using MudBlazor
+@using Microsoft.AspNetCore.Components.Authorization
+@using Client.Services.HttpServices
+@using Shared.Identity
+@using Shared.Results
+@using Client.Services.Security
+@using Client.Templates
+@using Shared.Thermodynamics.Methods
+@using Microsoft.AspNetCore.Authorization
+@using UnitSystem
+@using System.Globalization
+@using Shared.Thermodynamics.Components
+@using Shared.Thermodynamics.Enums
+@using Shared.Calculator.ProcessVariables
+@using Shared.Calculator.Components
+@using Shared.Calculator.MaterialStreams
+@using Shared.DesignPatterns.Thermodynamics
+
+@inject IHttpService HttpServices
+@inject IDialogService DialogService
+@inject NavigationManager NavigationManager 
+@inject AuthenticationStateProvider AuthStateProvider
+@inject ISnackBarService SnackbarService
+@inject ExcelExportService ExcelService
+@inject ChemicalComponentReportService ChemicalExcelService

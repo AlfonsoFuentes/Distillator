@@ -1,0 +1,247 @@
+﻿@page "/thermodynamic-methods/form/{Id:guid}"
+@using Client.Pages.ThermodynamicMethods.Formulas
+
+@attribute [Authorize(Roles = "Developer")]
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-6">
+    <MudText Typo="Typo.h4" Class="mb-6">
+        @if (_model != null)
+        {
+            @(Id == Guid.Empty ? "Creating New Thermodynamic Method" : $"Edit Method: {_model.Name}")
+        }
+    </MudText>
+
+    @if (_isLoading)
+    {
+        <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+    }
+    else
+    {
+        @if (_model != null)
+        {
+           
+            <MudTabs Position="Position.Top"
+                     Rounded="true"
+                     Border="true"
+                     Class="pa-4"
+                     Elevation="1"
+                     KeepPanelsAlive="true">
+                
+                @* ========================================== *@
+                @* TAB 1: METHOD DEFINITION                   *@
+                @* ========================================== *@
+                <MudTabPanel Text="Method Definition" Icon="@Icons.Material.Filled.Settings">
+                    <MudPaper Class="pa-6 mt-4" Elevation="0" Outlined="true">
+                        <MudGrid>
+                            <MudItem xs="12" md="6">
+                                <MudTextField @bind-Value="_model.Name" Label="Method Name" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                            </MudItem>
+                            <MudItem xs="12" md="6">
+                                <MudTextField @bind-Value="_model.Description" Label="Description" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                            </MudItem>
+
+                            <MudItem xs="12"><MudDivider Class="my-2" /></MudItem>
+
+                            <MudItem xs="12" md="6">
+                                <MudSelect @bind-Value="_model.VaporModel" Label="Vapor Phase Model" Variant="Variant.Outlined" Margin="Margin.Dense">
+                                    @foreach (VaporPhaseModel item in Enum.GetValues(typeof(VaporPhaseModel)))
+                                    {
+                                        <MudSelectItem Value="@item">@item.ToString()</MudSelectItem>
+                                    }
+                                </MudSelect>
+                            </MudItem>
+                            
+                            <MudItem xs="12" md="6">
+                                <MudSelect @bind-Value="_model.LiquidModel" Label="Liquid Phase Model" Variant="Variant.Outlined" Margin="Margin.Dense">
+                                    @foreach (LiquidPhaseModel item in Enum.GetValues(typeof(LiquidPhaseModel)))
+                                    {
+                                        <MudSelectItem Value="@item">@item.ToString()</MudSelectItem>
+                                    }
+                                </MudSelect>
+                            </MudItem>
+                        </MudGrid>
+                    </MudPaper>
+                </MudTabPanel>
+
+                @* ========================================== *@
+                @* TAB 2: BINARY INTERACTIONS (Placeholder)   *@
+                @* ========================================== *@
+                <MudTabPanel Text="Binary Parameters" Icon="@Icons.Material.Filled.GridOn">
+    
+                    <BinaryInteractionEditor Model="_model" />
+
+                </MudTabPanel>
+
+            </MudTabs>
+
+            @* ========================================== *@
+            @* ACCIONES DEL FORMULARIO CON ESTILO INDUSTRIAL*@
+            @* ========================================== *@
+            <div class="d-flex justify-end mt-8 gap-4">
+                
+                @* Botón Cancel *@
+                <MudTooltip Text="Discard changes and return to the list" Arrow="true" Placement="Placement.Top">
+                    <MudButton Variant="Variant.Outlined"
+                               Color="Color.Default"
+                               StartIcon="@Icons.Material.Filled.ArrowBack"
+                               OnClick="Cancel"
+                               Class="px-6">
+                        Cancel
+                    </MudButton>
+                </MudTooltip>
+
+                @if (Id != Guid.Empty)
+                {
+                    @* Botón Delete *@
+                    <MudTooltip Text="Permanently remove this method from the database" Arrow="true" Placement="Placement.Top">
+                        <MudButton Variant="Variant.Filled"
+                                   Color="Color.Error"
+                                   StartIcon="@Icons.Material.Filled.Delete"
+                                   OnClick="AttemptDelete"
+                                   Class="px-6">
+                            Delete
+                        </MudButton>
+                    </MudTooltip>
+                }
+
+                @* Botón Save *@
+                <MudTooltip Text="Validate and save method configuration" Arrow="true" Placement="Placement.Top">
+                    <MudButton Variant="Variant.Filled"
+                               Color="Color.Primary"
+                               StartIcon="@Icons.Material.Filled.Save"
+                               OnClick="AttemptSave"
+                               Class="px-8">
+                        Save Changes
+                    </MudButton>
+                </MudTooltip>
+            </div>
+        }
+        else
+        {
+            <MudPaper Class="d-flex flex-column align-center justify-center pa-8 my-6" Elevation="0" Outlined="true" Style="min-height: 300px; border-style: dashed; border-color: var(--mud-palette-error);">
+                <MudIcon Icon="@Icons.Material.Filled.WarningAmber" Color="Color.Error" Style="font-size: 4rem;" Class="mb-4" />
+                <MudText Typo="Typo.h5" Color="Color.Error" Class="mb-2">Method Data Not Found</MudText>
+                <MudText Typo="Typo.body1" Class="mb-6" Style="color: var(--mud-palette-text-secondary);">
+                    The requested thermodynamic method could not be loaded. It may have been deleted or a network error occurred.
+                </MudText>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.ArrowBack" OnClick="@Cancel">
+                    Return to Method List
+                </MudButton>
+            </MudPaper>
+        }
+    }
+</MudContainer>
+
+@code {
+    [Parameter] public Guid Id { get; set; }
+
+    private ThermodynamicMethodDto _model = null!;
+    private bool _isLoading = true;
+    private int _securityStrikes = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _isLoading = true;
+
+        if (Id == Guid.Empty)
+        {
+            // Nuevo registro
+            _model = new CreateThermodynamicMethod();
+        }
+        else
+        {
+            // Edición: Consultamos al servidor
+            var request = new GetMethodById(Id);
+            var result = await HttpServices.PostAsync<GetMethodById, Result<EditThermodynamicMethod>>(request);
+            if (result != null && result.Succeeded && result.Data != null)
+            {
+                _model = result.Data;
+            }
+        }
+
+        _isLoading = false;
+    }
+
+    // Interceptores de Seguridad
+    private async Task AttemptSave() => await ExecuteSecureAction(SaveToServerAsync);
+    private async Task AttemptDelete() => await ExecuteSecureAction(DeleteFromServerAsync);
+
+    // El "Seguro contra robos" (Regla de los 3 strikes)
+    private async Task ExecuteSecureAction(Func<Task> authorizedAction)
+    {
+        var options = new DialogOptions { CloseOnEscapeKey = false, BackdropClick = false };
+        var dialog = await DialogService.ShowAsync<SecurityLockDialog>("Security Verification", options);
+        var result = await dialog.Result;
+
+        if (result != null && !result.Canceled)
+        {
+            string pwd = result.Data?.ToString() ?? "";
+            
+            // Verificamos contraseña con el endpoint silencioso
+            bool isValid = await HttpServices.PostForValidationAsync(new ValidateDeveloperPassword { Password = pwd });
+            
+            if (isValid)
+            {
+                _securityStrikes = 0; // Reset
+                await authorizedAction();
+            }
+            else
+            {
+                _securityStrikes++;
+                SnackbarService.ShowError($"Access Denied. Strike {_securityStrikes}/3");
+
+                if (_securityStrikes >= 3)
+                {
+                    // Cierre de sesión por brecha de seguridad
+                    NavigationManager.NavigateTo("/login", forceLoad: true);
+                }
+            }
+        }
+    }
+
+    // Comandos de Persistencia
+    private async Task SaveToServerAsync()
+    {
+        if (Id == Guid.Empty)
+        {
+            var createRequest = new CreateThermodynamicMethod
+            {
+                Name = _model.Name,
+                Description = _model.Description,
+                VaporModel = _model.VaporModel,
+                LiquidModel = _model.LiquidModel,
+                Components = _model.Components,
+                BinaryParameters = _model.BinaryParameters
+            };
+            await HttpServices.PostAsync<CreateThermodynamicMethod, Result>(createRequest);
+        }
+        else
+        {
+            var editRequest = new EditThermodynamicMethod
+            {
+                Id = _model.Id,
+                Name = _model.Name,
+                Description = _model.Description,
+                VaporModel = _model.VaporModel,
+                LiquidModel = _model.LiquidModel,
+                Components = _model.Components,
+                BinaryParameters = _model.BinaryParameters
+            };
+            await HttpServices.PostAsync<EditThermodynamicMethod, Result>(editRequest);
+        }
+        
+        NavigationManager.NavigateTo("/thermodynamic-methods");
+    }
+
+    private async Task DeleteFromServerAsync()
+    {
+        var request = new DeleteMethod(Id);
+        await HttpServices.PostAsync<DeleteMethod, Result>(request);
+        NavigationManager.NavigateTo("/thermodynamic-methods");
+    }
+
+    private void Cancel()
+    {
+        NavigationManager.NavigateTo("/thermodynamic-methods");
+    }
+}

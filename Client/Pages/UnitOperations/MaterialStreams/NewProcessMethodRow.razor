@@ -1,0 +1,109 @@
+﻿@using Shared.DesignPatterns.Thermodynamics
+
+@if (Variable != null)
+{
+    <div class="grid-cell label">@Label</div>
+
+    <div class="grid-cell value @(GetCssClass())">
+        <select class="form-select-minimal"
+                disabled="@IsReadOnly()"
+                value="@(Variable.Value?.Id.ToString() ?? "")"
+                @onchange="HandleSelection">
+            
+            <option value="">Select Method...</option>
+            
+            @if (AvailableMethods != null)
+            {
+                @foreach (var method in AvailableMethods)
+                {
+                    <option value="@method.Id">@method.Name</option>
+                }
+            }
+        </select>
+    </div>
+    
+    <div class="grid-cell empty">
+        @if (Variable.IsDefined && Variable.Source != CurrentSource)
+        {
+            <span class="inheritance-text">Inherited from @Variable.Source</span>
+        }
+    </div>
+}
+
+@code {
+    // ─────────────────────────────────────────────────────────
+    // 🔹 PARÁMETROS
+    // ─────────────────────────────────────────────────────────
+    [Parameter] public string Label { get; set; } = "Thermodynamic Method";
+    [Parameter] public ControlledVariable<ThermodynamicMethodFullDto?> Variable { get; set; } = default!;
+    [Parameter] public List<ThermodynamicMethodFullDto> AvailableMethods { get; set; } = new();
+    [Parameter] public EventCallback<ControlledVariable<ThermodynamicMethodFullDto?>> VariableChanged { get; set; } = default!;
+
+    // ─────────────────────────────────────────────────────────
+    // 🔹 PROPIEDAD COMPUTADA (NO parámetro)
+    // ─────────────────────────────────────────────────────────
+    MethodSource CurrentSource => Variable.Source;
+
+    // ─────────────────────────────────────────────────────────
+    // 🔹 HELPERS: Estado visual
+    // ─────────────────────────────────────────────────────────
+
+    private string GetCssClass()
+    {
+        if (!Variable.IsDefined)
+            return "not-defined";  // 👇 Nuevo estado visual
+
+        return Variable.Source == CurrentSource
+            ? "user-defined"
+            : "calculated";
+    }
+
+    // 👇 ÚNICA REGLA: Solo readonly si lo definió OTRO origen
+    private bool IsReadOnly()
+    {
+        return Variable.Source == MethodSource.Other;
+    }
+
+    // ─────────────────────────────────────────────────────────
+    // 🔹 HANDLERS
+    // ─────────────────────────────────────────────────────────
+
+    private async Task HandleSelection(ChangeEventArgs e)
+    {
+        // 👇 La UI valida con IsReadOnly() antes de actuar
+        if (IsReadOnly())
+            return;
+
+        var selectedIdString = e.Value?.ToString();
+
+        if (Guid.TryParse(selectedIdString, out var selectedId))
+        {
+
+            var result = await HttpServices.PostAsync<GetMethodFullRequest, Result<ThermodynamicMethodFullDto>>(new GetMethodFullRequest(selectedId));
+            if (result.Succeeded)
+            {
+                var selectedMethod = result.Data;
+
+                if (selectedMethod != null)
+                {
+                    // 👇 Modificar valor y notificar al wrapper con origen UI (hardcodeado)
+                    Variable.SetValue(selectedMethod, MethodSource.UserInterface);
+                
+                    if (VariableChanged.HasDelegate)
+                        await VariableChanged.InvokeAsync(Variable);
+                }
+            }
+            
+        }
+        else
+        {
+            // 👇 Usuario seleccionó "Select Method..." → des-definir
+            Variable.ClearValue();  // 👇 Sin parámetros
+            
+            if (VariableChanged.HasDelegate)
+                await VariableChanged.InvokeAsync(Variable);
+        }
+        
+        StateHasChanged();
+    }
+}

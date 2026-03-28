@@ -1,0 +1,99 @@
+﻿
+@typeparam T where T : Amount
+<div class="d-flex align-end gap-2 mb-2 w-100">
+    
+    <div class="flex-grow-1">
+        <MudNumericField T="double"
+                         Value="Amount.Value"
+                         Label="@Label"
+                         Variant="Variant.Outlined"
+                         Margin="Margin.Dense"
+                         HideSpinButtons="true"
+                     
+                         Format="0.####"
+                         Culture="@CultureInfo.InvariantCulture"
+                         ValueChanged="ValueChanged"
+                         Immediate="false" />
+    </div>
+    
+    @* Contenedor con ancho fijo para evitar la desproporción *@
+    <div style="width: 200px;">
+        <select class="custom-industrial-select" @onchange="HandleUnitChange">
+            @foreach (var _unit in Amount.UnitsList)
+            {
+                <option value="@_unit.Name" selected="@(_unit.Name == Amount.Unit.Name)">
+                    @_unit.Symbol
+                </option>
+            }
+        </select>
+    </div>
+</div>
+
+<style>
+    .custom-industrial-select {
+        width: 100%;
+        /* 40px es la altura ideal para alinear con MudInput Dense Outlined */
+        height: 40px;
+        padding: 0 10px;
+        background-color: transparent;
+        color: var(--mud-palette-text-primary);
+        border: 1px solid var(--mud-palette-lines-inputs);
+        border-radius: var(--mud-default-borderradius);
+        font-family: var(--mud-typography-default-family);
+        font-size: 0.875rem;
+        outline: none;
+        cursor: pointer;
+        /* El secreto: un margen de 1px para alinear la línea base con el MudNumericField */
+        margin-bottom: 1px;
+        transition: border-color 200ms, border-width 50ms;
+    }
+
+        .custom-industrial-select:focus {
+            border: 2px solid var(--mud-palette-primary);
+            padding: 0 9px;
+            margin-bottom: 0px; /* Ajuste por el grosor del borde de foco */
+        }
+
+        .custom-industrial-select:hover {
+            border-color: var(--mud-palette-text-primary);
+        }
+
+        /* Estilo para las opciones del desplegable */
+        .custom-industrial-select option {
+            background-color: var(--mud-palette-surface);
+            color: var(--mud-palette-text-primary);
+            padding: 8px;
+        }
+</style>
+
+@code {
+    [Parameter] public string? Label { get; set; }
+    [Parameter] public T Amount { get; set; } = default(T)!;
+    [Parameter] public EventCallback<T> AmountChanged { get; set; }
+
+
+    async Task UnitChanged(UnitMeasure unit)
+    {
+        Amount.Unit = unit;
+
+        await AmountChanged.InvokeAsync(Amount);
+
+    }
+    async Task ValueChanged(double value)
+    {
+        Amount.SetValue(value, Amount.Unit);
+        await AmountChanged.InvokeAsync(Amount);
+    }
+    private async Task HandleUnitChange(ChangeEventArgs e)
+    {
+        var unitName = e.Value?.ToString();
+        var selectedUnit = Amount.UnitsList.FirstOrDefault(u => u.Name == unitName);
+        
+        if (selectedUnit != null)
+        {
+            Amount.Unit = selectedUnit;
+            await AmountChanged.InvokeAsync(Amount);
+        }
+    }
+
+}

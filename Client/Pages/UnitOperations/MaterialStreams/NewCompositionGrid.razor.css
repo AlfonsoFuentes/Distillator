@@ -1,0 +1,290 @@
+﻿/* ==================== CONTENEDOR Y GRID ==================== */
+.scrollable-container {
+    overflow-x: auto;
+    width: 100%;
+    max-height: 400px;
+    overflow-y: auto;
+    /* 👇 NUEVO: Para apilar grid + panel °GL */
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.data-grid {
+    display: grid;
+    border-top: 1px solid var(--border-color);
+    border-left: 1px solid var(--border-color);
+    width: max-content;
+    min-width: 100%;
+}
+
+/* ==================== COLUMNA FIJA (STICKY) ==================== */
+.fixed-col {
+    position: sticky;
+    left: 0;
+    z-index: 10 !important;
+    background-color: var(--label-bg) !important;
+    box-shadow: 2px 0 4px rgba(0,0,0,0.08);
+}
+
+.grid-header.fixed-col {
+    z-index: 11 !important;
+    background-color: var(--header-bg) !important;
+}
+
+.composition-grid {
+    grid-template-columns: 150px 130px 130px 130px 130px 130px;
+}
+
+/* ==================== CELDAS Y ENCABEZADOS ==================== */
+.grid-header, .grid-cell {
+    border-right: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+    padding: 2px 6px;
+    display: flex;
+    align-items: center;
+    min-height: 24px;
+    box-sizing: border-box;
+}
+
+.grid-header {
+    background-color: var(--header-bg) !important;
+    font-weight: bold;
+    text-align: left;
+    color: var(--calc-black);
+}
+
+.label {
+    background-color: var(--label-bg) !important;
+    color: var(--calc-black);
+}
+
+.empty {
+    background-color: var(--label-bg) !important;
+}
+
+.value {
+    background-color: #ffffff !important;
+}
+
+.calculated {
+    background-color: #f9f9f9 !important;
+    color: #555;
+}
+
+/* ==================== EDICIÓN EN LÍNEA ==================== */
+.value input, .value span {
+    text-align: right;
+    width: 100%;
+    display: block;
+}
+
+.value input {
+    height: 100%;
+    border: none;
+    background-color: transparent !important;
+    font-family: inherit;
+    font-size: inherit;
+    color: inherit;
+    outline: none;
+    padding: 0 10px;
+    margin: 0;
+    box-sizing: border-box;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+    /* ==================== PLACEHOLDER (PARA TODOS LOS INPUTS) ==================== */
+    .value input::placeholder {
+        color: #999 !important;
+        opacity: 1 !important;
+        transition: opacity 0.1s ease;
+    }
+
+    .value input:focus::placeholder {
+        color: transparent !important;
+        opacity: 0 !important;
+    }
+
+/* ==================== ESTADOS DINÁMICOS ==================== */
+
+/* 👇 ESTADO: NO DEFINIDO (gris claro, italic) */
+.not-defined .label {
+    color: #999 !important;
+    font-style: italic;
+}
+
+.not-defined .value input {
+    color: #999 !important;
+    font-style: italic;
+    cursor: text !important;
+}
+
+    .not-defined .value input:focus {
+        color: var(--user-blue) !important;
+        font-style: normal;
+        background-color: #eef5ff !important;
+    }
+
+/* 👇 ESTADO: USER-DEFINED (Azul, editable) */
+.user-defined .value input {
+    color: var(--user-blue) !important;
+    font-weight: 500;
+}
+
+/* 👇 ESTADO: CALCULATED (Gris oscuro, readonly) */
+.calculated {
+    color: #333333 !important;
+    font-weight: 400;
+}
+
+/* ==================== INTERACCIÓN (FOCUS & HOVER) ==================== */
+.value input:focus {
+    background-color: #eef5ff !important;
+    box-shadow: inset 0 0 0 1px var(--user-blue) !important;
+    border-radius: 0;
+}
+
+.value input:hover:not(:read-only) {
+    background-color: #f8faff !important;
+    cursor: pointer;
+}
+
+/* ==================== QUITAR FLECHAS DE INPUT NUMBER ==================== */
+.value input[type="number"]::-webkit-outer-spin-button,
+.value input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.value input[type="number"] {
+    -moz-appearance: textfield;
+}
+
+/* ==================== SCROLLBARS INDUSTRIALES ==================== */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-left: 1px solid var(--border-color);
+}
+
+::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+}
+
+    ::-webkit-scrollbar-thumb:hover {
+        background: #a1a1a1;
+    }
+
+/* ==================== WARNING DE SUMA > 1.0 ==================== */
+.composition-grid.sum-warning .value input {
+    color: #d97706 !important;
+    border-bottom: 2px dashed #d97706 !important;
+}
+
+.composition-grid.sum-warning::after {
+    content: "⚠ Sum > 1.0";
+    position: absolute;
+    top: 4px;
+    right: 8px;
+    font-size: 10px;
+    color: #d97706;
+    font-style: italic;
+}
+
+/* ==================== Sección °GL (Compacta) - CORREGIDO ==================== */
+.quick-entry-panel {
+    /* 👇 Ajustado para alinearse con el grid */
+    margin: 0 1px 10px 1px;
+    padding: 10px 15px;
+    background-color: #f8faff;
+    border: 1px solid var(--user-blue);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    width: fit-content;
+    box-sizing: border-box;
+}
+
+.entry-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: bold;
+    color: var(--user-blue);
+    white-space: nowrap;
+}
+
+.entry-input {
+    display: flex;
+    align-items: center;
+    background: white;
+    border: 1px solid var(--border-color);
+    border-radius: 2px;
+}
+
+    .entry-input input {
+        width: 80px; /* 👇 Un poco más ancho para °GL */
+        border: none;
+        outline: none;
+        text-align: right;
+        padding: 4px 8px;
+        font-weight: bold;
+        font-family: inherit;
+        font-size: 12px; /* 👇 Consistente con el grid */
+    }
+
+        .entry-input input::-webkit-outer-spin-button,
+        .entry-input input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        .entry-input input[type=number] {
+            -moz-appearance: textfield;
+        }
+
+        /* 👇 NUEVO: Focus consistente con el grid */
+        .entry-input input:focus {
+            background-color: #eef5ff !important;
+        }
+
+        /* 👇 NUEVO: Estilo para readonly */
+        .entry-input input:read-only {
+            background-color: #f5f5f5 !important;
+            color: #666 !important;
+            cursor: not-allowed;
+        }
+
+.unit-tag {
+    background: #f0f0f0;
+    padding: 4px 10px;
+    border-left: 1px solid var(--border-color);
+    color: #444;
+    font-size: 11px;
+    font-weight: bold;
+}
+
+.entry-info {
+    font-size: 11px;
+    color: #888;
+    font-style: italic;
+    margin-left: auto; /* 👇 Empuja el texto a la derecha */
+}
+
+/* 👇 NUEVO: Panel °GL cuando está readonly (Source = Other) */
+.quick-entry-panel:has(input:read-only) {
+    opacity: 0.7;
+    cursor: not-allowed;
+    border-color: #ccc !important;
+}
+
+    .quick-entry-panel:has(input:read-only) .entry-label,
+    .quick-entry-panel:has(input:read-only) .unit-tag {
+        color: #666 !important;
+    }

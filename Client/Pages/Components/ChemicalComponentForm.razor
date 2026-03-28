@@ -1,0 +1,293 @@
+﻿@page "/components/form/{Id:guid}"
+@using Client.Pages.Components.Formulas
+@attribute [Authorize(Roles = "Developer")]
+
+
+
+@* Asume que tienes tus inyecciones configuradas *@
+
+@* @inject CustomAuthenticationStateProvider AuthProvider <-- Descomenta tu proveedor real *@
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-6">
+    <MudText Typo="Typo.h4" Class="mb-6">
+        @if (_model != null)
+        {
+            @(Id == Guid.Empty ? $"Creating New Component {_model.Name}" : $"Edit Component {_model.Name}")
+        }
+        
+    </MudText>
+
+    @if (_isLoading)
+    {
+        <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+    }
+    else
+    {
+        @if (_model != null)
+        {
+            <MudTabs Position="Position.Left"
+                     Rounded="true"
+                     Border="true"
+                     Class="pa-4"
+                     Elevation="1"
+                     KeepPanelsAlive="false">
+            
+                @* ========================================== *@
+                @* TAB 1: MAIN DATA                           *@
+                @* ========================================== *@
+                <MudTabPanel Text="Main Data">
+                    <ChildContent>
+                        <MudPaper Class="pa-4" Elevation="0" Outlined="true">
+                            <MudGrid>
+                                <MudItem xs="12" md="4"><MudTextField @bind-Value="_model.Name" Label="Component Name" Variant="Variant.Outlined" Margin="Margin.Dense" /></MudItem>
+                                <MudItem xs="12" md="4"><MudTextField @bind-Value="_model.Formula" Label="Formula" Variant="Variant.Outlined" Margin="Margin.Dense" /></MudItem>
+                                <MudItem xs="12" md="4"><MudTextField @bind-Value="_model.Family" Label="Family" Variant="Variant.Outlined" Margin="Margin.Dense" /></MudItem>
+                                <MudItem xs="12" md="4">
+                                    <MudNumericField @bind-Value="_model.MolecularWeight" Culture="@CultureInfo.InvariantCulture"
+                                                     Label="Molecular Weight" Variant="Variant.Outlined" HideSpinButtons="true" Margin="Margin.Dense" />
+                                </MudItem>
+                        
+                                <MudItem xs="12"><MudDivider Class="my-4" /></MudItem>
+
+                                @* Propiedades Físicas usando tu componente estrella *@
+                                <MudItem xs="12" md="6"><EditAmount Label="Critical Temperature" @bind-Amount="_model.CriticalTemperature"></EditAmount></MudItem>
+                                <MudItem xs="12" md="6"><EditAmount Label="Critical Pressure" @bind-Amount="_model.CriticalPressure" /></MudItem>
+                                <MudItem xs="12" md="6"><EditAmount Label="Boiling Point" @bind-Amount="_model.BoilingPoint" /></MudItem>
+                                <MudItem xs="12" md="6"><EditAmount Label="Melting Point" @bind-Amount="_model.MeltingPoint" /></MudItem>
+                                <MudItem xs="12" md="6"><EditAmount Label="Enthalpy of Formation" @bind-Amount="_model.EnthalpyForm" /></MudItem>
+                                <MudItem xs="12" md="6"><EditAmount Label="Gibbs Energy of Formation" @bind-Amount="_model.GibbsForm" /></MudItem>
+                            </MudGrid>
+                        </MudPaper>
+                    </ChildContent>
+                </MudTabPanel>
+
+                @* ========================================== *@
+                @* TABS 2-11: CORRELATIONS (Usando el Editor) *@
+                @* ========================================== *@
+                <MudTabPanel Text="Vapor Pressure">
+                    
+                    <ChildContent>
+                        @* Solo se renderiza el componente si el panel se carga de verdad *@
+                        <CorrelationTabEditor EquationName="Vapor Pressure" Model="_model.VaporPressure">
+                            <EquationVaporPressure></EquationVaporPressure>
+                        </CorrelationTabEditor>
+                    </ChildContent>
+                </MudTabPanel>
+                <MudTabPanel Text="Heat of Vaporization">
+                    <ChildContent>
+                        <CorrelationTabEditor EquationName="Heat of Vaporization" Model="_model.HeatOfVaporization">
+                            <EquationHeatVaporization></EquationHeatVaporization>
+                        </CorrelationTabEditor>
+                    </ChildContent>
+                </MudTabPanel>
+                <MudTabPanel Text="Liquid Heat Capacity">
+                    <ChildContent>
+                        <CorrelationTabEditor EquationName="Liquid Heat Capacity" Model="_model.LiquidHeatCapacity">
+                            <EquationLiquidHeatCapacity></EquationLiquidHeatCapacity>
+                        </CorrelationTabEditor>
+                    </ChildContent>
+                </MudTabPanel>
+                <MudTabPanel Text="Gas Heat Capacity">
+                    <ChildContent>
+                        <CorrelationTabEditor EquationName="Gas Heat Capacity" Model="_model.GasHeatCapacity">
+                            <EquationGasHeatCapacity></EquationGasHeatCapacity>
+                        </CorrelationTabEditor>
+                    </ChildContent>
+                </MudTabPanel>
+                <MudTabPanel Text="Liquid Viscosity">
+                    <ChildContent>
+                        <CorrelationTabEditor EquationName="Liquid Viscosity" Model="_model.LiquidViscosity">
+                            <EquationLiquidViscosity></EquationLiquidViscosity>
+                        </CorrelationTabEditor>
+                    </ChildContent>
+                </MudTabPanel>
+                <MudTabPanel Text="Gas Viscosity">
+                    <ChildContent>
+                        <CorrelationTabEditor EquationName="Gas Viscosity" Model="_model.GasViscosity">
+                            <EquationGasViscosity></EquationGasViscosity>
+                        </CorrelationTabEditor>
+                    </ChildContent>
+                </MudTabPanel>
+                <MudTabPanel Text="Liquid Thermal Cond.">
+                    <ChildContent>
+                        <CorrelationTabEditor EquationName="Liquid Thermal Conductivity" Model="_model.LiquidThermalCond">
+                            <EquationLiquidThermalConductivity></EquationLiquidThermalConductivity>
+                        </CorrelationTabEditor>
+                    </ChildContent>
+                </MudTabPanel>
+                <MudTabPanel Text="Gas Thermal Cond.">
+                    <ChildContent>
+                        <CorrelationTabEditor EquationName="Gas Thermal Conductivity" Model="_model.GasThermalCond">
+                            <EquationGasThermalConductivity></EquationGasThermalConductivity>
+                        </CorrelationTabEditor>
+                    </ChildContent>
+                </MudTabPanel>
+                <MudTabPanel Text="Density">
+                    <ChildContent>
+                        <CorrelationTabEditor EquationName="Density" Model="_model.Density">
+                            <EquationLiquidDensity></EquationLiquidDensity>
+                        </CorrelationTabEditor>
+                    </ChildContent>
+                </MudTabPanel>
+                <MudTabPanel Text="Surface Tension">
+                    <ChildContent>
+                        <CorrelationTabEditor EquationName="Surface Tension" Model="_model.SurfaceTension">
+                            <EquationSurfaceTension></EquationSurfaceTension>
+                        </CorrelationTabEditor>
+                    </ChildContent>
+                </MudTabPanel>
+
+            </MudTabs>
+
+            @* ACCIONES DEL FORMULARIO *@
+            @* ACCIONES DEL FORMULARIO CON ESTILO INDUSTRIAL *@
+            <div class="d-flex justify-end mt-8 gap-4">
+    
+                @* Botón Cancel *@
+                <MudTooltip Text="Discard changes and return to the list" Arrow="true" Placement="Placement.Top">
+                    <MudButton Variant="Variant.Outlined"
+                               Color="Color.Default"
+                               StartIcon="@Icons.Material.Filled.ArrowBack"
+                               OnClick="Cancel"
+                               Class="px-6">
+                        Cancel
+                    </MudButton>
+                </MudTooltip>
+
+                @if (Id != Guid.Empty)
+                {
+                    @* Botón Delete *@
+                    <MudTooltip Text="Permanently remove this component from the database" Arrow="true" Placement="Placement.Top">
+                        <MudButton Variant="Variant.Filled"
+                                   Color="Color.Error"
+                                   StartIcon="@Icons.Material.Filled.Delete"
+                                   OnClick="AttemptDelete"
+                                   Class="px-6">
+                            Delete
+                        </MudButton>
+                    </MudTooltip>
+                }
+
+                @* Botón Save *@
+                <MudTooltip Text="Validate and save component information" Arrow="true" Placement="Placement.Top">
+                    <MudButton Variant="Variant.Filled"
+                               Color="Color.Primary"
+                               StartIcon="@Icons.Material.Filled.Save"
+                               OnClick="AttemptSave"
+                               Class="px-8">
+                        Save Changes
+                    </MudButton>
+                </MudTooltip>
+            </div>
+        }
+        else
+        {
+            <MudPaper Class="d-flex flex-column align-center justify-center pa-8 my-6" Elevation="0" Outlined="true" Style="min-height: 300px; border-style: dashed; border-color: var(--mud-palette-error);">
+                <MudIcon Icon="@Icons.Material.Filled.WarningAmber" Color="Color.Error" Style="font-size: 4rem;" Class="mb-4" />
+                <MudText Typo="Typo.h5" Color="Color.Error" Class="mb-2">
+                    Component Data Not Found
+                </MudText>
+                <MudText Typo="Typo.body1" Class="mb-6" Style="color: var(--mud-palette-text-secondary);">
+                    The requested chemical component could not be loaded. It may have been deleted or a network error occurred.
+                </MudText>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.ArrowBack" OnClick="@(() => NavigationManager.NavigateTo("/components"))">
+                    Return to Component List
+                </MudButton>
+            </MudPaper>
+        }
+      
+       
+    }
+</MudContainer>
+
+@code {
+    [Parameter] public Guid Id { get; set; }
+
+    // Comentario: Usamos la clase base para poder castearla luego
+    private ChemicalComponentDto _model = null!;
+    private bool _isLoading = true;
+    private int _securityStrikes = 0; // Regla de los 3 strikes
+
+    protected override async Task OnInitializedAsync()
+    {
+        _isLoading = true;
+
+        if (Id == Guid.Empty)
+        {
+            // Nuevo registro
+            _model = new CreateChemicalComponent();
+        }
+        else
+        {
+            // Edición: Consultamos al servidor
+            var request = new GetComponentById(Id);
+            var result = await HttpServices.PostAsync<GetComponentById, Result<EditChemicalComponent>>(request);
+            if (result.Succeeded)
+            {
+                _model = result.Data;
+                StateHasChanged();
+            }
+        }
+
+        _isLoading = false;
+    }
+
+    // Comentario: Interceptores de UI
+    private async Task AttemptSave() => await ExecuteSecureAction(SaveToServerAsync);
+    private async Task AttemptDelete() => await ExecuteSecureAction(DeleteFromServerAsync);
+
+    // Comentario: El "Seguro contra robos"
+    private async Task ExecuteSecureAction(Func<Task> authorizedAction)
+    {
+        var options = new DialogOptions { CloseOnEscapeKey = false, BackdropClick = false };
+        var dialog = await DialogService.ShowAsync<SecurityLockDialog>("Security Verification", options);
+        var result = await dialog.Result;
+
+        if (!result!.Canceled)
+        {
+            string pwd = result.Data?.ToString() ?? "";
+            
+            // Comentario: Necesitarás un Endpoint /ValidateDeveloperPassword en tu Server
+            bool isValid = await HttpServices.PostForValidationAsync(new ValidateDeveloperPassword { Password = pwd });
+            // // bool isValid = pwd == "test"; // <-- REEMPLAZAR por validación HTTP real
+            
+            if (isValid)
+            {
+                _securityStrikes = 0; // Reset
+                await authorizedAction();
+            }
+            else
+            {
+                _securityStrikes++;
+                SnackbarService.ShowError($"Access Denied. Strike {_securityStrikes}/3");
+
+                if (_securityStrikes >= 3)
+                {
+                    // Comentario: Deslogueo inmediato por intrusión
+                    // await AuthProvider.Logout();
+                    NavigationManager.NavigateTo("/login", forceLoad: true);
+                }
+            }
+        }
+    }
+
+    // Comentario: Comandos Reales
+    private async Task SaveToServerAsync()
+    {
+        await HttpServices.PostAsync<ChemicalComponentDto, Result>(_model);
+            
+        NavigationManager.NavigateTo("/components");
+    }
+
+    private async Task DeleteFromServerAsync()
+    {
+        var request = new DeleteComponent(Id);
+        await HttpServices.PostAsync<DeleteComponent, Result>(request);
+        NavigationManager.NavigateTo("/components");
+    }
+    // Comentario: Regresa al listado principal sin realizar cambios
+    private void Cancel()
+    {
+        NavigationManager.NavigateTo("/components");
+    }
+}

@@ -1,0 +1,238 @@
+﻿@using Shared.DesignPatterns.Thermodynamics
+@using static System.Math
+
+@if (ShowGlInput)
+{
+    <div class="quick-entry-panel">
+        <div class="entry-label">
+            <span>°GL Etanol</span>
+        </div>
+        
+        <div class="entry-input">
+            <input type="number"
+                   step="0.1"
+                   min="0"
+                   max="100"
+                   value="@GetGlValue()"
+                   placeholder="0-100"
+                   readonly="@IsReadOnly()"
+                   @oninput="HandleGlInput"
+                   @onkeydown="HandleGlKeyDown"
+                   @onblur="HandleGlBlur" />
+        </div>
+        
+        <span class="unit-tag">°GL</span>
+        <span class="entry-info">Ingresa °GL para calcular composición Etanol-Agua</span>
+    </div>
+}
+
+@code {
+    // ─────────────────────────────────────────────────────────
+    // 🔹 PARÁMETROS
+    // ─────────────────────────────────────────────────────────
+    [Parameter] public ControlledVariable<StreamComposition> Variable { get; set; } = default!;
+    [Parameter] public EventCallback<ControlledVariable<StreamComposition>> VariableChanged { get; set; } = default!;
+    [Parameter] public EventCallback<double> GlValueChanged { get; set; } = default!;
+
+    // ─────────────────────────────────────────────────────────
+    // 🔹 PROPIEDADES COMPUTADAS
+    // ─────────────────────────────────────────────────────────
+    private bool ShowGlInput => Variable.Value?.IsEthanolWaterMixture() == true;
+    private bool IsReadOnly() => Variable.Source == MethodSource.Other;
+    MethodSource CurrentSource => Variable.Source;
+
+    // ─────────────────────────────────────────────────────────
+    // 🔹 ESTADO TEMPORAL
+    // ─────────────────────────────────────────────────────────
+    private string? _tempGlValue;
+    private bool _isEditingGl;
+
+    // ─────────────────────────────────────────────────────────
+    // 🔹 HELPERS (SIN OnParametersSetAsync - ESE ERA EL PROBLEMA)
+    // ─────────────────────────────────────────────────────────
+    
+    private string GetGlValue()
+    {
+        // 👇 1. Si está editando temporalmente, mostrar valor temporal
+        if (_isEditingGl && _tempGlValue != null)
+            return _tempGlValue;
+        
+        // 👇 2. Si no es mezcla Etanol-Agua o Value es null, retornar vacío
+        if (!ShowGlInput || Variable.Value == null)
+            return "";
+        
+        // 👇 3. Obtener componente Etanol
+        var ethanol = GetEthanolComponent();
+        if (ethanol == null)
+            return "";
+        
+        // 👇 4. CLAVE: Si MassFraction es null pero MolarFraction tiene valor,
+        //    forzar conversión de Molar → Mass
+        if (!ethanol.MassFraction.HasValue && ethanol.MolarFraction.HasValue)
+        {
+            if (Variable.Value.InputType == ComponentInputType.MolarFraction)
+            {
+                Variable.Value.CalculateMassFractionsFromMolar();
+            }
+        }
+        
+        // 👇 5. Si MassFraction tiene valor, calcular °GL
+        if (ethanol.MassFraction.HasValue)
+        {
+            var glValue = GetGLEtanol();
+            return glValue.ToString("0.0");
+        }
+        
+        // 👇 6. Si no hay ningún valor, retornar vacío
+        return "";
+    }
+
+    private ComponentComposition? GetEthanolComponent()
+    {
+        return Variable.Value?.Components
+            .FirstOrDefault(c => c.ComponentName.Equals("Ethanol", StringComparison.OrdinalIgnoreCase));
+    }
+
+    private double CalcularMasicoDesdeGL(double GL)
+    {
+        if (GL >= 100) return 1.0;
+        if (GL <= 0) return 0.0;
+        return (1.881755917 * 1e-9 * Pow(GL, 4.0))
+             - (1.161368119 * 1e-7 * Pow(GL, 3.0))
+             + (1.36632945 * 1e-5 * Pow(GL, 2.0))
+             + (7.8756832 * 1e-3 * GL);
+    }
+
+    private double GetGLEtanol()
+    {
+        var ethanol = GetEthanolComponent();
+        if (ethanol == null) return 0;
+        
+        double masico = (ethanol.MassFraction ?? 0) * 100;
+        
+        if (masico <= 0) return 0;
+        if (masico >= 100) return 100;
+
+        double sup = 100, inf = 0, GL = 0;
+        for (int i = 0; i < 60; i++)
+        {
+            GL = (sup + inf) / 2;
+            double pm = CalcularMasicoDesdeGL(GL) * 100;
+            if (Abs(pm - masico) < 1e-4) break;
+            if (pm > masico) sup = GL; else inf = GL;
+        }
+        return GL;
+    }
+
+    // ─────────────────────────────────────────────────────────
+    // 🔹 HANDLERS
+    // ─────────────────────────────────────────────────────────
+    
+    private void HandleGlInput(ChangeEventArgs e)
+    {
+        if (IsReadOnly()) return;
+        _tempGlValue = e.Value?.ToString();
+        _isEditingGl = true;
+    }
+
+    private async Task HandleGlKeyDown(KeyboardEventArgs e)
+    {
+        if (IsReadOnly()) return;
+        
+        if (e.Key == "Enter")
+            await CommitGlValue();
+        else if ((e.Key == "Delete" || e.Key == "Backspace") && string.IsNullOrWhiteSpace(_tempGlValue))
+            await ClearGlValue();
+    }
+
+    private async Task HandleGlBlur(FocusEventArgs e)
+    {
+        if (IsReadOnly()) return;
+        await CommitGlValue();
+    }
+
+    // ─────────────────────────────────────────────────────────
+    // 🔹 COMMIT: Ingresar °GL → calcular composición
+    // ─────────────────────────────────────────────────────────
+    
+    private async Task CommitGlValue()
+    {
+        if (IsReadOnly() || !ShowGlInput || Variable.Value == null) return;
+        
+        if (!_isEditingGl || string.IsNullOrWhiteSpace(_tempGlValue))
+        {
+            _tempGlValue = null;
+            _isEditingGl = false;
+            StateHasChanged();
+            return;
+        }
+
+        if (double.TryParse(_tempGlValue, out var glValue) && glValue >= 0 && glValue <= 100)
+        {
+            var massFraction = CalcularMasicoDesdeGL(glValue);
+            
+            var ethanol = GetEthanolComponent();
+            var water = Variable.Value.Components
+                .FirstOrDefault(c => c.ComponentName.Equals("Water", StringComparison.OrdinalIgnoreCase));
+            
+            if (ethanol != null && water != null)
+            {
+                ethanol.MassFraction = massFraction;
+                water.MassFraction = 1.0 - massFraction;
+                
+                Variable.Value.InputType = ComponentInputType.MassFraction;
+                
+                if (Variable.Value.InputType == ComponentInputType.MassFraction)
+                {
+                    Variable.Value.CalculateMolarFractionsFromMass();
+                }
+                
+                Variable.SetValue(Variable.Value, MethodSource.UserInterface);
+                
+                if (VariableChanged.HasDelegate)
+                    await VariableChanged.InvokeAsync(Variable);
+                
+                if (GlValueChanged.HasDelegate)
+                    await GlValueChanged.InvokeAsync(glValue);
+            }
+        }
+
+        // 👇 CLAVE: Limpiar estado temporal PRIMERO
+        _tempGlValue = null;
+        _isEditingGl = false;
+        
+        // 👇 LUEGO forzar re-render - GetGlValue() ahora leerá MassFraction
+        StateHasChanged();
+    }
+
+    // ─────────────────────────────────────────────────────────
+    // 🔹 CLEAR: Limpiar fracciones de Etanol/Agua
+    // ─────────────────────────────────────────────────────────
+    
+    private async Task ClearGlValue()
+    {
+        if (IsReadOnly() || !ShowGlInput || Variable.Value == null) return;
+        
+        var ethanol = GetEthanolComponent();
+        var water = Variable.Value.Components
+            .FirstOrDefault(c => c.ComponentName.Equals("Water", StringComparison.OrdinalIgnoreCase));
+        
+        if (ethanol != null) ethanol.MassFraction = null;
+        if (water != null) water.MassFraction = null;
+        
+        if (Variable.Value.InputType == ComponentInputType.MassFraction)
+        {
+            Variable.Value.CalculateMolarFractionsFromMass();
+        }
+        
+        Variable.SetValue(Variable.Value, Variable.Source, Variable.SourceId);
+        
+        _tempGlValue = null;
+        _isEditingGl = false;
+        
+        if (VariableChanged.HasDelegate)
+            await VariableChanged.InvokeAsync(Variable);
+        
+        StateHasChanged();
+    }
+}

@@ -1,0 +1,66 @@
+﻿@* EquationGasHeatCapacity.razor *@
+<div class="equation-container">
+    <div class="equation-wrapper">
+        <span class="var">C</span><sub>p,gas</sub> = 
+        <span class="var">C</span><sub>1</sub> + 
+        <span class="var">C</span><sub>2</sub>
+        <span class="bracket">[</span>
+        <div class="fraction-large">
+            <div class="num"><span class="var">C</span><sub>3</sub>/<span class="var">T</span></div>
+            <div class="den">sinh(<span class="var">C</span><sub>3</sub>/<span class="var">T</span>)</div>
+        </div>
+        <span class="bracket">]</span><sup>2</sup> + 
+        <span class="var">C</span><sub>4</sub>
+        <span class="bracket">[</span>
+        <div class="fraction-large">
+            <div class="num"><span class="var">C</span><sub>5</sub>/<span class="var">T</span></div>
+            <div class="den">cosh(<span class="var">C</span><sub>5</sub>/<span class="var">T</span>)</div>
+        </div>
+        <span class="bracket">]</span><sup>2</sup>
+    </div>
+</div>
+
+<style>
+    .equation-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 2rem;
+        background-color: var(--mud-palette-background-grey);
+        border: 1px dashed var(--mud-palette-action-default);
+        border-radius: 8px;
+        margin-bottom: 2rem;
+        min-height: 140px;
+    }
+
+    .equation-wrapper {
+        font-family: "Times New Roman", serif;
+        font-size: 1.4rem;
+        color: var(--mud-palette-text-primary);
+        user-select: none;
+        display: flex;
+        align-items: center;
+        gap: 0.2rem;
+    }
+
+    .var { font-style: italic; }
+    .bracket { font-size: 2.8rem; font-weight: 100; color: var(--mud-palette-text-secondary); }
+
+    .fraction-large {
+        display: inline-flex;
+        flex-direction: column;
+        align-items: center;
+        vertical-align: middle;
+        font-size: 1.1rem;
+        margin: 0 0.5rem;
+    }
+
+    .num { border-bottom: 1px solid var(--mud-palette-text-primary); padding: 0 0.5rem; }
+    .den { padding: 0 0.5rem; }
+
+    sup {
+        font-size: 1rem;
+        color: var(--mud-palette-primary);
+        font-weight: bold;
+    }
+</style>

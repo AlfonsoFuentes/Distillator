@@ -1,0 +1,87 @@
+﻿
+@using Shared.Results
+
+
+<MudDialog>
+    <DialogContent>
+        <EditForm Model="@_request" OnValidSubmit="SubmitAsync">
+            <DataAnnotationsValidator />
+
+            <MudGrid>
+                <MudItem xs="12" sm="6">
+                    <MudTextField @bind-Value="_request.FirstName"
+                                  Label="First Name"
+                                  Variant="Variant.Outlined"
+                                  Margin="Margin.Dense"
+                                  Required="true" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudTextField @bind-Value="_request.LastName"
+                                  Label="Last Name"
+                                  Variant="Variant.Outlined"
+                                  Margin="Margin.Dense"
+                                  Required="true" />
+                </MudItem>
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="_request.Email"
+                                  Label="Email Address"
+                                  InputType="InputType.Email"
+                                  Variant="Variant.Outlined"
+                                  Margin="Margin.Dense"
+                                  Required="true" />
+                </MudItem>
+            </MudGrid>
+
+            @* Nota informativa con estilo industrial para el administrador *@
+            <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Class="mt-6 pa-2" Dense="true">
+                <MudText Typo="Typo.caption">
+                    <b>Note:</b> This user will automatically be assigned the <b>Creator</b> role and the generic password <b>TemporalPassword123!</b>. They will be forced to change it upon their first login.
+                </MudText>
+            </MudAlert>
+
+        </EditForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel" Variant="Variant.Text" Color="Color.Default">Cancel</MudButton>
+        <MudButton OnClick="SubmitAsync" Variant="Variant.Filled" Color="Color.Primary" Disabled="@_isProcessing">
+            @if (_isProcessing)
+            {
+                <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                <span class="ms-2">Creating...</span>
+            }
+            else
+            {
+                <span>Create Creator</span>
+            }
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
+
+    // El DTO ahora hace match perfecto con lo que espera el backend
+    private CreateUserRequest _request = new();
+    private bool _isProcessing = false;
+
+    private void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+
+    private async Task SubmitAsync()
+    {
+        _isProcessing = true;
+        
+        var response = await HttpServices.PostAsync<CreateUserRequest, Result>(_request);
+
+        if (response != null && response.Succeeded)
+        {
+            MudDialog.Close(DialogResult.Ok(true));
+        }
+        else
+        {
+            _isProcessing = false;
+        }
+    }
+}

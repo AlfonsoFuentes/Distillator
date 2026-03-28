@@ -1,0 +1,109 @@
+﻿@page "/components"
+
+@attribute [Authorize(Roles = "Developer")]
+
+
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-6">
+    <MudText Typo="Typo.h4" Class="mb-6">Chemical Components</MudText>
+
+    @* Barra de herramientas superior *@
+    @* Barra de herramientas con estilo industrial *@
+    <MudToolBar Gutters="false" Class="d-flex align-center justify-end gap-4 mb-4">
+    
+        @* Botón Exportar a Excel (Placeholder) *@
+        <MudTooltip Text="Export all components to Microsoft Excel (Future Feature)" Arrow="true" Placement="Placement.Top">
+            <MudButton Variant="Variant.Filled"
+                       Color="Color.Success"
+                       StartIcon="@Icons.Custom.FileFormats.FileExcel"
+                       OnClick="ExportData"
+                       Class="px-4">
+                Export to Excel
+            </MudButton>
+        </MudTooltip>
+
+        @* Botón Agregar Componente *@
+        <MudTooltip Text="Register a new chemical component in the database" Arrow="true" Placement="Placement.Top">
+            <MudButton Variant="Variant.Filled"
+                       Color="Color.Primary"
+                       StartIcon="@Icons.Material.Filled.Add"
+                       OnClick="GoToCreate"
+                       Class="px-4">
+                Add Component
+            </MudButton>
+        </MudTooltip>
+
+    </MudToolBar>
+
+    @* Grilla de datos principal *@
+    <MudDataGrid T="ChemicalComponentListDto" Items="@_components" Loading="@_isLoading" Filterable="true" SortMode="SortMode.Multiple" Hover="true" Striped="true" Elevation="1" Dense="true">
+        <Columns>
+            <PropertyColumn Property="x => x.Name" Title="Name" />
+            <PropertyColumn Property="x => x.Formula" Title="Formula" />
+            <PropertyColumn Property="x => x.Family" Title="Family" />
+            <PropertyColumn Property="x => x.MolecularWeight" Title="Molecular Weight" />
+            
+            @* Columna de Acciones *@
+            <TemplateColumn Title="Actions" Sortable="false" Filterable="false">
+                <CellTemplate>
+                    <MudIconButton Size="Size.Small" Icon="@Icons.Material.Filled.Edit" Color="Color.Primary" OnClick="@(() => GoToEdit(context.Item.Id))" />
+                </CellTemplate>
+            </TemplateColumn>
+        </Columns>
+        <PagerContent>
+            <MudDataGridPager T="ChemicalComponentListDto" />
+        </PagerContent>
+    </MudDataGrid>
+</MudContainer>
+
+@code {
+    private List<ChemicalComponentListDto> _components = new();
+    private bool _isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDataAsync();
+    }
+
+    // Comentario: Consultamos el endpoint GetAllComponents
+    private async Task LoadDataAsync()
+    {
+        _isLoading = true;
+
+        var request = new GetAllComponents();
+
+        // Comentario: El server devuelve Results.Ok(list), por lo que deserializamos directo a la lista
+        var result = await HttpServices.PostAsync<GetAllComponents, Result<List<ChemicalComponentListDto>>>(request);
+
+        if (result.Succeeded)
+        {
+            _components = result.Data;
+        }
+
+        _isLoading = false;
+    }
+
+    // Comentario: Navegación pasando el Guid.Empty para el modo creación
+    private void GoToCreate()
+    {
+        NavigationManager.NavigateTo($"/components/form/{Guid.Empty}");
+    }
+
+    // Comentario: Navegación pasando el Guid real para el modo edición
+    private void GoToEdit(Guid id)
+    {
+        NavigationManager.NavigateTo($"/components/form/{id}");
+    }
+    private async Task ExportData()
+    {
+        var result = await HttpServices.PostAsync<GetAllCompleteComponents, Result<List<EditChemicalComponent>>>(new GetAllCompleteComponents());
+
+        if(result.Succeeded)
+        {
+            await ChemicalExcelService.ExportMasterDatabaseAsync(result.Data);
+        }
+       
+      
+    }
+    
+}

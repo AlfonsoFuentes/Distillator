@@ -1,0 +1,79 @@
+﻿@page "/"
+@using Client.Pages.UnitOperations.MassStream
+@using Client.Pages.UnitOperations.MaterialStreams
+
+<PageTitle>Home</PageTitle>
+
+<div class="pfd-canvas">
+    <div class="canvas-title">Process Flow Diagram</div>
+    
+    <div class="stream-element" @ondblclick="OpenStreamDialog" title="Double-click to open properties">
+        <svg width="150" height="40" viewBox="0 0 150 40">
+            <line x1="10" y1="20" x2="135" y2="20" stroke="#0033a0" stroke-width="3" />
+            <polygon points="130,12 145,20 130,28" fill="#0033a0" />
+        </svg>
+        <span class="stream-label">S-101</span>
+    </div>
+</div>
+
+@if (isDialogOpen)
+{
+    <NewMaterialStreamDialog OnClose="CloseStreamDialog" />
+}
+<style>
+    .pfd-canvas {
+        width: 100%;
+        height: 80vh;
+        background-color: #f8f9fa;
+        background-image: radial-gradient(#d1d1d1 1px, transparent 1px);
+        background-size: 20px 20px; /* Efecto de papel milimetrado industrial */
+        position: relative;
+        border: 1px solid var(--border-color);
+    }
+
+    .canvas-title {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        font-family: var(--font-family);
+        font-size: 14px;
+        color: #666;
+        font-weight: bold;
+    }
+    .stream-element {
+        position: absolute;
+        top: 150px;
+        left: 200px;
+        cursor: pointer;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .stream-element:hover svg line, .stream-element:hover svg polygon {
+        stroke: #0055ff;
+        fill: #0055ff;
+    }
+
+    .stream-label {
+        font-family: var(--font-family);
+        font-weight: bold;
+        font-size: 12px;
+        color: var(--user-blue);
+        margin-top: -5px;
+    }
+</style>
+
+@code {
+    private bool isDialogOpen = false;
+
+    private void OpenStreamDialog()
+    {
+        isDialogOpen = true;
+    }
+
+    private void CloseStreamDialog()
+    {
+        isDialogOpen = false;
+    }
+}

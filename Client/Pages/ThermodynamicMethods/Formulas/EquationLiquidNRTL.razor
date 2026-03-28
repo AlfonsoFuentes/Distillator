@@ -1,0 +1,29 @@
+﻿<div class="d-flex flex-column align-center gap-2">
+    <div class="equation-wrapper">
+        <span class="var">f</span><sub class="sub">i</sub><sup class="sup">L</sup> = 
+        <span class="var">x</span><sub class="sub">i</sub> <span class="var">γ</span><sub class="sub">i</sub> <span class="var">P</span><sub class="sub">i</sub><sup class="sup">sat</sup>
+    </div>
+    <span class="text-hint">where <span class="var">γ</span><sub class="sub">i</sub> is calculated via NRTL Model</span>
+    
+    <div class="equation-wrapper mt-2" style="color: var(--mud-palette-primary);">
+        <span class="var">τ</span><sub class="sub">ij</sub> = <span class="var">A</span><sub class="sub">ij</sub> + 
+        <div class="fraction-large">
+            <div class="num"><span class="var">B</span><sub class="sub">ij</sub></div>
+            <div class="den"><span class="var">T</span></div>
+        </div>
+        <span class="separator">|</span>
+        <span class="var">α</span><sub class="sub">ij</sub> = <span class="var">C</span><sub class="sub">ij</sub>
+    </div>
+</div>
+
+<style>
+    .equation-wrapper { font-family: "Times New Roman", serif; font-size: 1.4rem; color: var(--mud-palette-text-primary); display: flex; align-items: center; gap: 0.2rem; }
+    .var { font-style: italic; }
+    .sub { font-size: 0.8rem; vertical-align: sub; }
+    .sup { font-size: 0.8rem; vertical-align: super; }
+    .separator { margin: 0 1rem; color: var(--mud-palette-divider); font-weight: 100; }
+    .fraction-large { display: inline-flex; flex-direction: column; align-items: center; vertical-align: middle; font-size: 1.1rem; margin: 0 0.5rem; }
+    .num { border-bottom: 1px solid var(--mud-palette-text-primary); padding: 0 0.5rem; width: 100%; text-align: center; }
+    .den { padding: 0 0.5rem; width: 100%; text-align: center; }
+    .text-hint { font-size: 0.9rem; color: var(--mud-palette-text-secondary); font-family: var(--mud-typography-default-family); }
+</style>

@@ -1,0 +1,209 @@
+﻿
+
+<MudPaper Class="pa-6 mt-4" Elevation="0" Outlined="true">
+    <MudText Typo="Typo.h6" Class="mb-4">Method Components & Interaction Parameters</MudText>
+
+    @* --- SECCIÓN A: SELECCIÓN DE COMPONENTE --- *@
+    <MudGrid Class="align-center mb-6">
+        <MudItem xs="12" md="8">
+            <MudAutocomplete T="ChemicalComponentListDto"
+                             Label="Search and Add Component to Method"
+                             Value="_selectedComponent"
+                             ValueChanged="AddComponentToMethod"
+                             SearchFunc="@SearchComponents"
+                             ToStringFunc="@(c => c == null ? null : $"{c.Name} ({c.Formula})")"
+                             Variant="Variant.Outlined"
+                             Margin="Margin.Dense"
+                             Dense="true"
+                             ResetValueOnEmptyText="true"
+                             CoerceText="true" />
+        </MudItem>
+        <MudItem xs="12" md="4">
+            <MudText Typo="Typo.caption">Selected components will form the interaction matrix.</MudText>
+        </MudItem>
+    </MudGrid>
+
+    @* --- SECCIÓN B: TABLA DE COMPONENTES VINCULADOS --- *@
+    <MudTable Items="Model.Components" Dense="true" Bordered="true" Elevation="0" Class="mb-6">
+        <HeaderContent>
+            <MudTh>Index</MudTh>
+            <MudTh>Component Name</MudTh>
+            <MudTh>Actions</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Index">@context.MatrixIndex</MudTd>
+            <MudTd DataLabel="Name">@context.ComponentName</MudTd>
+            <MudTd>
+                <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" OnClick="@(() => RemoveComponent(context))" />
+            </MudTd>
+        </RowTemplate>
+    </MudTable>
+
+    <MudDivider Class="my-6" />
+
+    @* --- SECCIÓN C: MATRIZ DE PARÁMETROS BINARIOS --- *@
+    <MudText Typo="Typo.subtitle1" Class="mb-4"><b>Binary Parameters Matrix</b></MudText>
+    
+    @if (Model.Components.Count < 2 && Model.LiquidModel != LiquidPhaseModel.SteamTables)
+    {
+        <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Class="my-4">
+            Add at least two components to configure binary interaction parameters (NRTL/Wilson).
+        </MudAlert>
+    }
+    else
+    {
+        @* Renderizado dinámico de la ecuación según el modelo *@
+       
+
+        <MudTable Items="GetPairs()" Dense="true" Bordered="true" Elevation="0" Striped="true">
+            <HeaderContent>
+                <MudTh>Pair (i - j)</MudTh>
+                @if (Model.LiquidModel == LiquidPhaseModel.NRTL_ASPEN)
+                {
+                    <MudTh>Aij</MudTh>
+                    <MudTh>Bij</MudTh>
+                    <MudTh>Cij (Alpha)</MudTh>
+                }
+                else if (Model.LiquidModel == LiquidPhaseModel.WilsonASPEN)
+                {
+                    <MudTh>Aij</MudTh>
+                    <MudTh>Bij</MudTh>
+                }
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd><b>@context.Item1 - @context.Item2</b></MudTd>
+                
+                @* Campos de edición para los coeficientes *@
+                @foreach (var type in GetRequiredParameters())
+                {
+                    <MudTd>
+                        <MudNumericField T="double"
+                                         Value="@GetParamValue(context.Item1, context.Item2, type)"
+                                         ValueChanged="@(v => UpdateParamValue(context.Item1, context.Item2, type, v))"
+                                         Variant="Variant.Text"
+                                         Margin="Margin.Dense"
+                                         HideSpinButtons="true"
+                                         Culture="@CultureInfo.InvariantCulture" />
+                    </MudTd>
+                }
+            </RowTemplate>
+        </MudTable>
+    }
+</MudPaper>
+
+<style>
+    .equation-display-area {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 80px;
+        background-color: var(--mud-palette-background-grey);
+        border: 1px dashed var(--mud-palette-action-default);
+        border-radius: 8px;
+    }
+</style>
+
+@code {
+    [Parameter] public ThermodynamicMethodDto Model { get; set; } = null!;
+    
+    private ChemicalComponentListDto? _selectedComponent;
+    private List<ChemicalComponentListDto> _allComponents = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Cargar lista de componentes para el Autocomplete
+        var result = await HttpServices.PostAsync<GetAllComponents, Result<List<ChemicalComponentListDto>>>(new GetAllComponents());
+        if (result.Succeeded) _allComponents = result.Data;
+    }
+
+    private async Task<IEnumerable<ChemicalComponentListDto>> SearchComponents(string value, CancellationToken token)
+    {
+        // El CancellationToken (token) permite a MudBlazor cancelar la búsqueda si el usuario
+        // escribe muy rápido, ahorrando memoria. Como aquí buscamos en RAM, solo cumplimos la firma.
+
+        if (string.IsNullOrEmpty(value)) return _allComponents;
+        
+        return _allComponents.Where(x => x.Name.Contains(value, StringComparison.InvariantCultureIgnoreCase));
+    }
+
+    private void AddComponentToMethod(ChemicalComponentListDto component)
+    {
+        if (component == null) return;
+        if (Model.Components.Any(c => c.ComponentId == component.Id)) return;
+
+        Model.Components.Add(new MethodComponentDto
+        {
+            ComponentId = component.Id,
+            ComponentName = component.Name,
+            MatrixIndex = Model.Components.Count
+        });
+        _selectedComponent = null;
+    }
+
+    private void RemoveComponent(MethodComponentDto component)
+    {
+        Model.Components.Remove(component);
+        // Re-indexar
+        for (int i = 0; i < Model.Components.Count; i++) Model.Components[i].MatrixIndex = i;
+        
+        // Limpiar parámetros huérfanos
+        Model.BinaryParameters.RemoveAll(p => p.ComponentI_Id == component.ComponentId || p.ComponentJ_Id == component.ComponentId);
+    }
+
+    // Lógica para generar los pares (i, j) para la matriz
+    private List<(string, string)> GetPairs()
+    {
+        var pairs = new List<(string, string)>();
+        foreach (var compI in Model.Components)
+        {
+            foreach (var compJ in Model.Components)
+            {
+                if (compI.ComponentId != compJ.ComponentId)
+                    pairs.Add((compI.ComponentName, compJ.ComponentName));
+            }
+        }
+        return pairs;
+    }
+
+    private List<BinaryParameterType> GetRequiredParameters()
+    {
+        if (Model.LiquidModel == LiquidPhaseModel.NRTL_ASPEN)
+            return new() { BinaryParameterType.NRTL_A, BinaryParameterType.NRTL_B, BinaryParameterType.NRTL_C };
+        
+        if (Model.LiquidModel == LiquidPhaseModel.WilsonASPEN)
+            return new() { BinaryParameterType.Wilson_A, BinaryParameterType.Wilson_B };
+            
+        return new();
+    }
+
+    private double GetParamValue(string nameI, string nameJ, BinaryParameterType type)
+    {
+        var p = Model.BinaryParameters.FirstOrDefault(x => x.ComponentI_Name == nameI && x.ComponentJ_Name == nameJ && x.ParameterType == type);
+        return p?.Value ?? 0;
+    }
+
+    private void UpdateParamValue(string nameI, string nameJ, BinaryParameterType type, double value)
+    {
+        var p = Model.BinaryParameters.FirstOrDefault(x => x.ComponentI_Name == nameI && x.ComponentJ_Name == nameJ && x.ParameterType == type);
+        
+        if (p == null)
+        {
+            var compI = Model.Components.First(c => c.ComponentName == nameI);
+            var compJ = Model.Components.First(c => c.ComponentName == nameJ);
+            
+            Model.BinaryParameters.Add(new BinaryInteractionParameterDto
+            {
+                ComponentI_Id = compI.ComponentId,
+                ComponentI_Name = nameI,
+                ComponentJ_Id = compJ.ComponentId,
+                ComponentJ_Name = nameJ,
+                ParameterType = type,
+                Value = value
+            });
+        }
+        else
+        {
+            p.Value = value;
+        }
+    }
+}

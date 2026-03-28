@@ -1,0 +1,158 @@
+﻿@page "/login"
+
+<MudContainer MaxWidth="MaxWidth.Small" Class="mt-10">
+    <MudCard Elevation="3" Class="pa-8">
+        <MudText Typo="Typo.h4" Align="Align.Center" Class="mb-6">
+            <b>System Login</b>
+        </MudText>
+        
+        <EditForm Model="@_loginRequest" OnValidSubmit="ExecuteLogin">
+            <DataAnnotationsValidator />
+            
+            @* Se separa el bind-Value por Value y ValueChanged para escuchar cada letra / pegado del navegador *@
+            <MudTextField T="string"
+                          Value="@_loginRequest.Email"
+                          ValueChanged="OnEmailChanged"
+                          Label="Email Address"
+                          Variant="Variant.Outlined"
+                          Margin="Margin.Dense"
+                          Class="mb-4" />
+                          
+            @if (_isStrictSecurityAccount)
+            {
+                @* CUADRO ESTRICTO: Sin ojito, sin autocompletar *@
+                <MudTextField @bind-Value="_loginRequest.Password"
+                              Label="Master Password"
+                              InputType="InputType.Password"
+                              autocomplete="new-password"
+                              Variant="Variant.Outlined"
+                              Margin="Margin.Dense"
+                              Class="mb-4" />
+            }
+            else
+            {
+                @* CUADRO NORMAL: Con ojito y comportamiento estándar *@
+                <MudTextField @bind-Value="_loginRequest.Password"
+                              Label="Password"
+                              InputType="@_passwordInput"
+                              Adornment="Adornment.End"
+                              AdornmentIcon="@_passwordInputIcon"
+                              OnAdornmentClick="TogglePasswordVisibility"
+                              Variant="Variant.Outlined"
+                              Margin="Margin.Dense"
+                              Class="mb-4" />
+            }
+                          
+            <MudCheckBox @bind-Value="_loginRequest.RememberMe"
+                         Label="Remember Me"
+                         Color="Color.Primary"
+                         Class="mb-6" />
+            
+            <MudButton ButtonType="ButtonType.Submit"
+                       Variant="Variant.Filled"
+                       Color="Color.Primary"
+                       FullWidth="true"
+                       Disabled="@_isLoading">
+                @if (_isLoading)
+                {
+                    <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                }
+                else
+                {
+                    <span>Sign In</span>
+                }
+            </MudButton>
+
+            <div class="d-flex justify-center mt-6">
+                <MudText Typo="Typo.body2">
+                    Don't have an account?
+                    <MudLink Href="/register" Underline="Underline.Always" Color="Color.Primary" Class="ml-1">
+                        Register here
+                    </MudLink>
+                </MudText>
+            </div>
+        </EditForm>
+    </MudCard>
+</MudContainer>
+
+@code {
+    private LoginRequest _loginRequest = new();
+    private bool _isLoading = false;
+    
+    // Variables para el input normal
+    private bool _isShowPassword;
+    private InputType _passwordInput = InputType.Password;
+    private string _passwordInputIcon = Icons.Material.Filled.VisibilityOff;
+
+    // Control de seguridad estricta
+    private bool _isStrictSecurityAccount = false;
+
+    // 👇 HARDCODEA AQUÍ LOS CORREOS DE ADMINISTRADORES / DEVELOPERS 👇
+    private readonly List<string> _strictAccounts = new()
+    {
+        "alfonsofuen@gmail.com",
+        "villegas01@gmail.com"
+        // Añade aquí tu correo o los que necesiten protección máxima
+    };
+
+    protected override void OnInitialized()
+    {
+        // Esterilizamos el modelo por si viene de una expulsión (ForceLoad)
+        _loginRequest = new LoginRequest { Email = "", Password = "" };
+        _isShowPassword = false;
+        _passwordInput = InputType.Password;
+        _passwordInputIcon = Icons.Material.Filled.VisibilityOff;
+        _isStrictSecurityAccount = false;
+    }
+
+    private void OnEmailChanged(string email)
+    {
+        _loginRequest.Email = email;
+
+        // Verificamos si el correo ingresado coincide con alguno de la lista estricta (ignorando mayúsculas/minúsculas)
+        if (!string.IsNullOrWhiteSpace(email) &&
+            _strictAccounts.Any(admin => email.Equals(admin, StringComparison.OrdinalIgnoreCase)))
+        {
+            _isStrictSecurityAccount = true;
+            
+            // Garantizamos que el ojito se apague por si regresan a un correo normal luego
+            _isShowPassword = false;
+            _passwordInput = InputType.Password;
+            
+            // Borramos cualquier contraseña que el navegador haya intentado pegar de forma atrevida
+            _loginRequest.Password = string.Empty;
+        }
+        else
+        {
+            _isStrictSecurityAccount = false;
+        }
+    }
+
+    private void TogglePasswordVisibility()
+    {
+        _isShowPassword = !_isShowPassword;
+        _passwordInputIcon = _isShowPassword ? Icons.Material.Filled.Visibility : Icons.Material.Filled.VisibilityOff;
+        _passwordInput = _isShowPassword ? InputType.Text : InputType.Password;
+    }
+
+    private async Task ExecuteLogin()
+    {
+        _isLoading = true;
+        
+        var response = await HttpServices.PostAsync<LoginRequest, Result>(_loginRequest);
+
+        if (response != null && response.Succeeded)
+        {
+            // Login normal exitoso
+            ((CustomAuthenticationStateProvider)AuthStateProvider).NotifyAuthenticationStateChanged();
+            NavigationManager.NavigateTo("/");
+        }
+        else if (response != null && response.Messages.Contains("REQUIRE_PASSWORD_CHANGE"))
+        {
+            // Redirigimos al usuario a la pantalla de forzar cambio de clave.
+            NavigationManager.NavigateTo($"/force-password-change?email={_loginRequest.Email}");
+        }
+
+        _isLoading = false;
+    }
+}

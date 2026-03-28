@@ -1,0 +1,122 @@
+﻿@page "/users"
+
+@using Shared.Results
+@using Microsoft.AspNetCore.Authorization
+
+
+
+@attribute [Authorize(Roles = "Developer,Administrator")]
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-6">
+    <div class="d-flex justify-space-between align-center mb-4">
+        <MudText Typo="Typo.h5"><b>User Management</b></MudText>
+        
+        @* 1. El botón de creación solo es para Administradores *@
+        <AuthorizeView Roles="Administrator">
+            <Authorized>
+                <MudButton Variant="Variant.Filled" 
+                           Color="Color.Primary" 
+                           StartIcon="@Icons.Material.Filled.PersonAdd" 
+                           OnClick="OpenCreateUserDialog">
+                    Create User
+                </MudButton>
+            </Authorized>
+        </AuthorizeView>
+    </div>
+
+    <MudTable Items="@_users" Dense="true" Hover="true" Bordered="true" Striped="true" Loading="@_loading" Elevation="2">
+        <HeaderContent>
+            <MudTh>Full Name</MudTh>
+            <MudTh>Email</MudTh>
+            <MudTh>Roles</MudTh>
+            <MudTh>Account Status</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Full Name">@context.FullName</MudTd>
+            <MudTd DataLabel="Email">@context.Email</MudTd>
+            <MudTd DataLabel="Roles">
+                @foreach (var role in context.Roles)
+                {
+                    <MudChip T=string  Size="Size.Small" Color="Color.Dark" Variant="Variant.Outlined">@role</MudChip>
+                }
+            </MudTd>
+            <MudTd DataLabel="Account Status">
+                @* 2. El switch es solo editable por Administradores *@
+                <AuthorizeView Roles="Administrator" Context="authContext">
+                    <Authorized>
+                        <MudSwitch T="bool" 
+                                   Value="@context.IsActive" 
+                                   ValueChanged="@(async (bool val) => await ToggleStatus(context, val))"
+                                   Color="Color.Success" 
+                                   UnCheckedColor="Color.Error"
+                                   Label="@(context.IsActive ? "Active" : "Disabled")" />
+                    </Authorized>
+                    <NotAuthorized>
+                        @* Si es Developer, solo ve un texto o un switch deshabilitado *@
+                        <MudChip T=string Size="Size.Small" 
+                                 Color="@(context.IsActive ? Color.Success : Color.Error)" 
+                                 Variant="Variant.Text">
+                            @(context.IsActive ? "Active" : "Disabled")
+                        </MudChip>
+                    </NotAuthorized>
+                </AuthorizeView>
+            </MudTd>
+        </RowTemplate>
+    </MudTable>
+</MudContainer>
+
+@code {
+    private List<UserDto> _users = new();
+    private bool _loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadUsers();
+    }
+
+    private async Task LoadUsers()
+    {
+        _loading = true;
+        
+        // Llamamos al endpoint que devuelve la lista (requiere rol Administrator en el server)
+        var response = await HttpServices.PostAsync<GetUsersRequest, Result<List<UserDto>>>(new GetUsersRequest());
+        
+        if (response != null && response.Succeeded && response.Data != null)
+        {
+            _users = response.Data;
+        }
+        
+        _loading = false;
+    }
+
+    private async Task ToggleStatus(UserDto user, bool newValue)
+    {
+        // Preparamos el request con el ID del usuario afectado
+        var request = new ToggleUserStatusRequest { UserId = user.Id };
+        
+        // Enviamos la petición al servidor usando tu HttpServices (que ya muestra el Snackbar)
+        var response = await HttpServices.PostAsync<ToggleUserStatusRequest, Result>(request);
+
+        if (response != null && response.Succeeded)
+        {
+            // Si el servidor responde OK, actualizamos la UI cambiando el valor localmente
+            user.IsActive = newValue;
+        }
+        else
+        {
+            // Si falla, forzamos un re-renderizado para que el switch regrese a su estado original
+            StateHasChanged();
+        }
+    }
+    private async Task OpenCreateUserDialog()
+    {
+        var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, FullWidth = true };
+        var dialog = await DialogService.ShowAsync<CreateUserDialog>("Create New User", options);
+        var result = await dialog.Result;
+
+        if (!result!.Canceled)
+        {
+            await LoadUsers(); // Recargamos la tabla
+        }
+    }
+}

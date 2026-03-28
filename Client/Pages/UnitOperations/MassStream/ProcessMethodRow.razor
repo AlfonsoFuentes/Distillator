@@ -1,0 +1,58 @@
+﻿@* ProcessMethodRow.razor *@
+@using Shared.Calculator.ProcessVariables
+
+@if (MethodProperty != null)
+{
+    <div class="grid-cell label">@MethodProperty.VariableName</div>
+
+    @* Aplicamos la clase CSS dependiendo del estado *@
+    <div class="grid-cell value @(MethodProperty.State == VariableState.UserDefined ? "user-defined" : (MethodProperty.State == VariableState.CalculatedBy ? "calculated" : ""))">
+        
+        @* Bloqueamos el select usando el atributo disabled si IsReadOnly es true *@
+        <select class="form-select-minimal"
+                disabled="@MethodProperty.IsReadOnly"
+                value="@(MethodProperty.Data?.Id.ToString() ?? "")"
+                @onchange="HandleSelection">
+            
+            <option value="">Select Method...</option>
+            
+            @if (AvailableMethods != null)
+            {
+                @foreach (var method in AvailableMethods)
+                {
+                    <option value="@method.Id">@method.Name</option>
+                }
+            }
+        </select>
+    </div>
+    <div class="grid-cell empty">
+        @if (MethodProperty.State == VariableState.CalculatedBy)
+        {
+            @* Usamos la nueva clase limpia en lugar de style="..." *@
+            <span class="inheritance-text">Inherited from @MethodProperty.OwnerId</span>
+        }
+    </div>
+}
+
+@code {
+    [Parameter, EditorRequired] public ProcessMethodProperty MethodProperty { get; set; } = default!;
+    
+    // Lista ligera (DTOs con Id y Name) para llenar el dropdown
+    [Parameter, EditorRequired] public IEnumerable<dynamic> AvailableMethods { get; set; } = new List<dynamic>(); // Reemplaza dynamic por tu ThermodynamicMethodListDto
+
+    // Evento para avisarle al padre que el usuario escogió un ID (o lo borró)
+    [Parameter] public EventCallback<Guid?> OnMethodSelected { get; set; }
+
+    private async Task HandleSelection(ChangeEventArgs e)
+    {
+        if (Guid.TryParse(e.Value?.ToString(), out var selectedId))
+        {
+            await OnMethodSelected.InvokeAsync(selectedId);
+        }
+        else
+        {
+            // Si el usuario vuelve a "Select Method...", mandamos null
+            await OnMethodSelected.InvokeAsync(null);
+        }
+    }
+}

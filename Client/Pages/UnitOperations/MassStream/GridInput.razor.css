@@ -1,0 +1,51 @@
+﻿/* Heredamos la estructura de celda del padre */
+.grid-cell.value.user-defined {
+    border-right: 1px solid #b0b0b0; /* --border-color */
+    border-bottom: 1px solid #b0b0b0;
+    display: flex;
+    align-items: center;
+    min-height: 24px;
+    background-color: #ffffff !important;
+    padding: 0; /* Quitamos el padding de la celda para que el input la llene */
+}
+
+input {
+    width: 100%;
+    height: 100%;
+    border: none;
+    background-color: transparent !important;
+    font-family: "Segoe UI", Arial, sans-serif;
+    font-size: 12px;
+    color: #4674a6 !important; /* --user-blue */
+    outline: none;
+    padding: 0 10px;
+    margin: 0;
+    box-sizing: border-box;
+    text-align: right;
+    display: block;
+    transition: background-color 0.2s;
+}
+
+    /* Quitar flechas nativas */
+    input[type="number"]::-webkit-outer-spin-button,
+    input[type="number"]::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+
+    input[type="number"] {
+        -moz-appearance: textfield;
+    }
+
+    /* El foco impecable que te gustó */
+    input:focus {
+        background-color: #eef5ff !important;
+        box-shadow: inset 0 0 0 1px #4674a6 !important; /* --user-blue */
+        border-radius: 0;
+    }
+
+    /* El hover interactivo */
+    input:hover {
+        background-color: #f8faff !important;
+        cursor: pointer;
+    }

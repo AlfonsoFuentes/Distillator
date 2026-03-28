@@ -1,0 +1,86 @@
+﻿@* EquationGasViscosity.razor *@
+<div class="equation-container">
+    <div class="equation-wrapper">
+        <span class="var">μ</span><sub class="sub">gas</sub> = 
+        <div class="fraction-main">
+            <div class="num">
+                <span class="var">C</span><sub>1</sub> <span class="var">T</span><sup><span class="var">C</span><sub>2</sub></sup>
+            </div>
+            <div class="den">
+                1 + 
+                <div class="fraction-inline">
+                    <div class="num-small"><span class="var">C</span><sub>3</sub></div>
+                    <div class="den-small"><span class="var">T</span></div>
+                </div>
+                + 
+                <div class="fraction-inline">
+                    <div class="num-small"><span class="var">C</span><sub>4</sub></div>
+                    <div class="den-small"><span class="var">T</span><sup>2</sup></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .equation-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 2rem;
+        background-color: var(--mud-palette-background-grey);
+        border: 1px dashed var(--mud-palette-action-default);
+        border-radius: 8px;
+        margin-bottom: 2rem;
+        min-height: 140px;
+    }
+
+    .equation-wrapper {
+        font-family: "Times New Roman", serif;
+        font-size: 1.5rem;
+        color: var(--mud-palette-text-primary);
+        user-select: none;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .var { font-style: italic; }
+    .sub { font-size: 0.8rem; vertical-align: sub; }
+
+    .fraction-main {
+        display: inline-flex;
+        flex-direction: column;
+        align-items: center;
+        vertical-align: middle;
+    }
+
+    .fraction-main > .num { 
+        border-bottom: 2px solid var(--mud-palette-text-primary); 
+        padding: 0 1rem 0.2rem 1rem; 
+    }
+    
+    .fraction-main > .den { 
+        padding: 0.5rem 1rem 0 1rem; 
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+    }
+
+    .fraction-inline {
+        display: inline-flex;
+        flex-direction: column;
+        align-items: center;
+        vertical-align: middle;
+        font-size: 1rem;
+        margin: 0 0.2rem;
+    }
+
+    .num-small { border-bottom: 1px solid var(--mud-palette-text-primary); padding: 0 0.3rem; }
+    .den-small { padding: 0 0.3rem; }
+
+    sup {
+        font-size: 0.8rem;
+        color: var(--mud-palette-primary);
+    }
+</style>

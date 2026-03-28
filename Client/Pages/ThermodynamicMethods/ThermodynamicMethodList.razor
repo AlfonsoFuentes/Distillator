@@ -1,0 +1,122 @@
+﻿@page "/thermodynamic-methods"
+@using Client.Services
+@attribute [Authorize(Roles = "Developer")]
+@inject ThermodynamicMethodReportService MethodExcelService
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-6">
+    <MudText Typo="Typo.h4" Class="mb-6">Thermodynamic Methods</MudText>
+
+
+
+
+    @* ========================================== *@
+    @* BARRA DE HERRAMIENTAS INDUSTRIAL           *@
+    @* ========================================== *@
+    <MudToolBar Gutters="false" Class="d-flex align-center justify-end gap-4 mb-4">
+    
+        @* Botón Exportar a Excel (Placeholder) *@
+        <MudTooltip Text="Export all methods to Microsoft Excel (Future Feature)" Arrow="true" Placement="Placement.Top">
+            <MudButton Variant="Variant.Filled"
+                       Color="Color.Success"
+                       StartIcon="@Icons.Custom.FileFormats.FileExcel"
+                       OnClick="ExportData"
+                       Class="px-4">
+                Export to Excel
+            </MudButton>
+        </MudTooltip>
+
+        @* Botón Agregar Método *@
+        <MudTooltip Text="Create a new thermodynamic property package" Arrow="true" Placement="Placement.Top">
+            <MudButton Variant="Variant.Filled"
+                       Color="Color.Primary"
+                       StartIcon="@Icons.Material.Filled.Add"
+                       OnClick="GoToCreate"
+                       Class="px-4">
+                Add Method
+            </MudButton>
+        </MudTooltip>
+
+    </MudToolBar>
+
+    @* ========================================== *@
+    @* GRILLA DE DATOS PRINCIPAL                  *@
+    @* ========================================== *@
+    <MudDataGrid T="ThermodynamicMethodListDto" Items="@_methods" Loading="@_isLoading" Filterable="true" SortMode="SortMode.Multiple" Hover="true" Striped="true" Elevation="1" Dense="true">
+        <Columns>
+            <PropertyColumn Property="x => x.Name" Title="Method Name" />
+            <PropertyColumn Property="x => x.VaporModel" Title="Vapor Phase Model" />
+            <PropertyColumn Property="x => x.LiquidModel" Title="Liquid Phase Model" />
+            
+            <TemplateColumn Title="Components" Sortable="true">
+                <CellTemplate>
+                    <MudChip Size="Size.Small" Color="Color.Dark" Variant="Variant.Outlined">
+                        @context.Item.ComponentCount linked
+                    </MudChip>
+                </CellTemplate>
+            </TemplateColumn>
+            
+            @* Columna de Acciones *@
+            <TemplateColumn Title="Actions" Sortable="false" Filterable="false">
+                <CellTemplate>
+                    <MudTooltip Text="Edit Parameters" Arrow="true" Placement="Placement.Left">
+                        <MudIconButton Size="Size.Small" Icon="@Icons.Material.Filled.Edit" Color="Color.Primary" OnClick="@(() => GoToEdit(context.Item.Id))" />
+                    </MudTooltip>
+                </CellTemplate>
+            </TemplateColumn>
+        </Columns>
+        <PagerContent>
+            <MudDataGridPager T="ThermodynamicMethodListDto" />
+        </PagerContent>
+    </MudDataGrid>
+
+</MudContainer>
+
+@code {
+    private List<ThermodynamicMethodListDto> _methods = new();
+    private bool _isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDataAsync();
+    }
+
+    private async Task LoadDataAsync()
+    {
+        _isLoading = true;
+
+        var request = new GetAllMethods();
+        var result = await HttpServices.PostAsync<GetAllMethods, Result<List<ThermodynamicMethodListDto>>>(request);
+
+        if (result != null && result.Succeeded)
+        {
+            _methods = result.Data ?? new List<ThermodynamicMethodListDto>();
+        }
+
+        _isLoading = false;
+    }
+
+    // Navegación pasando Guid.Empty para el modo creación
+    private void GoToCreate()
+    {
+        NavigationManager.NavigateTo($"/thermodynamic-methods/form/{Guid.Empty}");
+    }
+
+    // Navegación pasando el Guid real para el modo edición
+    private void GoToEdit(Guid id)
+    {
+        NavigationManager.NavigateTo($"/thermodynamic-methods/form/{id}");
+    }
+
+    // Placeholder para la exportación a Excel
+ 
+    private async Task ExportData()
+    {
+        // 1. Llamamos a tu nuevo endpoint para traer la data masiva inflada
+        var result = await HttpServices.PostAsync<GetAllCompleteMethods, Result<List<ThermodynamicMethodDto>>>(new GetAllCompleteMethods());
+
+        // 2. Si es exitoso, detonamos el servicio de EPPlus que descargará el archivo al navegador
+        if (result.Succeeded && result.Data != null)
+        {
+            await MethodExcelService.ExportMasterDatabaseAsync(result.Data);
+        }
+    }
+}

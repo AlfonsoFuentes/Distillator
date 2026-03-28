@@ -1,0 +1,57 @@
+﻿
+
+<MudPaper Class="pa-6" Elevation="0" Outlined="true">
+    
+    <div class="equation-display-area">
+        @if (ChildContent != null)
+        {
+            @ChildContent
+        }
+        else
+        {
+            <MudText Typo="Typo.subtitle1" Color="Color.Secondary">
+                [ Equation not defined for @EquationName ]
+            </MudText>
+        }
+    </div>
+
+    <MudGrid>
+        @* Coeficientes estándar C1-C7 (Son double, NO llevan EditAmount) *@
+        <MudItem xs="12" sm="4" md="3"><MudNumericField T="double" @bind-Value="Model.C1" Label="C1" Variant="Variant.Outlined" HideSpinButtons="true"  Margin="Margin.Dense" Culture="@CultureInfo.InvariantCulture" /></MudItem>
+        <MudItem xs="12" sm="4" md="3"><MudNumericField T="double" @bind-Value="Model.C2" Label="C2" Variant="Variant.Outlined" HideSpinButtons="true"  Margin="Margin.Dense" Culture="@CultureInfo.InvariantCulture" /></MudItem>
+        <MudItem xs="12" sm="4" md="3"><MudNumericField T="double" @bind-Value="Model.C3" Label="C3" Variant="Variant.Outlined" HideSpinButtons="true"  Margin="Margin.Dense" Culture="@CultureInfo.InvariantCulture" /></MudItem>
+        <MudItem xs="12" sm="4" md="3"><MudNumericField T="double" @bind-Value="Model.C4" Label="C4" Variant="Variant.Outlined" HideSpinButtons="true"  Margin="Margin.Dense" Culture="@CultureInfo.InvariantCulture" /></MudItem>
+        <MudItem xs="12" sm="4" md="3"><MudNumericField T="double" @bind-Value="Model.C5" Label="C5" Variant="Variant.Outlined" HideSpinButtons="true"  Margin="Margin.Dense" Culture="@CultureInfo.InvariantCulture" /></MudItem>
+        <MudItem xs="12" sm="4" md="3"><MudNumericField T="double" @bind-Value="Model.C6" Label="C6" Variant="Variant.Outlined" HideSpinButtons="true"  Margin="Margin.Dense" Culture="@CultureInfo.InvariantCulture" /></MudItem>
+        <MudItem xs="12" sm="4" md="3"><MudNumericField T="double" @bind-Value="Model.C7" Label="C7" Variant="Variant.Outlined" HideSpinButtons="true"  Margin="Margin.Dense" Culture="@CultureInfo.InvariantCulture" /></MudItem>
+
+        <MudItem xs="12"><MudDivider Class="my-4" /></MudItem>
+
+        @* Rangos de Temperatura (Tmin y Tmax SÍ usan tu EditAmount) *@
+        <MudItem xs="12" md="6">
+            <EditAmount Label="Min Temperature (Tmin)" @bind-Amount="Model.Tmin" />
+        </MudItem>
+        <MudItem xs="12" md="6">
+            <EditAmount Label="Max Temperature (Tmax)" @bind-Amount="Model.Tmax" />
+        </MudItem>
+    </MudGrid>
+</MudPaper>
+<style>
+    .equation-display-area {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 120px;
+        background-color: var(--mud-palette-background-grey);
+        border: 1px dashed var(--mud-palette-action-default);
+        border-radius: 8px;
+        margin-bottom: 2rem;
+    }
+</style>
+
+@code {
+    // Comentario: Recibimos el nombre para el placeholder y la referencia en memoria del DTO
+    [Parameter] public string EquationName { get; set; } = string.Empty;
+    [Parameter] public CorrelationCoefficientsDto Model { get; set; } = new();
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}

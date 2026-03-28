@@ -1,0 +1,89 @@
+﻿/* ==================== ESTRUCTURA GRID ==================== */
+/* Estas celdas se alinean perfectamente con las columnas del padre */
+.grid-cell {
+    border-right: 1px solid #b0b0b0; /* var(--border-color) del padre */
+    border-bottom: 1px solid #b0b0b0;
+    padding: 2px 6px;
+    display: flex;
+    align-items: center;
+    min-height: 24px;
+    font-family: "Segoe UI", Arial, sans-serif;
+    font-size: 12px;
+}
+
+.label {
+    background-color: #f5f5f5; /* var(--label-bg) */
+    color: #333333;
+}
+
+.value {
+    background-color: #ffffff;
+}
+
+.empty {
+    background-color: #f5f5f5;
+}
+
+/* ==================== SELECT MINIMALISTA ==================== */
+.form-select-minimal {
+    width: 100%;
+    height: 100%;
+    border: none;
+    background-color: transparent;
+    font-family: inherit;
+    font-size: inherit;
+    outline: none;
+    padding: 0 10px;
+    margin: 0;
+    box-sizing: border-box;
+    text-align: left; /* El nombre del método se lee mejor a la izquierda */
+    cursor: pointer;
+    /* Flecha SVG personalizada industrial */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 6px center;
+    background-size: 12px;
+    padding-right: 20px;
+}
+
+    /* FOCO y HOVER */
+    .form-select-minimal:focus {
+        background-color: #eef5ff !important;
+        box-shadow: inset 0 0 0 1px #4674a6 !important; /* Borde azul al enfocar */
+    }
+
+    .form-select-minimal:hover:not(:disabled) {
+        background-color: #f8faff !important;
+    }
+
+/* ==================== ESTADOS DE VARIABLE ==================== */
+/* 1. Definido por el operador (Azul) */
+.user-defined .form-select-minimal {
+    color: #1a56a6;
+    font-weight: bold;
+}
+
+/* 2. Calculado o heredado por el Solver (Negro/Gris) */
+.calculated .form-select-minimal {
+    color: #333333;
+    font-weight: bold;
+}
+
+/* ESTADO BLOQUEADO DINÁMICO */
+.form-select-minimal:disabled {
+    cursor: not-allowed;
+    background-image: none !important; /* Desaparece la flechita porque ya no se puede abrir */
+    padding-right: 10px;
+    background-color: transparent !important;
+}
+
+/* ==================== TEXTO DE HERENCIA ==================== */
+.inheritance-text {
+    font-size: 11px;
+    color: #777;
+    font-style: italic;
+    padding-left: 6px;
+}

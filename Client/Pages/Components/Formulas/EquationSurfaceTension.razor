@@ -1,0 +1,63 @@
+﻿@* EquationSurfaceTension.razor *@
+<div class="equation-container">
+    <div class="equation-wrapper">
+        <span class="var">σ</span> = 
+        <span class="var">C</span><sub>1</sub>
+        <span class="bracket">(</span>1 - <span class="var">T</span><sub class="sub">r</sub><span class="bracket">)</span>
+        <sup class="exp-poly">
+            (<span class="var">C</span><sub>2</sub> + 
+             <span class="var">C</span><sub>3</sub><span class="var">T</span><sub class="sub">r</sub> + 
+             <span class="var">C</span><sub>4</sub><span class="var">T</span><sub class="sub">r</sub><sup>2</sup> + 
+             <span class="var">C</span><sub>5</sub><span class="var">T</span><sub class="sub">r</sub><sup>3</sup>)
+        </sup>
+        <span class="separator">|</span>
+        <span class="text-hint">where <span class="var">T</span><sub class="sub">r</sub> = <span class="var">T</span> / <span class="var">T</span><sub class="sub">c</sub></span>
+    </div>
+</div>
+
+<style>
+    .equation-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 2rem;
+        background-color: var(--mud-palette-background-grey);
+        border: 1px dashed var(--mud-palette-action-default);
+        border-radius: 8px;
+        margin-bottom: 2rem;
+        min-height: 120px;
+    }
+
+    .equation-wrapper {
+        font-family: "Times New Roman", serif;
+        font-size: 1.5rem;
+        color: var(--mud-palette-text-primary);
+        user-select: none;
+        display: flex;
+        align-items: center;
+        gap: 0.2rem;
+    }
+
+    .var { font-style: italic; }
+    .sub { font-size: 0.8rem; vertical-align: sub; }
+    .bracket { font-size: 2.2rem; font-weight: 200; }
+    
+    .exp-poly { 
+        font-size: 0.9rem; 
+        margin-left: -5px; 
+        margin-top: -15px;
+        color: var(--mud-palette-primary);
+    }
+
+    .separator {
+        margin: 0 1.5rem;
+        color: var(--mud-palette-divider);
+        font-weight: 100;
+    }
+
+    .text-hint {
+        font-size: 1rem;
+        font-family: var(--mud-typography-default-family);
+        color: var(--mud-palette-text-secondary);
+    }
+</style>

@@ -1,0 +1,117 @@
+﻿/* ==================== HOST ==================== */
+:host {
+    display: contents;
+}
+
+/* ==================== CELDAS BASE ==================== */
+.grid-cell {
+    border-right: 1px solid #b0b0b0;
+    border-bottom: 1px solid #b0b0b0;
+    display: flex;
+    align-items: center;
+    min-height: 24px;
+    box-sizing: border-box;
+}
+
+.label {
+    background-color: #f5f5f5 !important;
+    color: #333333;
+    padding: 2px 6px !important;
+}
+
+.value {
+    background-color: #ffffff !important;
+    padding: 0 !important;
+}
+
+/* Celda vacía al final para que el grid no se descuadre */
+.empty {
+    background-color: #f5f5f5 !important;
+}
+
+/* ==================== INPUT BASE ==================== */
+input {
+    width: 100%;
+    height: 100%;
+    border: none;
+    background-color: transparent !important;
+    font-family: "Segoe UI", Arial, sans-serif;
+    font-size: 12px;
+    outline: none;
+    padding: 0 10px;
+    text-align: right;
+    box-sizing: border-box;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+/* ==================== ESTADOS DINÁMICOS (NUEVO) ==================== */
+
+/* 👇 ESTADO: NO DEFINIDO (gris claro, italic, placeholder visible) */
+.not-defined {
+    background-color: #f9f9f9 !important;
+    color: #999 !important;
+    font-style: italic;
+}
+
+    .not-defined input {
+        color: #999 !important;
+        font-style: italic;
+        cursor: text !important;
+    }
+
+        /* Placeholder visible cuando NO está enfocado */
+        .not-defined input::placeholder {
+            color: #999 !important;
+            font-style: italic;
+            opacity: 1 !important;
+        }
+
+        /* Placeholder DESAPARECE al enfocar */
+        .not-defined input:focus::placeholder {
+            color: transparent !important;
+            opacity: 0 !important;
+        }
+
+        /* Al enfocar un input no definido: transición a estilo de edición */
+        .not-defined input:focus {
+            color: #4674a6 !important;
+            font-style: normal;
+            background-color: #eef5ff !important;
+        }
+
+/* 👇 ESTADO: USER-DEFINED (Azul, editable) */
+.user-defined input {
+    color: #4674a6 !important;
+    font-weight: 500;
+}
+
+/* 👇 ESTADO: CALCULATED (Gris oscuro, readonly) */
+.calculated input {
+    color: #333333 !important;
+    font-weight: 400;
+}
+
+/* ==================== INTERACCIÓN (FOCUS & HOVER) ==================== */
+
+/* Focus genérico (aplica a user-defined y calculated) */
+input:focus {
+    background-color: #eef5ff !important;
+    box-shadow: inset 0 0 0 1px #4674a6 !important;
+}
+
+/* Hover solo en editables (no en readonly) */
+input:hover:not(:read-only) {
+    background-color: #f8faff !important;
+    cursor: pointer;
+}
+
+/* ==================== QUITAR FLECHAS DE INPUT NUMBER ==================== */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+input[type="number"] {
+    -moz-appearance: textfield;
+}

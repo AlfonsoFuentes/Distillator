@@ -1,0 +1,60 @@
+﻿@using Shared.Thermodynamics.Methods
+
+
+<MudPaper Class="pa-6 mb-6" Elevation="0" Outlined="true" Style="background-color: var(--mud-palette-background-grey); border-color: var(--mud-palette-action-default);">
+    
+    <div class="d-flex flex-column align-center justify-center mb-6">
+        <MudText Typo="Typo.subtitle2" Color="Color.Secondary" Class="mb-2 text-uppercase"><b>Phase Equilibrium Condition</b></MudText>
+        <div class="equilibrium-condition">
+             <span class="var">f</span><sub class="sub">i</sub><sup class="sup">V</sup> 
+             <span class="operator">=</span> 
+             <span class="var">f</span><sub class="sub">i</sub><sup class="sup">L</sup>
+        </div>
+    </div>
+
+    <MudDivider Class="mb-6" />
+
+    <MudGrid>
+        <MudItem xs="12" md="6" Style="border-right: 1px dashed var(--mud-palette-divider);">
+            <MudText Typo="Typo.subtitle2" Color="Color.Info" Class="mb-4 text-center text-uppercase"><b>Vapor Fugacity:</b> @VaporModel</MudText>
+            <div class="equation-box">
+                @switch (VaporModel)
+                {
+                    case VaporPhaseModel.IdealGas: <EquationVaporIdeal />; break;
+                    case VaporPhaseModel.SoaveRedlichKwong1972: <EquationVaporSRK />; break;
+                    case VaporPhaseModel.SteamTables: <span class="text-hint">IAPWS-IF97 Steam Tables Formulation</span>; break;
+                    default: <span class="text-hint">Equation not defined</span>; break;
+                }
+            </div>
+        </MudItem>
+
+        <MudItem xs="12" md="6">
+            <MudText Typo="Typo.subtitle2" Color="Color.Success" Class="mb-4 text-center text-uppercase"><b>Liquid Fugacity:</b> @LiquidModel</MudText>
+            <div class="equation-box">
+                @switch (LiquidModel)
+                {
+                    case LiquidPhaseModel.IdealLiquid: <EquationLiquidIdeal />; break;
+                    case LiquidPhaseModel.NRTL_ASPEN: <EquationLiquidNRTL />; break;
+                    case LiquidPhaseModel.WilsonASPEN: <EquationLiquidWilson />; break;
+                    case LiquidPhaseModel.SteamTables: <span class="text-hint">IAPWS-IF97 Steam Tables Formulation</span>; break;
+                    default: <span class="text-hint">Equation not defined</span>; break;
+                }
+            </div>
+        </MudItem>
+    </MudGrid>
+</MudPaper>
+
+<style>
+    .equilibrium-condition { font-family: "Times New Roman", serif; font-size: 2.2rem; color: var(--mud-palette-primary); display: flex; align-items: center; gap: 0.5rem; }
+    .equation-box { display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 130px; }
+    .var { font-style: italic; }
+    .sub { font-size: 0.9rem; vertical-align: sub; }
+    .sup { font-size: 0.9rem; vertical-align: super; }
+    .operator { margin: 0 1rem; }
+    .text-hint { font-size: 0.9rem; color: var(--mud-palette-text-secondary); }
+</style>
+
+@code {
+    [Parameter] public VaporPhaseModel VaporModel { get; set; }
+    [Parameter] public LiquidPhaseModel LiquidModel { get; set; }
+}

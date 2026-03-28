@@ -1,0 +1,130 @@
+﻿@page "/register"
+
+@using Shared.Results
+@using Microsoft.AspNetCore.Components.Authorization
+
+<MudContainer MaxWidth="MaxWidth.Small" Class="mt-10">
+    <MudCard Elevation="3" Class="pa-8">
+        <div class="d-flex justify-center mb-4">
+            <MudIcon Icon="@Icons.Material.Filled.AppRegistration" Size="Size.Large" Color="Color.Primary" />
+        </div>
+        <MudText Typo="Typo.h5" Align="Align.Center" Class="mb-2">
+            <b>Create Account</b>
+        </MudText>
+        <MudText Typo="Typo.body2" Align="Align.Center" Class="mb-6 mud-text-secondary">
+            Register to access the Process Simulator as a Viewer.
+        </MudText>
+        
+        <EditForm Model="@_request" OnValidSubmit="ExecuteRegistration">
+            <DataAnnotationsValidator />
+            
+            <MudGrid>
+                <MudItem xs="12" sm="6">
+                    <MudTextField @bind-Value="_request.FirstName"
+                                  Label="First Name"
+                                  Variant="Variant.Outlined"
+                                  Margin="Margin.Dense"
+                                  Required="true" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudTextField @bind-Value="_request.LastName"
+                                  Label="Last Name"
+                                  Variant="Variant.Outlined"
+                                  Margin="Margin.Dense"
+                                  Required="true" />
+                </MudItem>
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="_request.Email"
+                                  Label="Email Address"
+                                  InputType="InputType.Email"
+                                  Variant="Variant.Outlined"
+                                  Margin="Margin.Dense"
+                                  Required="true" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudTextField @bind-Value="_request.Password"
+                                  Label="Password"
+                                  InputType="@_passwordInput"
+                                  Adornment="Adornment.End"
+                                  AdornmentIcon="@_passwordInputIcon"
+                                  OnAdornmentClick="TogglePasswordVisibility"
+                                  Variant="Variant.Outlined"
+                                  Margin="Margin.Dense"
+                                  Class="mb-4"
+                                  Required="true" />
+
+                   
+                    
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudTextField @bind-Value="_request.ConfirmPassword"
+                                  Label="Confirm  Password"
+                                  InputType="@_passwordInput"
+                                  Adornment="Adornment.End"
+                                  AdornmentIcon="@_passwordInputIcon"
+                                  OnAdornmentClick="TogglePasswordVisibility"
+                                  Variant="Variant.Outlined"
+                                  Margin="Margin.Dense"
+                                  Class="mb-6"
+                                  Required="true" />
+     
+                </MudItem>
+            </MudGrid>
+            
+            <MudButton ButtonType="ButtonType.Submit"
+                       Variant="Variant.Filled"
+                       Color="Color.Primary"
+                       FullWidth="true"
+                       Class="mt-6"
+                       Disabled="@_isLoading">
+                @if (_isLoading)
+                {
+                    <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                }
+                else
+                {
+                    <span>Register</span>
+                }
+            </MudButton>
+        </EditForm>
+
+        <div class="d-flex justify-center mt-6">
+            <MudText Typo="Typo.body2">
+                Already have an account?
+                <MudLink Href="/login" Underline="Underline.Always" Color="Color.Primary">
+                    Sign in here
+                </MudLink>
+            </MudText>
+        </div>
+    </MudCard>
+</MudContainer>
+
+@code {
+    private RegisterRequest _request = new();
+    private bool _isLoading = false;
+    private bool _isShowPassword;
+    private InputType _passwordInput = InputType.Password;
+    private string _passwordInputIcon = Icons.Material.Filled.VisibilityOff;
+    private void TogglePasswordVisibility()
+    {
+        _isShowPassword = !_isShowPassword;
+        _passwordInputIcon = _isShowPassword ? Icons.Material.Filled.Visibility : Icons.Material.Filled.VisibilityOff;
+        _passwordInput = _isShowPassword ? InputType.Text : InputType.Password;
+    }
+    private async Task ExecuteRegistration()
+    {
+        _isLoading = true;
+        
+        // Enviamos la petición de registro usando tu servicio HTTP
+        var response = await HttpServices.PostAsync<RegisterRequest, Result>(_request);
+        
+        if (response != null && response.Succeeded)
+        {
+            // Si el registro es exitoso, el HttpServices ya mostró el Snackbar verde.
+            // Solo nos queda enviar al usuario a la pantalla de Login para que ingrese.
+            NavigationManager.NavigateTo("/login");
+        }
+        
+        _isLoading = false;
+    }
+}

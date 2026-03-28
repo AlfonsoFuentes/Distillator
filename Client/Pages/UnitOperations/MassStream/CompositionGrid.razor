@@ -1,0 +1,240 @@
+﻿@* CompositionGrid.razor *@
+@using Shared.Calculator.MaterialStreams
+@using System.Globalization
+@using static System.Math
+
+<div class="scrollable-container">
+    @* Aplicamos clase visual según el estado de la composición *@
+    <div class="data-grid composition-grid @(CompositionState.State == VariableState.UserDefined ? "user-defined" : "calculated")">
+        
+        <div class="grid-header fixed-col">Component</div>
+        <div class="grid-header">Mass (%)</div>
+        <div class="grid-header">Mole (%)</div>
+        <div class="grid-header">Molar Flow</div>
+        <div class="grid-header">Mass Flow</div>
+        <div class="grid-header">Vol. Flow</div>
+
+        @if (CompositionState?.ComponentsList != null)
+        {
+            @* ORDENAMIENTO: Etanol (C2H6O) -> Otros -> Agua (H2O) *@
+            @foreach (var comp in CompositionState.ComponentsList
+                                        .OrderBy(c => GetSortPriority(c.BaseProperties.Formula))
+                                        .ThenBy(c => c.BaseProperties.Name))
+            {
+                <div class="grid-cell fixed-col label">@comp.BaseProperties.Name</div>
+                
+                @* Mass Percentage *@
+                <div class="grid-cell value">
+                    <input type="number" step="0.0001"
+                           readonly="@CompositionState.IsReadOnly"
+                           value="@((comp.MassFraction * 100).ToString("0.####", CultureInfo.InvariantCulture))"
+                           @oninput="(e) => CaptureFraction(e.Value)"
+                           @onkeydown="(e) => HandleKeyDown(e, comp, isMole: false)"
+                           @onblur="() => ExecuteCompositionChange(comp, isMole: false)" />
+                </div>
+
+                @* Mole Percentage *@
+                <div class="grid-cell value">
+                    <input type="number" step="0.0001"
+                           readonly="@CompositionState.IsReadOnly"
+                           value="@((comp.MoleFraction * 100).ToString("0.####", CultureInfo.InvariantCulture))"
+                           @oninput="(e) => CaptureFraction(e.Value)"
+                           @onkeydown="(e) => HandleKeyDown(e, comp, isMole: true)"
+                           @onblur="() => ExecuteCompositionChange(comp, isMole: true)" />
+                </div>
+
+                @* Flujos Parciales (Siempre de solo lectura) *@
+                <div class="grid-cell value calculated"><span>@comp.MolarFlow.Value.ToString("F4")</span></div>
+                <div class="grid-cell value calculated"><span>@comp.MassFlow.Value.ToString("F4")</span></div>
+                <div class="grid-cell value calculated"><span>@comp.VolumetricFlow.Value.ToString("F4")</span></div>
+            }
+        }
+    </div>
+</div>
+
+@if (IsEthanolWaterSystem())
+{
+    @* Panel Gay-Lussac: Se bloquea visualmente si IsReadOnly es true *@
+    <div class="quick-entry-panel @(CompositionState!.IsReadOnly ? "locked" : "")">
+        <div class="entry-label">
+            <span class="icon">🍷</span>
+            <label>Alcoholic Strength (°GL):</label>
+        </div>
+        <div class="entry-input">
+            <input type="number" step="0.1" min="0" max="100"
+                   readonly="@CompositionState.IsReadOnly"
+                   value="@(GetGLEtanol().ToString("0.##", CultureInfo.InvariantCulture))"
+                   @oninput="CaptureGL"
+                   @onkeydown="HandleGLKeyDown"
+                   @onblur="ExecuteGLChange" />
+            <span class="unit-tag">°GL</span>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter, EditorRequired] public ProcessCompositionProperty CompositionState { get; set; } = default!;
+    [Parameter] public EventCallback OnCompositionUpdated { get; set; }
+    [Parameter] public EventCallback OnExecute { get; set; }
+
+    // --- VARIABLES TEMPORALES ---
+    private string? _tempFractionValue;
+    private string? _tempGLValue;
+
+    // --- PRIORIDADES Y DETECCIÓN ---
+    private int GetSortPriority(string formula)
+    {
+        if (string.IsNullOrEmpty(formula)) return 50;
+        string f = formula.ToUpper();
+        if (f.Contains("C2H6O")) return 0;   // Etanol arriba
+        if (f.Contains("H2O")) return 100;   // Agua abajo
+        return 50;
+    }
+
+    private bool IsEthanolWaterSystem()
+    {
+        if (CompositionState?.ComponentsList == null || CompositionState.ComponentsList.Count != 2) return false;
+        var formulas = CompositionState.ComponentsList.Select(c => c.BaseProperties.Formula.ToUpper()).ToList();
+        return formulas.Any(f => f.Contains("C2H6O")) && formulas.Any(f => f.Contains("H2O"));
+    }
+
+    private StreamComponent? GetEthanolComponent() =>
+        CompositionState.ComponentsList.FirstOrDefault(c => c.BaseProperties.Formula.ToUpper().Contains("C2H6O"));
+
+    // --- CAPTURA DE TECLADO ---
+    private void CaptureFraction(object? uiValue)
+    {
+        _tempFractionValue = uiValue?.ToString();
+    }
+
+    private void CaptureGL(ChangeEventArgs e)
+    {
+        _tempGLValue = e.Value?.ToString();
+    }
+
+    // --- INTERCEPTORES DE TECLADO Y FOCO ---
+    private async Task HandleKeyDown(KeyboardEventArgs e, StreamComponent comp, bool isMole)
+    {
+        if (e.Key == "Enter")
+        {
+            await ExecuteCompositionChange(comp, isMole);
+        }
+    }
+
+    private async Task HandleGLKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await ExecuteGLChange();
+        }
+    }
+
+    // --- EJECUCIÓN DEL CÁLCULO ---
+    private async Task ExecuteCompositionChange(StreamComponent comp, bool isMole)
+    {
+        if (string.IsNullOrWhiteSpace(_tempFractionValue)) return;
+
+        if (double.TryParse(_tempFractionValue, NumberStyles.Any, CultureInfo.InvariantCulture, out double val))
+        {
+            double newFraction = val / 100.0;
+            double currentFraction = isMole ? comp.MoleFraction : comp.MassFraction;
+
+            if (CompositionState.HasFractionChanged(currentFraction, newFraction))
+            {
+                if (isMole) comp.MoleFraction = newFraction;
+                else comp.MassFraction = newFraction;
+
+                await HandleFractionChange(isMole, comp);
+            }
+        }
+        _tempFractionValue = null;
+    }
+
+    private async Task ExecuteGLChange()
+    {
+        if (string.IsNullOrWhiteSpace(_tempGLValue)) return;
+
+        if (double.TryParse(_tempGLValue, NumberStyles.Any, CultureInfo.InvariantCulture, out double glValue))
+        {
+            var ethanol = GetEthanolComponent();
+            if (ethanol != null)
+            {
+                double newMassFraction = CalcularMasicoDesdeGL(glValue);
+
+                if (CompositionState.HasFractionChanged(ethanol.MassFraction, newMassFraction))
+                {
+                    ethanol.MassFraction = newMassFraction;
+                    await HandleFractionChange(isMole: false, ethanol);
+                }
+            }
+        }
+        _tempGLValue = null;
+    }
+
+    // --- BALANCEO Y CONVERSIÓN ---
+    private async Task HandleFractionChange(bool isMole, StreamComponent editedComp)
+    {
+        var components = CompositionState.ComponentsList.ToList();
+        if (components.Count != 2) return;
+
+        // 1. Auto-balanceo Binario (Agua-Etanol)
+        var otherComp = components.First(c => c != editedComp);
+        if (isMole) otherComp.MoleFraction = Max(0, 1.0 - editedComp.MoleFraction);
+        else otherComp.MassFraction = Max(0, 1.0 - editedComp.MassFraction);
+
+        // 2. Conversión Cruzada (Masa <-> Mol)
+        if (!components.Any(c => c.BaseProperties.MolecularWeight <= 0))
+        {
+            if (isMole)
+            {
+                double avgMw = components.Sum(c => c.MoleFraction * c.BaseProperties.MolecularWeight);
+                foreach (var c in components) c.MassFraction = (c.MoleFraction * c.BaseProperties.MolecularWeight) / avgMw;
+            }
+            else
+            {
+                double totalMolesPerMass = components.Sum(c => c.MassFraction / c.BaseProperties.MolecularWeight);
+                foreach (var c in components) c.MoleFraction = (c.MassFraction / c.BaseProperties.MolecularWeight) / totalMolesPerMass;
+            }
+        }
+
+        // 3. Finalización: Cambiamos estado del wrapper y notificamos
+        CompositionState.SetUserComposition();
+
+        if (OnCompositionUpdated.HasDelegate)
+        {
+            await OnCompositionUpdated.InvokeAsync();
+        }
+        
+        StateHasChanged();
+    }
+
+    // --- CÁLCULOS GAY-LUSSAC (Fórmulas Industriales) ---
+    private double CalcularMasicoDesdeGL(double GL)
+    {
+        if (GL >= 100) return 1.0;
+        if (GL <= 0) return 0.0;
+        return (1.881755917 * 1e-9 * Pow(GL, 4.0))
+             - (1.161368119 * 1e-7 * Pow(GL, 3.0))
+             + (1.36632945 * 1e-5 * Pow(GL, 2.0))
+             + (7.8756832 * 1e-3 * GL);
+    }
+
+    private double GetGLEtanol()
+    {
+        var ethanol = GetEthanolComponent();
+        if (ethanol == null) return 0;
+        double masico = ethanol.MassFraction * 100;
+        if (masico <= 0) return 0;
+        if (masico >= 100) return 100;
+
+        double sup = 100, inf = 0, GL = 0;
+        for (int i = 0; i < 60; i++)
+        {
+            GL = (sup + inf) / 2;
+            double pm = CalcularMasicoDesdeGL(GL) * 100;
+            if (Abs(pm - masico) < 1e-4) break;
+            if (pm > masico) sup = GL; else inf = GL;
+        }
+        return GL;
+    }
+}

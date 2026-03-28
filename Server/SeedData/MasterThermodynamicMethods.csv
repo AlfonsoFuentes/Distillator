@@ -1,0 +1,13 @@
+﻿MethodName;Description;VaporModel;LiquidModel;ComponentI;ComponentJ;ParameterType;Value
+Ethanol-Water (NRTL);Ethanol-Water equilibrium using NRTL Aspen;IdealGas;NRTLAspen;Etanol;Agua;NRTL_A;-0.8009
+Ethanol-Water (NRTL);Ethanol-Water equilibrium using NRTL Aspen;IdealGas;NRTLAspen;Agua;Etanol;NRTL_A;3.4578
+Ethanol-Water (NRTL);Ethanol-Water equilibrium using NRTL Aspen;IdealGas;NRTLAspen;Etanol;Agua;NRTL_B;246.18
+Ethanol-Water (NRTL);Ethanol-Water equilibrium using NRTL Aspen;IdealGas;NRTLAspen;Agua;Etanol;NRTL_B;-586.0809
+Ethanol-Water (NRTL);Ethanol-Water equilibrium using NRTL Aspen;IdealGas;NRTLAspen;Etanol;Agua;NRTL_C;0.3
+Methanol-Glycerol (Wilson);Methanol-Glycerol mixture with SRK for Vapor;SoaveRedlichKwong1972;WilsonAspen;Metanol;Glicerol;Wilson_B;123.2875
+Methanol-Glycerol (Wilson);Methanol-Glycerol mixture with SRK for Vapor;SoaveRedlichKwong1972;WilsonAspen;Glicerol;Metanol;Wilson_B;-466.0408
+Water (Steam Tables);Pure water calculations based on IAPWS steam tables;SteamTables;SteamTables;Agua;;;0
+Methanol-Water (Wilson);Methanol-Water mixture using Wilson Aspen and SRK 1972;SoaveRedlichKwong1972;WilsonAspen;Metanol;Agua;Wilson_A;1.0837
+Methanol-Water (Wilson);Methanol-Water mixture using Wilson Aspen and SRK 1972;SoaveRedlichKwong1972;WilsonAspen;Agua;Metanol;Wilson_A;-1.8842
+Methanol-Water (Wilson);Methanol-Water mixture using Wilson Aspen and SRK 1972;SoaveRedlichKwong1972;WilsonAspen;Metanol;Agua;Wilson_B;-580.237
+Methanol-Water (Wilson);Methanol-Water mixture using Wilson Aspen and SRK 1972;SoaveRedlichKwong1972;WilsonAspen;Agua;Metanol;Wilson_B;617.4097

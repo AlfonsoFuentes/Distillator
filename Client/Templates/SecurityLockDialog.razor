@@ -1,0 +1,92 @@
+﻿<MudDialog>
+    <DialogContent>
+        <MudText Typo="Typo.body2" Class="mb-4" Style="color: var(--mud-palette-text-secondary);">
+            Please enter the Developer password to authorize this database operation.
+        </MudText>
+        
+        <div class="industrial-input-wrapper">
+            @* IMPORTANTE: Usamos 'type=text' para engañar al navegador y
+               que no sugiera contraseñas guardadas. 
+            *@
+            <input type="text"
+                   @bind="_password"
+                   @bind:event="oninput"
+                   @onkeydown="HandleKeyDown"
+                   class="industrial-native-input"
+                   placeholder="Developer Password"
+                   autocomplete="off"
+                   spellcheck="false"
+                   id="auth-field" />
+            <span class="industrial-focus-border"></span>
+        </div>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel" Variant="Variant.Text" Class="px-4">Cancel</MudButton>
+        <MudButton Color="Color.Primary"
+                   Variant="Variant.Filled"
+                   OnClick="Submit"
+                   Disabled="@(string.IsNullOrWhiteSpace(_password))"
+                   Class="px-6 ml-2">
+            Authorize
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+<style>
+    /* Contenedor que imita el estilo Outlined de MudBlazor */
+    .industrial-input-wrapper {
+        position: relative;
+        width: 100%;
+        margin-top: 8px;
+    }
+
+    .industrial-native-input {
+        width: 100%;
+        height: 42px;
+        padding: 0 12px;
+        background-color: transparent;
+        color: var(--mud-palette-text-primary);
+        border: 1px solid var(--mud-palette-lines-inputs);
+        border-radius: var(--mud-default-borderradius);
+        font-family: var(--mud-typography-default-family);
+        font-size: 1rem;
+        outline: none;
+        transition: border-color 200ms;
+        /* EL SECRETO: Enmascarado visual sin ser tipo 'password' */
+        -webkit-text-security: disc !important;
+        text-security: disc !important;
+    }
+
+        .industrial-native-input:focus {
+            border: 2px solid var(--mud-palette-primary);
+            padding: 0 11px; /* Compensación por el borde de 2px */
+        }
+
+        .industrial-native-input:hover:not(:focus) {
+            border-color: var(--mud-palette-text-primary);
+        }
+
+        /* Estilo para el placeholder */
+        .industrial-native-input::placeholder {
+            color: var(--mud-palette-text-disabled);
+            -webkit-text-security: none !important; /* El placeholder debe ser legible */
+            text-security: none !important;
+        }
+</style>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
+    private string _password = "";
+
+    void Submit() => MudDialog.Close(DialogResult.Ok(_password));
+    void Cancel() => MudDialog.Cancel();
+
+    // Comentario: Permite autorizar presionando 'Enter' directamente
+    private void HandleKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter" && !string.IsNullOrWhiteSpace(_password))
+        {
+            Submit();
+        }
+    }
+}
