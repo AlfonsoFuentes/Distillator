@@ -106,3 +106,65 @@
     font-style: italic;
     padding-left: 6px;
 }
+/* ==================== ESTADOS POR METHOD SOURCE ==================== */
+
+/* 👇 NONE: No definido - Gris claro, italic, editable */
+.source-none {
+    background-color: #f9f9f9 !important;
+    color: #999 !important;
+    font-style: italic;
+}
+
+    .source-none input,
+    .source-none select,
+    .source-none span {
+        color: #999 !important;
+        font-style: italic;
+        cursor: text !important;
+    }
+
+        .source-none input:focus {
+            color: #4674a6 !important;
+            font-style: normal;
+            background-color: #eef5ff !important;
+        }
+
+/* 👇 USER INTERFACE: Definido por usuario - Azul, editable */
+.source-ui {
+    background-color: #ffffff !important;
+    color: #4674a6 !important;
+    font-weight: 500;
+}
+
+    .source-ui input,
+    .source-ui select {
+        color: #4674a6 !important;
+        font-weight: 500;
+    }
+
+        .source-ui input:focus {
+            background-color: #eef5ff !important;
+            box-shadow: inset 0 0 0 1px #4674a6 !important;
+        }
+
+/* 👇 OTHER: Calculado por sistema - Negro intenso, solo lectura */
+.source-other {
+    background-color: #ffffff !important;
+    color: #000000 !important; /* o #1a1a1a para mejor contraste */
+    font-weight: 400;
+}
+
+    .source-other input,
+    .source-other select,
+    .source-other span {
+        color: #000000 !important;
+        font-weight: 600; /* peso medio-alto para énfasis visual */
+        cursor: not-allowed !important;
+    }
+    /* Opcional: indicar visualmente que es readonly */
+    .source-other::after {
+        content: "🔒";
+        font-size: 10px;
+        margin-left: 4px;
+        opacity: 0.6;
+    }

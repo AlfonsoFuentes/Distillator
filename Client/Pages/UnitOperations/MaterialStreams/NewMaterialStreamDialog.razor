@@ -13,7 +13,8 @@
         <div class="tabs-header">
             <div class="tab @(activeTab == "Conditions" ? "active" : "")" @onclick='() => SetTab("Conditions")'>Conditions</div>
             <div class="tab @(activeTab == "Composition" ? "active" : "")" @onclick='() => SetTab("Composition")'>Composition</div>
-            <div class="tab disabled">Properties</div>
+            <div class="tab @(activeTab == "Properties" ? "active" : "")" @onclick='() => SetTab("Properties")'>Properties</div>
+            <div class="tab disabled">Phase Envelope</div>
         </div>
 
         @if (activeTab == "Conditions")
@@ -33,31 +34,28 @@
                   
                     <NewProcessMethodRow Label="Thermodynamic Method"
                                          @bind-Variable="Facade.ThermodynamicMethod"
-                                     
-                                         AvailableMethods="AvailableMethods"
-                                        />
+                                         AvailableMethods="AvailableMethods" />
 
                  
-                     <NewSimpleVariableRow Label="Vapor Fraction"
-                                          @bind-Variable="Facade.VaporFractionControlled"
-                                       
-                                          />
+                    <SimpleVariableRow Label="Vapor Fraction"
+                                          @bind-Variable="Facade.VaporFractionControlled" />
 
-                     <NewProcessVariableRow Label="Temperature"
-                                              @bind-Variable="Facade.TemperatureControlled"
-                                              />
+                    <ProcessVariableRow Label="Temperature"
+                                           @bind-Variable="Facade.TemperatureControlled" />
 
-                     <NewProcessVariableRow Label="Pressure"
+                    <ProcessVariableRow Label="Pressure"
                                            @bind-Variable="Facade.PressureControlled" />
 
-                    <NewProcessVariableRow Label="Molar Flow"
+                    <ProcessVariableRow Label="Molar Flow"
                                            @bind-Variable="Facade.MolarFlowControlled" />
 
-                    <NewProcessVariableRow Label="Mass Flow"
+                    <ProcessVariableRow Label="Mass Flow"
                                            @bind-Variable="Facade.MassFlowControlled" />
 
-                    <NewProcessVariableRow Label="Volumetric Flow"
-                                           @bind-Variable="Facade.VolumetricFlowControlled" /> 
+                    <ProcessVariableRow Label="Volumetric Flow"
+                                           @bind-Variable="Facade.VolumetricFlowControlled" />
+
+                    <ReadOnlyVariableRow Label="Heat Flow" @bind-Variable="Facade.EnthalpyFlow"></ReadOnlyVariableRow>
 
                 </div>
             </div>
@@ -66,10 +64,39 @@
         @if (activeTab == "Composition")
         {
             <div class="tab-content active">
-               <NewCompositionGrid @bind-Variable="Facade.StreamCompositionControlled" /> 
+                <CompositionGrid @bind-Variable="Facade.StreamCompositionControlled" />
             </div>
         }
+        @if (activeTab == "Properties")
+        {
+            <div class="tab-content active">
+                <div class="scrollable-container">
+                    <div class="data-grid conditions-grid">
+                        <div class="grid-header">Physical Property</div>
+                        <div class="grid-header">Value</div>
+                        <div class="grid-header">Unit</div>
 
+                        <div class="grid-cell label group-title" style="grid-column: span 3; background-color: #e8e8e8; font-weight: bold; padding-left: 8px;">Phase & Density</div>
+                        <ReadOnlyVariableRow Label="Mass Density" Variable="Facade.MassDensity" />
+                        <ReadOnlyVariableRow Label="Molar Density" Variable="Facade.MolarDensity" />
+
+                        <div class="grid-cell label group-title" style="grid-column: span 3; background-color: #e8e8e8; font-weight: bold; padding-left: 8px; margin-top: 4px;">Thermodynamics</div>
+                        <ReadOnlyVariableRow Label="Mass Enthalpy" Variable="Facade.MassEnthalpy" />
+                        <ReadOnlyVariableRow Label="Molar Enthalpy" Variable="Facade.MolarEnthapy" />
+                        <ReadOnlyVariableRow Label="Mass Cp" Variable="Facade.MassCp" />
+                        <ReadOnlyVariableRow Label="Energy Flow" Variable="Facade.EnthalpyFlow" />
+
+                        <div class="grid-cell label group-title" style="grid-column: span 3; background-color: #e8e8e8; font-weight: bold; padding-left: 8px; margin-top: 4px;">Transport</div>
+                        <ReadOnlyVariableRow Label="Viscosity" Variable="Facade.Viscosity" />
+                        <ReadOnlyVariableRow Label="Thermal Cond." Variable="Facade.ThermalConductivity" />
+                        @if (Facade.EquilibriumState == ThermodynamicState.SaturatedLiquid || Facade.EquilibriumState == ThermodynamicState.SubcooledLiquid)
+                        {
+                            <ReadOnlyVariableRow Label="Superficial Tension" Variable="Facade.SuperficialTension" />
+                        }
+                    </div>
+                </div>
+            </div>
+        }
         <div class="status-bar @(GetStatusClass())">
             Status: @GetStatusText()
         </div>
@@ -149,9 +176,14 @@
 
     private string GetStatusText()
     {
-        if (Facade?.ThermodynamicMethod?.IsDefined == true)
-            return "Ready";
-        return "Waiting for inputs...";
+        return Facade.State switch
+        {
+            StreamStateType.Created => "Waiting for components and method...",
+            StreamStateType.MethodDefined => "System underspecified. Define constraints.",
+            StreamStateType.EquilibriumCalculated => "Equilibrium calculated. Check results.",
+            StreamStateType.StreamCalculated => "Convergence Succeeded.",
+            _ => "Idle"
+        };
     }
     
 }

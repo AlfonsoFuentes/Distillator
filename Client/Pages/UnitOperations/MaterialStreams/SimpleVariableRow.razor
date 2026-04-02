@@ -1,0 +1,204 @@
+﻿@using Shared.DesignPatterns.Thermodynamics
+@using System.Globalization
+
+@if (Variable != null)
+{
+    <div class="grid-cell label">@Label</div>
+
+    <div class="grid-cell value @(GetCssClass())" title="@GetTooltipInfo()">
+        @if (IsReadOnly())
+        {
+            <div class="readonly-container">
+                <span class="readonly-value">@GetDisplayValue()</span>
+                @if (Variable.Source == MethodSource.Other && !string.IsNullOrWhiteSpace(Variable.SourceId))
+                {
+                    <div class="tooltip-trigger">
+                        <span class="tooltip-text">Calculated by: @Variable.SourceId</span>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <input type="text"
+                   inputmode="decimal"
+                   value="@GetInputValue()"
+                   placeholder="@GetPlaceholder()"
+                   @onfocus="HandleFocus"
+                   @oninput="HandleInput"
+                   @onkeyup="HandleKeyUp"
+                   @onblur="HandleBlur" />
+        }
+    </div>
+
+    <div class="grid-cell empty"></div>
+}
+
+@code {
+    [Parameter] public string Label { get; set; } = string.Empty;
+    [Parameter] public ControlledVariable<double> Variable { get; set; } = default!;
+    [Parameter] public EventCallback<ControlledVariable<double>> VariableChanged { get; set; } = default!;
+
+    MethodSource CurrentSource => Variable.Source;
+
+    private string? _tempInputValue;
+    private bool _isEditing;
+    
+    private string GetCssClass()
+    {
+        return Variable.Source switch
+        {
+            MethodSource.None => "source-none",
+            MethodSource.UserInterface => "source-ui",
+            MethodSource.Other => "source-other",
+            _ => "source-none"
+        };
+    }
+
+    private string? GetTooltipInfo()
+    {
+        if (Variable.Source == MethodSource.Other && !string.IsNullOrWhiteSpace(Variable.SourceId))
+        {
+            return $"Calculated by: {Variable.SourceId}";
+        }
+        if (Variable.Source == MethodSource.UserInterface)
+        {
+            return "Source: User Input";
+        }
+        
+        return null;
+    }
+
+    private string GetDisplayValue()
+    {
+        if (!Variable.IsDefined)
+            return "";
+        
+        var val = Variable.Value;
+        
+        if (Math.Abs(val) >= 0.01)
+            return val.ToString("F2", CultureInfo.InvariantCulture);
+        else if (val == 0)
+            return "0.00";
+        else
+            return val.ToString("F6", CultureInfo.InvariantCulture).TrimEnd('0').TrimEnd('.');
+    }
+
+    private string GetInputValue()
+    {
+        if (_isEditing && _tempInputValue != null)
+            return _tempInputValue;
+        
+        if (!Variable.IsDefined)
+            return "";
+        
+        var val = Variable.Value;
+        
+        if (Math.Abs(val) >= 0.01)
+            return val.ToString("F2", CultureInfo.InvariantCulture);
+        else if (val == 0)
+            return "0.00";
+        else
+            return val.ToString("F6", CultureInfo.InvariantCulture).TrimEnd('0').TrimEnd('.');
+    }
+
+    private string GetPlaceholder()
+    {
+        return !Variable.IsDefined ? "<Not defined>" : "";
+    }
+
+    private bool IsReadOnly()
+    {
+        return Variable.Source == MethodSource.Other;
+    }
+
+    private void HandleFocus(FocusEventArgs e)
+    {
+        if (IsReadOnly()) return;
+        
+        if (!Variable.IsDefined)
+        {
+            _isEditing = true;
+            StateHasChanged();
+        }
+    }
+    
+    private async Task HandleInput(ChangeEventArgs e)
+    {
+        if (IsReadOnly()) return;
+        
+        _tempInputValue = e.Value?.ToString();
+        _isEditing = true;
+
+        if (string.IsNullOrWhiteSpace(_tempInputValue))
+        {
+            await ClearValue();
+        }
+    }
+
+    private async Task HandleKeyUp(KeyboardEventArgs e)
+    {
+        if (IsReadOnly()) return;
+        
+        if (e.Key == "Enter" || e.Key == "NumpadEnter")
+        {
+            await CommitValue();
+        }
+    }
+
+    private async Task HandleBlur(FocusEventArgs e)
+    {
+        if (IsReadOnly()) return;
+        
+        if (!Variable.IsDefined && string.IsNullOrWhiteSpace(_tempInputValue))
+        {
+            _isEditing = false;
+            _tempInputValue = null;
+            StateHasChanged();
+            return;
+        }
+        
+        await CommitValue();
+    }
+
+    private async Task CommitValue()
+    {
+        if (IsReadOnly()) return;
+        
+        if (!_isEditing || string.IsNullOrWhiteSpace(_tempInputValue))
+        {
+            _tempInputValue = null;
+            _isEditing = false;
+            StateHasChanged();
+            return;
+        }
+
+        var normalizedInput = _tempInputValue.Replace(',', '.');
+
+        if (double.TryParse(normalizedInput, NumberStyles.Any, CultureInfo.InvariantCulture, out var newVal))
+        {
+            Variable.SetValue(newVal, MethodSource.UserInterface);
+        }
+
+        _tempInputValue = null;
+        _isEditing = false;
+        
+        if (VariableChanged.HasDelegate)
+            await VariableChanged.InvokeAsync(Variable);
+        
+        StateHasChanged();
+    }
+
+    private async Task ClearValue()
+    {
+        Variable.ClearValue();
+        
+        _tempInputValue = null;
+        _isEditing = false;
+        
+        if (VariableChanged.HasDelegate)
+            await VariableChanged.InvokeAsync(Variable);
+        
+        StateHasChanged();
+    }
+}

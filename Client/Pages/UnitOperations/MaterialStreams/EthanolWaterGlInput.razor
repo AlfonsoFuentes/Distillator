@@ -1,238 +1,257 @@
-﻿@using Shared.DesignPatterns.Thermodynamics
-@using static System.Math
+﻿@using System.Globalization
 
-@if (ShowGlInput)
-{
-    <div class="quick-entry-panel">
-        <div class="entry-label">
-            <span>°GL Etanol</span>
-        </div>
-        
-        <div class="entry-input">
+<div class="@PanelCssClass" title="@GetTooltipText()">
+
+    <div class="entry-label">
+        <span>°GL</span>
+    </div>
+    
+    <div class="entry-input">
+        @if (IsComponentReadOnly)
+        {
+            <!-- 🔹 READONLY por sistema: siempre muestra valor formateado -->
+            <span class="gl-value-readonly" title="@GetReadonlyTooltip()">
+                @GetReadonlyDisplayValue()
+                @if (!string.IsNullOrWhiteSpace(SourceId))
+                {
+                    <span class="auto-badge" title="Value derived from Ethanol Mass Fraction">⚙ Auto</span>
+                }
+            </span>
+        }
+        else if (!IsMassFractionDefined)
+        {
+            <!-- 🔹 EDITABLE pero sin definir: input con placeholder dinámico -->
             <input type="number"
                    step="0.1"
                    min="0"
                    max="100"
-                   value="@GetGlValue()"
-                   placeholder="0-100"
-                   readonly="@IsReadOnly()"
-                   @oninput="HandleGlInput"
-                   @onkeydown="HandleGlKeyDown"
-                   @onblur="HandleGlBlur" />
-        </div>
-        
-        <span class="unit-tag">°GL</span>
-        <span class="entry-info">Ingresa °GL para calcular composición Etanol-Agua</span>
+                   value="@GetInputValue()"
+                   placeholder="@GetPlaceholder()"
+                   class="@(ShowPlaceholderStyle() ? "has-placeholder" : "")"
+                   @onfocus="HandleFocus"
+                   @oninput="HandleInput"
+                   @onkeydown="HandleKeyDown"
+                   @onblur="HandleBlur" />
+        }
+        else if (IsGlInputReadOnly)
+        {
+            <!-- 🔹 EDITABLE pero calculado por MolarFraction: readonly visual -->
+            <span class="gl-value-readonly calculated" title="@GetReadonlyTooltip()">
+                @GetDisplayValue()
+                <span class="auto-badge" title="Value derived from Ethanol Molar Fraction">⚙ Auto</span>
+            </span>
+        }
+        else
+        {
+            <!-- 🔹 EDITABLE y definido: input normal -->
+            <input type="number"
+                   step="0.1"
+                   min="0"
+                   max="100"
+                   value="@GetInputValue()"
+                   placeholder="@GetPlaceholder()"
+                   @onfocus="HandleFocus"
+                   @oninput="HandleInput"
+                   @onkeydown="HandleKeyDown"
+                   @onblur="HandleBlur" />
+        }
     </div>
-}
+    
+    <span class="entry-info">@GetInfoText()</span>
+</div>
 
 @code {
     // ─────────────────────────────────────────────────────────
-    // 🔹 PARÁMETROS
+    // 🔹 PARÁMETROS (CORREGIDO: double? para soportar "limpiar")
     // ─────────────────────────────────────────────────────────
-    [Parameter] public ControlledVariable<StreamComposition> Variable { get; set; } = default!;
-    [Parameter] public EventCallback<ControlledVariable<StreamComposition>> VariableChanged { get; set; } = default!;
-    [Parameter] public EventCallback<double> GlValueChanged { get; set; } = default!;
-
-    // ─────────────────────────────────────────────────────────
-    // 🔹 PROPIEDADES COMPUTADAS
-    // ─────────────────────────────────────────────────────────
-    private bool ShowGlInput => Variable.Value?.IsEthanolWaterMixture() == true;
-    private bool IsReadOnly() => Variable.Source == MethodSource.Other;
-    MethodSource CurrentSource => Variable.Source;
+    [Parameter] public double? GLValue { get; set; }
+    [Parameter] public EventCallback<double?> GlValueChanged { get; set; } = default!;
+    [Parameter] public bool IsComponentReadOnly { get; set; } = false;
+    [Parameter] public bool IsGlInputReadOnly { get; set; } = false;
+    [Parameter] public bool IsMassFractionDefined { get; set; } = false;
+    [Parameter] public string? SourceId { get; set; }
 
     // ─────────────────────────────────────────────────────────
     // 🔹 ESTADO TEMPORAL
     // ─────────────────────────────────────────────────────────
-    private string? _tempGlValue;
-    private bool _isEditingGl;
+    private double? _tempValue;
+    private bool _isEditing;
+    private bool _hasUserTyped;
+    private string? _rawInput;
 
     // ─────────────────────────────────────────────────────────
-    // 🔹 HELPERS (SIN OnParametersSetAsync - ESE ERA EL PROBLEMA)
-    // ─────────────────────────────────────────────────────────
-    
-    private string GetGlValue()
-    {
-        // 👇 1. Si está editando temporalmente, mostrar valor temporal
-        if (_isEditingGl && _tempGlValue != null)
-            return _tempGlValue;
-        
-        // 👇 2. Si no es mezcla Etanol-Agua o Value es null, retornar vacío
-        if (!ShowGlInput || Variable.Value == null)
-            return "";
-        
-        // 👇 3. Obtener componente Etanol
-        var ethanol = GetEthanolComponent();
-        if (ethanol == null)
-            return "";
-        
-        // 👇 4. CLAVE: Si MassFraction es null pero MolarFraction tiene valor,
-        //    forzar conversión de Molar → Mass
-        if (!ethanol.MassFraction.HasValue && ethanol.MolarFraction.HasValue)
-        {
-            if (Variable.Value.InputType == ComponentInputType.MolarFraction)
-            {
-                Variable.Value.CalculateMassFractionsFromMolar();
-            }
-        }
-        
-        // 👇 5. Si MassFraction tiene valor, calcular °GL
-        if (ethanol.MassFraction.HasValue)
-        {
-            var glValue = GetGLEtanol();
-            return glValue.ToString("0.0");
-        }
-        
-        // 👇 6. Si no hay ningún valor, retornar vacío
-        return "";
-    }
-
-    private ComponentComposition? GetEthanolComponent()
-    {
-        return Variable.Value?.Components
-            .FirstOrDefault(c => c.ComponentName.Equals("Ethanol", StringComparison.OrdinalIgnoreCase));
-    }
-
-    private double CalcularMasicoDesdeGL(double GL)
-    {
-        if (GL >= 100) return 1.0;
-        if (GL <= 0) return 0.0;
-        return (1.881755917 * 1e-9 * Pow(GL, 4.0))
-             - (1.161368119 * 1e-7 * Pow(GL, 3.0))
-             + (1.36632945 * 1e-5 * Pow(GL, 2.0))
-             + (7.8756832 * 1e-3 * GL);
-    }
-
-    private double GetGLEtanol()
-    {
-        var ethanol = GetEthanolComponent();
-        if (ethanol == null) return 0;
-        
-        double masico = (ethanol.MassFraction ?? 0) * 100;
-        
-        if (masico <= 0) return 0;
-        if (masico >= 100) return 100;
-
-        double sup = 100, inf = 0, GL = 0;
-        for (int i = 0; i < 60; i++)
-        {
-            GL = (sup + inf) / 2;
-            double pm = CalcularMasicoDesdeGL(GL) * 100;
-            if (Abs(pm - masico) < 1e-4) break;
-            if (pm > masico) sup = GL; else inf = GL;
-        }
-        return GL;
-    }
-
-    // ─────────────────────────────────────────────────────────
-    // 🔹 HANDLERS
+    // 🔹 PROPIEDADES COMPUTADAS
     // ─────────────────────────────────────────────────────────
     
-    private void HandleGlInput(ChangeEventArgs e)
-    {
-        if (IsReadOnly()) return;
-        _tempGlValue = e.Value?.ToString();
-        _isEditingGl = true;
-    }
-
-    private async Task HandleGlKeyDown(KeyboardEventArgs e)
-    {
-        if (IsReadOnly()) return;
-        
-        if (e.Key == "Enter")
-            await CommitGlValue();
-        else if ((e.Key == "Delete" || e.Key == "Backspace") && string.IsNullOrWhiteSpace(_tempGlValue))
-            await ClearGlValue();
-    }
-
-    private async Task HandleGlBlur(FocusEventArgs e)
-    {
-        if (IsReadOnly()) return;
-        await CommitGlValue();
-    }
+    private string PanelCssClass => $"quick-entry-panel {(IsComponentReadOnly ? "state-readonly" : "state-editable")}";
 
     // ─────────────────────────────────────────────────────────
-    // 🔹 COMMIT: Ingresar °GL → calcular composición
+    // 🔹 HELPERS VISUALES
     // ─────────────────────────────────────────────────────────
     
-    private async Task CommitGlValue()
+    private string? GetTooltipText()
     {
-        if (IsReadOnly() || !ShowGlInput || Variable.Value == null) return;
+        if (!string.IsNullOrWhiteSpace(SourceId))
+            return $"Calculated by: {SourceId}";
+        return null;
+    }
+
+    private string? GetReadonlyTooltip()
+    {
+        if (!string.IsNullOrWhiteSpace(SourceId))
+            return $"Calculated by: {SourceId}";
+        return null;
+    }
+
+    private string GetInfoText()
+    {
+        if (!IsMassFractionDefined && !IsComponentReadOnly)
+            return "Click to define via °GL";
         
-        if (!_isEditingGl || string.IsNullOrWhiteSpace(_tempGlValue))
+        if (IsGlInputReadOnly)
+            return "Auto-calculated (input via Molar %)";
+        
+        return IsComponentReadOnly
+            ? "Auto-calculated from Mass Fraction"
+            : "Set °GL to define Mass Fraction of Ethanol";
+    }
+
+    private string GetPlaceholder() => "<Not defined>";
+
+    private bool ShowPlaceholderStyle() => !IsMassFractionDefined && !_hasUserTyped;
+
+    // 🔹 Valor para modo readonly (SIEMPRE formateado)
+    private string GetReadonlyDisplayValue()
+    {
+        if (!IsMassFractionDefined || !GLValue.HasValue)
+            return "<Not defined>";
+        
+        return FormatValue(GLValue.Value);
+    }
+
+    // 🔹 Formato inteligente: ≥0.01 → 2 decimales, <0.01 → decimales necesarios
+    private string FormatValue(double val)
+    {
+        if (val == 0)
+            return "0.00";
+        else if (Math.Abs(val) >= 0.01)
+            return val.ToString("F2", CultureInfo.InvariantCulture);
+        else
+            return val.ToString("F6", CultureInfo.InvariantCulture).TrimEnd('0').TrimEnd('.');
+    }
+
+    // 🔹 Valor para display (formateado, usado en readonly visual)
+    private string GetDisplayValue() => IsMassFractionDefined && GLValue.HasValue ? FormatValue(GLValue.Value) : "";
+
+    // 🔹 CLAVE: Valor para input editable - SIN formato durante edición
+    private string GetInputValue()
+    {
+        // 👇 Durante edición: mostrar exactamente lo que el usuario escribió (sin formato)
+        if (_isEditing && _rawInput != null)
+            return _rawInput;
+        
+        // 👇 Fuera de edición: mostrar valor formateado si existe
+        return IsMassFractionDefined && GLValue.HasValue ? FormatValue(GLValue.Value) : "";
+    }
+
+    // ─────────────────────────────────────────────────────────
+    // 🔹 HANDLERS (Placeholder dinámico + edición sin formato + nullable)
+    // ─────────────────────────────────────────────────────────
+    
+    private void HandleFocus(FocusEventArgs e)
+    {
+        if (IsComponentReadOnly || IsGlInputReadOnly) return;
+        
+        _isEditing = true;
+        // Al enfocar, si hay valor, cargarlo como raw para edición limpia
+        if (IsMassFractionDefined && GLValue.HasValue)
         {
-            _tempGlValue = null;
-            _isEditingGl = false;
+            _rawInput = GLValue.Value.ToString(CultureInfo.InvariantCulture);
+        }
+        StateHasChanged();
+    }
+    
+    private void HandleInput(ChangeEventArgs e)
+    {
+        if (IsComponentReadOnly || IsGlInputReadOnly) return;
+        
+        _hasUserTyped = true;
+        _rawInput = e.Value?.ToString();
+        
+        // Parsear para uso interno (pero no actualizar display)
+        if (double.TryParse(_rawInput, NumberStyles.Any, CultureInfo.InvariantCulture, out var value))
+        {
+            _tempValue = value;
+        }
+        else
+        {
+            _tempValue = null;
+        }
+    }
+
+    private async Task HandleKeyDown(KeyboardEventArgs e)
+    {
+        if (IsComponentReadOnly || IsGlInputReadOnly) return;
+        
+        if (e.Key == "Enter" && _tempValue.HasValue)
+        {
+            await CommitValue(_tempValue.Value);
+        }
+        else if (e.Key == "Delete" || e.Key == "Backspace")
+        {
+            // 👇 CLAVE: Delete/Backspace → limpiar (notificar null)
+            await ClearValue();
+        }
+    }
+
+    private async Task HandleBlur()
+    {
+        if (IsComponentReadOnly || IsGlInputReadOnly) return;
+        
+        // Si salió sin escribir y no estaba definido, restaurar placeholder
+        if ((!IsMassFractionDefined || !GLValue.HasValue) && !_hasUserTyped)
+        {
+            _isEditing = false;
+            _rawInput = null;
+            _tempValue = null;
             StateHasChanged();
             return;
         }
-
-        if (double.TryParse(_tempGlValue, out var glValue) && glValue >= 0 && glValue <= 100)
-        {
-            var massFraction = CalcularMasicoDesdeGL(glValue);
-            
-            var ethanol = GetEthanolComponent();
-            var water = Variable.Value.Components
-                .FirstOrDefault(c => c.ComponentName.Equals("Water", StringComparison.OrdinalIgnoreCase));
-            
-            if (ethanol != null && water != null)
-            {
-                ethanol.MassFraction = massFraction;
-                water.MassFraction = 1.0 - massFraction;
-                
-                Variable.Value.InputType = ComponentInputType.MassFraction;
-                
-                if (Variable.Value.InputType == ComponentInputType.MassFraction)
-                {
-                    Variable.Value.CalculateMolarFractionsFromMass();
-                }
-                
-                Variable.SetValue(Variable.Value, MethodSource.UserInterface);
-                
-                if (VariableChanged.HasDelegate)
-                    await VariableChanged.InvokeAsync(Variable);
-                
-                if (GlValueChanged.HasDelegate)
-                    await GlValueChanged.InvokeAsync(glValue);
-            }
-        }
-
-        // 👇 CLAVE: Limpiar estado temporal PRIMERO
-        _tempGlValue = null;
-        _isEditingGl = false;
         
-        // 👇 LUEGO forzar re-render - GetGlValue() ahora leerá MassFraction
-        StateHasChanged();
+        // Si hay valor temporal, confirmar
+        if (_tempValue.HasValue)
+        {
+            await CommitValue(_tempValue.Value);
+        }
+        // Si no editó pero hay valor definido, mantenerlo
+        else if (IsMassFractionDefined && GLValue.HasValue)
+        {
+            await CommitValue(GLValue.Value);
+        }
     }
 
-    // ─────────────────────────────────────────────────────────
-    // 🔹 CLEAR: Limpiar fracciones de Etanol/Agua
-    // ─────────────────────────────────────────────────────────
-    
-    private async Task ClearGlValue()
+    private async Task CommitValue(double value)
     {
-        if (IsReadOnly() || !ShowGlInput || Variable.Value == null) return;
+        if (GlValueChanged.HasDelegate)
+            await GlValueChanged.InvokeAsync(value);
         
-        var ethanol = GetEthanolComponent();
-        var water = Variable.Value.Components
-            .FirstOrDefault(c => c.ComponentName.Equals("Water", StringComparison.OrdinalIgnoreCase));
+        // 👇 Resetear estado de edición
+        _tempValue = null;
+        _rawInput = null;
+        _isEditing = false;
+        _hasUserTyped = false;
+    }
+
+    // 🔹 CLAVE: ClearValue notifica NULL para indicar "limpiar composición"
+    private async Task ClearValue()
+    {
+        if (GlValueChanged.HasDelegate)
+            await GlValueChanged.InvokeAsync(null);  // 👈 null = "desdefinir"
         
-        if (ethanol != null) ethanol.MassFraction = null;
-        if (water != null) water.MassFraction = null;
-        
-        if (Variable.Value.InputType == ComponentInputType.MassFraction)
-        {
-            Variable.Value.CalculateMolarFractionsFromMass();
-        }
-        
-        Variable.SetValue(Variable.Value, Variable.Source, Variable.SourceId);
-        
-        _tempGlValue = null;
-        _isEditingGl = false;
-        
-        if (VariableChanged.HasDelegate)
-            await VariableChanged.InvokeAsync(Variable);
-        
+        _tempValue = null;
+        _rawInput = null;
+        _isEditing = false;
+        _hasUserTyped = false;
         StateHasChanged();
     }
 }

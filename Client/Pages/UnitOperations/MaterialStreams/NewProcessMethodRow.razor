@@ -50,12 +50,13 @@
 
     private string GetCssClass()
     {
-        if (!Variable.IsDefined)
-            return "not-defined";  // 👇 Nuevo estado visual
-
-        return Variable.Source == CurrentSource
-            ? "user-defined"
-            : "calculated";
+        return Variable.Source switch
+        {
+            MethodSource.None => "source-none",
+            MethodSource.UserInterface => "source-ui",
+            MethodSource.Other => "source-other",
+            _ => "source-none"
+        };
     }
 
     // 👇 ÚNICA REGLA: Solo readonly si lo definió OTRO origen

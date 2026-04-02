@@ -2,6 +2,11 @@
 
 namespace Shared.DesignPatterns.Thermodynamics
 {
+    public interface IControlledVariable
+    {
+        MethodSource Source { get; set; }
+        string SourceId { get; set; }
+    }
     public enum MethodSource
     {
         None = 0,         // No está definido aún
@@ -9,44 +14,51 @@ namespace Shared.DesignPatterns.Thermodynamics
         Other = 2      // Definido automáticamente por una operación unitaria (Ej: Separador)
     }
 
-    public class ControlledVariable<T>
+    public class ControlledVariable<T> : IControlledVariable
     {
-        // ─────────────────────────────────────────────────────────
-        // 🔹 PROPIEDADES DE ESTADO
-        // ─────────────────────────────────────────────────────────
+
+        public ControlledVariable()
+        {
+            IsDefinedByUI = true;
+        }
+        public ControlledVariable(bool definedByUI)
+        {
+            IsDefinedByUI = definedByUI;
+        }
+        public bool IsDefinedByUI { get; init; }
         public T? Value { get; set; } = default(T)!;
         public MethodSource Source { get; set; } = MethodSource.None;
         public string SourceId { get; set; } = string.Empty;
 
-        // ─────────────────────────────────────────────────────────
-        // 🔹 PROPIEDAD DERIVADA
-        // ─────────────────────────────────────────────────────────
+        // ✅ Flag anti-reentrancia
+        private bool _isNotifying;
         public bool IsDefined => Source != MethodSource.None;
-
-        // ─────────────────────────────────────────────────────────
-        // 🔹 EVENTOS (Patrón Observer)
-        // ─────────────────────────────────────────────────────────
+        // Events
         public event Action<ValueChangedEventArgs<T>>? ValueChanged;
         public event Action? ConstraintsChanged;
 
-        // ─────────────────────────────────────────────────────────
-        // 🔹 MÉTODOS PÚBLICOS (SIN VALIDACIONES DE PERMISO)
-        // ─────────────────────────────────────────────────────────
-
-        /// <summary>
-        /// Establece un nuevo valor y actualiza el origen.
-        /// El caller es responsable de validar permisos antes de llamar.
-        /// </summary>
+        // ✅ SetValue con protección
         public void SetValue(T? newValue, MethodSource source, string sourceId = "UI")
         {
-            var oldValue = Value;
-            Value = newValue;
-            Source = source;
-            SourceId = sourceId;
-
-            ValueChanged?.Invoke(new ValueChangedEventArgs<T>(oldValue, newValue, source, sourceId));
-            ConstraintsChanged?.Invoke();
+            if (_isNotifying) return;
+            try
+            {
+                _isNotifying = true;
+                var oldValue = Value;
+                Value = newValue;
+                Source = source;
+                SourceId = sourceId;
+                if (ValueChanged != null)
+                    ValueChanged.Invoke(new ValueChangedEventArgs<T>(oldValue, newValue, source, sourceId));
+                ConstraintsChanged?.Invoke();
+            }
+            finally
+            {
+                _isNotifying = false;
+            }
         }
+
+        // ... ClearValue() y otros métodos (sin cambios)
 
         /// <summary>
         /// Limpia el valor (Source = None, Value = default).
@@ -55,14 +67,25 @@ namespace Shared.DesignPatterns.Thermodynamics
         public void ClearValue()
         {
             var oldValue = Value;
-            Value = default(T)!;
+            //Value = default(T)!;
             Source = MethodSource.None;
             SourceId = string.Empty;
 
             ValueChanged?.Invoke(new ValueChangedEventArgs<T>(oldValue, default, MethodSource.None, string.Empty));
             ConstraintsChanged?.Invoke();
         }
+        public void SetValueCalculated(T? newValue, string sourceId = "System")
+        {
+            // ✅ Actualizar estado interno
+            Value = newValue;
+            Source = MethodSource.Other;  // ← Marca como "calculado por sistema"
+            SourceId = sourceId;
+
+            // ✅ NO disparar eventos → evita re-evaluación innecesaria
+            // La UI puede reaccionar vía binding, pero no se re-trigger el cálculo
+        }
     }
+
 
     // 👇 Clase auxiliar para pasar contexto en el evento
     public class ValueChangedEventArgs<T>
@@ -81,5 +104,5 @@ namespace Shared.DesignPatterns.Thermodynamics
         }
     }
 
-   
+
 }

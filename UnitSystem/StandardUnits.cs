@@ -927,21 +927,21 @@ namespace UnitSystem
 
     }
     [UnitDefinitionClass]
-    public static class SurfaceTensionUnits
+    public static class SuperficialTensionUnits
     {
         // 1. SISTEMA INTERNACIONAL (SI) - Unidad Base: Newton / metro
         public static readonly UnitMeasure N_m = new UnitMeasure("N/m", "N/m",
-            ForceUnits.Newton / LengthUnits.Meter, "SurfaceTension");
+            ForceUnits.Newton / LengthUnits.Meter, "SuperficialTension");
 
         // 2. SISTEMA CGS - Dina / centímetro (Común en DIPPR)
         // 1 dyn/cm = 0.001 N/m
         public static readonly UnitMeasure dyn_cm = new UnitMeasure("dyn/cm", "dyn/cm",
-            N_m / 1000.0, "SurfaceTension");
+            N_m / 1000.0, "SuperficialTension");
 
         // 3. SISTEMA INGLÉS - Libra-fuerza / pie
         // 1 lbf/ft = 14.5939 N/m
         public static readonly UnitMeasure lbf_ft = new UnitMeasure("lbf/ft", "lbf/ft",
-            N_m * 14.5939029, "SurfaceTension");
+            N_m * 14.5939029, "SuperficialTension");
     }
 }
 
