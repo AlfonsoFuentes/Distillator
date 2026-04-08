@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Server.Databases;
 using Server.Entities.Thermodynamics.Methods;
-using Shared.Thermodynamics.Enums;
+using Shared.PropertiesDtos.Enums;
 using System.Globalization;
 using System.Text;
 

@@ -1,0 +1,46 @@
+﻿/* Hitbox para doble clic */
+.pipe-hitbox {
+    cursor: pointer;
+}
+
+    .pipe-hitbox:hover ~ path[stroke="#2D3748"] {
+        stroke: #0EA5E9; /* Azul eléctrico en hover */
+        stroke-width: 2.5;
+    }
+
+    .pipe-hitbox:hover ~ .pipe-label-group .pipe-label-bg {
+        stroke: #0EA5E9;
+    }
+
+/* Animación del borrador */
+@keyframes flowDash {
+    to {
+        stroke-dashoffset: -20;
+    }
+}
+
+.draft-pipe {
+    animation: flowDash 0.8s linear infinite;
+    pointer-events: none;
+}
+
+/* Leyenda Técnica */
+.pipe-label-group {
+    cursor: pointer;
+}
+
+.pipe-label-bg {
+    fill: #F8FAFC; /* Mismo fondo de las tarjetas */
+    stroke: #E2E8F0;
+    stroke-width: 1;
+    transition: stroke 0.2s ease;
+}
+
+.pipe-label-text {
+    font-family: 'Consolas', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    fill: #4A5568;
+    text-anchor: middle;
+    pointer-events: none;
+}

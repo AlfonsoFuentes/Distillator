@@ -4,8 +4,8 @@ using Microsoft.EntityFrameworkCore;
 using Server.Databases;
 using Server.Entities.BaseStructure.Components;
 using Server.Services;
+using Shared.PropertiesDtos.Components;
 using Shared.Results;
-using Shared.Thermodynamics.Components;
 using UnitSystem;
 
 namespace Server.Endpoints

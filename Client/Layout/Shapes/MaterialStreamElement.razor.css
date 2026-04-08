@@ -1,0 +1,18 @@
+﻿.stream-svg {
+    overflow: visible;
+    /* Sombra técnica proyectada */
+    filter: drop-shadow(0px 3px 4px rgba(0, 0, 0, 0.2));
+    transition: transform 0.2s ease-in-out;
+    cursor: pointer;
+}
+
+    /* Feedback visual al pasar el mouse */
+    .stream-svg:hover {
+        transform: scale(1.05);
+        filter: drop-shadow(0px 5px 6px rgba(0, 0, 0, 0.25));
+    }
+
+.stream-dynamic-fill {
+    /* Transición suave para cuando cambia la fase del fluido (ej. de líquido a vapor) */
+    transition: stroke 0.5s ease, fill 0.5s ease;
+}

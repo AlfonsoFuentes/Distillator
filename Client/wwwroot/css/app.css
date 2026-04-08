@@ -1,3 +1,19 @@
+:root {
+    /* Distillator Industrial Palette - Versión Suave */
+    --dist-navy: #5D79AE; /* 👇 Azul acero Grayish (más suave y profesional) */
+    --dist-light-green: #00D26A; /* Verdecito claro de Distillator (Mantenido) */
+    /* Technical Grays */
+    --dist-gray-bg: #F4F5F7; /* Fondo general */
+    --dist-grid-bg: #EAECEF; /* Fondo del Canvas */
+    --dist-grid-lines: #A8B2C1; /* 👇 Gris más oscuro para que la grilla sea visible */
+    --dist-text-main: #202A36; /* Texto principal técnico */
+    --dist-text-muted: #5C6A7A; /* Texto secundario */
+    --dist-border: #CED4DA; /* Bordes técnicos */
+}
+
+/* ... tu código html, body, blazor-error-ui sigue intacto abajo ... */
+
+/* ... aquí debajo sigue tu código original de html, body, blazor-error-ui, etc. ... */
 html, body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }

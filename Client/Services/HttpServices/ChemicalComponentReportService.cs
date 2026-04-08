@@ -1,7 +1,7 @@
 ﻿using BlazorDownloadFile;
 using OfficeOpenXml;
 using OfficeOpenXml.Style;
-using Shared.Thermodynamics.Components;
+using Shared.PropertiesDtos.Components;
 using System.Drawing;
 
 namespace Client.Services.HttpServices

@@ -1,519 +1,348 @@
-﻿@using Shared.DesignPatterns.Thermodynamics
-@using System.Globalization
+﻿
 
 @if (Variable?.Value?.Components == null)
 {
-    <div class="composition-not-defined">Composición no definida</div>
+    <div class="composition-not-defined">Composition not defined</div>
     return;
 }
-else
-{
-    <div class="scrollable-container">
-        <div class="data-grid composition-grid @GetCssClass()" title="@GetGridTooltip()">
-        
-            @* Headers - 6 columnas *@
-            <div class="grid-header fixed-col">Component</div>
-            <div class="grid-header">Mass (%)</div>
-            <div class="grid-header">Mole (%)</div>
-            <div class="grid-header">Molar Flow</div>
-            <div class="grid-header">Mass Flow</div>
-            <div class="grid-header">Vol. Flow</div>
 
-            @* Filas de componentes *@
-            @foreach (var comp in GetSortedComponents())
-            {
-                @* Columna 1: Nombre (sticky) *@
-                <div class="grid-cell fixed-col label">@comp.ComponentName</div>
+<div class="scrollable-container">
+    <div class="data-grid composition-grid" data-source="@Variable.Source.ToString().ToLower()">
+        
+        @* Headers *@
+        <div class="grid-header fixed-col">Component</div>
+        <div class="grid-header">Mass (%)</div>
+        <div class="grid-header">Mole (%)</div>
+        <div class="grid-header">Molar Flow</div>
+        <div class="grid-header">Mass Flow</div>
+        <div class="grid-header">Vol. Flow</div>
+
+        @* Filas *@
+        @foreach (var comp in GetSortedComponents())
+        {
+            <div class="grid-cell fixed-col label">@comp.ComponentName</div>
             
-                @* Columna 2: Mass% *@
-                <div class="grid-cell value @GetCellCssClass(true)">
-                    @if (IsReadOnly() || Variable.Value.InputType == ComponentInputType.MolarFraction)
-                    {
-                        <!-- 🔹 READONLY: mostrar span formateado -->
-                        <span class="readonly-fraction" title="@GetFractionTooltip(true, comp)">
-                            @FormatFraction(comp.MassFraction)
-                        </span>
-                    }
-                    else
-                    {
-                        <!-- 🔹 EDITABLE: input con valor formateado (SIN @bind directo) -->
-                        <input type="number"
-                               step="0.01"
-                               min="0"
-                               max="100"
-                               value="@GetMassFractionInputValue(comp)"
-                               placeholder="@GetPlaceholder()"
-                               class="@(comp.MassFraction.HasValue ? "" : "placeholder")"
-                               @onfocus="@(e => HandleFractionFocus(e, comp, true))"
-                               @oninput="@(e => HandleMassFractionInput(e, comp))"
-                               @onkeydown="@(e => HandleFractionKeyDown(e, comp, true))"
-                               @onblur="@(e => HandleFractionBlur(e, comp, true))" />
-                    }
-                </div>
+            @* MASS COLUMN *@
+            <div class="grid-cell value" data-state="@GetCellState(comp, true)" title="@GetCellTooltip(comp, true)">
+                @if (IsCellReadOnly(comp, true))
+                {
+                    <span class="readonly-value">@FormatFraction(comp.MassFraction)</span>
+                }
+                else
+                {
+                    <input type="number" step="0.01" min="0" max="100"
+                           value="@GetInputValue(comp, true)"
+                           placeholder="<Not defined>"
+                           @onfocus="@(e => HandleFocus(comp, true))"
+                           @oninput="@(e => HandleInput(e, comp, true))"
+                           @onkeydown="@(e => HandleKeyDown(e, comp, true))"
+                           @onblur="@(e => HandleBlur(comp, true))" />
+                }
+            </div>
 
-                @* Columna 3: Mole% *@
-                <div class="grid-cell value @GetCellCssClass(false)">
-                    @if (IsReadOnly() || Variable.Value.InputType == ComponentInputType.MassFraction)
-                    {
-                        <!-- 🔹 READONLY: mostrar span formateado -->
-                        <span class="readonly-fraction" title="@GetFractionTooltip(false, comp)">
-                            @FormatFraction(comp.MolarFraction)
-                        </span>
-                    }
-                    else
-                    {
-                        <!-- 🔹 EDITABLE: input con valor formateado (SIN @bind directo) -->
-                        <input type="number"
-                               step="0.01"
-                               min="0"
-                               max="100"
-                               value="@GetMolarFractionInputValue(comp)"
-                               placeholder="@GetPlaceholder()"
-                               class="@(comp.MolarFraction.HasValue ? "" : "placeholder")"
-                               @onfocus="@(e => HandleFractionFocus(e, comp, false))"
-                               @oninput="@(e => HandleMolarFractionInput(e, comp))"
-                               @onkeydown="@(e => HandleFractionKeyDown(e, comp, false))"
-                               @onblur="@(e => HandleFractionBlur(e, comp, false))" />
-                    }
-                </div>
+            @* MOLE COLUMN *@
+            <div class="grid-cell value" data-state="@GetCellState(comp, false)" title="@GetCellTooltip(comp, false)">
+                @if (IsCellReadOnly(comp, false))
+                {
+                    <span class="readonly-value">@FormatFraction(comp.MolarFraction)</span>
+                }
+                else
+                {
+                    <input type="number" step="0.01" min="0" max="100"
+                           value="@GetInputValue(comp, false)"
+                           placeholder="<Not defined>"
+                           @onfocus="@(e => HandleFocus(comp, false))"
+                           @oninput="@(e => HandleInput(e, comp, false))"
+                           @onkeydown="@(e => HandleKeyDown(e, comp, false))"
+                           @onblur="@(e => HandleBlur(comp, false))" />
+                }
+            </div>
 
-                @* Columnas 4-6: Flujos (siempre calculados, readonly) *@
-                <div class="grid-cell value calculated" title="@GetFlowTooltip()">
-                    <span>@FormatFlow(comp.MolarFlowValue?.Value)</span>
-                </div>
-                <div class="grid-cell value calculated" title="@GetFlowTooltip()">
-                    <span>@FormatFlow(comp.MassFlowValue?.Value)</span>
-                </div>
-                <div class="grid-cell value calculated" title="@GetFlowTooltip()">
-                    <span>@FormatFlow(comp.VolumetricFlowValue?.Value)</span>
-                </div>
-            }
-        </div>
+            @* FLOW COLUMNS (Siempre calculadas / readonly) *@
+            <div class="grid-cell value" data-state="calculated">
+                <span class="readonly-value">@FormatFlow(comp.MolarFlowValue?.Value)</span>
+            </div>
+            <div class="grid-cell value" data-state="calculated">
+                <span class="readonly-value">@FormatFlow(comp.MassFlowValue?.Value)</span>
+            </div>
+            <div class="grid-cell value" data-state="calculated">
+                <span class="readonly-value">@FormatFlow(comp.VolumetricFlowValue?.Value)</span>
+            </div>
+        }
     </div>
-    
-    @* 🔹 PANEL °GL (solo para mezcla Etanol/Agua) *@
-    @if (Variable.Value.IsEthanolWaterMixture())
-    {
-        <div class="gl-input-container">
-            <EthanolWaterGlInput GLValue="@GetGlValue()"
-                                 GlValueChanged="OnGlValueChanged"
-                                 IsComponentReadOnly="@(Variable.Source == MethodSource.Other)"
-                                 IsGlInputReadOnly="@(Variable.Source == MethodSource.Other || Variable.Value.InputType == ComponentInputType.MolarFraction)"
-                                 IsMassFractionDefined="@(Variable.Value.InputType == ComponentInputType.MassFraction || Variable.Value.InputType == ComponentInputType.MolarFraction)"
-                                 SourceId="@(Variable.Source == MethodSource.Other ? Variable.SourceId : null)" />
-        </div>
-    }
+</div>
+
+@* PANEL °GL *@
+@if (Variable.Value.IsEthanolWaterMixture())
+{
+    <div class="gl-input-container">
+        <EthanolWaterGlInput GLValue="@GetGlValue()"
+                             GlValueChanged="OnGlValueChanged"
+                             IsComponentReadOnly="@(Variable.Source == MethodSource.Other)"
+                             IsGlInputReadOnly="@(Variable.Source == MethodSource.Other || Variable.Value.InputType == ComponentInputType.MolarFraction)"
+                             IsMassFractionDefined="@(Variable.Value.InputType == ComponentInputType.MassFraction || Variable.Value.InputType == ComponentInputType.MolarFraction)"
+                             SourceId="@(Variable.Source == MethodSource.Other ? Variable.SourceId : null)" />
+    </div>
 }
+@code{
+    @code {
+        [Parameter] public ControlledVariable<StreamComposition> Variable { get; set; } = default!;
+        [Parameter] public EventCallback<ControlledVariable<StreamComposition>> VariableChanged { get; set; }
 
-@code {
-    // ─────────────────────────────────────────────────────────
-    // 🔹 PARÁMETROS
-    // ─────────────────────────────────────────────────────────
-    [Parameter] public ControlledVariable<StreamComposition> Variable { get; set; } = default!;
-    [Parameter] public EventCallback<ControlledVariable<StreamComposition>> VariableChanged { get; set; }
+        private ComponentComposition? _editingComponent;
+        private bool _isEditingMass;
+        private bool _isEditingMolar;
+        private double? _tempInputValue;
 
-    // ─────────────────────────────────────────────────────────
-    // 🔹 ESTADO TEMPORAL PARA EDICIÓN DE FRACCIONES
-    // ─────────────────────────────────────────────────────────
-    private ComponentComposition? _editingComponent;
-    private bool _isEditingMass;
-    private bool _isEditingMolar;
-    private double? _tempMassFraction;
-    private double? _tempMolarFraction;
+        // ─────────────────────────────────────────────────────────
+        // 🔹 MANEJO DE ESTADOS (STATE MACHINE)
+        // ─────────────────────────────────────────────────────────
 
-    // ─────────────────────────────────────────────────────────
-    // 🔹 HELPERS VISUALES
-    // ─────────────────────────────────────────────────────────
-    
-    private string GetCssClass() => Variable.Source switch
-    {
-        MethodSource.None => "source-none",
-        MethodSource.UserInterface => "source-ui",
-        MethodSource.Other => "source-other",
-        _ => "source-none"
-    };
+        private string GetCellState(ComponentComposition comp, bool isMass)
+        {
+            // 1. Si todo el componente viene calculado de otro lado
+            if (Variable.Source == MethodSource.Other) return "calculated";
 
-    private string GetCellCssClass(bool isMassColumn)
-    {
-        if (IsReadOnly()) return "calculated";
+            var hasValue = isMass ? comp.MassFraction.HasValue : comp.MolarFraction.HasValue;
+            var inputType = Variable.Value!.InputType;
+
+            // 2. Si no hay nada definido en absoluto
+            if (inputType == ComponentInputType.None) return hasValue ? "editable" : "empty";
+
+            // 3. Reglas de Interbloqueo Termodinámico
+            if (inputType == ComponentInputType.MassFraction)
+            {
+                return isMass ? (hasValue ? "editable" : "empty") : (hasValue ? "calculated" : "blocked");
+            }
         
-        return Variable.Value!.InputType switch
-        {
-            ComponentInputType.MassFraction => isMassColumn ? "" : "calculated",
-            ComponentInputType.MolarFraction => !isMassColumn ? "" : "calculated",
-            _ => ""
-        };
-    }
+            if (inputType == ComponentInputType.MolarFraction)
+            {
+                return !isMass ? (hasValue ? "editable" : "empty") : (hasValue ? "calculated" : "blocked");
+            }
 
-    private string? GetGridTooltip()
-    {
-        if (Variable.Source == MethodSource.Other && !string.IsNullOrWhiteSpace(Variable.SourceId))
-            return $"Calculated by: {Variable.SourceId}";
-        return null;
-    }
+            return "empty";
+        }
 
-    private string? GetFractionTooltip(bool isMassColumn, ComponentComposition comp)
-    {
-        if (IsReadOnly() || Variable.Value!.InputType != (isMassColumn ? ComponentInputType.MassFraction : ComponentInputType.MolarFraction))
+        private bool IsCellReadOnly(ComponentComposition comp, bool isMass)
         {
-            if (!string.IsNullOrWhiteSpace(Variable.SourceId))
+            var state = GetCellState(comp, isMass);
+            return state == "calculated" || state == "blocked";
+        }
+
+        private string? GetCellTooltip(ComponentComposition comp, bool isMass)
+        {
+            var state = GetCellState(comp, isMass);
+            if (state == "calculated" && !string.IsNullOrWhiteSpace(Variable.SourceId))
                 return $"Calculated by: {Variable.SourceId}";
+            if (state == "calculated")
+                return "Calculated from mixture composition";
+            if (state == "blocked")
+                return "Blocked: Define via " + (isMass ? "Mole %" : "Mass %");
+            return null;
         }
-        return null;
-    }
 
-    private string? GetFlowTooltip()
-    {
-        if (!string.IsNullOrWhiteSpace(Variable.SourceId))
-            return $"Calculated by: {Variable.SourceId}";
-        return null;
-    }
+        // ─────────────────────────────────────────────────────────
+        // 🔹 FORMATOS
+        // ─────────────────────────────────────────────────────────
 
-    private string GetPlaceholder() => "<Not defined>";
-
-    // 🔹 Formato inteligente para fracciones: ≥1.0 → 2 decimales, <1.0 → decimales necesarios
-    private string FormatFraction(double? fraction)
-    {
-        if (!fraction.HasValue) return "";
-        var val = fraction.Value;
-        
-        if (Math.Abs(val) >= 1.0)
-            return val.ToString("F2", CultureInfo.InvariantCulture);
-        else if (val == 0)
-            return "0.00";
-        else
-            return val.ToString("F6", CultureInfo.InvariantCulture).TrimEnd('0').TrimEnd('.');
-    }
-
-    // 🔹 Formato inteligente para flujos
-    private string FormatFlow(double? value)
-    {
-        if (!value.HasValue) return "";
-        var val = value.Value;
-        
-        if (Math.Abs(val) >= 1.0)
-            return val.ToString("F2", CultureInfo.InvariantCulture);
-        else if (val == 0)
-            return "0.00";
-        else
-            return val.ToString("F6", CultureInfo.InvariantCulture).TrimEnd('0').TrimEnd('.');
-    }
-
-    private bool IsReadOnly() => Variable.Source == MethodSource.Other;
-
-    // ─────────────────────────────────────────────────────────
-    // 🔹 HELPERS DE VALOR PARA INPUTS EDITABLES
-    // ─────────────────────────────────────────────────────────
-    
-    private string GetMassFractionInputValue(ComponentComposition comp)
-    {
-        if (_editingComponent == comp && _isEditingMass && _tempMassFraction.HasValue)
-            return _tempMassFraction.Value.ToString(CultureInfo.InvariantCulture);
-        
-        return comp.MassFraction.HasValue ? FormatFraction(comp.MassFraction) : "";
-    }
-
-    private string GetMolarFractionInputValue(ComponentComposition comp)
-    {
-        if (_editingComponent == comp && _isEditingMolar && _tempMolarFraction.HasValue)
-            return _tempMolarFraction.Value.ToString(CultureInfo.InvariantCulture);
-        
-        return comp.MolarFraction.HasValue ? FormatFraction(comp.MolarFraction) : "";
-    }
-
-    // ─────────────────────────────────────────────────────────
-    // 🔹 HANDLERS DE EDICIÓN (CORREGIDOS: limpian AMBAS fracciones)
-    // ─────────────────────────────────────────────────────────
-    
-    private void HandleFractionFocus(FocusEventArgs e, ComponentComposition comp, bool isMass)
-    {
-        if (IsReadOnly()) return;
-        
-        _editingComponent = comp;
-        _isEditingMass = isMass;
-        _isEditingMolar = !isMass;
-        
-        if (isMass && comp.MassFraction.HasValue)
-            _tempMassFraction = comp.MassFraction.Value;
-        else if (!isMass && comp.MolarFraction.HasValue)
-            _tempMolarFraction = comp.MolarFraction.Value;
-        
-        StateHasChanged();
-    }
-
-    private void HandleMassFractionInput(ChangeEventArgs e, ComponentComposition comp)
-    {
-        _editingComponent = comp;
-        _isEditingMass = true;
-        
-        if (double.TryParse(e.Value?.ToString(), NumberStyles.Any, CultureInfo.InvariantCulture, out var value))
-            _tempMassFraction = value;
-        else
-            _tempMassFraction = null;
-    }
-
-    private void HandleMolarFractionInput(ChangeEventArgs e, ComponentComposition comp)
-    {
-        _editingComponent = comp;
-        _isEditingMolar = true;
-        
-        if (double.TryParse(e.Value?.ToString(), NumberStyles.Any, CultureInfo.InvariantCulture, out var value))
-            _tempMolarFraction = value;
-        else
-            _tempMolarFraction = null;
-    }
-
-    // 🔹 CLAVE: Al borrar, limpiar AMBAS fracciones (entrada + calculada)
-    // 🔹 CLAVE: Al presionar Delete/Backspace, limpiar AMBAS fracciones INMEDIATAMENTE
-    private async Task HandleFractionKeyDown(KeyboardEventArgs e, ComponentComposition comp, bool isMass)
-    {
-        if (IsReadOnly()) return;
-    
-        if (e.Key == "Enter")
+        private string FormatFraction(double? fraction)
         {
-            if (isMass && _tempMassFraction.HasValue)
-            {
-                comp.MassFraction = _tempMassFraction.Value;
-                await ProcessAndSubmitCalculation(comp, true);
-            }
-            else if (!isMass && _tempMolarFraction.HasValue)
-            {
-                comp.MolarFraction = _tempMolarFraction.Value;
-                await ProcessAndSubmitCalculation(comp, false);
-            }
-            ResetEditingState();
+            if (!fraction.HasValue) return "<Not defined>";
+            var val = fraction.Value;
+            return val == 0 ? "0.00" : (Math.Abs(val) >= 1.0 ? val.ToString("F2", CultureInfo.InvariantCulture) : val.ToString("F6", CultureInfo.InvariantCulture).TrimEnd('0').TrimEnd('.'));
         }
-        else if (e.Key == "Delete" || e.Key == "Backspace")
+
+        private string FormatFlow(double? value)
         {
-            // 👇 CLAVE: Limpiar AMBAS fracciones INMEDIATAMENTE (sin verificar valor actual)
-            if (isMass)
+            if (!value.HasValue) return "";
+            var val = value.Value;
+            return val == 0 ? "0.00" : (Math.Abs(val) >= 1.0 ? val.ToString("F2", CultureInfo.InvariantCulture) : val.ToString("F6", CultureInfo.InvariantCulture).TrimEnd('0').TrimEnd('.'));
+        }
+
+        private string GetInputValue(ComponentComposition comp, bool isMass)
+        {
+            bool isEditingThis = _editingComponent == comp && ((isMass && _isEditingMass) || (!isMass && _isEditingMolar));
+            if (isEditingThis && _tempInputValue.HasValue)
+                return _tempInputValue.Value.ToString(CultureInfo.InvariantCulture);
+
+            var val = isMass ? comp.MassFraction : comp.MolarFraction;
+            return val.HasValue ? FormatFraction(val) : "";
+        }
+
+        // ─────────────────────────────────────────────────────────
+        // 🔹 HANDLERS DE EVENTOS (Simplificados)
+        // ─────────────────────────────────────────────────────────
+
+        private void HandleFocus(ComponentComposition comp, bool isMass)
+        {
+            if (IsCellReadOnly(comp, isMass)) return;
+            _editingComponent = comp;
+            _isEditingMass = isMass;
+            _isEditingMolar = !isMass;
+            _tempInputValue = isMass ? comp.MassFraction : comp.MolarFraction;
+        }
+
+        private void HandleInput(ChangeEventArgs e, ComponentComposition comp, bool isMass)
+        {
+            if (double.TryParse(e.Value?.ToString(), NumberStyles.Any, CultureInfo.InvariantCulture, out var value))
+                _tempInputValue = value;
+            else
+                _tempInputValue = null;
+        }
+
+        private async Task HandleKeyDown(KeyboardEventArgs e, ComponentComposition comp, bool isMass)
+        {
+            if (e.Key == "Enter") await CommitValue(comp, isMass);
+            else if (e.Key == "Delete" || e.Key == "Backspace") await ClearCell(comp, isMass);
+        }
+
+        private async Task HandleBlur(ComponentComposition comp, bool isMass)
+        {
+            if (_tempInputValue.HasValue || (isMass ? comp.MassFraction.HasValue : comp.MolarFraction.HasValue))
             {
-                comp.MassFraction = null;
-                comp.MolarFraction = null;  // 👈 Limpiar la calculada
-                _tempMassFraction = null;
+                await CommitValue(comp, isMass);
             }
             else
             {
-                comp.MolarFraction = null;
-                comp.MassFraction = null;  // 👈 Limpiar la calculada
-                _tempMolarFraction = null;
-            }
-        
-            // 👇 Si TODOS los componentes están vacíos, resetear InputType
-            if (Variable.Value!.Components.All(c => !c.MassFraction.HasValue && !c.MolarFraction.HasValue))
-            {
-                Variable.Value.InputType = ComponentInputType.None;
-            }
-        
-            Variable.ClearValue();
-            ResetEditingState();
-            StateHasChanged();
-        }
-    }
-
-    // 🔹 CLAVE: Al perder foco sin valor, limpiar AMBAS fracciones
-    // 🔹 CLAVE: Al perder foco con input vacío, limpiar AMBAS fracciones
-    private async Task HandleFractionBlur(FocusEventArgs e, ComponentComposition comp, bool isMass)
-    {
-        if (IsReadOnly()) return;
-    
-        var current = isMass ? comp.MassFraction : comp.MolarFraction;
-    
-        // 👇 Si el usuario salió sin ingresar valor (input vacío)
-        if (!current.HasValue && _editingComponent == comp)
-        {
-            // 👈 Limpiar AMBAS fracciones (entrada + calculada)
-            if (isMass)
-            {
-                comp.MassFraction = null;
-                comp.MolarFraction = null;
-            }
-            else
-            {
-                comp.MolarFraction = null;
-                comp.MassFraction = null;
-            }
-        
-            // 👇 Si TODOS los componentes están vacíos, resetear InputType
-            if (Variable.Value!.Components.All(c => !c.MassFraction.HasValue && !c.MolarFraction.HasValue))
-            {
-                Variable.Value.InputType = ComponentInputType.None;
-            }
-        
-            Variable.ClearValue();
-            ResetEditingState();
-            StateHasChanged();
-            return;
-        }
-    
-        // 👇 Si hay valor temporal, confirmarlo
-        if (_editingComponent == comp)
-        {
-            if (isMass && _tempMassFraction.HasValue)
-            {
-                comp.MassFraction = _tempMassFraction.Value;
-                await ProcessAndSubmitCalculation(comp, true);
-            }
-            else if (!isMass && _tempMolarFraction.HasValue)
-            {
-                comp.MolarFraction = _tempMolarFraction.Value;
-                await ProcessAndSubmitCalculation(comp, false);
+                await ClearCell(comp, isMass);
             }
         }
-    
-        ResetEditingState();
-    }
 
-    private void ResetEditingState()
-    {
-        _editingComponent = null;
-        _isEditingMass = false;
-        _isEditingMolar = false;
-        _tempMassFraction = null;
-        _tempMolarFraction = null;
-    }
-
-    // ─────────────────────────────────────────────────────────
-    // 🔹 HANDLERS °GL (lógica existente)
-    // ─────────────────────────────────────────────────────────
-    
-    private double? GetGlValue()
-    {
-        if (!Variable.Value!.IsEthanolWaterMixture())
-            return null;
-    
-        var ethanol = Variable.Value.Components
-            .FirstOrDefault(c => c.ComponentName.Equals("Ethanol", StringComparison.OrdinalIgnoreCase));
-    
-        if (ethanol == null || !ethanol.MassFraction.HasValue)
-            return null;
-    
-        return GetGLEtanol(ethanol.MassFraction.Value);
-    }
-
-    private async Task OnGlValueChanged(double? glValue)
-    {
-        if (!glValue.HasValue)
+        private async Task CommitValue(ComponentComposition comp, bool isMass)
         {
-            ClearComposition();
-            return;
-        }
-    
-        var massFraction = CalcularMasicoDesdeGL(glValue.Value);
-    
-        var ethanol = Variable.Value!.Components
-            .FirstOrDefault(c => c.ComponentName.Equals("Ethanol", StringComparison.OrdinalIgnoreCase));
-        var water = Variable.Value.Components
-            .FirstOrDefault(c => c.ComponentName.Equals("Water", StringComparison.OrdinalIgnoreCase));
-    
-        if (ethanol != null && water != null)
-        {
-            ethanol.MassFraction = massFraction;
-            water.MassFraction = 100 - massFraction;
-        
-            Variable.Value.InputType = ComponentInputType.MassFraction;
-        
-            var sum = ethanol.MassFraction.Value + water.MassFraction.Value;
-            if (Math.Abs(sum - 100) < 0.01)
-                Variable.Value.CalculateMolarFractionsFromMass();
-        
+            if (!_tempInputValue.HasValue) return;
+
+            if (isMass) comp.MassFraction = _tempInputValue;
+            else comp.MolarFraction = _tempInputValue;
+
+            Variable.Value!.InputType = isMass ? ComponentInputType.MassFraction : ComponentInputType.MolarFraction;
+
+            if (isMass) Variable.Value.CalculateMolarFractionsFromMass();
+            else Variable.Value.CalculateMassFractionsFromMolar();
+
             Variable.SetValue(Variable.Value, MethodSource.UserInterface);
         
-            if (VariableChanged.HasDelegate)
-                await VariableChanged.InvokeAsync(Variable);
-        
-            StateHasChanged();
+            ResetEditingState();
+            if (VariableChanged.HasDelegate) await VariableChanged.InvokeAsync(Variable);
         }
-    }
 
-    private void ClearComposition()
-    {
-        foreach (var comp in Variable.Value!.Components)
+        private async Task ClearCell(ComponentComposition comp, bool isMass)
         {
             comp.MassFraction = null;
             comp.MolarFraction = null;
+
+            if (Variable.Value!.Components.All(c => !c.MassFraction.HasValue && !c.MolarFraction.HasValue))
+                Variable.Value.InputType = ComponentInputType.None;
+
+            ResetEditingState();
+            Variable.ClearValue();
+            if (VariableChanged.HasDelegate) await VariableChanged.InvokeAsync(Variable);
         }
-    
-        Variable.Value.InputType = ComponentInputType.None;
-        Variable.ClearValue();
-    
-        if (VariableChanged.HasDelegate)
-            VariableChanged.InvokeAsync(Variable);
-    
-        StateHasChanged();
-    }
 
-    private double CalcularMasicoDesdeGL(double GL)
-    {
-        if (GL >= 100) return 100; if (GL <= 0) return 0;
-        return ((1.881755917e-9 * Math.Pow(GL, 4)) - (1.161368119e-7 * Math.Pow(GL, 3))
-             + (1.36632945e-5 * Math.Pow(GL, 2)) + (7.8756832e-3 * GL)) * 100;
-    }
-
-    private double GetGLEtanol(double masico)
-    {
-        if (masico <= 0) return 0; if (masico >= 100) return 100;
-        double sup = 100, inf = 0, GL = 0;
-        for (int i = 0; i < 60; i++)
+        private void ResetEditingState()
         {
-            GL = (sup + inf) / 2;
-            double pm = CalcularMasicoDesdeGL(GL);
-            if (Math.Abs(pm - masico) < 1e-4) break;
-            if (pm > masico) sup = GL; else inf = GL;
+            _editingComponent = null;
+            _isEditingMass = false;
+            _isEditingMolar = false;
+            _tempInputValue = null;
         }
-        return GL;
-    }
 
-    // ─────────────────────────────────────────────────────────
-    // 🔹 PROCESAR Y ENVIAR AL BACKEND
-    // ─────────────────────────────────────────────────────────
-    
-    private async Task ProcessAndSubmitCalculation(ComponentComposition comp, bool isMass)
-    {
-        var fraction = isMass ? comp.MassFraction : comp.MolarFraction;
-        if (!fraction.HasValue) { StateHasChanged(); return; }
-
-        Variable.Value!.InputType = isMass ? ComponentInputType.MassFraction : ComponentInputType.MolarFraction;
-
-        if (isMass)
-            Variable.Value.CalculateMolarFractionsFromMass();
-        else
-            Variable.Value.CalculateMassFractionsFromMolar();
-
-        var sum = isMass
-            ? Variable.Value.Components.Sum(c => c.MassFraction ?? 0)
-            : Variable.Value.Components.Sum(c => c.MolarFraction ?? 0);
-
-        if (sum < 99 || sum > 101) { StateHasChanged(); return; }
-
-        Variable.SetValue(Variable.Value, MethodSource.UserInterface);
-        
-        if (VariableChanged.HasDelegate)
-            await VariableChanged.InvokeAsync(Variable);
-        
-        StateHasChanged();
-    }
-
-    // ─────────────────────────────────────────────────────────
-    // 🔹 ORDENAMIENTO: Water siempre de último
-    // ─────────────────────────────────────────────────────────
-    
-    private IEnumerable<ComponentComposition> GetSortedComponents()
-    {
-        if (Variable.Value?.Components == null)
-            return Enumerable.Empty<ComponentComposition>();
-
-        var components = Variable.Value.Components.ToList();
-    
-        var water = components.FirstOrDefault(c =>
-            c.ComponentName.Equals("Water", StringComparison.OrdinalIgnoreCase));
-    
-        if (water != null)
+        // ─────────────────────────────────────────────────────────
+        // 🔹 ORDENAMIENTO Y GAY-LUSSAC (Se mantiene intacto)
+        // ─────────────────────────────────────────────────────────
+        private IEnumerable<ComponentComposition> GetSortedComponents()
         {
-            components.Remove(water);
-            components.Add(water);
+            if (Variable.Value?.Components == null) return Enumerable.Empty<ComponentComposition>();
+            var components = Variable.Value.Components.ToList();
+            var water = components.FirstOrDefault(c => c.ComponentName.Equals("Water", StringComparison.OrdinalIgnoreCase));
+            if (water != null) { components.Remove(water); components.Add(water); }
+            return components;
         }
+
+        private double? GetGlValue()
+        {
+            if (!Variable.Value!.IsEthanolWaterMixture())
+                return null;
     
-        return components;
+            var ethanol = Variable.Value.Components
+                .FirstOrDefault(c => c.ComponentName.Equals("Ethanol", StringComparison.OrdinalIgnoreCase));
+    
+            if (ethanol == null || !ethanol.MassFraction.HasValue)
+                return null;
+    
+            return GetGLEtanol(ethanol.MassFraction.Value);
+        }
+
+        private async Task OnGlValueChanged(double? glValue)
+        {
+            if (!glValue.HasValue)
+            {
+                ClearComposition();
+                return;
+            }
+    
+            var massFraction = CalcularMasicoDesdeGL(glValue.Value);
+    
+            var ethanol = Variable.Value!.Components
+                .FirstOrDefault(c => c.ComponentName.Equals("Ethanol", StringComparison.OrdinalIgnoreCase));
+            var water = Variable.Value.Components
+                .FirstOrDefault(c => c.ComponentName.Equals("Water", StringComparison.OrdinalIgnoreCase));
+    
+            if (ethanol != null && water != null)
+            {
+                ethanol.MassFraction = massFraction;
+                water.MassFraction = 100 - massFraction;
+        
+                Variable.Value.InputType = ComponentInputType.MassFraction;
+        
+                var sum = ethanol.MassFraction.Value + water.MassFraction.Value;
+                if (Math.Abs(sum - 100) < 0.01)
+                    Variable.Value.CalculateMolarFractionsFromMass();
+        
+                Variable.SetValue(Variable.Value, MethodSource.UserInterface);
+        
+                if (VariableChanged.HasDelegate)
+                    await VariableChanged.InvokeAsync(Variable);
+        
+                StateHasChanged();
+            }
+        }
+        private void ClearComposition()
+        {
+            foreach (var comp in Variable.Value!.Components)
+            {
+                comp.MassFraction = null;
+                comp.MolarFraction = null;
+            }
+    
+            Variable.Value.InputType = ComponentInputType.None;
+            Variable.ClearValue();
+    
+            if (VariableChanged.HasDelegate)
+                VariableChanged.InvokeAsync(Variable);
+    
+            StateHasChanged();
+        }
+
+        private double CalcularMasicoDesdeGL(double GL)
+        {
+            if (GL >= 100) return 100; if (GL <= 0) return 0;
+            return ((1.881755917e-9 * Math.Pow(GL, 4)) - (1.161368119e-7 * Math.Pow(GL, 3))
+                 + (1.36632945e-5 * Math.Pow(GL, 2)) + (7.8756832e-3 * GL)) * 100;
+        }
+
+        private double GetGLEtanol(double masico)
+        {
+            if (masico <= 0) return 0; if (masico >= 100) return 100;
+            double sup = 100, inf = 0, GL = 0;
+            for (int i = 0; i < 60; i++)
+            {
+                GL = (sup + inf) / 2;
+                double pm = CalcularMasicoDesdeGL(GL);
+                if (Math.Abs(pm - masico) < 1e-4) break;
+                if (pm > masico) sup = GL; else inf = GL;
+            }
+            return GL;
+        }
     }
 }

@@ -330,7 +330,7 @@ namespace UnitSystem
         }
         public static Amount manometric;
 
-        public Pressure(double dvalue) : base(dvalue, PressureUnits.Bar)
+        public Pressure(double dvalue) : base(dvalue, PressureUnits.Bara)
         {
 
         }

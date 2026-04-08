@@ -27,7 +27,7 @@ namespace UnitSystem
         public static readonly UnitType EA = new UnitType("EA");
         public static readonly UnitType Case = new UnitType("Case");
         public static readonly UnitType Day = new UnitType("day");
-       
+
     }
     [UnitDefinitionClass]
     public static class UnitLessUnits
@@ -310,30 +310,119 @@ namespace UnitSystem
     }
 
 
+    /// <summary>
+    /// Unidades de presión con sufijos (a) para absoluta y (g) para manométrica/gauge.
+    /// NO hay unidades sin sufijo para evitar ambigüedad.
+    /// Las unidades están definidas en pares (absoluta, gauge) para que aparezcan
+    /// agrupadas en el dropdown de la UI en el orden: Pa (a), Pa (g), bar (a), bar (g), etc.
+    /// </summary>
     [UnitDefinitionClass]
     public static class PressureUnits
     {
-        public static readonly UnitMeasure Pascal = new UnitMeasure("pascal", "Pa", ForceUnits.Newton * LengthUnits.Meter.Power(-2), "Pressure");
-        //public static readonly Unit Pascalg = new Unit("pascal g", "Pa g", Pascal-Atmosphere, "Pressure");
-        public static readonly UnitMeasure HectoPascal = new UnitMeasure("hectopascal", "hPa", 100.0 * Pascal, "Pressure");
-        public static readonly UnitMeasure KiloPascal = new UnitMeasure("kilopascal", "KPa", 1000.0 * Pascal, "Pressure");
-        public static readonly UnitMeasure Bar = new UnitMeasure("bar", "bar", 100000.0 * Pascal, "Pressure");
-        public static readonly UnitMeasure MilliBar = new UnitMeasure("millibar", "mbar", 0.001 * Bar, "Pressure");
-        public static readonly UnitMeasure Atmosphere = new UnitMeasure("atmosphere", "atm", 101325.0 * Pascal, "Pressure");
+        // ─────────────────────────────────────────────────────────
+        // 🔹 UNIDADES DEFINIDAS EN PARES (absoluta, gauge) POR BASE
+        // El orden de declaración determina el orden en el dropdown de la UI
+        // NO hay unidades sin sufijo para evitar ambigüedad
+        // ─────────────────────────────────────────────────────────
 
-        public static readonly UnitMeasure KgPercm2 = new UnitMeasure("Kg/cm2", "Kg/cm2", 98.06652048 * KiloPascal, "Pressure");
-        public static readonly UnitMeasure psi = new UnitMeasure("psi", "psi", 6.894759087 * KiloPascal, "Pressure");
-        public static readonly UnitMeasure MeterWater = new UnitMeasure("Meter Water Column", "MCA", 9.806382778 * KiloPascal, "Pressure");
-        public static readonly UnitMeasure InchWater = new UnitMeasure("Inch Water Column", "Inch WC", 0.249082008 * KiloPascal, "Pressure");
-        public static readonly UnitMeasure centimeterWater = new UnitMeasure("centimeter Water Column", "cm WC", MeterWater * 100, "Pressure");
-        public static readonly UnitMeasure feetWater = new UnitMeasure("Feet Water Column", "feet CA", KiloPascal * 2.988301699, "Pressure");
+        // ── Pascal ───────────────────────────────────────────────
+        public static readonly UnitMeasure Pascala = new UnitMeasure("pascal (absolute)", "Pa (a)",
+            ForceUnits.Newton * LengthUnits.Meter.Power(-2), "Pressure");
 
-        public static readonly UnitMeasure InchHg = new UnitMeasure("inch Hg", "inch Hg", KiloPascal * 3.3863787, "Pressure");
-        public static readonly UnitMeasure cmHg = new UnitMeasure("cm Hg", "cm Hg", KiloPascal * 1.332199, "Pressure");
-        public static readonly UnitMeasure mmHg = new UnitMeasure("mm Hg", "mm Hg", KiloPascal * 0.133322, "Pressure");
+        public static readonly UnitMeasure Pascalg = new UnitMeasure("pascal (gauge)", "Pa (g)",
+            ForceUnits.Newton * LengthUnits.Meter.Power(-2), "Pressure");
+
+        // ── Kilopascal ───────────────────────────────────────────
+        public static readonly UnitMeasure KiloPascala = new UnitMeasure("kilopascal (absolute)", "kPa (a)",
+            1000.0 * Pascala, "Pressure");
+
+        public static readonly UnitMeasure KiloPascalg = new UnitMeasure("kilopascal (gauge)", "kPa (g)",
+            1000.0 * Pascalg, "Pressure");
+
+        // ── Bar ──────────────────────────────────────────────────
+        public static readonly UnitMeasure Bara = new UnitMeasure("bar (absolute)", "bar (a)",
+            100000.0 * Pascala, "Pressure");
+
+        public static readonly UnitMeasure Barg = new UnitMeasure("bar (gauge)", "bar (g)",
+            100000.0 * Pascalg, "Pressure");
+
+        // ── Atmosphere ───────────────────────────────────────────
+        public static readonly UnitMeasure Atmospherea = new UnitMeasure("atmosphere (absolute)", "atm (a)",
+            101325.0 * Pascala, "Pressure");
+
+        public static readonly UnitMeasure Atmosphereg = new UnitMeasure("atmosphere (gauge)", "atm (g)",
+            101325.0 * Pascalg, "Pressure");
+
+        // ── PSI ──────────────────────────────────────────────────
+        public static readonly UnitMeasure Psia = new UnitMeasure("psi (absolute)", "psi (a)",
+            6.894759087 * KiloPascala, "Pressure");
+
+        public static readonly UnitMeasure Psig = new UnitMeasure("psi (gauge)", "psi (g)",
+            6.894759087 * KiloPascalg, "Pressure");
+
+        // ── kgf/cm² ──────────────────────────────────────────────
+        public static readonly UnitMeasure KgPercm2a = new UnitMeasure("Kg/cm2 (absolute)", "Kg/cm2 (a)",
+            98.06652048 * KiloPascala, "Pressure");
+
+        public static readonly UnitMeasure KgPercm2g = new UnitMeasure("Kg/cm2 (gauge)", "Kg/cm2 (g)",
+            98.06652048 * KiloPascalg, "Pressure");
+
+        // ── Meter Water Column ───────────────────────────────────
+        public static readonly UnitMeasure MeterWatera = new UnitMeasure("Meter Water Column (absolute)", "MCA (a)",
+            9.806382778 * KiloPascala, "Pressure");
+
+        public static readonly UnitMeasure MeterWaterg = new UnitMeasure("Meter Water Column (gauge)", "MCA (g)",
+            9.806382778 * KiloPascalg, "Pressure");
+
+        // ── Inch Water Column ────────────────────────────────────
+        public static readonly UnitMeasure InchWatera = new UnitMeasure("Inch Water Column (absolute)", "Inch WC (a)",
+            0.249082008 * KiloPascala, "Pressure");
+
+        public static readonly UnitMeasure InchWaterg = new UnitMeasure("Inch Water Column (gauge)", "Inch WC (g)",
+            0.249082008 * KiloPascalg, "Pressure");
+
+        // ── cm Water Column ──────────────────────────────────────
+        public static readonly UnitMeasure centimeterWatera = new UnitMeasure("centimeter Water Column (absolute)", "cm WC (a)",
+            MeterWatera * 100, "Pressure");
+
+        public static readonly UnitMeasure centimeterWaterg = new UnitMeasure("centimeter Water Column (gauge)", "cm WC (g)",
+            MeterWaterg * 100, "Pressure");
+
+        // ── Feet Water Column ────────────────────────────────────
+        // ── Feet Water Column ────────────────────────────────────
+        public static readonly UnitMeasure feetWatera = new UnitMeasure("Feet Water Column (absolute)", "feet CA (a)",
+            KiloPascala * 2.988301699, "Pressure");
+
+        public static readonly UnitMeasure feetWaterg = new UnitMeasure("Feet Water Column (gauge)", "feet CA (g)",
+            KiloPascalg * 2.988301699, "Pressure");
+
+        // ── Inch Hg ──────────────────────────────────────────────
+        public static readonly UnitMeasure InchHga = new UnitMeasure("inch Hg (absolute)", "inch Hg (a)",
+            KiloPascala * 3.3863787, "Pressure");
+
+        public static readonly UnitMeasure InchHgg = new UnitMeasure("inch Hg (gauge)", "inch Hg (g)",
+            KiloPascalg * 3.3863787, "Pressure");
+
+        // ── cm Hg ────────────────────────────────────────────────
+        public static readonly UnitMeasure cmHga = new UnitMeasure("cm Hg (absolute)", "cm Hg (a)",
+            KiloPascala * 1.332199, "Pressure");
+
+        public static readonly UnitMeasure cmHgg = new UnitMeasure("cm Hg (gauge)", "cm Hg (g)",
+            KiloPascalg * 1.332199, "Pressure");
+
+        // ── mm Hg ────────────────────────────────────────────────
+        public static readonly UnitMeasure mmHga = new UnitMeasure("mm Hg (absolute)", "mm Hg (a)",
+            KiloPascala * 0.133322, "Pressure");
+
+        public static readonly UnitMeasure mmHgg = new UnitMeasure("mm Hg (gauge)", "mm Hg (g)",
+            KiloPascalg * 0.133322, "Pressure");
 
 
+        // ─────────────────────────────────────────────────────────
+        // 🔹 FUNCIONES DE CONVERSIÓN gauge ↔ absoluta
+        // ─────────────────────────────────────────────────────────
 
+       
     }
 
     [UnitDefinitionClass]
@@ -613,7 +702,7 @@ namespace UnitSystem
     [UnitDefinitionClass]
     public static class MassEntropyUnits
     {
-          
+
         public static readonly UnitMeasure BTU_lb_F = new UnitMeasure("BTU/lb/°F", "BTU/lb/°F",
           EnergyUnits.BTU / MassUnits.Pound / TemperatureUnits.DegreeFahrenheit, "MassEntropy");
 
@@ -905,7 +994,7 @@ namespace UnitSystem
     public static class ViscosityUnits
     {
         public static readonly UnitMeasure Pa_s = new UnitMeasure("Pascal*second", "Pa*sg",
-         PressureUnits.Pascal * TimeUnits.Second, "Viscosity");
+         PressureUnits.Pascala * TimeUnits.Second, "Viscosity");
 
         public static readonly UnitMeasure Poise = new UnitMeasure("Poise", "ps",
         Pa_s * 0.1, "Viscosity");

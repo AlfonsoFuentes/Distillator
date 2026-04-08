@@ -134,7 +134,7 @@ namespace Server.Data.Seeders
                     SecondaryFamily = r[idx++],
                     MolecularWeight = D(idx++),
                     CriticalTemperature = new StoredAmount(D(idx++), TemperatureUnits.Kelvin.Name),
-                    CriticalPressure = new StoredAmount(D(idx++), PressureUnits.KiloPascal.Name),
+                    CriticalPressure = new StoredAmount(D(idx++), PressureUnits.KiloPascala.Name),
                     BoilingPoint = new StoredAmount(D(idx++), TemperatureUnits.Kelvin.Name),
                     MeltingPoint = new StoredAmount(D(idx++), TemperatureUnits.Kelvin.Name),
                     CriticalVolume = new StoredAmount(D(idx++), MolarVolumeSpecificUnits.m3_Kgmol.Name),

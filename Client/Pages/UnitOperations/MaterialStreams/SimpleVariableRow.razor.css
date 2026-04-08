@@ -1,13 +1,17 @@
-﻿:host {
+﻿/* ==================== ESTRUCTURA BASE ==================== */
+:host {
     display: contents;
 }
 
 .grid-cell {
     border-right: 1px solid #b0b0b0;
     border-bottom: 1px solid #b0b0b0;
+    padding: 2px 6px;
     display: flex;
     align-items: center;
     min-height: 24px;
+    font-family: "Segoe UI", Arial, sans-serif;
+    font-size: 12px;
     box-sizing: border-box;
 }
 
@@ -17,30 +21,40 @@
     padding: 2px 6px !important;
 }
 
+/* 👇 CLAVE: value debe ocupar todo el espacio disponible */
 .value {
     background-color: #ffffff !important;
     padding: 0 !important;
+    width: 100% !important; /* 👇 FORZAR ancho completo */
+    flex: 1 1 auto !important; /* 👇 Permitir crecimiento */
+    min-width: 0 !important; /* 👇 Prevenir overflow */
 }
 
 .empty {
     background-color: #f5f5f5 !important;
 }
 
-input {
-    width: 100%;
-    height: 100%;
-    border: none;
+/* ==================== INPUT - CLAVE: selectores específicos ==================== */
+
+/* 👇 Selector específico para inputs dentro de .grid-cell.value */
+.grid-cell.value input {
+    width: 100% !important;
+    min-width: 0 !important;
+    height: 100% !important;
+    border: none !important;
     background-color: transparent !important;
-    font-family: "Segoe UI", Arial, sans-serif;
-    font-size: 12px;
-    outline: none;
-    padding: 0 10px;
-    text-align: right;
-    box-sizing: border-box;
-    transition: background-color 0.2s, color 0.2s;
+    font-family: inherit !important;
+    font-size: inherit !important;
+    outline: none !important;
+    padding: 0 10px !important;
+    margin: 0 !important;
+    box-sizing: border-box !important;
+    text-align: right !important;
+    transition: background-color 0.2s, color 0.2s !important;
+    display: block !important; /* 👇 Forzar comportamiento de bloque */
 }
 
-/* ==================== ESTADOS ==================== */
+/* ==================== ESTADOS POR METHOD SOURCE ==================== */
 
 .source-none {
     background-color: #f9f9f9 !important;
@@ -48,27 +62,27 @@ input {
     font-style: italic;
 }
 
-    .source-none input {
+    .source-none.grid-cell.value input {
         color: #999999 !important;
-        font-style: italic;
+        font-style: italic !important;
         cursor: text !important;
     }
 
-        .source-none input::placeholder {
+        .source-none.grid-cell.value input::placeholder {
             color: #999999 !important;
-            font-style: italic;
+            font-style: italic !important;
             opacity: 1 !important;
         }
 
-        .source-none input:focus::placeholder {
+        .source-none.grid-cell.value input:focus::placeholder {
             color: transparent !important;
             opacity: 0 !important;
-            transition: opacity 0.1s ease;
+            transition: opacity 0.1s ease !important;
         }
 
-        .source-none input:focus {
+        .source-none.grid-cell.value input:focus {
             color: #4674a6 !important;
-            font-style: normal;
+            font-style: normal !important;
             background-color: #eef5ff !important;
         }
 
@@ -78,12 +92,12 @@ input {
     font-weight: 500;
 }
 
-    .source-ui input {
+    .source-ui.grid-cell.value input {
         color: #4674a6 !important;
-        font-weight: 500;
+        font-weight: 500 !important;
     }
 
-        .source-ui input:focus {
+        .source-ui.grid-cell.value input:focus {
             background-color: #eef5ff !important;
             box-shadow: inset 0 0 0 1px #4674a6 !important;
         }
@@ -98,19 +112,21 @@ input {
         display: flex;
         align-items: center;
         justify-content: flex-end;
-        width: 100%;
-        height: 100%;
-        padding: 0 10px;
-        box-sizing: border-box;
+        width: 100% !important;
+        height: 100% !important;
+        padding: 0 10px !important;
+        box-sizing: border-box !important;
         gap: 6px;
     }
 
     .source-other .readonly-value {
         color: #2a2f3a !important;
-        font-weight: 600;
+        font-weight: 600 !important;
         cursor: not-allowed !important;
-        user-select: none;
-        -webkit-user-select: none;
+        user-select: none !important;
+        -webkit-user-select: none !important;
+        width: 100% !important; /* 👇 Forzar ancho completo */
+        text-align: right !important;
     }
 
     .source-other:hover {
@@ -118,90 +134,137 @@ input {
         cursor: not-allowed !important;
     }
 
-/* ==================== TOOLTIP - VERSIÓN SIMPLE ==================== */
-
+/* ==================== TOOLTIP TRIGGER ==================== */
 .tooltip-trigger {
+    position: relative;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 18px;
-    height: 18px;
+    width: 16px;
+    height: 16px;
     border-radius: 50%;
     background-color: #2a2f3a;
     color: #ffffff;
-    font-size: 11px;
-    font-weight: 600;
-    font-family: "Segoe UI", Arial, sans-serif;
+    font-size: 10px;
+    font-weight: bold;
     cursor: help;
     flex-shrink: 0;
-    position: relative;
 }
 
-.tooltip-icon {
-    line-height: 1;
-    font-style: italic;
-}
-
-.tooltip-text {
-    visibility: hidden;
-    opacity: 0;
-    background-color: #1e1e1e;
-    color: #ffffff;
-    font-size: 11px;
-    font-weight: 400;
-    text-align: center;
-    padding: 6px 10px;
-    border-radius: 4px;
-    white-space: nowrap;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
-    z-index: 1000;
-    position: absolute;
-    bottom: 140%;
-    left: 50%;
-    transform: translateX(-50%) translateY(8px);
-    transition: opacity 0.2s ease, transform 0.2s ease;
-    pointer-events: none;
-}
-
-    .tooltip-text::after {
-        content: "";
-        position: absolute;
-        top: 100%;
-        left: 50%;
-        transform: translateX(-50%);
-        border-width: 5px;
-        border-style: solid;
-        border-color: #1e1e1e transparent transparent transparent;
+    /* Letra "i" simple en vez de Unicode */
+    .tooltip-trigger::before {
+        content: "i";
+        font-family: "Segoe UI", Arial, sans-serif;
+        font-style: italic;
+        line-height: 1;
     }
 
-.tooltip-trigger:hover .tooltip-text {
-    visibility: visible;
-    opacity: 1;
-    transform: translateX(-50%) translateY(0);
-}
+    .tooltip-trigger .tooltip-text {
+        visibility: hidden;
+        opacity: 0;
+        background-color: #1e1e1e;
+        color: #ffffff;
+        font-size: 11px;
+        font-weight: 400;
+        text-align: center;
+        padding: 6px 10px;
+        border-radius: 4px;
+        white-space: nowrap;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+        z-index: 1000;
+        position: absolute;
+        bottom: 140%;
+        left: 50%;
+        transform: translateX(-50%) translateY(8px);
+        transition: opacity 0.2s ease, transform 0.2s ease;
+        pointer-events: none;
+    }
 
-.tooltip-trigger:hover {
-    background-color: #4674a6 !important;
-}
+        .tooltip-trigger .tooltip-text::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 5px;
+            border-style: solid;
+            border-color: #1e1e1e transparent transparent transparent;
+        }
 
+    .tooltip-trigger:hover .tooltip-text {
+        visibility: visible;
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+
+    .tooltip-trigger:hover {
+        background-color: #4674a6 !important;
+    }
 /* ==================== INTERACCIÓN ==================== */
-
-input:focus {
+.grid-cell.value input:focus {
     background-color: #eef5ff !important;
     box-shadow: inset 0 0 0 1px #4674a6 !important;
 }
 
-input:hover:not(:read-only) {
+.grid-cell.value input:hover:not(:read-only) {
     background-color: #f8faff !important;
     cursor: pointer;
 }
 
-input::-webkit-outer-spin-button,
-input::-webkit-inner-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
+/* ==================== QUITAR FLECHAS DE INPUT NUMBER ==================== */
+.grid-cell.value input::-webkit-outer-spin-button,
+.grid-cell.value input::-webkit-inner-spin-button {
+    -webkit-appearance: none !important;
+    margin: 0 !important;
 }
 
-input[type="number"] {
-    -moz-appearance: textfield;
+.grid-cell.value input[type="number"] {
+    -moz-appearance: textfield !important;
+}
+
+/* ==================== FEEDBACK DE RANGO INVÁLIDO ==================== */
+.grid-cell.value.out-of-range input,
+.grid-cell.value input.input-error {
+    color: #dc2626 !important;
+    border-bottom: 2px solid #dc2626 !important;
+    animation: errorPulse 1.5s ease-in-out;
+}
+
+@keyframes errorPulse {
+    0%, 100% {
+        box-shadow: inset 0 0 0 1px #dc2626 !important;
+    }
+
+    50% {
+        box-shadow: inset 0 0 0 1px #fca5a5 !important;
+    }
+}
+
+.error-message {
+    font-size: 10px;
+    color: #dc2626 !important;
+    font-weight: 500 !important;
+    text-align: right !important;
+    padding: 0 10px 2px 0 !important;
+    animation: errorFadeIn 0.2s ease-out;
+    width: 100% !important;
+    display: block !important;
+}
+
+@keyframes errorFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-2px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.grid-cell.value.out-of-range input:focus,
+.grid-cell.value input.input-error:focus {
+    background-color: #fef2f2 !important;
+    box-shadow: inset 0 0 0 1px #dc2626 !important;
 }

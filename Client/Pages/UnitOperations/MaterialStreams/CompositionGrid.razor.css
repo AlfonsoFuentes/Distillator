@@ -1,4 +1,4 @@
-﻿/* ==================== CONTENEDOR Y GRID ==================== */
+﻿/* ==================== CONTENEDOR Y GRID BASE ==================== */
 .scrollable-container {
     overflow-x: auto;
     width: 100%;
@@ -11,34 +11,19 @@
 
 .data-grid {
     display: grid;
-    border-top: 1px solid var(--border-color);
-    border-left: 1px solid var(--border-color);
+    border-top: 1px solid #b0b0b0;
+    border-left: 1px solid #b0b0b0;
     width: max-content;
     min-width: 100%;
-}
-
-/* ==================== COLUMNA FIJA (STICKY) ==================== */
-.fixed-col {
-    position: sticky;
-    left: 0;
-    z-index: 10 !important;
-    background-color: var(--label-bg) !important;
-    box-shadow: 2px 0 4px rgba(0,0,0,0.08);
-}
-
-.grid-header.fixed-col {
-    z-index: 11 !important;
-    background-color: var(--header-bg) !important;
 }
 
 .composition-grid {
     grid-template-columns: 150px 130px 130px 130px 130px 130px;
 }
 
-/* ==================== CELDAS Y ENCABEZADOS ==================== */
 .grid-header, .grid-cell {
-    border-right: 1px solid var(--border-color);
-    border-bottom: 1px solid var(--border-color);
+    border-right: 1px solid #b0b0b0;
+    border-bottom: 1px solid #b0b0b0;
     padding: 2px 6px;
     display: flex;
     align-items: center;
@@ -47,197 +32,124 @@
 }
 
 .grid-header {
-    background-color: var(--header-bg) !important;
+    background-color: #e0e0e0 !important;
     font-weight: bold;
     text-align: left;
-    color: var(--calc-black);
+    color: #333333;
+}
+
+.fixed-col {
+    position: sticky;
+    left: 0;
+    z-index: 10;
+    background-color: #f5f5f5 !important;
+    box-shadow: 2px 0 4px rgba(0,0,0,0.08);
+}
+
+.grid-header.fixed-col {
+    z-index: 11;
+    background-color: #e0e0e0 !important;
 }
 
 .label {
-    background-color: var(--label-bg) !important;
-    color: var(--calc-black);
+    background-color: #f5f5f5 !important;
+    color: #333333;
 }
 
-.value {
-    background-color: #ffffff !important;
+.grid-cell.value {
+    background-color: #ffffff;
+    padding: 0 !important;
 }
 
-/* ==================== ESTADOS POR METHOD SOURCE ==================== */
-
-/* 👇 NONE: No definido - Gris claro, italic */
-.source-none {
-    background-color: #ffffff !important;
-}
-
-    .source-none .value input,
-    .source-none .value span {
-        color: #999999 !important; /* 👈 UNIFICADO: mismo gris que Conditions */
-        font-style: italic;
-    }
-
-        .source-none .value input::placeholder {
-            color: #999999 !important;
-            font-style: italic;
-            opacity: 1 !important;
-        }
-
-        .source-none .value input:focus::placeholder {
-            color: transparent !important;
-            opacity: 0 !important;
-        }
-
-/* 👇 USER INTERFACE: Definido por usuario - Azul */
-.source-ui {
-    background-color: #ffffff !important;
-}
-
-    .source-ui .value input {
-        color: #4674a6 !important;
-        font-weight: 500;
-    }
-
-        .source-ui .value input:focus {
-            background-color: #eef5ff !important;
-            box-shadow: inset 0 0 0 1px #4674a6 !important;
-        }
-
-/* 👇 OTHER: Calculado por sistema - Gris carbón azulado (#2a2f3a) */
-.source-other {
-    background-color: #ffffff !important;
-}
-
-    .source-other .value span,
-    .source-other .value.calculated span {
-        color: #2a2f3a !important;
-        font-weight: 600;
-        cursor: help !important;
-        user-select: none;
-        -webkit-user-select: none;
-    }
-
-    .source-other .value input {
-        color: #2a2f3a !important;
-        font-weight: 600;
-        cursor: not-allowed !important;
-    }
-
-/* ==================== CELDAS CALCULADAS (fracciones y flujos) ==================== */
-
-.value.calculated {
-    background-color: #ffffff !important;
-}
-
-    .value.calculated span {
-        color: #999999 !important; /* 👈 UNIFICADO: gris claro cuando no definido */
-        font-weight: 400;
-        text-align: right !important;
+    /* ==================== INPUTS Y SPANS (Reset y Alineación) ==================== */
+    .grid-cell.value input,
+    .grid-cell.value .readonly-value {
         width: 100%;
-        display: block;
-        cursor: help !important;
-        user-select: none;
-        -webkit-user-select: none;
+        height: 100%;
+        text-align: right;
+        font-family: inherit;
+        font-size: 12px;
+        padding: 0 10px;
+        box-sizing: border-box;
+        border: none;
+        outline: none;
+        background: transparent;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
     }
 
-/* 👇 Cuando SÍ está definido (calculado por sistema) */
-.source-other .value.calculated span {
-    color: #2a2f3a !important; /* 👈 Gris carbón azulado */
-    font-weight: 600;
+        /* Quitar flechas de input number */
+        .grid-cell.value input[type="number"]::-webkit-outer-spin-button,
+        .grid-cell.value input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        .grid-cell.value input[type="number"] {
+            -moz-appearance: textfield;
+        }
+
+/* ==================== ESTADOS DE CELDA (DATA-STATE) ==================== */
+
+/* 1. EMPTY (No definido - Gris unificado) */
+.grid-cell[data-state="empty"] input {
+    color: #999999 !important;
+    font-style: italic;
 }
 
-/* 👇 Estilo para fracciones readonly (calculadas o por sistema) */
-.readonly-fraction {
-    display: block;
-    width: 100%;
-    text-align: right !important;
-    padding: 0 10px;
-    box-sizing: border-box;
-    color: #999999 !important; /* 👈 UNIFICADO: gris claro por defecto */
-    font-weight: 400;
-    cursor: help !important;
-    user-select: none;
-    -webkit-user-select: none;
-}
-
-/* 👇 Cuando es calculado por sistema (Other) */
-.source-other .readonly-fraction {
-    color: #2a2f3a !important; /* 👈 Gris carbón azulado */
-    font-weight: 600;
-}
-
-/* 👇 Cuando es calculado pero no por sistema (InputType diferente) */
-.source-ui .value.calculated .readonly-fraction {
-    color: #2a2f3a !important;
-    font-weight: 400; /* Peso normal para diferenciar de input del usuario */
-}
-
-/* ==================== EDICIÓN EN LÍNEA ==================== */
-
-.value input, .value span {
-    text-align: right;
-    width: 100%;
-    display: block;
-}
-
-.value input {
-    height: 100%;
-    border: none;
-    background-color: transparent !important;
-    font-family: inherit;
-    font-size: inherit;
-    color: inherit;
-    outline: none;
-    padding: 0 10px;
-    margin: 0;
-    box-sizing: border-box;
-    transition: background-color 0.2s, color 0.2s;
-}
-
-    .value input::placeholder {
-        color: #999999 !important; /* 👈 UNIFICADO: mismo gris que Conditions */
-        font-style: italic;
-        font-weight: 400 !important;
-        opacity: 1 !important;
-        transition: opacity 0.1s ease;
+    .grid-cell[data-state="empty"] input::placeholder {
+        color: #999999 !important;
+        font-style: italic !important;
+        opacity: 1 !important; /* Fix del fantasma transparente */
     }
 
-    .value input:focus::placeholder {
-        color: transparent !important;
-        opacity: 0 !important;
-    }
+/* 2. EDITABLE (Ingresado por usuario - Azul) */
+.grid-cell[data-state="editable"] input {
+    color: #4674a6 !important;
+    font-weight: 500;
+}
 
-    .value input:focus {
+    /* Comportamiento al hacer Focus (sin importar si estaba empty o editable) */
+    .grid-cell[data-state="empty"] input:focus,
+    .grid-cell[data-state="editable"] input:focus {
+        color: #4674a6 !important;
+        font-style: normal !important;
+        font-weight: 500 !important;
         background-color: #eef5ff !important;
         box-shadow: inset 0 0 0 1px #4674a6 !important;
     }
 
-    .value input:hover:not(:read-only) {
-        background-color: #f8faff !important;
-        cursor: pointer;
+.grid-cell.value input:focus::placeholder {
+    color: transparent !important;
+    opacity: 0 !important;
+}
+
+.grid-cell.value input:hover:not(:read-only) {
+    background-color: #f8faff;
+    cursor: text;
+}
+
+/* 3. CALCULATED (Calculado por sistema o interbloqueo - Gris oscuro) */
+.grid-cell[data-state="calculated"] {
+    background-color: #ffffff;
+}
+
+    .grid-cell[data-state="calculated"] .readonly-value {
+        color: #2a2f3a !important;
+        font-weight: 600;
+        cursor: help;
+        user-select: none;
     }
 
-    /* ==================== PLACEHOLDER PARA INPUTS VACÍOS ==================== */
+/* 4. BLOCKED (No calculado aún, pero bloqueado por la otra columna) */
+.grid-cell[data-state="blocked"] .readonly-value {
+    color: #999999 !important;
+    font-style: italic;
+    cursor: not-allowed;
+}
 
-    .value input.placeholder,
-    .value input:not(:focus)[value=""],
-    .value input:not(:focus):placeholder-shown {
-        color: #999999 !important; /* 👈 UNIFICADO */
-        font-style: italic;
-    }
-
-    /* ==================== QUITAR FLECHAS DE INPUT NUMBER ==================== */
-
-    .value input[type="number"]::-webkit-outer-spin-button,
-    .value input[type="number"]::-webkit-inner-spin-button {
-        -webkit-appearance: none;
-        margin: 0;
-    }
-
-    .value input[type="number"] {
-        -moz-appearance: textfield;
-    }
-
-/* ==================== SCROLLBARS ==================== */
-
+/* SCROLLBARS */
 ::-webkit-scrollbar {
     width: 8px;
     height: 8px;
@@ -245,7 +157,7 @@
 
 ::-webkit-scrollbar-track {
     background: #f1f1f1;
-    border-left: 1px solid var(--border-color);
+    border-left: 1px solid #b0b0b0;
 }
 
 ::-webkit-scrollbar-thumb {
@@ -255,111 +167,4 @@
 
     ::-webkit-scrollbar-thumb:hover {
         background: #a1a1a1;
-    }
-
-/* ==================== WARNING DE SUMA > 1.0 ==================== */
-
-.composition-grid.sum-warning .value input {
-    color: #d97706 !important;
-    border-bottom: 2px dashed #d97706 !important;
-}
-
-.composition-grid.sum-warning::after {
-    content: "⚠ Sum > 1.0";
-    position: absolute;
-    top: 4px;
-    right: 8px;
-    font-size: 10px;
-    color: #d97706;
-    font-style: italic;
-}
-
-/* ==================== PANEL °GL ==================== */
-
-.quick-entry-panel {
-    margin: 0 1px 10px 1px;
-    padding: 10px 15px;
-    background-color: #f8faff;
-    border: 1px solid var(--user-blue);
-    border-radius: 4px;
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    width: fit-content;
-    box-sizing: border-box;
-}
-
-.entry-label {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-weight: bold;
-    color: var(--user-blue);
-    white-space: nowrap;
-}
-
-.entry-input {
-    display: flex;
-    align-items: center;
-    background: white;
-    border: 1px solid var(--border-color);
-    border-radius: 2px;
-}
-
-    .entry-input input {
-        width: 80px;
-        border: none;
-        outline: none;
-        text-align: right;
-        padding: 4px 8px;
-        font-weight: bold;
-        font-family: inherit;
-        font-size: 12px;
-    }
-
-        .entry-input input::-webkit-outer-spin-button,
-        .entry-input input::-webkit-inner-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
-        }
-
-        .entry-input input[type=number] {
-            -moz-appearance: textfield;
-        }
-
-        .entry-input input:focus {
-            background-color: #eef5ff !important;
-        }
-
-        .entry-input input:read-only {
-            background-color: #f5f5f5 !important;
-            color: #666 !important;
-            cursor: not-allowed;
-        }
-
-.unit-tag {
-    background: #f0f0f0;
-    padding: 4px 10px;
-    border-left: 1px solid var(--border-color);
-    color: #444;
-    font-size: 11px;
-    font-weight: bold;
-}
-
-.entry-info {
-    font-size: 11px;
-    color: #888;
-    font-style: italic;
-    margin-left: auto;
-}
-
-.quick-entry-panel:has(input:read-only) {
-    opacity: 0.7;
-    cursor: not-allowed;
-    border-color: #ccc !important;
-}
-
-    .quick-entry-panel:has(input:read-only) .entry-label,
-    .quick-entry-panel:has(input:read-only) .unit-tag {
-        color: #666 !important;
     }

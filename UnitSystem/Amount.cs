@@ -815,25 +815,7 @@ namespace UnitSystem
         }
 
         #endregion IComparable implementation
-        public void SetValueManometric(double value, UnitMeasure unit)
-        {
-            SetValue(value + PhysicsConstant.ManometricPressure.ConvertedTo(unit).Value, unit);
-
-
-
-        }
-        public void SetValueManometric(Amount amo)
-        {
-            SetValue(amo.dvalue + PhysicsConstant.ManometricPressure.ConvertedTo(amo.unit).Value, amo.unit);
-
-
-
-        }
-        public double GetValueManometric(UnitMeasure unit)
-        {
-            return (this - PhysicsConstant.ManometricPressure).ConvertedTo(unit).Value;
-
-        }
+        
         public string ValueUnit => $"{GetValue(unit)} {Unit.Name}";
     }
 

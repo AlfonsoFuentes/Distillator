@@ -334,6 +334,10 @@ namespace UnitSystem
         /// <summary>
         /// Converts the given amount to the given unit.
         /// </summary>
+        /// <summary>
+        /// Converts the given amount to the given unit.
+        /// Handles gauge/absolute pressure conversions automatically.
+        /// </summary>
         public static Amount ConvertTo(Amount amount, UnitMeasure toUnit)
         {
             try
@@ -343,6 +347,20 @@ namespace UnitSystem
                 {
                     return amount;
                 }
+
+                // ─────────────────────────────────────────────────────────
+                // 🔹 NUEVO: Lógica genérica para presión gauge ↔ absoluta
+                // ─────────────────────────────────────────────────────────
+
+                // Detectar si es conversión de presión con sufijos (g)/(a)
+                if (IsPressureUnitWithSuffix(amount.Unit) || IsPressureUnitWithSuffix(toUnit))
+                {
+                    return ConvertPressureWithOffset(amount, toUnit);
+                }
+
+                // ─────────────────────────────────────────────────────────
+                // 🔹 Lógica original para el resto de unidades
+                // ─────────────────────────────────────────────────────────
 
                 // Perform conversion:
                 if (amount.Unit.IsCompatibleTo(toUnit))
@@ -359,6 +377,55 @@ namespace UnitSystem
             {
                 throw new UnitConversionException(amount.Unit, toUnit);
             }
+        }
+
+        // ─────────────────────────────────────────────────────────
+        // 🔹 HELPERS PRIVADOS para conversión genérica de presión
+        // ─────────────────────────────────────────────────────────
+
+        /// <summary>
+        /// Detecta si una unidad de presión tiene sufijo (g) o (a).
+        /// </summary>
+        private static bool IsPressureUnitWithSuffix(UnitMeasure unit)
+        {
+            if (unit == null) return false;
+
+            // Verificar que es de la familia Pressure
+            if (unit.Family != "Pressure") return false;
+
+            // Verificar sufijo gauge o absolute
+            return unit.Symbol?.Contains("(g)") == true || unit.Symbol?.Contains("(a)") == true;
+        }
+
+        /// <summary>
+        /// Convierte entre unidades de presión aplicando offset gauge↔absoluta automáticamente.
+        /// Funciona para CUALQUIER par: bar(g)→psi(a), kPa(a)→atm(g), etc.
+        /// </summary>
+        private static double ConvertValueUsingFactors(double value, UnitMeasure from, UnitMeasure to)
+        {
+            return value * from.Factor / to.Factor;
+        }
+
+        private static Amount ConvertPressureWithOffset(Amount amount, UnitMeasure toUnit)
+        {
+            var atmRef = UnitManager.GetAtmosphericPressureReference();
+
+            bool fromIsGauge = amount.Unit.Symbol?.Contains("(g)") == true;
+            bool toIsGauge = toUnit.Symbol?.Contains("(g)") == true;
+
+            double atmInFromUnit = ConvertValueUsingFactors(atmRef.Value, atmRef.Unit, amount.Unit);
+            double absoluteValueInFromUnit = fromIsGauge
+                ? amount.Value + atmInFromUnit
+                : amount.Value;
+
+            double absoluteValueInToUnit = ConvertValueUsingFactors(absoluteValueInFromUnit, amount.Unit, toUnit);
+
+            double atmInToUnit = ConvertValueUsingFactors(atmRef.Value, atmRef.Unit, toUnit);
+            double finalValue = toIsGauge
+                ? absoluteValueInToUnit - atmInToUnit
+                : absoluteValueInToUnit;
+
+            return new Amount(finalValue, toUnit);
         }
 
         #endregion Public methods - Unit conversions
@@ -414,7 +481,25 @@ namespace UnitSystem
                 return conversionFunction(amount.ConvertedTo(from));
             }
         }
+        private static Pressure _atmosphericPressureReference = new Pressure(1.01325, PressureUnits.Bara);
+        public static void SetAtmosphericPressureReference(Pressure pressure)
+        {
+            if (pressure == null) throw new ArgumentNullException(nameof(pressure));
+            _atmosphericPressureReference = pressure;
 
+            System.Diagnostics.Debug.WriteLine(
+                $"[UnitManager] Atmospheric pressure reference set to: {pressure.Value} {pressure.Unit.Name}");
+        }
+        public static Pressure GetAtmosphericPressureReference() => _atmosphericPressureReference;
+
+        /// <summary>
+        /// Resetea la presión atmosférica de referencia a estándar (nivel del mar: 1 atm).
+        /// Útil para tests o reiniciar configuración entre simulaciones.
+        /// </summary>
+        public static void ResetAtmosphericPressureReference()
+        {
+            _atmosphericPressureReference = new Pressure(1.01325, PressureUnits.Bara);
+        }
         #endregion Private classes to represent slots in conversion dictionary	
     }
 }

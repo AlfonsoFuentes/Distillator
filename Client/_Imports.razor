@@ -15,21 +15,31 @@
 @using Shared.Results
 @using Client.Services.Security
 @using Client.Templates
-@using Shared.Thermodynamics.Methods
+@using Client.Pages.Components.Formulas
+@using Shared.PropertiesDtos.Components
 @using Microsoft.AspNetCore.Authorization
 @using UnitSystem
 @using System.Globalization
-@using Shared.Thermodynamics.Components
-@using Shared.Thermodynamics.Enums
+@using Shared.PropertiesDtos.Enums
+@using Shared.PropertiesDtos.Methods
+@using Client.Services.LayoutServices
+@using Shared.ProcessFlowDiagram.Pumps
+@using Shared.ProcessFlowDiagram.Streams
+@using Shared.ProcessFlowDiagram
+@using Client.Services.EquipmentManagers
+@using Client.Layout.Shapes
+@using Client.Services.RoutingStrategies
+@using Client.Pages.UnitOperations.MaterialStreams
+@using Shared.UnitOperations.Streams
 
-@using Shared.Calculator.Components
-
-@using Shared.DesignPatterns.Thermodynamics
+@using Shared.Thermodynamics.ControlledVariables
+@inject DragStateService DragState
 
 @inject IHttpService HttpServices
 @inject IDialogService DialogService
-@inject NavigationManager NavigationManager 
+@inject NavigationManager NavigationManager
 @inject AuthenticationStateProvider AuthStateProvider
 @inject ISnackBarService SnackbarService
 @inject ExcelExportService ExcelService
 @inject ChemicalComponentReportService ChemicalExcelService
+@inject WorkspaceManager WM

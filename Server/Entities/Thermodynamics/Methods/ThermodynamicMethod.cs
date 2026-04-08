@@ -1,4 +1,4 @@
-﻿using Shared.Thermodynamics.Enums;
+﻿using Shared.PropertiesDtos.Enums;
 
 namespace Server.Entities.Thermodynamics.Methods
 {

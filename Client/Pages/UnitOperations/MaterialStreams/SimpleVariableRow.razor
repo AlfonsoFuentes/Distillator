@@ -1,11 +1,11 @@
-﻿@using Shared.DesignPatterns.Thermodynamics
-@using System.Globalization
+﻿
+
 
 @if (Variable != null)
 {
     <div class="grid-cell label">@Label</div>
 
-    <div class="grid-cell value @(GetCssClass())" title="@GetTooltipInfo()">
+    <div class="grid-cell value @(GetCssClass()) @(IsOutOfRange() && _showRangeError ? "out-of-range" : "")" title="@GetTooltipInfo()">
         @if (IsReadOnly())
         {
             <div class="readonly-container">
@@ -20,6 +20,7 @@
         }
         else
         {
+
             <input type="text"
                    inputmode="decimal"
                    value="@GetInputValue()"
@@ -35,44 +36,63 @@
 }
 
 @code {
+    // ─────────────────────────────────────────────────────────
+    // 🔹 PARÁMETROS
+    // ─────────────────────────────────────────────────────────
     [Parameter] public string Label { get; set; } = string.Empty;
     [Parameter] public ControlledVariable<double> Variable { get; set; } = default!;
     [Parameter] public EventCallback<ControlledVariable<double>> VariableChanged { get; set; } = default!;
+    
+    // 👇 Límites de validación (opcionales)
+    [Parameter] public double? MinValue { get; set; }
+    [Parameter] public double? MaxValue { get; set; }
+    [Parameter] public string? RangeErrorText { get; set; } = "Value out of allowed range";
 
+    // ─────────────────────────────────────────────────────────
+    // 🔹 ESTADO TEMPORAL
+    // ─────────────────────────────────────────────────────────
     MethodSource CurrentSource => Variable.Source;
-
     private string? _tempInputValue;
     private bool _isEditing;
+    private bool _showRangeError;
     
-    private string GetCssClass()
+    // ─────────────────────────────────────────────────────────
+    // 🔹 HELPERS VISUALES
+    // ─────────────────────────────────────────────────────────
+    
+    private string GetCssClass() => Variable.Source switch
     {
-        return Variable.Source switch
-        {
-            MethodSource.None => "source-none",
-            MethodSource.UserInterface => "source-ui",
-            MethodSource.Other => "source-other",
-            _ => "source-none"
-        };
-    }
+        MethodSource.None => "source-none",
+        MethodSource.UserInterface => "source-ui",
+        MethodSource.Other => "source-other",
+        _ => "source-none"
+    };
 
     private string? GetTooltipInfo()
     {
         if (Variable.Source == MethodSource.Other && !string.IsNullOrWhiteSpace(Variable.SourceId))
-        {
             return $"Calculated by: {Variable.SourceId}";
-        }
+        
         if (Variable.Source == MethodSource.UserInterface)
-        {
             return "Source: User Input";
-        }
         
         return null;
     }
 
+    private bool IsOutOfRange()
+    {
+        if (!Variable.IsDefined || !double.TryParse(_tempInputValue, NumberStyles.Any, CultureInfo.InvariantCulture, out var val))
+            return false;
+        
+        if (MinValue.HasValue && val < MinValue.Value) return true;
+        if (MaxValue.HasValue && val > MaxValue.Value) return true;
+        
+        return false;
+    }
+
     private string GetDisplayValue()
     {
-        if (!Variable.IsDefined)
-            return "";
+        if (!Variable.IsDefined) return "";
         
         var val = Variable.Value;
         
@@ -89,8 +109,7 @@
         if (_isEditing && _tempInputValue != null)
             return _tempInputValue;
         
-        if (!Variable.IsDefined)
-            return "";
+        if (!Variable.IsDefined) return "";
         
         var val = Variable.Value;
         
@@ -104,17 +123,29 @@
 
     private string GetPlaceholder()
     {
-        return !Variable.IsDefined ? "<Not defined>" : "";
+        if (!Variable.IsDefined)
+        {
+            if (MinValue.HasValue || MaxValue.HasValue)
+            {
+               
+                return $"<Not defined>";
+            }
+            return "<Not defined>";
+        }
+        return "";
     }
 
-    private bool IsReadOnly()
-    {
-        return Variable.Source == MethodSource.Other;
-    }
+    private bool IsReadOnly() => Variable.Source == MethodSource.Other;
 
+    // ─────────────────────────────────────────────────────────
+    // 🔹 HANDLERS
+    // ─────────────────────────────────────────────────────────
+    
     private void HandleFocus(FocusEventArgs e)
     {
         if (IsReadOnly()) return;
+        
+        _showRangeError = false;
         
         if (!Variable.IsDefined)
         {
@@ -129,6 +160,7 @@
         
         _tempInputValue = e.Value?.ToString();
         _isEditing = true;
+        _showRangeError = false;
 
         if (string.IsNullOrWhiteSpace(_tempInputValue))
         {
@@ -177,11 +209,26 @@
 
         if (double.TryParse(normalizedInput, NumberStyles.Any, CultureInfo.InvariantCulture, out var newVal))
         {
+            // 👇 VALIDACIÓN DE RANGO CON MENSAJE CLARO
+            if ((MinValue.HasValue && newVal < MinValue.Value) ||
+                (MaxValue.HasValue && newVal > MaxValue.Value))
+            {
+                _showRangeError = true;
+                StateHasChanged();  // 👇 Forzar re-render para mostrar mensaje
+                return;  // 👇 NO guardar valor fuera de rango
+            }
+            
             Variable.SetValue(newVal, MethodSource.UserInterface);
+        }
+        else
+        {
+            await ClearValue();
+            return;
         }
 
         _tempInputValue = null;
         _isEditing = false;
+        _showRangeError = false;
         
         if (VariableChanged.HasDelegate)
             await VariableChanged.InvokeAsync(Variable);
@@ -195,6 +242,7 @@
         
         _tempInputValue = null;
         _isEditing = false;
+        _showRangeError = false;
         
         if (VariableChanged.HasDelegate)
             await VariableChanged.InvokeAsync(Variable);

@@ -1,77 +1,90 @@
-.page {
-    position: relative;
+/* =========================================
+   SCOPED CSS: INDUSTRIAL LAYOUT
+   ========================================= */
+::deep .industrial-layout {
+    height: 100vh;
+    overflow: hidden;
+    background-color: var(--dist-gray-bg);
+}
+
+/* --- HEADER --- */
+::deep .top-header {
+    background-color: var(--dist-navy) !important;
+}
+
+.logo-icon {
+    font-size: 1.2rem;
+    color: var(--dist-light-main); /* El toque verde del ícono */
+}
+
+.version-tag {
+    font-size: 0.65rem;
+    font-weight: 700;
+    background: rgba(255, 255, 255, 0.15);
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: var(--dist-light-main); /* La etiqueta PRO en verde claro */
+}
+.app-title {
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    margin-bottom: 0;
+    color: #FFFFFF;
+}
+
+
+
+.operator-text {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #FFFFFF;
+}
+
+/* --- MAIN WORKSPACE --- */
+::deep .main-content-area {
+    height: 100vh;
+    padding: 0 !important;
+    overflow: hidden;
+}
+/* --- SIDEBAR & PANEL HEADERS --- */
+.panel-header {
+    padding: 16px;
+    border-bottom: 1px solid var(--dist-border);
+    background-color: var(--dist-gray-bg);
+}
+
+    .panel-header h2 {
+        font-size: 0.75rem;
+        color: var(--dist-text-muted);
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        margin: 0;
+    }
+
+/* --- EQUIPMENT PALETTE (LEFT SIDE) --- */
+.palette-content {
+    padding: 16px;
     display: flex;
     flex-direction: column;
+    gap: 12px;
 }
 
-main {
-    flex: 1;
+.tool-item {
+    padding: 10px 14px;
+    background-color: var(--dist-gray-bg);
+    border: 1px solid var(--dist-border);
+    border-radius: 4px;
+    font-size: 0.8rem;
+    color: var(--dist-navy);
+    font-weight: 600;
+    cursor: grab;
+    transition: all 0.2s;
 }
 
-.sidebar {
-    background-image: linear-gradient(180deg, rgb(5, 39, 103) 0%, #3a0647 70%);
-}
-
-.top-row {
-    background-color: #f7f7f7;
-    border-bottom: 1px solid #d6d5d5;
-    justify-content: flex-end;
-    height: 3.5rem;
-    display: flex;
-    align-items: center;
-}
-
-    .top-row ::deep a, .top-row ::deep .btn-link {
-        white-space: nowrap;
-        margin-left: 1.5rem;
-        text-decoration: none;
+    .tool-item:hover {
+        border-color: var(--dist-light-green);
+        background-color: #FFFFFF;
+        transform: translateX(4px); /* Pequeño salto hacia el canvas al seleccionar */
+        box-shadow: 2px 2px 8px rgba(0,0,0,0.05);
     }
-
-    .top-row ::deep a:hover, .top-row ::deep .btn-link:hover {
-        text-decoration: underline;
-    }
-
-    .top-row ::deep a:first-child {
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-@media (max-width: 640.98px) {
-    .top-row {
-        justify-content: space-between;
-    }
-
-    .top-row ::deep a, .top-row ::deep .btn-link {
-        margin-left: 0;
-    }
-}
-
-@media (min-width: 641px) {
-    .page {
-        flex-direction: row;
-    }
-
-    .sidebar {
-        width: 250px;
-        height: 100vh;
-        position: sticky;
-        top: 0;
-    }
-
-    .top-row {
-        position: sticky;
-        top: 0;
-        z-index: 1;
-    }
-
-    .top-row.auth ::deep a:first-child {
-        flex: 1;
-        text-align: right;
-        width: 0;
-    }
-
-    .top-row, article {
-        padding-left: 2rem !important;
-        padding-right: 1.5rem !important;
-    }
-}

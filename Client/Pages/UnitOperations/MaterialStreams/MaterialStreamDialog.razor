@@ -1,0 +1,250 @@
+﻿
+<MudDialog Gutters="false" ContentClass="pa-0">
+    <DialogContent >
+        @* 💡 Ya no necesitamos el div .modal-overlay *@
+        <div class="stream-dialog">
+            
+            <div class="dialog-header">
+                <span class="dialog-title">Stream Properties</span>
+                <button class="close-button" @onclick="Cancel">✕</button>
+            </div>
+
+            <div class="tabs-header">
+                <div class="tab @(activeTab == "Conditions" ? "active" : "")" @onclick='() => SetTab("Conditions")'>Conditions</div>
+                <div class="tab @(activeTab == "Composition" ? "active" : "")" @onclick='() => SetTab("Composition")'>Composition</div>
+                <div class="tab @(activeTab == "Properties" ? "active" : "")" @onclick='() => SetTab("Properties")'>Properties</div>
+                <div class="tab disabled">Phase Envelope</div>
+            </div>
+
+            <div class="tab-content">
+                @if (activeTab == "Conditions")
+                {
+                    <div class="tab-content active">
+                        <div class="data-grid conditions-grid">
+                            <div class="grid-header">Property</div>
+                            <div class="grid-header">Value</div>
+                            <div class="grid-header">Unit</div>
+
+                            <div class="grid-cell label">Stream Name</div>
+                            <div class="grid-cell value user-defined">
+                                <input type="text" value="S-101" readonly />
+                            </div>
+                            <div class="grid-cell empty"></div>
+
+                  
+                            <ProcessMethodRow Label="Thermodynamic Method"
+                                              @bind-Variable="Facade.ThermodynamicMethod"
+                                              AvailableMethods="AvailableMethods" />
+
+                 
+                            <SimpleVariableRow Label="Vapor Fraction"
+                                               @bind-Variable="Facade.VaporFractionControlled"
+                                               MinValue="0"
+                                               MaxValue="1"
+                                               RangeErrorText="Vapor fraction must be between 0 and 1" />
+
+                            <ProcessVariableRow Label="Temperature"
+                                                @bind-Variable="Facade.TemperatureControlled" />
+
+                            <ProcessVariableRow Label="Pressure"
+                                                @bind-Variable="Facade.PressureControlled" />
+
+
+                            <ProcessVariableRow Label="Molar Flow"
+                                                @bind-Variable="Facade.MolarFlowControlled" />
+
+                            <ProcessVariableRow Label="Mass Flow"
+                                                @bind-Variable="Facade.MassFlowControlled" />
+
+                            <ProcessVariableRow Label="Volumetric Flow"
+                                                @bind-Variable="Facade.VolumetricFlowControlled" />
+
+                            <ReadOnlyVariableRow Label="Heat Flow" @bind-Variable="Facade.EnthalpyFlow"></ReadOnlyVariableRow>
+
+                        </div>
+                    </div>
+                }
+                @if (activeTab == "Composition")
+                {
+                    <div class="tab-content active">
+                        <CompositionGrid @bind-Variable="Facade.StreamCompositionControlled" />
+                    </div>
+                }
+                @if (activeTab == "Properties")
+                {
+                    <div class="tab-content active">
+                        <div class="scrollable-container">
+                            <div class="data-grid conditions-grid">
+                                <div class="grid-header">Physical Property</div>
+                                <div class="grid-header">Value</div>
+                                <div class="grid-header">Unit</div>
+
+                                <div class="grid-cell label group-title" style="grid-column: span 3; background-color: #e8e8e8; font-weight: bold; padding-left: 8px;">Phase & Density</div>
+                                <ReadOnlyVariableRow Label="Mass Density" Variable="Facade.MassDensity" />
+                                <ReadOnlyVariableRow Label="Molar Density" Variable="Facade.MolarDensity" />
+
+                                <div class="grid-cell label group-title" style="grid-column: span 3; background-color: #e8e8e8; font-weight: bold; padding-left: 8px; margin-top: 4px;">Thermodynamics</div>
+                                <ReadOnlyVariableRow Label="Mass Enthalpy" Variable="Facade.MassEnthalpy" />
+                                <ReadOnlyVariableRow Label="Molar Enthalpy" Variable="Facade.MolarEnthapy" />
+                                <ReadOnlyVariableRow Label="Mass Cp" Variable="Facade.MassCp" />
+                                <ReadOnlyVariableRow Label="Energy Flow" Variable="Facade.EnthalpyFlow" />
+
+                                <div class="grid-cell label group-title" style="grid-column: span 3; background-color: #e8e8e8; font-weight: bold; padding-left: 8px; margin-top: 4px;">Transport</div>
+                                <ReadOnlyVariableRow Label="Viscosity" Variable="Facade.Viscosity" />
+                                <ReadOnlyVariableRow Label="Thermal Cond." Variable="Facade.ThermalConductivity" />
+                                @if (Facade.EquilibriumState == ThermodynamicState.SaturatedLiquid || Facade.EquilibriumState == ThermodynamicState.SubcooledLiquid)
+                                {
+                                    <ReadOnlyVariableRow Label="Superficial Tension" Variable="Facade.SuperficialTension" />
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <div class="status-bar @GetStatusClass()" title="@GetStatusTooltip()">
+                <span class="status-icon">@GetStatusIcon()</span>
+                <span class="status-text">@GetStatusText()</span>
+                @if (!string.IsNullOrEmpty(GetStatusSubtext()))
+                {
+                    <span class="status-subtext">• @GetStatusSubtext()</span>
+                }
+            </div>
+        </div>
+    </DialogContent>
+</MudDialog>
+
+
+@code {
+    // 1. Necesitas este parámetro para que el diálogo sepa cómo cerrarse
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
+
+    // 2. Tu parámetro del Facade que ya tenías
+    [Parameter] public StreamSimulationFacade Facade { get; set; } = default!;
+
+    private void Submit() => MudDialog.Close(DialogResult.Ok(true));
+    private void Cancel() => MudDialog.Cancel();
+
+
+    
+
+    
+    // 👇 Origen actual del usuario (para validar ReadOnly)
+    [Parameter] public MethodSource CurrentSource { get; set; } = MethodSource.UserInterface;
+    
+    // 👇 Lista de métodos disponibles para el dropdown
+    [Parameter] public List<ThermodynamicMethodFullDto> AvailableMethods { get; set; } = new();
+
+    // ─────────────────────────────────────────────────────────
+    // 🔹 ESTADO LOCAL
+    // ─────────────────────────────────────────────────────────
+    private string activeTab = "Conditions";
+
+    
+    protected override async Task OnInitializedAsync()
+    {
+        // 👇 Si AvailableMethods no se pasó como parámetro, cargar desde Facade/Backend
+        if (AvailableMethods == null || AvailableMethods.Count == 0)
+        {
+            // Opción A: Si el Facade expone un método para listar métodos
+            // AvailableMethods = await Facade.GetAvailableThermodynamicMethodsAsync();
+            
+            // Opción B: Si necesitas HTTP directo (como en el viejo)
+            var request = new GetAllCompleteMethods();
+            var result = await HttpServices.PostAsync<GetAllCompleteMethods, Result<List<ThermodynamicMethodFullDto>>>(request);
+            if (result.Succeeded)
+            {
+                AvailableMethods = result.Data;
+            }
+        }
+    }
+    // 🔹 Handler que fuerza re-renderizado
+    private void OnFacadeStateChanged()
+    {
+        InvokeAsync(StateHasChanged);
+    }
+
+    // 🔹 Si implementas IDisposable, desuscríbete para evitar memory leaks
+   
+    // ─────────────────────────────────────────────────────────
+    // 🔹 HANDLERS DE UI
+    // ─────────────────────────────────────────────────────────
+    private void SetTab(string tabName)
+    {
+        activeTab = tabName;
+    }
+
+    private async Task CloseDialog()
+    {
+        MudDialog.Cancel();
+    }
+
+
+    // ─────────────────────────────────────────────────────────
+    // 🔹 HELPERS: Status bar dinámico
+    private string GetStatusClass()
+    {
+        return Facade?.State switch
+        {
+            StreamStateType.Created => "status-waiting",
+            StreamStateType.MethodDefined => "status-warning",
+            StreamStateType.EquilibriumCalculated => "status-success",
+            StreamStateType.StreamCalculated => "status-solved",
+          
+            _ => "status-idle"
+        };
+    }
+
+    private string GetStatusText()
+    {
+        return Facade?.State switch
+        {
+            StreamStateType.Created => "Ready",
+            StreamStateType.MethodDefined => "Underspecified",
+            StreamStateType.EquilibriumCalculated => "Equilibrium Solved",
+            StreamStateType.StreamCalculated => "Converged",
+        
+            _ => "Idle"
+        };
+    }
+
+    private string GetStatusSubtext()
+    {
+        return Facade?.State switch
+        {
+            StreamStateType.Created => "Define method and composition",
+            StreamStateType.MethodDefined => "Add constraints (P, T, or VF)",
+            StreamStateType.EquilibriumCalculated => "Flash calculation completed",
+            StreamStateType.StreamCalculated => "All properties calculated",
+          
+            _ => ""
+        };
+    }
+
+    private string GetStatusTooltip()
+    {
+        return Facade?.State switch
+        {
+            StreamStateType.Created => "Stream created. Define thermodynamic method and composition to begin.",
+            StreamStateType.MethodDefined => "Method defined but system needs more constraints. Specify P, T, or vapor fraction.",
+            StreamStateType.EquilibriumCalculated => "Phase equilibrium calculated successfully. Check phase compositions and properties.",
+            StreamStateType.StreamCalculated => "All stream properties calculated successfully. System fully specified.",
+        
+            _ => "No active calculation"
+        };
+    }
+
+    private string GetStatusIcon()
+    {
+        return Facade?.State switch
+        {
+            StreamStateType.Created => "⏳",
+            StreamStateType.MethodDefined => "⚠️",
+            StreamStateType.EquilibriumCalculated => "✅",
+            StreamStateType.StreamCalculated => "✓",
+         
+            _ => "•"
+        };
+    }
+    
+}

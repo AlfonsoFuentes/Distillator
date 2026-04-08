@@ -1,26 +1,23 @@
 ﻿@typeparam T where T : Amount
-@using Shared.DesignPatterns.Thermodynamics
-@using System.Globalization
+
 
 <div class="grid-cell label">@Label</div>
 
 <div class="grid-cell value @(GetCssClass())">
     @if (IsReadOnly())
     {
-        <!-- 🔹 Modo readonly: mostrar texto + tooltip con SourceId -->
         <div class="readonly-container">
             <span class="readonly-value">@GetDisplayValue()</span>
             @if (Variable.Source == MethodSource.Other && !string.IsNullOrWhiteSpace(Variable.SourceId))
             {
                 <div class="tooltip-trigger">
-                    <span class="tooltip-text">@Variable.SourceId</span>
+                    <span class="tooltip-text">Calculated by: @Variable.SourceId</span>
                 </div>
             }
         </div>
     }
     else
     {
-        <!-- 🔹 Modo editable: input con placeholder dinámico -->
         <input type="text"
                inputmode="decimal"
                value="@GetInputValue()"
@@ -38,7 +35,7 @@
         {
             @foreach (var unit in Variable.Value.UnitsList)
             {
-                <option value="@unit.Name" selected="@(unit.Name == Variable.Value.Unit.Name)">
+                <option value="@unit.Name" selected="@(unit.Name == Variable.GetDisplayUnit()?.Name)">
                     @unit.Symbol
                 </option>
             }
@@ -47,42 +44,35 @@
 </div>
 
 @code {
-    // ─────────────────────────────────────────────────────────
-    // 🔹 PARÁMETROS
-    // ─────────────────────────────────────────────────────────
     [Parameter] public string Label { get; set; } = string.Empty;
-    [Parameter] public ControlledVariable<T> Variable { get; set; } = default!;
-    [Parameter] public EventCallback<ControlledVariable<T>> VariableChanged { get; set; } = default!;
-    MethodSource CurrentSource => Variable.Source;
-
-    // ─────────────────────────────────────────────────────────
-    // 🔹 ESTADO TEMPORAL
-    // ─────────────────────────────────────────────────────────
+    [Parameter] public ControlledAmountVariable<T> Variable { get; set; } = default!;
+    [Parameter] public EventCallback<ControlledAmountVariable<T>> VariableChanged { get; set; } = default!;
+    
+    private MethodSource CurrentSource => Variable.Source;
     private string? _tempInputValue;
     private bool _isEditing;
 
-    // ─────────────────────────────────────────────────────────
-    // 🔹 HELPERS
-    // ─────────────────────────────────────────────────────────
-    
-    private string GetCssClass()
+    private string GetCssClass() => Variable.Source switch
     {
-        return Variable.Source switch
-        {
-            MethodSource.None => "source-none",
-            MethodSource.UserInterface => "source-ui",
-            MethodSource.Other => "source-other",
-            _ => "source-none"
-        };
-    }
+        MethodSource.None => "source-none",
+        MethodSource.UserInterface => "source-ui",
+        MethodSource.Other => "source-other",
+        _ => "source-none"
+    };
 
-    // 🔹 Formato inteligente de decimales
+    // 🔹 CLAVE: Usa GetDisplayValueAsDouble() + GetDisplayUnit()
     private string GetDisplayValue()
     {
         if (!Variable.IsDefined || Variable.Value == null)
             return "";
         
-        var val = Variable.Value.Value;
+        // 👇 Obtener valor numérico en unidad preferida (sin casting!)
+        var displayValue = Variable.GetDisplayValueAsDouble();
+        var displayUnit = Variable.GetDisplayUnit();
+        
+        if (displayValue == null) return "";
+        
+        var val = displayValue.Value;
         
         if (Math.Abs(val) >= 0.01)
             return val.ToString("F2", CultureInfo.InvariantCulture);
@@ -100,7 +90,12 @@
         if (!Variable.IsDefined)
             return "";
         
-        var val = Variable.Value?.Value ?? 0;
+        // 👇 Mismo enfoque: valor numérico en unidad preferida
+        var displayValue = Variable.GetDisplayValueAsDouble();
+        
+        if (displayValue == null) return "";
+        
+        var val = displayValue.Value;
         
         if (Math.Abs(val) >= 0.01)
             return val.ToString("F2", CultureInfo.InvariantCulture);
@@ -112,22 +107,23 @@
 
     private string GetPlaceholder()
     {
-        return !Variable.IsDefined ? "<Not defined>" : "";
+        if (!Variable.IsDefined)
+        {
+            if (Variable.Value?.UnitsList?.Count > 1)
+            {
+               
+                return $"<Not defined>";
+            }
+            return "<Not defined>";
+        }
+        return "";
     }
 
-    private bool IsReadOnly()
-    {
-        return Variable.Source == MethodSource.Other;
-    }
+    private bool IsReadOnly() => Variable.Source == MethodSource.Other;
 
-    // ─────────────────────────────────────────────────────────
-    // 🔹 HANDLERS
-    // ─────────────────────────────────────────────────────────
-    
     private void HandleFocus(FocusEventArgs e)
     {
         if (IsReadOnly()) return;
-        
         if (!Variable.IsDefined)
         {
             _isEditing = true;
@@ -138,30 +134,22 @@
     private async Task HandleInput(ChangeEventArgs e)
     {
         if (IsReadOnly()) return;
-        
         _tempInputValue = e.Value?.ToString();
         _isEditing = true;
-
         if (string.IsNullOrWhiteSpace(_tempInputValue))
-        {
             await ClearValue();
-        }
     }
 
     private async Task HandleKeyUp(KeyboardEventArgs e)
     {
         if (IsReadOnly()) return;
-        
         if (e.Key == "Enter" || e.Key == "NumpadEnter")
-        {
             await CommitValue();
-        }
     }
 
     private async Task HandleBlur(FocusEventArgs e)
     {
         if (IsReadOnly()) return;
-        
         if (!Variable.IsDefined && string.IsNullOrWhiteSpace(_tempInputValue))
         {
             _isEditing = false;
@@ -169,7 +157,6 @@
             StateHasChanged();
             return;
         }
-        
         await CommitValue();
     }
 
@@ -181,10 +168,10 @@
         if (string.IsNullOrWhiteSpace(unitName)) return;
 
         var newUnit = Variable.Value.UnitsList.FirstOrDefault(u => u.Name == unitName);
-        if (newUnit != null && newUnit != Variable.Value.Unit)
+        if (newUnit != null && newUnit != Variable.GetPreferredUnit())
         {
-            var convertedValue = Variable.Value.ConvertedTo(newUnit).Value;
-            Variable.Value.SetValue(convertedValue, newUnit);
+            // 👇 SetPreferredUnit ahora usa GetValue() internamente
+            Variable.SetPreferredUnit(newUnit);
             
             if (VariableChanged.HasDelegate)
                 await VariableChanged.InvokeAsync(Variable);
@@ -213,8 +200,13 @@
         {
             if (Variable.Value != null)
             {
-                Variable.Value.SetValue(newVal, Variable.Value.Unit);
-                Variable.SetValue(Variable.Value, MethodSource.UserInterface);
+                // 👇 Obtener unidad actual (preferida) y crear nuevo Amount
+                var currentUnit = Variable.GetDisplayUnit();
+                if (currentUnit != null)
+                {
+                    var newValue = (T)Activator.CreateInstance(typeof(T), newVal, currentUnit)!;
+                    Variable.SetValue(newValue, MethodSource.UserInterface);
+                }
             }
         }
 
@@ -230,7 +222,6 @@
     private async Task ClearValue()
     {
         Variable.ClearValue();
-        
         _tempInputValue = null;
         _isEditing = false;
         

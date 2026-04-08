@@ -1,0 +1,76 @@
+﻿@using Client.Services.RoutingStrategies
+@using Microsoft.AspNetCore.Components.Web
+@using Shared.ProcessFlowDiagram.Pipes
+
+<g class="pipe-wrapper">
+    @if (IsDraft)
+    {
+        @* CABLE FANTASMA: Mientras arrastras *@
+        <path d="@RenderData.MainPath"
+              stroke="#0EA5E9"
+              stroke-width="2.5"
+              stroke-dasharray="6,4"
+              fill="none" />
+    }
+    else
+    {
+        @* LA TUBERÍA REAL: Un solo trazo limpio *@
+        <path d="@RenderData.MainPath"
+              stroke="#1F2937"
+              stroke-width="2.5"
+              fill="none"
+              class="main-pipe" />
+
+        @* Hitbox para clics *@
+        <path d="@RenderData.MainPath"
+              stroke="transparent"
+              stroke-width="12"
+              fill="none"
+              style="cursor:pointer;"
+              @ondblclick="HandleDoubleClick" />
+
+        @* LEYENDA TÉCNICA *@
+        @if (Pipe.ShowTechnicalLabel)
+        {
+            <g transform="@GetLabelTransform()" class="pipe-label-group">
+                <rect x="-45" y="-10" width="90" height="20" rx="2" fill="white" stroke="#CBD5E1" />
+                <text x="0" y="4" text-anchor="middle" font-size="11" fill="#475569">@Pipe.Label</text>
+            </g>
+        }
+    }
+</g>
+
+@code {
+    [Parameter, EditorRequired] public PipeVisualElement Pipe { get; set; } = default!;
+    [Parameter] public bool IsDraft { get; set; }
+
+
+    // 🚩 Actualizado a 7 parámetros: Source, Bridge, Target, Hitbox, LblX, LblY, LblVert
+    private SvgRenderData RenderData = new("", 0, 0, false);
+
+    protected override void OnParametersSet()
+    {
+        CalculatePaths();
+    }
+
+    private void CalculatePaths()
+    {
+        // 1. Creamos la petición normalizada (A siempre a la izquierda)
+        RenderData = PipeRoutingFactory.GetRoute(Pipe, IsDraft, WM);
+    }
+
+    private void HandleDoubleClick()
+    {
+        Console.WriteLine($"[Pipe UI] Opening Design Form for {Pipe.Label}");
+        // Aquí disparas tu Modal de edición
+    }
+
+    private string GetLabelTransform()
+    {
+        string transform = $"translate({Pt(RenderData.LabelX)}, {Pt(RenderData.LabelY)})";
+        if (RenderData.LabelIsVertical) transform += " rotate(-90)";
+        return transform;
+    }
+
+    private string Pt(double val) => Math.Round(val).ToString(System.Globalization.CultureInfo.InvariantCulture);
+}

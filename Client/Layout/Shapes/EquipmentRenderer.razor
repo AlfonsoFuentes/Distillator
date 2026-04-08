@@ -1,0 +1,40 @@
+﻿@if (uiComponentType != null)
+{
+    <DynamicComponent Type="uiComponentType" Parameters="GetParameters()" />
+}
+else
+{
+    <div style="position: absolute; left: @(Element.X)px; top: @(Element.Y)px; color: red; background: white; padding: 2px; border: 1px solid red; z-index: 9999;">
+        UI Missing for: @Element.GetType().Name
+    </div>
+}
+
+@code {
+    [Parameter, EditorRequired] public IVisualElement Element { get; set; } = default!;
+    [Parameter] public bool IsDragging { get; set; }
+    [Parameter] public bool IsSelected { get; set; }
+    [Parameter] public EventCallback<IVisualElement> OnSelect { get; set; }
+    [Parameter] public EventCallback<MouseEventArgs> OnDragStart { get; set; }
+ 
+    private Type? uiComponentType;
+
+    private static readonly Dictionary<Type, Type> Registry = new()
+    {
+        { typeof(StreamVisualElement), typeof(MaterialStreamElement) },
+        { typeof(PumpVisualElement), typeof(PumpElement) }
+    };
+
+    protected override void OnParametersSet()
+    {
+        Registry.TryGetValue(Element.GetType(), out uiComponentType);
+    }
+
+    private Dictionary<string, object> GetParameters() => new()
+    {
+        { "Element", Element },
+        { "IsDragging", IsDragging },
+        { "IsSelected", IsSelected },
+        { "OnSelect", OnSelect },
+        { "OnDragStart", OnDragStart }
+    };
+}

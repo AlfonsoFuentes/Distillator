@@ -5,9 +5,9 @@ using Server.Databases;
 using Server.Entities.BaseStructure.Components;
 using Server.Entities.Thermodynamics.Methods;
 using Server.Services;
+using Shared.PropertiesDtos.Components;
+using Shared.PropertiesDtos.Methods;
 using Shared.Results;
-using Shared.Thermodynamics.Components;
-using Shared.Thermodynamics.Methods;
 using UnitSystem;
 
 public class ThermodynamicMethodEndPoint : IEndPoint

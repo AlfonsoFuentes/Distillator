@@ -1,20 +1,23 @@
-﻿
-@inherits LayoutComponentBase
+﻿@inherits LayoutComponentBase
 
-<MudThemeProvider />
+<MudThemeProvider Theme="_industrialTheme" />
 <MudPopoverProvider />
 <MudDialogProvider />
 <MudSnackbarProvider />
 
-<MudLayout>
-    <MudAppBar>
+<MudLayout Class="industrial-layout">
+    <MudAppBar Elevation="2" Class="top-header">
         <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
-        <MudText Typo="Typo.h6">System App</MudText>
+        
+        <span class="logo-icon mr-2">⬢</span>
+        <MudText Typo="Typo.h6" Class="app-title">Distillator</MudText>
+        <span class="version-tag ml-2">PRO</span>
         
         <MudSpacer />
+        
         <AuthorizeView>
             <Authorized>
-                <MudText Class="mr-4">Hello, @context.User.Identity?.Name</MudText>
+                <span class="mr-4 operator-text">Operator: @context.User.Identity?.Name</span>
                 <MudButton Variant="Variant.Outlined" Color="Color.Inherit" OnClick="ExecuteLogout">
                     Sign Out
                 </MudButton>
@@ -27,18 +30,53 @@
         </AuthorizeView>
     </MudAppBar>
 
-    <MudDrawer @bind-Open="@_drawerOpen">
-        <NavMenu />
+    <MudDrawer @bind-Open="@_drawerOpen" Elevation="1" ClipMode="DrawerClipMode.Always" Class="sidebar-panel">
+        
+        <AuthorizeView Roles="Administrator, Developer">
+            <Authorized>
+                <div class="panel-header">
+                    <h2>System Admin</h2>
+                </div>
+                <NavMenu />
+            </Authorized>
+        </AuthorizeView>
+
+        <EquipmentPalette />
+
     </MudDrawer>
 
-    <MudMainContent>
+    <MudMainContent Class="main-content-area">
         @Body
     </MudMainContent>
 </MudLayout>
+
 @code {
     bool _drawerOpen = true;
 
-  
+    // 🎨 Inyección del Tema Industrial (Colores Colgate-Palmolive)
+    private MudTheme _industrialTheme = new MudTheme()
+    {
+        PaletteLight = new PaletteLight()
+        {
+            Primary = "#5D79AE",          // 👇 Azul acero más suave
+            Secondary = "#00D26A",        // Distillator Light Green
+            AppbarBackground = "#5D79AE", // 👇 ESTA es la clave de la barra superior
+            Background = "#F4F5F7",
+            DrawerBackground = "#FFFFFF",
+            TextPrimary = "#202A36",
+            TextSecondary = "#5C6A7A",
+            AppbarText = "#FFFFFF",       // Texto blanco para contraste
+            DrawerText = "#5C6A7A",
+            ActionDefault = "#5C6A7A"
+        },
+        Typography = new Typography()
+        {
+            Default = new DefaultTypography()
+            {
+                FontFamily = new[] { "Segoe UI", "Helvetica Neue", "Arial", "sans-serif" }
+            }
+        }
+    };
 
     void DrawerToggle()
     {
@@ -51,10 +89,7 @@
 
         if (response != null && response.Succeeded)
         {
-            // 1. Notificamos a Blazor silenciosamente que la sesión terminó
             ((CustomAuthenticationStateProvider)AuthStateProvider).NotifyAuthenticationStateChanged();
-            
-            // 2. Navegación suave, como una verdadera SPA
             NavigationManager.NavigateTo("/login");
         }
     }

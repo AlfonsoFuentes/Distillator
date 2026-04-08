@@ -1,10 +1,10 @@
 ﻿using BlazorDownloadFile;
 using OfficeOpenXml;
 using OfficeOpenXml.Style;
-using Shared.Thermodynamics.Methods;
+using Shared.PropertiesDtos.Methods;
 using System.Drawing;
 
-namespace Client.Services
+namespace Client.Services.HttpServices
 {
     public class ThermodynamicMethodReportService
     {

@@ -1,0 +1,64 @@
+﻿@inherits EquipmentUIBase<PumpVisualElement>
+
+<CanvasEquipmentWrapper Element="Element"
+                       
+                        IsSelected="IsSelected"
+                        IsDragging="IsDragging"
+                        OnSelect="HandleSelectionAsync"
+                        OnDragStart="OnDragStart"
+                        OnOpenDetails="OpenPropertiesDialogAsync">
+    
+    <svg width="@Element.Width" height="@Element.Height" viewBox="0 0 80 80" class="pump-svg">
+        <defs>
+            @* Gradiente técnico para simular reflejo de luz sobre metal *@
+            <linearGradient id="pumpReflex" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:#ffffff;stop-opacity:0.4" />
+                <stop offset="45%" style="stop-color:#ffffff;stop-opacity:0.05" />
+                <stop offset="100%" style="stop-color:#000000;stop-opacity:0.15" />
+            </linearGradient>
+        </defs>
+
+        @* 1. Base / Soporte (Sólido) *@
+        <rect x="25" y="62" width="30" height="6" rx="3" fill="#64748B" stroke="#334155" stroke-width="1.2" />
+        
+        @* 2. Cuerpo del motor (Capa Base + Capa de Brillo) *@
+        <g class="pump-part">
+            <rect x="45" y="26" width="35" height="28" rx="14" fill="@(Element.Facade?.StatusColor ?? "#CBD5E0")" class="pump-dynamic-fill" />
+            <rect x="45" y="26" width="35" height="28" rx="14" fill="url(#pumpReflex)" stroke="#334155" stroke-width="1.2" />
+        </g>
+        
+        @* Aletas de enfriamiento (Detalle visual) *@
+        <g stroke="#334155" stroke-width="1" stroke-linecap="round" opacity="0.3">
+            <line x1="58" y1="32" x2="58" y2="48" />
+            <line x1="63" y1="32" x2="63" y2="48" />
+            <line x1="68" y1="32" x2="68" y2="48" />
+        </g>
+        
+        @* 3. Bridas (Succión y Descarga) *@
+        <rect x="12" y="35" width="22" height="10" fill="@(Element.Facade?.StatusColor ?? "#94A3B8")" stroke="#334155" stroke-width="1.2" class="pump-dynamic-fill" />
+        <rect x="35" y="10" width="10" height="22" fill="@(Element.Facade?.StatusColor ?? "#94A3B8")" stroke="#334155" stroke-width="1.2" class="pump-dynamic-fill" />
+        
+        @* 4. Voluta Circular (Capa Base + Capa de Brillo) *@
+        <g class="pump-part">
+            <circle cx="40" cy="40" r="20" fill="@(Element.Facade?.StatusColor ?? "#CBD5E0")" class="pump-dynamic-fill" />
+            <circle cx="40" cy="40" r="20" fill="url(#pumpReflex)" stroke="#334155" stroke-width="1.5" />
+        </g>
+        
+        @* Eje central *@
+        <circle cx="40" cy="40" r="5" fill="#F8FAFC" stroke="#334155" stroke-width="1" />
+        
+        @* Detalles de tornillería en bridas *@
+        <line x1="12" y1="32" x2="12" y2="48" stroke="#334155" stroke-width="1.5" stroke-linecap="round" />
+        <line x1="32" y1="10" x2="48" y2="10" stroke="#334155" stroke-width="1.5" stroke-linecap="round" />
+    </svg>
+
+</CanvasEquipmentWrapper>
+
+@code {
+    protected override async Task OpenPropertiesDialogAsync()
+    {
+        Console.WriteLine($"[PFD-PRO] Interacting with: {Element.Facade?.Name}");
+        await Task.CompletedTask;
+    } // 🚩 NUEVO: Recibimos el Manager para saber el estado global de conexiones
+    
+}

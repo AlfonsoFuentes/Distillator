@@ -1,0 +1,16 @@
+﻿
+
+
+<AuthorizeView Roles="Creator , Developer">
+    <Authorized>
+        <div class="panel-header">
+            <h2>Equipment Palette</h2>
+        </div>
+        <div class="palette-content">
+            <div class="tool-item" draggable="true" @ondragstart="@(() => DragState.CurrentDraggedItem = "MaterialStream")">➡ Material Stream</div>
+            <div class="tool-item" draggable="true" @ondragstart="@(() => DragState.CurrentDraggedItem = "CentrifugalPump")">⚙ Centrifugal Pump</div>
+            <div class="tool-item" draggable="true" @ondragstart="@(() => DragState.CurrentDraggedItem = "Heater")">♨ Heater</div>
+            <div class="tool-item" draggable="true" @ondragstart="@(() => DragState.CurrentDraggedItem = "Reactor")">⚗ Reactor</div>
+        </div>
+    </Authorized>
+</AuthorizeView>

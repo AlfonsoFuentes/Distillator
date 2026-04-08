@@ -1,0 +1,22 @@
+﻿.pump-svg {
+    display: block;
+    overflow: visible;
+    /* Sombra técnica más profunda */
+    filter: drop-shadow(0px 4px 5px rgba(0, 0, 0, 0.2));
+    transition: transform 0.2s ease-out;
+}
+
+    /* Animación sutil al hacer hover sobre la bomba específicamente */
+    .pump-svg:hover {
+        transform: scale(1.02);
+    }
+
+.pump-dynamic-fill {
+    /* Transición suave para cambios de estado de la simulación */
+    transition: fill 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Mejoramos la visibilidad de las partes del SVG */
+.pump-part {
+    pointer-events: none; /* Dejamos que el wrapper maneje los clics */
+}

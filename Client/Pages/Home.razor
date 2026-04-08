@@ -1,79 +1,160 @@
 ﻿@page "/"
 
-@using Client.Pages.UnitOperations.MaterialStreams
+@implements IDisposable
+@inject INamingService Naming
+@inject IEquipmentFactory Factory
+@inject IJSRuntime JS
+<PageTitle>Distillator System - PFD Workspace</PageTitle>
 
-<PageTitle>Home</PageTitle>
+@* 1. Agregamos tabindex y los eventos globales de teclado/mouse *@
+<div class="pfd-workspace"
+     @ref="workspaceRef"
+     tabindex="0"
+     @onmousedown="EnsureFocus"
+     @onclick="HandleWorkspaceClick"
+     @onkeydown="HandleKeyDown"
+     @onkeyup="HandleKeyUp"
+     @onmousemove="HandleMouseMove"
+     @onmouseup="HandleMouseUp"
+     @onmouseleave="HandleMouseLeave"
+     @ondragover:preventDefault="true"
+     @ondragover="() => { }"
+     @ondrop="HandleDrop">
 
-<div class="pfd-canvas">
-    <div class="canvas-title">Process Flow Diagram</div>
-    
-    <div class="stream-element" @ondblclick="OpenStreamDialog" title="Double-click to open properties">
-        <svg width="150" height="40" viewBox="0 0 150 40">
-            <line x1="10" y1="20" x2="135" y2="20" stroke="#0033a0" stroke-width="3" />
-            <polygon points="130,12 145,20 130,28" fill="#0033a0" />
-        </svg>
-        <span class="stream-label">S-101</span>
-    </div>
+    @* CAPA 1: TUBERÍAS (SVG de fondo puro, no bloquea clics) *@
+    <svg class="pipes-layer">
+        @* Tuberías confirmadas *@
+        @foreach (var pipe in WM.Pipes)
+        {
+            <CanvasPipeWrapper @key="pipe.Id" Pipe="pipe"  IsDraft="false" />
+        }
+        
+        @* La línea de tensión (Borrador) que sigue al ratón *@
+        @if (WM.CurrentDraftPipe != null)
+        {
+            <CanvasPipeWrapper Pipe="WM.CurrentDraftPipe" IsDraft="true" />
+        }
+    </svg>
+
+    @* CAPA 2: EQUIPOS FÍSICOS (HTML flotante) *@
+    @foreach (var el in WM.Elements)
+    {
+        <EquipmentRenderer @key="el.Id"
+                           Element="el"
+                        
+                           IsDragging="WM.IsMoving(el)"
+                           IsSelected="@(WM.SelectedElement?.Id == el.Id)"
+                           OnSelect="HandleSelect"
+                           OnDragStart="e => WM.StartMove(el, e)" />
+    }
+
+    <div class="canvas-title">Process Flow Diagram - Workspace</div>
 </div>
 
-@if (isDialogOpen)
-{
-    <NewMaterialStreamDialog OnClose="CloseStreamDialog" />
-}
-<style>
-    .pfd-canvas {
-        width: 100%;
-        height: 80vh;
-        background-color: #f8f9fa;
-        background-image: radial-gradient(#d1d1d1 1px, transparent 1px);
-        background-size: 20px 20px; /* Efecto de papel milimetrado industrial */
-        position: relative;
-        border: 1px solid var(--border-color);
-    }
-
-    .canvas-title {
-        position: absolute;
-        top: 10px;
-        left: 10px;
-        font-family: var(--font-family);
-        font-size: 14px;
-        color: #666;
-        font-weight: bold;
-    }
-    .stream-element {
-        position: absolute;
-        top: 150px;
-        left: 200px;
-        cursor: pointer;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-    }
-
-    .stream-element:hover svg line, .stream-element:hover svg polygon {
-        stroke: #0055ff;
-        fill: #0055ff;
-    }
-
-    .stream-label {
-        font-family: var(--font-family);
-        font-weight: bold;
-        font-size: 12px;
-        color: var(--user-blue);
-        margin-top: -5px;
-    }
-</style>
-
 @code {
-    private bool isDialogOpen = false;
+    private ElementReference workspaceRef;
 
-    private void OpenStreamDialog()
+    // 🚩 Cada vez que alguien toque el canvas, reclamamos el foco para el teclado
+    private async Task EnsureFocus()
     {
-        isDialogOpen = true;
+        await workspaceRef.FocusAsync();
     }
 
-    private void CloseStreamDialog()
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        isDialogOpen = false;
+        if (firstRender)
+        {
+            await workspaceRef.FocusAsync();
+        
+            // Medimos dónde quedó el lienzo en la pantalla
+            var offset = await JS.InvokeAsync<Offset>("getCanvasOffset", workspaceRef);
+            canvasX = offset.X;
+            canvasY = offset.Y;
+        }
     }
+
+    protected override void OnInitialized()
+    {
+    
+        WM.OnNotifyUI += StateHasChanged;
+    }
+
+    private void HandleDrop(DragEventArgs e) => WM.AddFromToolbox(DragState.CurrentDraggedItem, e.OffsetX, e.OffsetY);
+
+    private void HandleSelect(IVisualElement element) => WM.SelectElement(element);
+
+    private void HandleWorkspaceClick()
+    {
+        // Limpiamos la selección si hacemos clic en el vacío
+        WM.SelectElement(null!);
+    }
+
+    // =========================================================
+    // EVENTOS DE TECLADO Y RATÓN (SISTEMA NERVIOSO)
+    // =========================================================
+    
+    private void HandleKeyDown(KeyboardEventArgs e)
+    {
+        if (e.CtrlKey) WM.SetConnectionMode(true);
+    }
+
+    private void HandleKeyUp(KeyboardEventArgs e)
+    {
+        if (e.Key == "Control") WM.SetConnectionMode(false);
+    }
+
+    private async Task HandleMouseMove(MouseEventArgs e)
+    {
+        // Opcional: Si notas que al redimensionar la ventana se descuadra,
+        // puedes llamar a una función que refresque canvasX/Y cada cierto tiempo
+        // o en eventos específicos, pero por ahora vamos bien.
+    
+        var pos = GetRelativeMousePosition(e);
+    
+        WM.Move(e);
+
+        if (WM.CurrentDraftPipe != null)
+        {
+            WM.UpdateConnectionDraft(pos.X, pos.Y);
+        }
+    }
+    private double canvasX;
+    private double canvasY;
+
+    // 2. Este método calcula la posición REAL del mouse respecto al inicio del Workspace
+    private CanvasPoint GetRelativeMousePosition(MouseEventArgs e)
+    {
+        // ClientX/Y es la posición absoluta en la ventana.
+        // Al restar la posición del lienzo (canvasX/Y), obtenemos la coordenada local perfecta.
+        return new CanvasPoint(e.ClientX - canvasX, e.ClientY - canvasY);
+    }
+
+
+
+    private void HandleMouseUp(MouseEventArgs e)
+    {
+        // 1. Lógica normal de soltar equipos
+        WM.EndMove();
+        
+        // 2. Si soltamos el clic en la nada (fuera de un puerto válido), cancelamos el cable
+        if (WM.CurrentDraftPipe != null)
+        {
+            WM.CancelConnectionDraft();
+        }
+    }
+
+    private void HandleMouseLeave(MouseEventArgs e)
+    {
+        // Por seguridad, si el mouse sale del canvas, cancelamos todo movimiento o trazado
+        WM.EndMove();
+        if (WM.CurrentDraftPipe != null) WM.CancelConnectionDraft();
+    }
+
+    public void Dispose()
+    {
+        if (WM != null) WM.OnNotifyUI -= StateHasChanged;
+    }
+   
+   
 }

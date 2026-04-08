@@ -92,7 +92,7 @@ namespace UnitSystem
         public static readonly Amount StefanBoltzmann = new Amount(5.670373 * Math.Pow(10, -8),
             PowerUnits.Watt * LengthUnits.Meter.Power(-2) * TemperatureUnits.Kelvin.Power(-4));
 
-        public static readonly Amount ManometricPressure = new Amount(1, PressureUnits.Atmosphere);
+      
 
     }
     public static class MathUtils

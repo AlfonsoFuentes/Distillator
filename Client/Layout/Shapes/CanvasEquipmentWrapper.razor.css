@@ -1,0 +1,242 @@
+﻿/* =============================================================================
+   CANVAS EQUIPMENT WRAPPER - FULL STYLESHEET
+   Arquitectura: Posiciones dictadas por C#, Tooltip Port estático.
+   ============================================================================= */
+
+/* 1. CONTENEDOR PRINCIPAL */
+.equipment-container {
+    position: absolute;
+    cursor: grab;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    outline: none;
+    user-select: none;
+    transition: filter 0.2s ease;
+}
+
+    .equipment-container:hover,
+    .equipment-container:focus-within {
+        z-index: 5000 !important;
+    }
+
+    .equipment-container:active {
+        cursor: grabbing;
+    }
+
+    /* 🎯 TRUCO UX: Si el mouse está sobre un puerto, el tooltip grande desaparece instantáneamente */
+    .equipment-container:has(.port:hover) .equipment-tooltip {
+        opacity: 0 !important;
+        visibility: hidden !important;
+        pointer-events: none !important;
+        transition: none !important;
+    }
+
+/* 2. CAPA DE GRÁFICOS (LA QUE ROTA) */
+.equipment-graphics-rotate {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transform-origin: center center;
+    will-change: transform;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 2px;
+}
+
+/* 3. ETIQUETA DEL EQUIPO (NOMBRE) */
+.equipment-label {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 2px 8px;
+    background-color: #FFFFFF;
+    color: #2D3748;
+    font-size: 0.7rem;
+    font-weight: 800;
+    border: 1px solid #E2E8F0;
+    border-radius: 4px;
+    pointer-events: none;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    white-space: nowrap;
+    z-index: 10;
+}
+
+/* 4. MINI TOOLBAR (GIRO / ESPEJO) */
+.mini-toolbar {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 12px;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s ease;
+    z-index: 100;
+}
+
+.equipment-container:hover .mini-toolbar {
+    opacity: 1;
+    visibility: visible;
+}
+
+.mini-toolbar button {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 18px;
+    color: #4A5568;
+    padding: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s ease, transform 0.1s ease;
+    position: relative;
+}
+
+    /* El nuevo Tooltip elegante */
+    .mini-toolbar button::after {
+        content: attr(data-title);
+        position: absolute;
+        bottom: calc(100% + 2px);
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: #F8FAFC;
+        color: #4A5568;
+        font-family: 'Consolas', monospace;
+        font-size: 0.65rem;
+        font-weight: 700;
+        padding: 4px 8px;
+        border: 1px solid #E2E8F0;
+        border-radius: 4px;
+        white-space: nowrap;
+        pointer-events: none;
+        box-shadow: 2px 2px 5px rgba(0,0,0,0.06);
+        z-index: 10000;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.2s ease, visibility 0.2s ease, transform 0.2s ease;
+    }
+
+    .mini-toolbar button:hover::after {
+        opacity: 1;
+        visibility: visible;
+    }
+
+/* 5. TOOLTIP (EXPANSIÓN) */
+.equipment-tooltip {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #FFFFFF !important;
+    opacity: 1 !important;
+    color: #2D3748;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    z-index: 4000;
+    pointer-events: none;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+    border: 1px solid #E2E8F0;
+    border-top: 4px solid #4299E1;
+    min-width: 185px;
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+}
+
+.tooltip-header {
+    font-weight: 900;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    border-bottom: 1px solid #F1F5F9;
+    padding-bottom: 6px;
+}
+
+.tooltip-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 25px;
+    margin-bottom: 4px;
+}
+
+    .tooltip-row .label {
+        color: #718096;
+        font-weight: 500;
+    }
+
+    .tooltip-row .value {
+        color: #2B6CB0;
+        font-family: monospace;
+        font-weight: 700;
+    }
+
+/* 6. PUERTOS DE CONEXIÓN (ACTUALIZADO FASE 2) */
+.connection-ports {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    opacity: 0; /* Por defecto, invisibles */
+    transition: opacity 0.1s ease;
+}
+
+    /* 🚩 LA CLAVE: Solo se vuelven visibles si el Manager activa el modo conexión */
+    .connection-ports.connection-mode {
+        opacity: 1;
+    }
+
+.port {
+    position: absolute;
+    width: 11px;
+    height: 11px;
+    background: #10B981;
+    border: 1.5px solid white;
+    transform: translate(-50%, -50%);
+    z-index: 9999;
+    opacity: 0; /* Los puertos individuales también nacen invisibles */
+    pointer-events: none;
+    transition: all 0.1s ease;
+}
+
+/* 🚩 SOLO LOS LIBRES: Brillan y aceptan clics cuando Ctrl está oprimido */
+.connection-ports.connection-mode .port.port-free {
+    opacity: 1;
+    pointer-events: auto;
+    cursor: crosshair;
+    box-shadow: 0 0 10px 2px rgba(16, 185, 129, 0.6);
+    transform: translate(-50%, -50%) scale(1.2);
+}
+
+/* Los ocupados se quedan casi transparentes para no estorbar */
+.connection-ports.connection-mode .port.port-connected {
+    opacity: 0.1;
+}
+
+/* 7. TOOLTIP DEL PUERTO (ESTÁTICO, NO ROTA) */
+.port-tooltip-fixed {
+    position: absolute;
+    background-color: #F8FAFC;
+    color: #4A5568;
+    font-family: 'Consolas', monospace;
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 3px 6px;
+    border: 1px solid #E2E8F0;
+    border-radius: 4px;
+    white-space: nowrap;
+    pointer-events: none;
+    box-shadow: 2px 2px 5px rgba(0,0,0,0.06);
+    z-index: 10000;
+    max-width: 110px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* 8. ESTADO SELECCIONADO */
+.equipment-container.selected .equipment-graphics-rotate {
+    filter: drop-shadow(0 0 4px rgba(14, 165, 233, 0.5));
+    outline: 1.5px dashed #0EA5E9;
+    outline-offset: 6px;
+    border-radius: 1px;
+}

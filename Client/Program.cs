@@ -1,9 +1,8 @@
-using Client;
 using Client.Services;
-using Microsoft.AspNetCore.Components.Routing;
-using Microsoft.AspNetCore.Components.Web;
+using Client.Services.EquipmentManagers;
+using Client.Services.LayoutServices;
+using Client.Services.RoutingStrategies;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
-using MudBlazor.Services;
 using OfficeOpenXml;
 using UnitSystem;
 
@@ -12,6 +11,12 @@ builder
 .AddRootComponents()
 .AddClientServices();
 
+builder.Services.AddScoped<DragStateService>();
+builder.Services.AddSingleton<INamingService, EquipmentNamingService>();
+builder.Services.AddSingleton<IEquipmentFactory, EquipmentFactory>();
+builder.Services.AddScoped<WorkspaceManager>();
+
+// 4. Registro del Motor Principal
 
 ExcelPackage.License.SetNonCommercialOrganization("AFDS");
 UnitManager.RegisterByAssembly(typeof(SIUnitTypes).Assembly);
