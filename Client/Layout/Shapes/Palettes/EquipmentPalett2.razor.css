@@ -1,0 +1,94 @@
+﻿
+.floating-palette-panel.narrow {
+    position: absolute; /* Esto la saca del layout y la hace flotar */
+    top: 20px; /* Distancia desde arriba del lienzo */
+    left: 20px; /* Distancia desde la izquierda */
+    z-index: 1000; /* Garantiza que flote SOBRE los equipos y la cuadrícula */
+
+    width: 135px;
+    max-height: calc(100vh - 120px); /* Nunca será más alta que tu pantalla */
+    /* Efecto "Glass" industrial (opcional pero muy pro) */
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(4px);
+    border: 1px solid #CBD5E0;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12); /* Sombra más fuerte para separar del fondo */
+    border-radius: 6px;
+    display: flex;
+    flex-direction: column;
+}
+
+.panel-header {
+    background: #F8FAFC;
+    padding: 10px 8px;
+    border-bottom: 1px solid #E2E8F0;
+    cursor: move; /* Da la pista visual de que es un panel flotante */
+    flex-shrink: 0; /* Evita que el header se aplaste */
+}
+
+.panel-title {
+    font-size: 9px;
+    font-weight: 800;
+    color: #475569;
+    letter-spacing: 1px;
+}
+
+.panel-body {
+    padding: 8px;
+    overflow-y: auto; /* Si agregas muchos equipos, SOLO esta parte hace scroll */
+}
+/* --- FUNDAMENTALS --- */
+.group-header {
+    display: block;
+    font-size: 8px;
+    font-weight: 700;
+    color: #94A3B8;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+}
+
+.fundamentals-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* 2 columnas */
+    gap: 4px;
+}
+
+/* --- DIVIDER --- */
+.group-divider {
+    height: 1px;
+    background: #F1F5F9;
+    margin: 10px -8px; /* Extender divider */
+}
+
+/* --- EQUIPOS GRIDS --- */
+.equipment-grid-3cols {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr; /* 3 columnas */
+    gap: 4px;
+}
+
+/* --- BOTONES DE LA PALETA --- */
+.palette-button {
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 4px;
+    padding: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: grab;
+    transition: background 0.1s, border-color 0.1s;
+}
+
+    .palette-button:hover {
+        background: #F8FAFC;
+        border-color: #3B82F6;
+    }
+
+    .palette-button.stream-mass:hover {
+        border-color: #2563EB;
+    }
+
+    .palette-button.disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }

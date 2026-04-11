@@ -1,4 +1,6 @@
-﻿@inherits LayoutComponentBase
+﻿@using Client.Layout.Shapes.Palettes
+@inherits LayoutComponentBase
+@inject AuthenticationStateProvider AuthStateProvider
 
 <MudThemeProvider Theme="_industrialTheme" />
 <MudPopoverProvider />
@@ -8,80 +10,68 @@
 <MudLayout Class="industrial-layout">
     <MudAppBar Elevation="2" Class="top-header">
         <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
-        
         <span class="logo-icon mr-2">⬢</span>
         <MudText Typo="Typo.h6" Class="app-title">Distillator</MudText>
         <span class="version-tag ml-2">PRO</span>
-        
         <MudSpacer />
-        
         <AuthorizeView>
             <Authorized>
                 <span class="mr-4 operator-text">Operator: @context.User.Identity?.Name</span>
-                <MudButton Variant="Variant.Outlined" Color="Color.Inherit" OnClick="ExecuteLogout">
-                    Sign Out
-                </MudButton>
+                <MudButton Variant="Variant.Outlined" Color="Color.Inherit" OnClick="ExecuteLogout">Sign Out</MudButton>
             </Authorized>
-            <NotAuthorized>
-                <MudButton Variant="Variant.Outlined" Color="Color.Inherit" Href="/login">
-                    Sign In
-                </MudButton>
-            </NotAuthorized>
         </AuthorizeView>
     </MudAppBar>
 
-    <MudDrawer @bind-Open="@_drawerOpen" Elevation="1" ClipMode="DrawerClipMode.Always" Class="sidebar-panel">
-        
-        <AuthorizeView Roles="Administrator, Developer">
-            <Authorized>
+    <AuthorizeView Roles="Administrator, Developer">
+        <Authorized>
+            <MudDrawer @bind-Open="@_drawerOpen" Elevation="1" ClipMode="DrawerClipMode.Always" Class="sidebar-panel">
                 <div class="panel-header">
                     <h2>System Admin</h2>
                 </div>
                 <NavMenu />
-            </Authorized>
-        </AuthorizeView>
-
-        <EquipmentPalette />
-
-    </MudDrawer>
+            </MudDrawer>
+        </Authorized>
+    </AuthorizeView>
 
     <MudMainContent Class="main-content-area">
+        <AuthorizeView Roles="Creator">
+            <Authorized>
+                <EquipmentPalette />
+            </Authorized>
+        </AuthorizeView>
+    
         @Body
     </MudMainContent>
 </MudLayout>
 
 @code {
-    bool _drawerOpen = true;
+    bool _drawerOpen = false;
+    void DrawerToggle() => _drawerOpen = !_drawerOpen;
 
-    // 🎨 Inyección del Tema Industrial (Colores Colgate-Palmolive)
+    protected override async Task OnInitializedAsync()
+    {
+        // Si quieres que los Admin vean el panel abierto al entrar:
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        
+        if (user.IsInRole("Administrator") || user.IsInRole("Developer"))
+        {
+            _drawerOpen = true;
+        }
+    }
+
     private MudTheme _industrialTheme = new MudTheme()
     {
         PaletteLight = new PaletteLight()
         {
-            Primary = "#5D79AE",          // 👇 Azul acero más suave
-            Secondary = "#00D26A",        // Distillator Light Green
-            AppbarBackground = "#5D79AE", // 👇 ESTA es la clave de la barra superior
+            Primary = "#5D79AE",
+            Secondary = "#00D26A",
+            AppbarBackground = "#5D79AE",
             Background = "#F4F5F7",
             DrawerBackground = "#FFFFFF",
-            TextPrimary = "#202A36",
-            TextSecondary = "#5C6A7A",
-            AppbarText = "#FFFFFF",       // Texto blanco para contraste
-            DrawerText = "#5C6A7A",
-            ActionDefault = "#5C6A7A"
-        },
-        Typography = new Typography()
-        {
-            Default = new DefaultTypography()
-            {
-                FontFamily = new[] { "Segoe UI", "Helvetica Neue", "Arial", "sans-serif" }
-            }
+            AppbarText = "#FFFFFF"
         }
     };
-
-    void DrawerToggle()
-    {
-        _drawerOpen = !_drawerOpen;
-    }
 
     private async Task ExecuteLogout()
     {

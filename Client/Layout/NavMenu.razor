@@ -1,12 +1,5 @@
 ﻿<MudNavMenu>
-    <MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Dashboard">
-        Dashboard
-    </MudNavLink>
     
-    <MudNavLink Href="/servers" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Storage">
-        Servers
-    </MudNavLink>
-
     @* 👇 Ahora este bloque es visible para Developers y Administradores 👇 *@
     <AuthorizeView Roles="Developer,Administrator">
         <Authorized>

@@ -1,0 +1,26 @@
+﻿.cv-svg {
+    display: block;
+    overflow: visible;
+    filter: drop-shadow(0px 4px 5px rgba(0, 0, 0, 0.2));
+    transition: transform 0.2s ease-out;
+}
+
+    .cv-svg:hover {
+        transform: scale(1.05);
+    }
+
+.cv-dynamic-fill {
+    transition: fill 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.cv-part {
+    pointer-events: none;
+    stroke: #334155;
+    stroke-width: 1.5px;
+}
+
+.cv-nozzle {
+    fill: #94A3B8;
+    stroke: #334155;
+    stroke-width: 1.2px;
+}

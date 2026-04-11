@@ -1,11 +1,14 @@
-﻿namespace Shared.ProcessFlowDiagram
+﻿using Shared.ProcessFlowDiagram.Pipes;
+
+namespace Shared.ProcessFlowDiagram
 {
     public class DiagramArea
     {
-        public Guid Id { get; set; } = Guid.NewGuid();
-        public string Name { get; set; } = "Main Area"; // Ej: "Reacción", "Destilación", "Separación"
+        public string Id { get; set; } = Guid.NewGuid().ToString();
+        public string Name { get; set; } = "Nueva Área";
 
-        // Cada Área tiene su propio ecosistema de equipos
-        public List<IVisualElement> Elements { get; set; } = new();
+        // Cada área tiene su propio listado exclusivo de equipos y tuberías
+        public List<IVisualElement> Elements { get; } = new();
+        public List<PipeVisualElement> Pipes { get; } = new();
     }
 }

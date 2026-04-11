@@ -1,4 +1,5 @@
-﻿using Shared.UnitOperations.Pipes;
+﻿using Shared.PipingRoutes;
+using Shared.UnitOperations.Pipes;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -16,7 +17,16 @@ namespace Shared.ProcessFlowDiagram.Pipes
 
         public Guid TargetElementId { get; set; } = Guid.Empty;
         public string TargetPortName { get; set; } = string.Empty;
+        public List<CanvasPoint> CalculatedRoute { get; set; } = new();
 
+        // 👇 Helper: Obtiene los segmentos de la tubería
+        public IEnumerable<(CanvasPoint Start, CanvasPoint End)> GetSegments()
+        {
+            for (int i = 0; i < CalculatedRoute.Count - 1; i++)
+            {
+                yield return (CalculatedRoute[i], CalculatedRoute[i + 1]);
+            }
+        }
 
         // =========================================================
         // 2. PROPIEDADES DE NAVEGACIÓN EN TIEMPO DE EJECUCIÓN 

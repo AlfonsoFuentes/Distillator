@@ -1,5 +1,5 @@
-﻿@using Client.Services.RoutingStrategies
-@using Microsoft.AspNetCore.Components.Web
+﻿@using Microsoft.AspNetCore.Components.Web
+@using Shared.PipingRoutes
 @using Shared.ProcessFlowDiagram.Pipes
 
 <g class="pipe-wrapper">
@@ -26,8 +26,9 @@
               stroke="transparent"
               stroke-width="12"
               fill="none"
-              style="cursor:pointer;"
+              class="pipe-hitbox"
               @ondblclick="HandleDoubleClick" />
+   
 
         @* LEYENDA TÉCNICA *@
         @if (Pipe.ShowTechnicalLabel)
@@ -56,7 +57,7 @@
     private void CalculatePaths()
     {
         // 1. Creamos la petición normalizada (A siempre a la izquierda)
-        RenderData = PipeRoutingFactory.GetRoute(Pipe, IsDraft, WM);
+        RenderData = PipeRoutingFactory.GetRoute(Pipe, IsDraft, WM.DraftMouseLogicalX, WM.DraftMouseLogicalY, WM.Elements,WM.Pipes);
     }
 
     private void HandleDoubleClick()

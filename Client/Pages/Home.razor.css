@@ -1,47 +1,109 @@
 ﻿/* =========================================
-   SCOPED CSS: PFD WORKSPACE
+   SCOPED CSS: HOME (SISTEMA DE PESTAÑAS)
    ========================================= */
 
-.pfd-workspace {
-    position: relative;
+.area-tabs-container {
+    display: flex;
+    align-items: flex-end;
+    background-color: #CBD5E1; /* Gris industrial que conecta con el header */
+    padding: 6px 6px 0 6px;
+    gap: 4px;
+    height: 40px;
+}
+
+.area-tab {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 16px;
+    background-color: #E2E8F0; /* Color inactivo */
+    color: #475569;
+    border-radius: 6px 6px 0 0;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: transform 0.2s, background-color 0.2s, opacity 0.2s;
+    min-width: 100px;
+    max-width: 200px;
+}
+
+    .area-tab:hover {
+        background-color: #F1F5F9;
+    }
+
+    /* Pestaña Activa (Se funde con el color del Canvas) */
+    .area-tab.active {
+        background-color: #E2E8F0;
+        color: #0F172A;
+        font-weight: 700;
+        box-shadow: 0 -2px 5px rgba(0,0,0,0.05);
+    }
+
+
+
+/* Input para cuando haces doble clic para renombrar */
+.tab-rename-input {
+    border: 1px solid #3B82F6;
+    border-radius: 4px;
+    padding: 2px 4px;
+    font-size: 0.85rem;
+    font-family: inherit;
+    outline: none;
     width: 100%;
-    height: 85vh;
-    background-color: #F1F5F9; /* Gris muy claro azulado */
-    /* Rejilla Doble */
-    background-image: linear-gradient(to right, rgba(203, 213, 225, 0.5) 1px, transparent 1px), linear-gradient(to bottom, rgba(203, 213, 225, 0.5) 1px, transparent 1px), linear-gradient(to right, rgba(203, 213, 225, 0.2) 1px, transparent 1px), linear-gradient(to bottom, rgba(203, 213, 225, 0.2) 1px, transparent 1px);
-    background-size: 100px 100px, 100px 100px, 20px 20px, 20px 20px;
+}
+
+/* Botón de cerrar pestaña (X) */
+.delete-tab-btn {
+    background: transparent;
+    border: none;
+    color: #94A3B8;
+    font-size: 1.2rem;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0 4px;
+    border-radius: 4px;
+}
+
+    .delete-tab-btn:hover {
+        color: #EF4444; /* Alerta en rojo al pasar el mouse */
+        background-color: #FEE2E2;
+    }
+
+/* Botón de agregar pestaña (+) */
+.add-tab-btn {
+    background: transparent;
+    border: none;
+    color: #475569;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0 12px;
+    line-height: 1;
+}
+
+    .add-tab-btn:hover {
+        color: #0F172A;
+    }
+/* ... (mismo contenido anterior) ... */
+
+
+
+    /* Estado mientras se arrastra la pestaña */
+    .area-tab.dragging {
+        opacity: 0.4;
+        cursor: move;
+        background-color: #94A3B8;
+    }
+
+    /* Indicador de que una pestaña puede recibir el drop */
+    .area-tab:not(.dragging):hover {
+        background-color: #F1F5F9;
+        border-bottom: 2px solid #3B82F6; /* Línea de guía visual */
+    }
+
+.tab-title {
+    pointer-events: none; /* Evita que el texto interfiera con el drag del div padre */
+    white-space: nowrap;
     overflow: hidden;
-    outline: none; /* Quita el borde azul que sale al usar tabindex */
-    box-shadow: inset 0 0 40px rgba(0,0,0,0.02);
-}
-
-/* =========================================
-   CAPA DE TUBERÍAS (SVG)
-   ========================================= */
-.pipes-layer {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    /* ¡CRUCIAL! Evita que el contenedor SVG bloquee el clic hacia el fondo de la rejilla. 
-       Las tuberías individuales tendrán pointer-events: auto después. */
-    pointer-events: none;
-    z-index: 10; /* Debe estar por debajo del z-index de los equipos (que rondan 100+) */
-}
-
-/* =========================================
-   TÍTULOS Y LEYENDAS
-   ========================================= */
-.canvas-title {
-    position: absolute;
-    top: 16px;
-    left: 16px;
-    font-size: 0.8rem;
-    color: #94A3B8; /* Muted text industrial */
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.8px;
-    z-index: 5;
-    pointer-events: none;
+    text-overflow: ellipsis;
+    user-select: none;
 }

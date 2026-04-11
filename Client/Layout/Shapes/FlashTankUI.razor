@@ -1,0 +1,56 @@
+﻿@inherits EquipmentUIBase<FlashTankVisualElement>
+
+<CanvasEquipmentWrapper Element="Element" IsSelected="IsSelected" IsDragging="IsDragging" OnSelect="HandleSelectionAsync" OnDragStart="OnDragStart" OnOpenDetails="OpenPropertiesDialogAsync">
+    <svg width="@Element.Width" height="@Element.Height" viewBox="0 0 @Element.Width @Element.Height" class="flash-svg">
+        <defs>
+            @* Degradado Metálico *@
+            <linearGradient id="metalGrad-@Element.Id" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" class="svg-gradient-metal" />
+                <stop offset="50%" style="stop-color:#F8FAFC" />
+                <stop offset="100%" class="svg-gradient-shadow" />
+            </linearGradient>
+            @* Degradado Líquido *@
+            <linearGradient id="liquidGrad-@Element.Id" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" class="svg-liquid-top" />
+                <stop offset="100%" class="svg-liquid-bottom" />
+            </linearGradient>
+            @* Máscara para que el líquido no se salga de las curvas *@
+            <clipPath id="clip-@Element.Id">
+                <path d="@GetCapsulePath()" />
+            </clipPath>
+        </defs>
+
+        @* Cuerpo con Degradado *@
+        <path d="@GetCapsulePath()" fill="url(#metalGrad-@Element.Id)" stroke="#334155" stroke-width="2" />
+
+        @* Líquido con Degradado y ClipPath *@
+        @{
+            double levelH = Element.Height * 0.45; // 45% de nivel
+            double topY = Element.Height - levelH;
+        }
+        <rect x="0" y="@topY" width="@Element.Width" height="@levelH"
+              fill="url(#liquidGrad-@Element.Id)" fill-opacity="0.6"
+              clip-path="url(#clip-@Element.Id)" />
+
+        @* Boquillas *@
+        @foreach (var port in Element.Ports)
+        {
+            <rect x="@(GetNozzleX(port))" y="@(GetNozzleY(port))" width="10" height="10" fill="#64748B" stroke="#1E293B" />
+        }
+    </svg>
+</CanvasEquipmentWrapper>
+
+@code {
+    private string GetCapsulePath()
+    {
+        double w = Element.Width; double h = Element.Height; double r = h / 2;
+        return $"M {r},2 L {w - r},2 A {r - 2},{r - 2} 0 0 1 {w - r},{h - 2} L {r},{h - 2} A {r - 2},{r - 2} 0 0 1 {r},2 Z";
+    }
+    private double GetNozzleX(EquipmentPort p) => p.Direction == PortDirection.Left ? 0 : (p.Direction == PortDirection.Right ? Element.Width - 10 : p.OffsetX - 5);
+    private double GetNozzleY(EquipmentPort p) => p.Direction == PortDirection.Top ? 0 : (p.Direction == PortDirection.Bottom ? Element.Height - 10 : p.OffsetY - 5);
+    protected override async Task OpenPropertiesDialogAsync()
+    {
+        Console.WriteLine($"[PFD-PRO] Interacting with Heat Exchanger: {Element.Facade?.Name}");
+        await Task.CompletedTask;
+    }
+}

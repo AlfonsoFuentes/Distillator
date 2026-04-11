@@ -1,160 +1,139 @@
 ﻿@page "/"
-
+@using Client.Layout.Diagrams
 @implements IDisposable
-@inject INamingService Naming
-@inject IEquipmentFactory Factory
-@inject IJSRuntime JS
+@inject WorkspaceManager WM
+
 <PageTitle>Distillator System - PFD Workspace</PageTitle>
 
-@* 1. Agregamos tabindex y los eventos globales de teclado/mouse *@
-<div class="pfd-workspace"
-     @ref="workspaceRef"
-     tabindex="0"
-     @onmousedown="EnsureFocus"
-     @onclick="HandleWorkspaceClick"
-     @onkeydown="HandleKeyDown"
-     @onkeyup="HandleKeyUp"
-     @onmousemove="HandleMouseMove"
-     @onmouseup="HandleMouseUp"
-     @onmouseleave="HandleMouseLeave"
-     @ondragover:preventDefault="true"
-     @ondragover="() => { }"
-     @ondrop="HandleDrop">
-
-    @* CAPA 1: TUBERÍAS (SVG de fondo puro, no bloquea clics) *@
-    <svg class="pipes-layer">
-        @* Tuberías confirmadas *@
-        @foreach (var pipe in WM.Pipes)
-        {
-            <CanvasPipeWrapper @key="pipe.Id" Pipe="pipe"  IsDraft="false" />
-        }
-        
-        @* La línea de tensión (Borrador) que sigue al ratón *@
-        @if (WM.CurrentDraftPipe != null)
-        {
-            <CanvasPipeWrapper Pipe="WM.CurrentDraftPipe" IsDraft="true" />
-        }
-    </svg>
-
-    @* CAPA 2: EQUIPOS FÍSICOS (HTML flotante) *@
-    @foreach (var el in WM.Elements)
+@* 1. LA BARRA DE PESTAÑAS (SHELL) *@
+<div class="area-tabs-container">
+    @foreach (var area in WM.Areas)
     {
-        <EquipmentRenderer @key="el.Id"
-                           Element="el"
-                        
-                           IsDragging="WM.IsMoving(el)"
-                           IsSelected="@(WM.SelectedElement?.Id == el.Id)"
-                           OnSelect="HandleSelect"
-                           OnDragStart="e => WM.StartMove(el, e)" />
+        <div class="area-tab @(WM.ActiveArea.Id == area.Id ? "active" : "") @(area.Id == _draggingAreaId ? "dragging" : "")"
+             draggable="true"
+             @onclick="() => HandleTabClick(area)"
+             @ondragstart="() => HandleDragStart(area)"
+             @ondragover:preventDefault="true"
+             @ondragover="() => { }"
+             @ondrop="() => HandleDrop(area)">
+             
+            @* MODO EDICIÓN *@
+            @if (_editingAreaId == area.Id)
+            {
+                <input type="text" class="tab-rename-input"
+                       @bind="_editingName"
+                       @bind:event="oninput"
+                       @onkeyup="(e) => HandleRenameKeyUp(e, area)"
+                       @onblur="() => FinishRename(area, true)"
+                       autofocus />
+            }
+            @* MODO LECTURA *@
+            else
+            {
+                @* El título ya no necesita @ondblclick, el clic del padre se encarga *@
+                <span class="tab-title">@area.Name</span>
+                
+                @if (WM.Areas.Count > 1)
+                {
+                    <button class="delete-tab-btn"
+                            title="Delete Area"
+                            @onclick:stopPropagation="true"
+                            @onclick="() => WM.DeleteArea(area)">
+                        ×
+                    </button>
+                }
+            }
+        </div>
     }
-
-    <div class="canvas-title">Process Flow Diagram - Workspace</div>
+    
+    <button class="add-tab-btn" title="New Area" @onclick="CreateNewArea">+</button>
 </div>
 
+@* 2. EL MOTOR GRÁFICO *@
+<PfdCanvas />
+
 @code {
-    private ElementReference workspaceRef;
-
-    // 🚩 Cada vez que alguien toque el canvas, reclamamos el foco para el teclado
-    private async Task EnsureFocus()
-    {
-        await workspaceRef.FocusAsync();
-    }
-
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
-            await workspaceRef.FocusAsync();
-        
-            // Medimos dónde quedó el lienzo en la pantalla
-            var offset = await JS.InvokeAsync<Offset>("getCanvasOffset", workspaceRef);
-            canvasX = offset.X;
-            canvasY = offset.Y;
-        }
-    }
+    private string? _editingAreaId;
+    private string? _draggingAreaId;
+    private DiagramArea? _draggedArea;
+    private string _editingName = "";
 
     protected override void OnInitialized()
     {
-    
         WM.OnNotifyUI += StateHasChanged;
-    }
-
-    private void HandleDrop(DragEventArgs e) => WM.AddFromToolbox(DragState.CurrentDraggedItem, e.OffsetX, e.OffsetY);
-
-    private void HandleSelect(IVisualElement element) => WM.SelectElement(element);
-
-    private void HandleWorkspaceClick()
-    {
-        // Limpiamos la selección si hacemos clic en el vacío
-        WM.SelectElement(null!);
-    }
-
-    // =========================================================
-    // EVENTOS DE TECLADO Y RATÓN (SISTEMA NERVIOSO)
-    // =========================================================
-    
-    private void HandleKeyDown(KeyboardEventArgs e)
-    {
-        if (e.CtrlKey) WM.SetConnectionMode(true);
-    }
-
-    private void HandleKeyUp(KeyboardEventArgs e)
-    {
-        if (e.Key == "Control") WM.SetConnectionMode(false);
-    }
-
-    private async Task HandleMouseMove(MouseEventArgs e)
-    {
-        // Opcional: Si notas que al redimensionar la ventana se descuadra,
-        // puedes llamar a una función que refresque canvasX/Y cada cierto tiempo
-        // o en eventos específicos, pero por ahora vamos bien.
-    
-        var pos = GetRelativeMousePosition(e);
-    
-        WM.Move(e);
-
-        if (WM.CurrentDraftPipe != null)
-        {
-            WM.UpdateConnectionDraft(pos.X, pos.Y);
-        }
-    }
-    private double canvasX;
-    private double canvasY;
-
-    // 2. Este método calcula la posición REAL del mouse respecto al inicio del Workspace
-    private CanvasPoint GetRelativeMousePosition(MouseEventArgs e)
-    {
-        // ClientX/Y es la posición absoluta en la ventana.
-        // Al restar la posición del lienzo (canvasX/Y), obtenemos la coordenada local perfecta.
-        return new CanvasPoint(e.ClientX - canvasX, e.ClientY - canvasY);
-    }
-
-
-
-    private void HandleMouseUp(MouseEventArgs e)
-    {
-        // 1. Lógica normal de soltar equipos
-        WM.EndMove();
-        
-        // 2. Si soltamos el clic en la nada (fuera de un puerto válido), cancelamos el cable
-        if (WM.CurrentDraftPipe != null)
-        {
-            WM.CancelConnectionDraft();
-        }
-    }
-
-    private void HandleMouseLeave(MouseEventArgs e)
-    {
-        // Por seguridad, si el mouse sale del canvas, cancelamos todo movimiento o trazado
-        WM.EndMove();
-        if (WM.CurrentDraftPipe != null) WM.CancelConnectionDraft();
     }
 
     public void Dispose()
     {
         if (WM != null) WM.OnNotifyUI -= StateHasChanged;
     }
-   
-   
+
+    // =========================================================
+    // LÓGICA DE PESTAÑAS Y EDICIÓN
+    // =========================================================
+
+    private void HandleTabClick(DiagramArea area)
+    {
+        // 🚩 Si la pestaña ya es la activa y hacemos clic, la editamos.
+        // Si no es la activa, simplemente cambiamos a ella.
+        if (WM.ActiveArea.Id == area.Id && _editingAreaId != area.Id)
+        {
+            StartRename(area);
+        }
+        else if (WM.ActiveArea.Id != area.Id)
+        {
+            WM.SwitchToArea(area);
+        }
+    }
+
+    private void StartRename(DiagramArea area)
+    {
+        _editingAreaId = area.Id;
+        _editingName = area.Name;
+    }
+
+    private void HandleRenameKeyUp(KeyboardEventArgs e, DiagramArea area)
+    {
+        if (e.Key == "Enter") FinishRename(area, true);
+        else if (e.Key == "Escape") FinishRename(area, false);
+    }
+
+    private void FinishRename(DiagramArea area, bool saveChanges)
+    {
+        if (_editingAreaId == null) return;
+
+        if (saveChanges && !string.IsNullOrWhiteSpace(_editingName))
+        {
+            WM.RenameArea(area, _editingName);
+        }
+        
+        _editingAreaId = null;
+        StateHasChanged(); // Forzamos actualización visual al terminar
+    }
+
+    // =========================================================
+    // LÓGICA DE REORDENAMIENTO (DRAG & DROP)
+    // =========================================================
+    private void HandleDragStart(DiagramArea area)
+    {
+        _draggedArea = area;
+        _draggingAreaId = area.Id;
+        _editingAreaId = null; // Cancelar edición si empezamos a arrastrar
+    }
+
+    private void HandleDrop(DiagramArea targetArea)
+    {
+        if (_draggedArea != null && targetArea != null)
+        {
+            WM.ReorderArea(_draggedArea, targetArea);
+        }
+        _draggedArea = null;
+        _draggingAreaId = null;
+    }
+
+    private void CreateNewArea()
+    {
+        int num = WM.Areas.Count + 1;
+        WM.CreateArea($"Area {num}");
+    }
 }

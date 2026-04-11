@@ -16,7 +16,7 @@ public class ThermodynamicMethodEndPoint : IEndPoint
     {
         // Seguridad estricta: Solo Ingenieros Administradores (Developer)
         var group = app.MapGroup("/")
-                       .RequireAuthorization(new AuthorizeAttribute { Roles = "Developer" });
+                       ;
         group.MapPost("/GetAllCompleteMethods", async ([FromBody] GetAllCompleteMethods request, ApplicationDbContext context) =>
         {
             // 1. Eager Loading con las rutas de navegación exactas de tus entidades
@@ -182,7 +182,7 @@ public class ThermodynamicMethodEndPoint : IEndPoint
             await DatabaseSeeder.SyncMethodsToCsv(context, env.ContentRootPath);
 
             return Results.Ok(Result.Success());
-        });
+        }).RequireAuthorization(new AuthorizeAttribute { Roles = "Developer" });
 
         // ==========================================
         // 4. EDIT
@@ -204,7 +204,7 @@ public class ThermodynamicMethodEndPoint : IEndPoint
             await DatabaseSeeder.SyncMethodsToCsv(context, env.ContentRootPath);
 
             return Results.Ok(Result.Success());
-        });
+        }).RequireAuthorization(new AuthorizeAttribute { Roles = "Developer" });
 
         // ==========================================
         // 5. DELETE
@@ -220,7 +220,7 @@ public class ThermodynamicMethodEndPoint : IEndPoint
             await DatabaseSeeder.SyncMethodsToCsv(context, env.ContentRootPath);
 
             return Results.Ok(Result.Success());
-        });
+        }).RequireAuthorization(new AuthorizeAttribute { Roles = "Developer" });
     }
 
     // ==========================================

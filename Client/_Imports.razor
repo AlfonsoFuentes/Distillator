@@ -18,6 +18,7 @@
 @using Client.Pages.Components.Formulas
 @using Shared.PropertiesDtos.Components
 @using Microsoft.AspNetCore.Authorization
+@using Shared.WorkSpaceManagers
 @using UnitSystem
 @using System.Globalization
 @using Shared.PropertiesDtos.Enums
@@ -28,11 +29,17 @@
 @using Shared.ProcessFlowDiagram
 @using Client.Services.EquipmentManagers
 @using Client.Layout.Shapes
-@using Client.Services.RoutingStrategies
+@using Shared.ProcessFlowDiagram.Columns
 @using Client.Pages.UnitOperations.MaterialStreams
 @using Shared.UnitOperations.Streams
-
+@using Shared.ProcessFlowDiagram.HeatExchangers
 @using Shared.Thermodynamics.ControlledVariables
+@using Shared.ProcessFlowDiagram.Helpers
+@using Shared.ProcessFlowDiagram.ControlValves
+@using Shared.ProcessFlowDiagram.Vessels
+@using Client.Services.Helpers
+
+
 @inject DragStateService DragState
 
 @inject IHttpService HttpServices

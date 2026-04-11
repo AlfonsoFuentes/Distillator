@@ -1,0 +1,42 @@
+﻿/* =========================================
+   SCOPED CSS: COLUMN UI (TORRE DE DESTILACIÓN)
+   ========================================= */
+
+.column-svg {
+    display: block;
+    overflow: visible;
+    filter: drop-shadow(0px 4px 5px rgba(0, 0, 0, 0.2)); /* Sombra técnica */
+    transition: transform 0.2s ease-out;
+}
+
+    /* Animación sutil al hacer hover sobre la columna */
+    .column-svg:hover {
+        transform: scale(1.02);
+    }
+
+.column-dynamic-fill {
+    /* Transición suave para cambios de estado (idéntica a la bomba) */
+    transition: fill 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.column-part {
+    pointer-events: none; /* Dejamos que el wrapper maneje los clics */
+}
+
+/* Detalles específicos de la torre */
+.column-plates {
+    stroke: #334155;
+    stroke-width: 1px;
+    opacity: 0.3;
+}
+
+.column-nozzle {
+    fill: #94A3B8;
+    stroke: #334155;
+    stroke-width: 1.2px;
+    transition: filter 0.2s;
+}
+
+.equipment-container:hover .column-nozzle {
+    filter: brightness(1.1);
+}

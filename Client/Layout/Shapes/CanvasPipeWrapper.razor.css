@@ -1,11 +1,12 @@
 ﻿/* Hitbox para doble clic */
 .pipe-hitbox {
     cursor: pointer;
+    pointer-events: stroke;
 }
 
-    .pipe-hitbox:hover ~ path[stroke="#2D3748"] {
+    .pipe-hitbox:hover ~ path[stroke="#1F2937"] {
         stroke: #0EA5E9; /* Azul eléctrico en hover */
-        stroke-width: 2.5;
+        stroke-width: 2;
     }
 
     .pipe-hitbox:hover ~ .pipe-label-group .pipe-label-bg {

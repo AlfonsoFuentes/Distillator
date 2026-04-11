@@ -1,0 +1,103 @@
+﻿.floating-palette-panel.narrow {
+    /* 🚩 CLAVE: Absolute la ancla a .main-content-area permitiendo que el lienzo fluya por debajo */
+    position: absolute !important;
+    top: 120px; /* Distancia desde el borde superior del área gris */
+    left: 20px; /* Distancia desde el borde izquierdo del área gris */
+    z-index: 1000;
+    width: 150px;
+    background: rgba(255, 255, 255, 0.96);
+    backdrop-filter: blur(4px);
+    border: 1px solid #CBD5E0;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+}
+
+.panel-header {
+    background: #F1F5F9;
+    padding: 8px;
+    border-bottom: 1px solid #E2E8F0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    cursor: move;
+}
+
+.drag-handle {
+    width: 35px;
+    height: 3px;
+    background: #94A3B8;
+    border-radius: 2px;
+}
+
+.panel-title {
+    font-size: 8.5px;
+    font-weight: 900;
+    color: #475569;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+}
+
+.panel-body {
+    padding: 10px 8px;
+    overflow-y: auto;
+    max-height: 75vh;
+}
+
+.group-header {
+    display: block;
+    font-size: 7.5px;
+    font-weight: 800;
+    color: #94A3B8;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+}
+
+.fundamentals-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+}
+
+.group-divider {
+    height: 1px;
+    background: #F1F5F9;
+    margin: 12px -8px;
+}
+
+.equipment-grid-3cols {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 5px;
+}
+
+.palette-button {
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 4px;
+    padding: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: grab;
+    transition: all 0.15s ease;
+}
+
+    .palette-button:hover {
+        background: #F8FAFC;
+        border-color: #3B82F6;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .palette-button svg {
+        filter: drop-shadow(0 1px 1px rgba(0,0,0,0.03));
+    }
+
+    .palette-button.disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
+        filter: grayscale(1);
+    }

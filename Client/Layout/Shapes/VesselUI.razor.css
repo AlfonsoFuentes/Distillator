@@ -1,0 +1,26 @@
+﻿.vessel-svg {
+    display: block;
+    overflow: visible;
+    filter: drop-shadow(0px 4px 6px rgba(0, 0, 0, 0.2));
+}
+
+.vessel-body {
+    transition: fill 0.5s ease;
+}
+
+.vessel-nozzle {
+    fill: #94A3B8;
+    stroke: #334155;
+    stroke-width: 1.2px;
+}
+
+.vessel-liquid {
+    fill: #3182CE;
+    opacity: 0.3;
+    transition: height 0.5s ease, y 0.5s ease;
+}
+.vessel-body, .flash-body {
+    stroke: #334155;
+    stroke-width: 1.5px;
+    /* No definas fill aquí, deja que el SVG use el url(#id) */
+}

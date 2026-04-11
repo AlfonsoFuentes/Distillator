@@ -1,0 +1,49 @@
+﻿@using Shared.ProcessFlowDiagram.HeatExchangers
+@inherits EquipmentUIBase<ReboilerVisualElement>
+
+<CanvasEquipmentWrapper Element="Element"
+                        IsSelected="IsSelected"
+                        IsDragging="IsDragging"
+                        OnSelect="HandleSelectionAsync"
+                        OnDragStart="OnDragStart"
+                        OnOpenDetails="OpenPropertiesDialogAsync">
+
+    <svg class="reb-svg" width="@Element.Width" height="@Element.Height" viewBox="0 0 60 140">
+        <defs>
+            <linearGradient id="rebReflex" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" style="stop-color:#ffffff;stop-opacity:0.6" />
+                <stop offset="30%" style="stop-color:#ffffff;stop-opacity:0.1" />
+                <stop offset="100%" style="stop-color:#000000;stop-opacity:0.2" />
+            </linearGradient>
+        </defs>
+
+        @* 1. CUERPO PRINCIPAL (Cilindro Vertical) *@
+        <g class="reb-part">
+            <rect x="10" y="10" width="40" height="120" rx="10" class="reb-dynamic-fill" fill="@(Element.Facade?.StatusColor ?? "#CBD5E0")" />
+            <rect x="10" y="10" width="40" height="120" rx="10" fill="url(#rebReflex)" stroke="#334155" stroke-width="1.5" />
+        </g>
+
+        @* 2. DETALLES INTERNOS (Línea central indicando el paso de tubos) *@
+        <g class="reb-internals reb-part">
+            <line x1="30" y1="120" x2="30" y2="20" stroke-dasharray="4,3" />
+        </g>
+
+        @* 3. BRIDAS / BOQUILLAS *@
+        @* LADO DE TUBOS *@
+        <rect x="25" y="130" width="10" height="10" class="reb-nozzle" /> @* TubeIn (30, 140) *@
+        <rect x="0" y="15" width="10" height="10" class="reb-nozzle" />   @* TubeOut (0, 20) *@
+        
+        @* LADO DE CORAZA *@
+        <rect x="50" y="15" width="10" height="10" class="reb-nozzle" />  @* ShellIn (60, 20) *@
+        <rect x="50" y="115" width="10" height="10" class="reb-nozzle" /> @* CondensateOut (60, 120) *@
+    </svg>
+
+</CanvasEquipmentWrapper>
+
+@code {
+    protected override async Task OpenPropertiesDialogAsync()
+    {
+        Console.WriteLine($"[PFD-PRO] Interacting with Reboiler: {Element.Facade?.Name}");
+        await Task.CompletedTask;
+    }
+}

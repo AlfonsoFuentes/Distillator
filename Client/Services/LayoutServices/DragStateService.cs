@@ -1,7 +1,9 @@
-﻿namespace Client.Services.LayoutServices
+﻿using Shared.ProcessFlowDiagram;
+
+namespace Client.Services.LayoutServices
 {
     public class DragStateService
     {
-        public string CurrentDraggedItem { get; set; } = string.Empty;
+        public EquipmentType CurrentDraggedType { get; set; } = EquipmentType.None;
     }
 }

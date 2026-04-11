@@ -1,0 +1,70 @@
+﻿@using Shared.ProcessFlowDiagram.Vessels
+@inherits EquipmentUIBase<VesselVisualElement>
+
+<CanvasEquipmentWrapper Element="Element" IsSelected="IsSelected" IsDragging="IsDragging" OnSelect="HandleSelectionAsync" OnDragStart="OnDragStart" OnOpenDetails="OpenPropertiesDialogAsync">
+    <svg width="@Element.Width" height="@Element.Height" viewBox="0 0 @Element.Width @Element.Height">
+        <defs>
+            @* Degradado Metálico Industrial *@
+            <linearGradient id="metalGrad-@Element.Id" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" style="stop-color:#94A3B8" /> @* Sombra izquierda *@
+                <stop offset="30%" style="stop-color:#F1F5F9" /> @* Brillo *@
+                <stop offset="100%" style="stop-color:#64748B" /> @* Sombra derecha *@
+            </linearGradient>
+
+            @* Degradado para el Líquido (Azul Proceso) *@
+            <linearGradient id="liquidGrad-@Element.Id" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" style="stop-color:#60A5FA; stop-opacity:0.6" />
+                <stop offset="100%" style="stop-color:#2563EB; stop-opacity:0.8" />
+            </linearGradient>
+        </defs>
+
+        @* Cuerpo: Tapa Torisférica + Fondo Plano *@
+        <path d="@GetTankPath()" fill="url(#vesselMetal-@Element.Id)" stroke="#334155" stroke-width="2" />
+
+        @* Líquido *@
+        @{
+            double levelH = (Element.Height - 20) * 0.5;
+            double topY = Element.Height - levelH;
+        }
+        <rect x="0" y="@topY" width="@Element.Width" height="@levelH"
+              fill="url(#liquidGrad-@Element.Id)" fill-opacity="0.5"
+              clip-path="url(#vesselClip-@Element.Id)" />
+
+        @* Boquillas *@
+        @foreach (var port in Element.Ports)
+        {
+            <rect x="@(GetNozzleX(port))" y="@(GetNozzleY(port))" width="10" height="10" fill="#64748B" stroke="#1E293B" />
+        }
+    </svg>
+</CanvasEquipmentWrapper>
+
+@code {
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        Element.RefreshDynamicPorts();
+    }
+
+    private string GetVesselDPath()
+    {
+        double w = Element.Width;
+        double h = Element.Height;
+        double r = 15; // Radio de la curvatura de la tapa
+
+        // Construcción manual de la cápsula:
+        // M 10,r -> Punto inicio izquierda arriba
+        // Q w/2,0 w-10,r -> Tapa superior torisférica
+        // L w-10, h-r -> Pared derecha
+        // Q w/2,h 10,h-r -> Tapa inferior torisférica
+        // Z -> Cierra pared izquierda
+        return $"M 10,{r} Q {w / 2},0 {w - 10},{r} L {w - 10},{h - r} Q {w / 2},{h} 10,{h - r} Z";
+    }
+    private string GetTankPath()
+    {
+        double w = Element.Width; double h = Element.Height;
+        return $"M 10,{h} L {w - 10},{h} L {w - 10},20 Q {w / 2},0 10,20 Z";
+    }
+    private double GetNozzleX(EquipmentPort p) => p.Direction == PortDirection.Left ? 0 : (p.Direction == PortDirection.Right ? Element.Width - 10 : Element.Width / 2 - 5);
+    private double GetNozzleY(EquipmentPort p) => p.Direction == PortDirection.Bottom ? Element.Height - 10 : p.OffsetY - 5;
+    protected override async Task OpenPropertiesDialogAsync() => await Task.CompletedTask;
+}

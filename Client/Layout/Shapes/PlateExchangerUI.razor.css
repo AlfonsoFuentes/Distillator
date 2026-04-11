@@ -1,0 +1,46 @@
+﻿/* =========================================
+   SCOPED CSS: PLATE EXCHANGER UI
+   ========================================= */
+
+.phe-svg {
+    display: block;
+    overflow: visible;
+    filter: drop-shadow(0px 4px 5px rgba(0, 0, 0, 0.2));
+    transition: transform 0.2s ease-out;
+}
+
+    .phe-svg:hover {
+        transform: scale(1.02);
+    }
+
+.phe-dynamic-fill {
+    transition: fill 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.phe-part {
+    pointer-events: none;
+}
+
+.phe-internals {
+    stroke: #334155;
+    stroke-width: 1px;
+    opacity: 0.4;
+}
+
+.phe-flow-lines {
+    stroke: #334155;
+    stroke-width: 1.5px;
+    stroke-dasharray: 4, 3; /* Línea punteada para la "X" de flujo */
+    opacity: 0.6;
+}
+
+.phe-nozzle {
+    fill: #94A3B8;
+    stroke: #334155;
+    stroke-width: 1.2px;
+    transition: filter 0.2s;
+}
+
+.equipment-container:hover .phe-nozzle {
+    filter: brightness(1.1);
+}

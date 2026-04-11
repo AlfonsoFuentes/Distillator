@@ -1,0 +1,46 @@
+﻿.palette-item-card {
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 6px; /* Ligeramente más pequeño */
+    padding: 8px 4px; /* AQUI ESTA LA CLAVE: menos padding = menos espacio */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: grab;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    user-select: none;
+}
+
+    .palette-item-card:hover {
+        border-color: #3B82F6;
+        background: #F8FAFC;
+        transform: translateY(-1px); /* Movimiento más sutil */
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); /* Sombra más ajustada */
+    }
+
+    .palette-item-card:active {
+        cursor: grabbing;
+        transform: scale(0.98);
+    }
+
+.palette-item-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #64748B;
+}
+
+    .palette-item-icon svg {
+        filter: drop-shadow(0 1px 1px rgba(0,0,0,0.05));
+    }
+
+.palette-item-label {
+    margin-top: 6px; /* Menos margen */
+    font-size: 0.55rem; /* Letra un punto más pequeña */
+    font-weight: 700;
+    color: #475569;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+}

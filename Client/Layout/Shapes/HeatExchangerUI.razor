@@ -1,0 +1,64 @@
+﻿@using Shared.ProcessFlowDiagram.HeatExchangers
+@* Asegúrate de heredar correctamente de tu base *@
+@inherits EquipmentUIBase<HeatExchangerVisualElement>
+
+<CanvasEquipmentWrapper Element="Element"
+                        IsSelected="IsSelected"
+                        IsDragging="IsDragging"
+                        OnSelect="HandleSelectionAsync"
+                        OnDragStart="OnDragStart"
+                        OnOpenDetails="OpenPropertiesDialogAsync">
+
+    <svg class="hx-svg" width="@Element.Width" height="@Element.Height" viewBox="0 0 160 60">
+        <defs>
+            <linearGradient id="hxReflex" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" style="stop-color:#ffffff;stop-opacity:0.6" />
+                <stop offset="30%" style="stop-color:#ffffff;stop-opacity:0.1" />
+                <stop offset="100%" style="stop-color:#000000;stop-opacity:0.2" />
+            </linearGradient>
+        </defs>
+
+        @* 1. CUERPO PRINCIPAL (Coraza y Tapas) *@
+        <g class="hx-part">
+            @* Cápsula central (se extiende de x=10 a x=150) *@
+            <rect x="10" y="5" width="140" height="50" rx="15" class="hx-dynamic-fill" fill="@(Element.Facade?.StatusColor ?? "#CBD5E0")" />
+            <rect x="10" y="5" width="140" height="50" rx="15" fill="url(#hxReflex)" stroke="#334155" stroke-width="1.5" />
+        </g>
+
+        @* 2. DETALLES INTERNOS (Visión de Rayos X) *@
+        <g class="hx-internals hx-part">
+            @* Línea divisoria en la tapa izquierda (indica 2 pasos de tubos) *@
+            <line x1="10" y1="30" x2="30" y2="30" stroke-width="1.5" />
+            
+            @* Representación abstracta del haz de tubos (Tube Bundle) *@
+            <line x1="30" y1="20" x2="135" y2="20" stroke-dasharray="4,2" />
+            <line x1="30" y1="40" x2="135" y2="40" stroke-dasharray="4,2" />
+            
+            @* Deflectores (Baffles) verticales en la coraza *@
+            <line x1="50" y1="5" x2="50" y2="45" />
+            <line x1="80" y1="15" x2="80" y2="55" />
+            <line x1="110" y1="5" x2="110" y2="45" />
+        </g>
+
+        @* 3. BRIDAS / BOQUILLAS (Alineadas exacto con el Backend) *@
+        
+        @* LADO DE TUBOS (Izquierda) *@
+        <rect x="-5" y="10" width="10" height="10" class="hx-nozzle" /> @* TubeIn (0, 15) *@
+        <rect x="-5" y="40" width="10" height="10" class="hx-nozzle" /> @* TubeOut (0, 45) *@
+        
+        @* LADO DE CORAZA (Top / Bottom / Right) *@
+        <rect x="25" y="-5" width="10" height="10" class="hx-nozzle" /> @* ShellIn (30, 0) *@
+        <rect x="125" y="55" width="10" height="10" class="hx-nozzle" /> @* CondensateOut (130, 60) *@
+        @* 🚩 EL CAMBIO: Venteo movido a la parte superior derecha *@
+        <rect x="125" y="-5" width="10" height="10" class="hx-nozzle" /> @* VaporVent (130, 0) *@
+    </svg>
+
+</CanvasEquipmentWrapper>
+
+@code {
+    protected override async Task OpenPropertiesDialogAsync()
+    {
+        Console.WriteLine($"[PFD-PRO] Interacting with Heat Exchanger: {Element.Facade?.Name}");
+        await Task.CompletedTask;
+    }
+}

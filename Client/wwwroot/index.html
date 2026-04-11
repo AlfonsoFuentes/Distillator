@@ -31,14 +31,10 @@
         <a href="." class="reload">Reload</a>
         <span class="dismiss">🗙</span>
     </div>
-    <script>
-        window.getCanvasOffset = (element) => {
-            const rect = element.getBoundingClientRect();
-            return { x: rect.left, y: rect.top };
-        };
-    </script>
+ 
     <script src="_framework/blazor.webassembly#[.{fingerprint}].js"></script>
     <script src="_content/MudBlazor/MudBlazor.min.js?v=1"></script>
+    <script src="canvas-interop.js"></script>
 </body>
 
 

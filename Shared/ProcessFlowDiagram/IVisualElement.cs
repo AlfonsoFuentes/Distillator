@@ -1,11 +1,44 @@
 ﻿using Shared.UnitOperations;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Text;
 using System.Xml.Linq;
 
 namespace Shared.ProcessFlowDiagram
 {
+    public enum EquipmentType
+    {
+        [Description("None")] None,
+
+        // --- SECCIÓN SUPERIOR: FUNDAMENTALS ---
+        [Description("Material Stream")] MaterialStream,
+        [Description("Energy Stream (Reserved)")] EnergyStream,
+
+        // --- EQUIPOS DE PROCESO (Clasificados) ---
+        // Separation & Process
+        [Description("Column")] Column,
+        [Description("Flash Drum")] FlashDrum,
+
+        // Heat Transfer
+        [Description("Shell & Tube Heat Exchanger")] Exchanger,
+        [Description("Plate Exchanger")] PlateExchanger,
+        [Description("Reboiler")] Reboiler,
+
+        // Fluid Handling
+        [Description("Centrifugal Pump")] Pump,
+        [Description("Control Valve")] ControlValve,
+
+        // Flow Logic
+        [Description("Splitter")] Splitter,
+        [Description("Mixer")] Mixer,
+
+        // Storage
+        [Description("Storage Tank")] Tank,
+
+        // Instrumentation
+        [Description("Transmitter")] Instrument,
+    }
     public enum PortType
     {
         Inlet,      // Entrada de materia

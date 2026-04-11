@@ -1,0 +1,41 @@
+﻿/* =========================================
+   SCOPED CSS: HEAT EXCHANGER UI
+   ========================================= */
+
+.hx-svg {
+    display: block;
+    overflow: visible; /* Vital para que las boquillas no se corten */
+    filter: drop-shadow(0px 4px 5px rgba(0, 0, 0, 0.2));
+    transition: transform 0.2s ease-out;
+}
+
+    .hx-svg:hover {
+        transform: scale(1.02);
+    }
+
+.hx-dynamic-fill {
+    transition: fill 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hx-part {
+    pointer-events: none;
+}
+
+/* Detalles internos: líneas de los tubos y deflectores (baffles) */
+.hx-internals {
+    stroke: #334155;
+    stroke-width: 1px;
+    opacity: 0.35;
+}
+
+/* Boquillas metálicas */
+.hx-nozzle {
+    fill: #94A3B8;
+    stroke: #334155;
+    stroke-width: 1.2px;
+    transition: filter 0.2s;
+}
+
+.equipment-container:hover .hx-nozzle {
+    filter: brightness(1.1);
+}

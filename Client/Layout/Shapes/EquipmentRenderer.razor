@@ -1,4 +1,9 @@
-﻿@if (uiComponentType != null)
+﻿@using Shared.ProcessFlowDiagram.Instruments
+
+
+
+
+@if (uiComponentType != null)
 {
     <DynamicComponent Type="uiComponentType" Parameters="GetParameters()" />
 }
@@ -21,7 +26,17 @@ else
     private static readonly Dictionary<Type, Type> Registry = new()
     {
         { typeof(StreamVisualElement), typeof(MaterialStreamElement) },
-        { typeof(PumpVisualElement), typeof(PumpElement) }
+        { typeof(PumpVisualElement), typeof(PumpElement) },
+        { typeof(ColumnVisualElement), typeof(ColumnElement) },
+        { typeof(HeatExchangerVisualElement), typeof(HeatExchangerUI) },
+        { typeof(ReboilerVisualElement), typeof(ReboilerUI) },
+        { typeof(PlateExchangerVisualElement), typeof(PlateExchangerUI) },
+        { typeof(SplitterVisualElement), typeof(SplitterUI) },
+        { typeof(MixerVisualElement), typeof(MixerUI) },
+        { typeof(ControlValveVisualElement), typeof(ControlValveUI) },
+        { typeof(VesselVisualElement), typeof(VesselUI) },
+        { typeof(FlashTankVisualElement), typeof(FlashTankUI) },
+        { typeof(InstrumentVisualElement), typeof(InstrumentUI) }
     };
 
     protected override void OnParametersSet()

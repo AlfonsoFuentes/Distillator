@@ -1,0 +1,36 @@
+﻿@using Shared.ProcessFlowDiagram.Instruments
+@inherits EquipmentUIBase<InstrumentVisualElement>
+
+<CanvasEquipmentWrapper Element="Element"
+                        IsSelected="IsSelected"
+                        IsDragging="IsDragging"
+                        OnSelect="HandleSelectionAsync"
+                        OnDragStart="OnDragStart"
+                        OnOpenDetails="OpenPropertiesDialogAsync">
+
+    <svg class="inst-svg" width="80" height="60" viewBox="-15 -45 80 60">
+        @* 1. EL TALLO (Conecta con la línea) *@
+        <line x1="0" y1="0" x2="0" y2="-15" class="inst-stem" />
+
+        @* 2. EL CABEZAL (Círculo de instrumento) *@
+        <circle cx="0" cy="-30" r="13" class="inst-circle" />
+        
+        @* 3. EL TAG (ej: PT) *@
+        <text x="0" y="-30" class="inst-tag-text">@Element.Label</text>
+
+        @* 4. EL VALOR (Globo de datos lateral) *@
+        <g transform="translate(18, -40)">
+            <rect width="45" height="16" rx="3" fill="white" fill-opacity="0.8" stroke="#CBD5E0" stroke-width="0.5" />
+            <text x="4" y="12" class="inst-value-label">@Element.Facade?.StatusText</text>
+        </g>
+    </svg>
+
+</CanvasEquipmentWrapper>
+
+@code {
+    protected override async Task OpenPropertiesDialogAsync()
+    {
+        // Aquí es donde el usuario podrá cambiar de PT a TT o FT
+        await Task.CompletedTask;
+    }
+}
