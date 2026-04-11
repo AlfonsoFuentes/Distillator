@@ -7,6 +7,7 @@ namespace Shared.ProcessFlowDiagram.Columns
 {
     public class ColumnVisualElement : VisualElementBase
     {
+        public override EquipmentType Type => EquipmentType.Column;
         public override string Prefix => "T";
         public override bool AllowFreeRotation => false;
         public override bool AllowFlipHorizontal => true;

@@ -82,7 +82,7 @@ namespace Shared.ProcessFlowDiagram
     {
         // Identidad y Estado de Renderizado
         Guid Id { get; set; }
-
+        EquipmentType Type { get; }
         string Label { get; set; }
         bool IsLocked { get; set; }  // Para fijarlo en el lienzo y no moverlo por error
         int ZIndex { get; set; }     // Para saber quién tapa a quién (Profundidad)
@@ -142,6 +142,7 @@ namespace Shared.ProcessFlowDiagram
 
     public abstract class VisualElementBase : IVisualElement
     {
+        public abstract EquipmentType Type { get; }
         // 1. Propiedad para guardar el ángulo de rotación (0, 90, 180, 270)
         public int RotationAngle { get; set; } = 0;
 
@@ -207,17 +208,61 @@ namespace Shared.ProcessFlowDiagram
             var myPort = Ports.FirstOrDefault(p => p.Name == myPortName);
             var targetPort = targetElement.Ports.FirstOrDefault(p => p.Name == targetPortName);
 
-            // 1. Si los puertos no existen, abortar
+            // 1. Validaciones básicas
+            if (myPort == null || targetPort == null) return false;
+            if (myPort.ConnectedElementId != null || targetPort.ConnectedElementId != null) return false;
+            if (this.Id == targetElement.Id) return false; // No conectarse a sí mismo
+
+            // 2. Regla de Naturaleza: Equipo <-> Stream (Bipartito)
+            bool iAmStream = this.Type == EquipmentType.MaterialStream || this.Type == EquipmentType.EnergyStream;
+            bool targetIsStream = targetElement.Type == EquipmentType.MaterialStream || targetElement.Type == EquipmentType.EnergyStream;
+
+            if (iAmStream == targetIsStream) return false; // Prohibido Equipo-Equipo o Stream-Stream
+
+            // 3. Regla de Polaridad: Entrada <-> Salida
+            bool isCompatible = (myPort.Type, targetPort.Type) switch
+            {
+                (PortType.Inlet, PortType.Outlet) => true,
+                (PortType.Outlet, PortType.Inlet) => true,
+                (PortType.EnergyIn, PortType.EnergyOut) => true,
+                (PortType.EnergyOut, PortType.EnergyIn) => true,
+                _ => false
+            };
+
+            return isCompatible;
+        }
+        public virtual bool CanConnect2(string myPortName, IVisualElement targetElement, string targetPortName)
+        {
+            var myPort = Ports.FirstOrDefault(p => p.Name == myPortName);
+            var targetPort = targetElement.Ports.FirstOrDefault(p => p.Name == targetPortName);
+
+            // 1. Filtro de Existencia
             if (myPort == null || targetPort == null) return false;
 
-            // 2. Si alguno de los puertos ya está ocupado, abortar
+            // 2. Filtro de Disponibilidad (Regla de Ocupación)
             if (myPort.ConnectedElementId != null || targetPort.ConnectedElementId != null) return false;
 
-            // 3. Regla física básica: Una Salida (Outlet) se conecta a una Entrada (Inlet) y viceversa.
-            // (Nota: EnergyIn se conecta a EnergyOut, etc.)
-            if (myPort.Type == targetPort.Type) return false;
+            // 3. Filtro de Naturaleza (Equipo <-> Corriente)
+            bool iAmStream = this.Type == EquipmentType.MaterialStream || this.Type == EquipmentType.EnergyStream;
+            bool targetIsStream = targetElement.Type == EquipmentType.MaterialStream || targetElement.Type == EquipmentType.EnergyStream;
 
-            return true;
+            if (iAmStream == targetIsStream) return false; // Si ambos son iguales (Stream-Stream o Equipo-Equipo), error.
+
+            // 4. Filtro de Polaridad (Salida -> Entrada o viceversa)
+            // Regla: Inlet (0) solo conecta con Outlet (1). EnergyIn (2) con EnergyOut (3).
+            // Un truco matemático: Si sumas los tipos compatibles en tu Enum (Inlet=0 + Outlet=1 = 1) 
+            // o (EnergyIn=2 + EnergyOut=3 = 5), puedes validarlo, pero es más claro así:
+
+            bool isCompatible = (myPort.Type, targetPort.Type) switch
+            {
+                (PortType.Inlet, PortType.Outlet) => true,
+                (PortType.Outlet, PortType.Inlet) => true,
+                (PortType.EnergyIn, PortType.EnergyOut) => true,
+                (PortType.EnergyOut, PortType.EnergyIn) => true,
+                _ => false
+            };
+
+            return isCompatible;
         }
 
         public bool Connect(string myPortName, IVisualElement targetElement, string targetPortName)

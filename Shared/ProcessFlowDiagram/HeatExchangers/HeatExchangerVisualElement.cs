@@ -5,6 +5,7 @@ namespace Shared.ProcessFlowDiagram.HeatExchangers
 {
     public class HeatExchangerVisualElement : VisualElementBase
     {
+        public override EquipmentType Type => EquipmentType.Exchanger;
         public override string Prefix => "E"; // "E" por Exchanger
 
         // Permitimos rotar o hacer espejos para adaptar el P&ID

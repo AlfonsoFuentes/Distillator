@@ -2,8 +2,8 @@
 {
     public class OffPageConnectorElement : VisualElementBase
     {
-    
 
+        public override EquipmentType Type => EquipmentType.None;
         // 👇 La magia: Sabe a qué otra pantalla y a qué conector exacto debe brincar
         public Guid TargetAreaId { get; set; }
         public Guid TargetConnectorId { get; set; }

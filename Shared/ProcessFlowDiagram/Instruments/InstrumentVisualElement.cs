@@ -12,6 +12,7 @@ namespace Shared.ProcessFlowDiagram.Instruments
 
     public class InstrumentVisualElement : VisualElementBase
     {
+        public override EquipmentType Type => EquipmentType.Instrument;
         public override string Prefix => "IT"; // Instrument Transmitter
 
         // 🚩 Vínculo con la tubería

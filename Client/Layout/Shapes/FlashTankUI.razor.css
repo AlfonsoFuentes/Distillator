@@ -1,21 +1,17 @@
 ﻿.flash-svg {
     display: block;
     overflow: visible;
-    filter: drop-shadow(0px 4px 6px rgba(0, 0, 0, 0.2));
-}
-
-.flash-body {
-    transition: fill 0.5s ease;
+    filter: drop-shadow(0px 4px 6px rgba(0, 0, 0, 0.25));
 }
 
 .flash-nozzle {
-    fill: #94A3B8;
+    fill: #94A3B8; /* Gris metálico de las boquillas */
     stroke: #334155;
     stroke-width: 1.2px;
+    pointer-events: none;
 }
 
+/* El líquido tiene una transición suave si llegamos a animar el nivel */
 .flash-liquid {
-    fill: #3182CE;
-    opacity: 0.3;
     transition: height 0.6s ease-in-out, y 0.6s ease-in-out;
 }

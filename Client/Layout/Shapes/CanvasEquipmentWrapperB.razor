@@ -18,56 +18,13 @@
         @ChildContent
 
         @* 2. Puertos de conexión REALES (Reactivos al Modo Conexión) *@
-        @* 2. Puertos de conexión REACTIVOS al Modo Conexión *@
         <div class="connection-ports @(WM.IsConnectionModeActive ? "connection-mode" : "")">
             @foreach (var port in Element.Ports)
             {
+                // Verificamos si el puerto está libre o ya tiene una tubería conectada
                 bool isFree = port.ConnectedElementId == null;
-                bool isValidTarget = false;
-                bool isSource = false;
 
-                // ─────────────────────────────────────────────────────────
-                // ETAPA 2: Si hay draft, calculamos validez
-                // ─────────────────────────────────────────────────────────
-                if (WM.CurrentDraftPipe != null)
-                {
-                    // ¿Es este puerto el origen seleccionado?
-                    isSource = WM.CurrentDraftPipe.SourceElement?.Id == Element.Id &&
-                               WM.CurrentDraftPipe.SourcePortName == port.Name;
-
-                    // ¿Es un destino válido según reglas de negocio?
-                    isValidTarget = isFree && WM.IsValidTarget(Element, port.Name);
-                }
-
-                // ─────────────────────────────────────────────────────────
-                // Determinar clase CSS según estado
-                // ─────────────────────────────────────────────────────────
-                string portClass = "port";
-
-                if (WM.CurrentDraftPipe == null)
-                {
-                    // ETAPA 1: Solo distinguimos libres vs ocupados
-                    portClass += isFree ? " port-free" : " port-connected";
-                }
-                else
-                {
-                    // ETAPA 2: Feedback guiado
-                    if (isSource)
-                    {
-                        portClass += " port-source"; // Origen seleccionado
-                    }
-                    else if (isValidTarget)
-                    {
-                        portClass += " port-valid-target"; // ✅ Destino válido
-                    }
-                    else
-                    {
-                        // ❌ No es válido (ocupado o incompatible)
-                        portClass += " port-dimmed";
-                    }
-                }
-
-                <div class="@portClass"
+                <div class="port @(isFree ? "port-free" : "port-connected")"
                      style="left: @(port.OffsetX)px; top: @(port.OffsetY)px;"
                      data-name="@port.Name"
                      @onmouseenter="@(() => HoveredPortName = port.Name)"
@@ -180,21 +137,11 @@
     // =========================================================
     // LÓGICA DE CONEXIÓN DE PUERTOS (Fase 2)
     // =========================================================
-    private void HandlePortMouseDown2(EquipmentPort port)
+    private void HandlePortMouseDown(EquipmentPort port)
     {
         if (WM.IsConnectionModeActive && port.ConnectedElementId == null)
         {
             // Iniciamos el cable desde este puerto
-            WM.StartConnectionDraft(Element, port.Name);
-        }
-    }
-    private void HandlePortMouseDown(EquipmentPort port)
-    {
-        // ✅ CORREGIDO: Solo inicia si no hay draft activo
-        if (WM.IsConnectionModeActive &&
-            port.ConnectedElementId == null &&
-            WM.CurrentDraftPipe == null)
-        {
             WM.StartConnectionDraft(Element, port.Name);
         }
     }

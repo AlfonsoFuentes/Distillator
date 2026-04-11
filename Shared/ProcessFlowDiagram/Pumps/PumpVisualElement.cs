@@ -5,6 +5,7 @@ namespace Shared.ProcessFlowDiagram.Pumps
 {
     public class PumpVisualElement : VisualElementBase
     {
+        public override EquipmentType Type => EquipmentType.Pump;
         public override string Prefix => "P";
       
         public override bool AllowFreeRotation => true;    // Oculta el botón de rotar 90°

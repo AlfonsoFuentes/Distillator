@@ -7,6 +7,7 @@ namespace Shared.ProcessFlowDiagram.HeatExchangers
 {
     public class PlateExchangerVisualElement : VisualElementBase
     {
+        public override EquipmentType Type => EquipmentType.PlateExchanger;
         public override string Prefix => "E"; // Intercambiador
 
         public override bool AllowFreeRotation => true;

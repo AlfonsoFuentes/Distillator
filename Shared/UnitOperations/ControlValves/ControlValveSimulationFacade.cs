@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Shared.UnitOperations
+namespace Shared.UnitOperations.ControlValves
 {
     public enum ValveStateType { Created, PartiallyConnected, ReadyToCalculate, Solved }
 

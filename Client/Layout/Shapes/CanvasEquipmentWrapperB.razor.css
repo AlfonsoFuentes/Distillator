@@ -177,8 +177,8 @@
     width: 100%;
     height: 100%;
     pointer-events: none;
-    opacity: 0;
-    transition: opacity 0.2s ease;
+    opacity: 0; /* Por defecto, invisibles */
+    transition: opacity 0.1s ease;
 }
 
     /* 🚩 LA CLAVE: Solo se vuelven visibles si el Manager activa el modo conexión */
@@ -188,14 +188,15 @@
 
 .port {
     position: absolute;
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
+    width: 11px;
+    height: 11px;
+    background: #10B981;
+    border: 1.5px solid white;
     transform: translate(-50%, -50%);
     z-index: 9999;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    opacity: 0; /* Los puertos individuales también nacen invisibles */
     pointer-events: none;
-    opacity: 0;
+    transition: all 0.1s ease;
 }
 
 /* 🚩 SOLO LOS LIBRES: Brillan y aceptan clics cuando Ctrl está oprimido */
@@ -203,18 +204,13 @@
     opacity: 1;
     pointer-events: auto;
     cursor: crosshair;
-    background: #10B981; /* Verde esmeralda */
-    border: 2px solid #FFFFFF;
-    box-shadow: 0 0 12px 3px rgba(16, 185, 129, 0.6);
-    transform: translate(-50%, -50%) scale(1.1);
+    box-shadow: 0 0 10px 2px rgba(16, 185, 129, 0.6);
+    transform: translate(-50%, -50%) scale(1.2);
 }
 
 /* Los ocupados se quedan casi transparentes para no estorbar */
 .connection-ports.connection-mode .port.port-connected {
-    opacity: 0.15;
-    background: #6B7280;
-    border: 1px solid #9CA3AF;
-    pointer-events: none;
+    opacity: 0.1;
 }
 
 /* 7. TOOLTIP DEL PUERTO (ESTÁTICO, NO ROTA) */
@@ -246,71 +242,8 @@
 }
 /* Agrega esto a tus clases de puertos */
 .connection-ports.connection-mode .port.port-valid-target {
-    opacity: 1;
-    pointer-events: auto;
-    cursor: pointer;
-    background: #00D26A; /* Verde brillante */
-    border: 2px solid #FFFFFF;
-    box-shadow: 0 0 18px 6px rgba(0, 210, 106, 0.8);
-    transform: translate(-50%, -50%) scale(1.4);
-    animation: glow-target 1.2s ease-in-out infinite alternate;
-}
-/*Nuevos*/
-
-
-
-
-
-
-
-/* ─────────────────────────────────────────────────────────
-   ETAPA 2: Feedback Guiado (Origen, Válidos, Inválidos)
-   ───────────────────────────────────────────────────────── */
-
-/* Origen seleccionado: Fijo y destacado */
-.connection-ports.connection-mode .port.port-source {
-    opacity: 1;
-    background: #0EA5E9; /* Azul eléctrico */
-    border: 2px solid #FFFFFF;
-    box-shadow: 0 0 15px 4px rgba(14, 165, 233, 0.7);
-    transform: translate(-50%, -50%) scale(1.3);
-    pointer-events: none; /* Ya no es clickeable */
-    animation: pulse-source 1.5s infinite;
-}
-
-/* Destinos válidos: Brillan intensamente invitando al clic */
-
-
-/* Puertos inválidos en Etapa 2: Se atenúan fuertemente */
-.connection-ports.connection-mode .port.port-dimmed {
-    opacity: 0.1;
-    background: #6B7280;
-    border: 1px solid #9CA3AF;
-    pointer-events: none; /* No aceptan clic */
-    transform: translate(-50%, -50%) scale(0.8);
-    filter: grayscale(100%);
-}
-
-/* ─────────────────────────────────────────────────────────
-   ANIMACIONES
-   ───────────────────────────────────────────────────────── */
-
-@keyframes pulse-source {
-    0%, 100% {
-        box-shadow: 0 0 15px 4px rgba(14, 165, 233, 0.7);
-    }
-
-    50% {
-        box-shadow: 0 0 20px 6px rgba(14, 165, 233, 0.9);
-    }
-}
-
-@keyframes glow-target {
-    from {
-        box-shadow: 0 0 15px 5px rgba(0, 210, 106, 0.7);
-    }
-
-    to {
-        box-shadow: 0 0 22px 8px rgba(0, 210, 106, 0.95);
-    }
+    background: #00D26A !important;
+    box-shadow: 0 0 15px 5px rgba(0, 210, 106, 0.8);
+    transform: translate(-50%, -50%) scale(1.5);
+    z-index: 10000;
 }

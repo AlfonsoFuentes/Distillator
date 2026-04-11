@@ -7,6 +7,7 @@ namespace Shared.ProcessFlowDiagram.Helpers
 {
     public class SplitterVisualElement : VisualElementBase
     {
+        public override EquipmentType Type => EquipmentType.Splitter;
         public override string Prefix => "SP"; // Splitter
 
         public override bool AllowFreeRotation => true;

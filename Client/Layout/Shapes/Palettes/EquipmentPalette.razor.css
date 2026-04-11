@@ -1,10 +1,13 @@
-﻿.floating-palette-panel.narrow {
-    /* 🚩 CLAVE: Absolute la ancla a .main-content-area permitiendo que el lienzo fluya por debajo */
+﻿/* =========================================
+   EQUIPMENT PALETTE - STYLESHEET
+   ========================================= */
+
+.floating-palette-panel.narrow {
     position: absolute !important;
-    top: 120px; /* Distancia desde el borde superior del área gris */
-    left: 20px; /* Distancia desde el borde izquierdo del área gris */
-    z-index: 1000;
-    width: 150px;
+    top: 120px;
+    left: 20px;
+    z-index: 2000 !important; /* Elevamos la paleta sobre el lienzo */
+    width: 135px;
     background: rgba(255, 255, 255, 0.96);
     backdrop-filter: blur(4px);
     border: 1px solid #CBD5E0;
@@ -42,8 +45,9 @@
 
 .panel-body {
     padding: 10px 8px;
-    overflow-y: auto;
-    max-height: 75vh;
+    /* 🚩 CLAVE: Quitamos el scroll automático para que no recorte el tooltip */
+    overflow: visible !important;
+    max-height: 80vh;
 }
 
 .group-header {
@@ -83,6 +87,7 @@
     justify-content: center;
     cursor: grab;
     transition: all 0.15s ease;
+    position: relative;
 }
 
     .palette-button:hover {
@@ -90,14 +95,46 @@
         border-color: #3B82F6;
         transform: translateY(-1px);
         box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-    }
-
-    .palette-button svg {
-        filter: drop-shadow(0 1px 1px rgba(0,0,0,0.03));
+        /* 🚩 CLAVE: El botón sobre el que estamos gana prioridad absoluta */
+        z-index: 5000 !important;
     }
 
     .palette-button.disabled {
         opacity: 0.3;
         cursor: not-allowed;
         filter: grayscale(1);
+    }
+
+/* =========================================
+   🚩 TOOLTIP DINÁMICO (Ubicación a la derecha)
+   ========================================= */
+
+.port-tooltip-fixed {
+    position: absolute;
+    left: calc(100% + 12px);
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: #F8FAFC;
+    color: #4A5568;
+    font-family: 'Consolas', monospace;
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 3px 6px;
+    border: 1px solid #E2E8F0;
+    border-radius: 4px;
+    white-space: nowrap;
+    pointer-events: none;
+    box-shadow: 4px 4px 12px rgba(0,0,0,0.08);
+    z-index: 10000 !important;
+}
+
+    .port-tooltip-fixed::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        right: 100%;
+        transform: translateY(-50%);
+        border-width: 5px;
+        border-style: solid;
+        border-color: transparent #E2E8F0 transparent transparent;
     }

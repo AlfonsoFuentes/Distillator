@@ -364,10 +364,17 @@ namespace Client.Services.EquipmentManagers
             CurrentDraftPipe = null;
             NotifyStateChanged();
         }
-
-        public void CompleteConnection(IVisualElement target, string targetPortName)
+        public void CompleteConnection2(IVisualElement target, string targetPortName)
         {
             if (CurrentDraftPipe == null || CurrentDraftPipe.SourceElement == null) return;
+
+            // ✅ VALIDACIÓN DEFENSIVA
+            if (!CurrentDraftPipe.SourceElement.CanConnect(
+                    CurrentDraftPipe.SourcePortName, target, targetPortName))
+            {
+                CancelConnectionDraft(); // Rechazar conexión inválida
+                return;
+            }
 
             if (CurrentDraftPipe.SourceElementId == target.Id)
             {
@@ -375,6 +382,23 @@ namespace Client.Services.EquipmentManagers
                 return;
             }
 
+            // ... resto del código igual ...
+        }
+        public void CompleteConnection(IVisualElement target, string targetPortName)
+        {
+            if (CurrentDraftPipe == null || CurrentDraftPipe.SourceElement == null) return;
+
+            if (!CurrentDraftPipe.SourceElement.CanConnect(
+                    CurrentDraftPipe.SourcePortName, target, targetPortName))
+            {
+                CancelConnectionDraft();
+                return;
+            }
+            if (CurrentDraftPipe.SourceElementId == target.Id)
+            {
+                CancelConnectionDraft();
+                return;
+            }
             CurrentDraftPipe.TargetElementId = target.Id;
             CurrentDraftPipe.TargetPortName = targetPortName;
             CurrentDraftPipe.TargetElement = target;
@@ -414,6 +438,18 @@ namespace Client.Services.EquipmentManagers
             double screenH = (rot == 90 || rot == 270) ? w : h;
             double dx = (w - screenW) / 2.0; double dy = (h - screenH) / 2.0;
             return (posX + dx + 2, posY + dy + 2, screenW - 4, screenH - 4);
+        }
+        public bool IsValidTarget(IVisualElement targetElement, string targetPortName)
+        {
+            // Si no hay draft, no hay origen → no hay objetivos válidos
+            if (CurrentDraftPipe?.SourceElement == null)
+                return false;
+
+            var sourceElement = CurrentDraftPipe.SourceElement;
+            var sourcePortName = CurrentDraftPipe.SourcePortName;
+
+            // Delegamos a la lógica de negocio del elemento origen
+            return sourceElement.CanConnect(sourcePortName, targetElement, targetPortName);
         }
     }
 

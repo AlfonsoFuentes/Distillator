@@ -8,6 +8,7 @@ namespace Shared.ProcessFlowDiagram.Vessels
 
     public class VesselVisualElement : VisualElementBase
     {
+        public override EquipmentType Type => EquipmentType.Tank;
         public override string Prefix => "V";
 
         public VesselOrientation Orientation { get; set; } = VesselOrientation.Vertical;

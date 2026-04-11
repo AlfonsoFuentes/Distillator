@@ -7,6 +7,7 @@ namespace Shared.ProcessFlowDiagram.ControlValves
 {
     public class ControlValveVisualElement : VisualElementBase
     {
+        public override EquipmentType Type => EquipmentType.ControlValve;
         public override string Prefix => "CV"; // Control Valve
 
         public override bool AllowFreeRotation => true;
