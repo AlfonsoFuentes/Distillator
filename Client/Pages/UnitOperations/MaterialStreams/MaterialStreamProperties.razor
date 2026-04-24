@@ -1,0 +1,53 @@
+﻿
+
+<div class="scrollable-container">
+    <div class="data-grid conditions-grid">
+        
+        @* 👇 HEADERS: 3 columnas *@
+        <div class="grid-header">Physical Property</div>
+        <div class="grid-header">Value</div>
+        <div class="grid-header unit-placeholder-header"></div>
+
+        @* 👇 GRUPO 1: Phase & Density *@
+        <div class="grid-cell label group-title">Phase & Density</div>
+        <LabeledReadOnlyVariableRow Label="Mass Density" Variable="Facade.MassDensity" />
+        <div class="grid-cell unit-placeholder"></div>
+        
+        <LabeledReadOnlyVariableRow Label="Molar Density" Variable="Facade.MolarDensity" />
+        <div class="grid-cell unit-placeholder"></div>
+
+        @* 👇 GRUPO 2: Thermodynamics *@
+        <div class="grid-cell label group-title">Thermodynamics</div>
+        <LabeledReadOnlyVariableRow Label="Mass Enthalpy" Variable="Facade.MassEnthalpy" />
+        <div class="grid-cell unit-placeholder"></div>
+        
+        <LabeledReadOnlyVariableRow Label="Molar Enthalpy" Variable="Facade.MolarEnthalpy" />
+        <div class="grid-cell unit-placeholder"></div>
+        
+        <LabeledReadOnlyVariableRow Label="Mass Cp" Variable="Facade.MassCp" />
+        <div class="grid-cell unit-placeholder"></div>
+        
+        <LabeledReadOnlyVariableRow Label="Energy Flow" Variable="Facade.EnthalpyFlow" />
+        <div class="grid-cell unit-placeholder"></div>
+
+        @* 👇 GRUPO 3: Transport *@
+        <div class="grid-cell label group-title">Transport</div>
+        <LabeledReadOnlyVariableRow Label="Viscosity" Variable="Facade.Viscosity" />
+        <div class="grid-cell unit-placeholder"></div>
+        
+        <LabeledReadOnlyVariableRow Label="Thermal Cond." Variable="Facade.ThermalConductivity" />
+        <div class="grid-cell unit-placeholder"></div>
+        
+        @if (Facade.EquilibriumState == ThermodynamicState.SaturatedLiquid ||
+             Facade.EquilibriumState == ThermodynamicState.SubcooledLiquid)
+        {
+            <LabeledReadOnlyVariableRow Label="Superficial Tension" Variable="Facade.SuperficialTension" />
+            <div class="grid-cell unit-placeholder"></div>
+        }
+        
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public StreamSimulationFacade Facade { get; set; } = default!;
+}

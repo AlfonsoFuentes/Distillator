@@ -6,8 +6,8 @@
      @onclick="HandleSingleClick"
      @onclick:stopPropagation="true"
      @ondblclick="HandleDoubleClick"
-     @onmousedown="HandleMouseDown"
-     @onkeydown="HandleKeyDown"
+     @ondblclick:stopPropagation="true" @onmousedown="HandleMouseDown"
+     @onmousedown:stopPropagation="true" @onkeydown="HandleKeyDown"
      @onmouseenter="ShowTooltip"
      @onmouseleave="HideTooltip">
 
@@ -80,10 +80,13 @@
             }
         </div>
     </div>
-    
-    <span class="equipment-label" style="bottom: @(Element.LabelOffsetY)px;">
-        @Element.Label
-    </span>
+    @if (Element.ShowLabel)
+    {
+        <span class="equipment-label" style="bottom: @(Element.LabelOffsetY)px;">
+            @Element.Label
+        </span>
+    }
+  
 
     @* 4. Mini Toolbar (Leemos la distancia desde C#) *@
     <div class="mini-toolbar" style="top: @(Element.ToolbarOffsetY)px;">
@@ -110,21 +113,22 @@
     @* 5. Tooltip Dinámico (Leemos la distancia desde C#) *@
     @if (showTooltip && !IsDragging)
     {
-        <div class="equipment-tooltip" style="top: calc(100% + @(Element.TooltipOffsetY)px);">
-            <div class="tooltip-header">@Element.Label</div>
-            <div class="tooltip-body">
-                @if (Element.Facade != null)
-                {
-                    @foreach (var entry in Element.Facade.GetQuickViewData())
+        if (Element.GetToolTipData().Count > 0)
+        {
+            <div class="equipment-tooltip" style="top: calc(100% + @(Element.TooltipOffsetY)px);">
+                <div class="tooltip-header">@Element.Label</div>
+                <div class="tooltip-body">
+                    @foreach (var entry in Element.GetToolTipData())
                     {
                         <div class="tooltip-row">
-                            <span class="label">@entry.Key:</span>
+                            <span class="label">@entry.Variable:</span>
                             <span class="value">@entry.Value</span>
                         </div>
                     }
-                }
+                </div>
             </div>
-        </div>
+        }
+       
     }
 
     @* 6. Tooltip Dinámico del Puerto (Sigue a su respectivo puerto) *@
@@ -152,8 +156,18 @@
     private bool showTooltip = false;
     private string? HoveredPortName;
 
-    private async Task HandleSingleClick() => await OnSelect.InvokeAsync(Element);
-    private async Task HandleDoubleClick() => await OnOpenDetails.InvokeAsync(Element);
+  
+
+    private async Task HandleSingleClick()
+    {
+        Console.WriteLine($"[DEBUG] HandleSingleClick on: {Element?.Label} ({Element?.GetType().Name})");
+        await OnSelect.InvokeAsync(Element);
+    }
+    private async Task HandleDoubleClick()
+    {
+        Console.WriteLine($"[DEBUG] DoubleClick on: {Element?.Label} ({Element?.GetType().Name})");
+        await OnOpenDetails.InvokeAsync(Element);
+    }
     private async Task HandleMouseDown(MouseEventArgs e) => await OnDragStart.InvokeAsync(e);
 
     private void ShowTooltip() => showTooltip = true;

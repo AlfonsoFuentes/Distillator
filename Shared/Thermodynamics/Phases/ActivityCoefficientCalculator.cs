@@ -18,8 +18,8 @@ namespace Shared.Thermodynamics.Phases
             {
                 case LiquidPhaseModel.EA_Van_Laar: CalculateVanLaar(components, matrices); break;
                 case LiquidPhaseModel.Wilson:
-                case LiquidPhaseModel.WilsonASPEN: CalculateWilson(components, matrices, temperature); break;
-                case LiquidPhaseModel.NRTL_ASPEN: CalculateNRTL(components, matrices, temperature); break;
+                case LiquidPhaseModel.WilsonAspen: CalculateWilson(components, matrices, temperature); break;
+                case LiquidPhaseModel.NRTLAspen: CalculateNRTL(components, matrices, temperature); break;
                 default:
                     foreach (var c in components) c.ActivityCoefficient = 1.0;
                     break;

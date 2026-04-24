@@ -1,6 +1,5 @@
 ﻿/* ==================== MODAL OVERLAY Y HEADER ==================== */
 
-
 .dialog-header {
     display: flex;
     justify-content: space-between;
@@ -40,9 +39,9 @@
     --font-family: "Segoe UI", Arial, sans-serif;
     font-family: var(--font-family);
     font-size: 12px;
-    width: fit-content; /* Se ajusta al ancho de tus columnas */
-    min-width: 460px; /* Pero nunca más pequeño que esto para que no se vea "flaco" */
-    max-width: 90vw;
+    width: fit-content;
+    min-width: 480px;
+    max-width: 95vw;
     border-radius: 4px;
     border: 1px solid #888888;
     background-color: #ffffff;
@@ -50,6 +49,7 @@
     display: flex;
     flex-direction: column;
     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    overflow: hidden;
 }
 
 /* ==================== TABS ==================== */
@@ -75,11 +75,16 @@
         color: #333;
     }
 
-/* ==================== GRIDS Y ESTABILIDAD ==================== */
+    .tab.disabled {
+        color: #999 !important;
+        cursor: not-allowed !important;
+        background-color: #e8e8e8 !important;
+    }
+
+/* ==================== CONTENIDO DE TABS ==================== */
 .tab-content {
     padding: 10px;
     flex-grow: 1;
-    /* Altura fija para evitar el salto entre pestañas y dejar espacio para comentarios */
     min-height: 480px;
     width: 100%;
     box-sizing: border-box;
@@ -87,117 +92,40 @@
     flex-direction: column;
 }
 
+    .tab-content.active {
+        display: block;
+    }
+
+/* ==================== GRIDS - SOLO DEFINICIONES DE LAYOUT ==================== */
 .data-grid {
     display: grid;
     border-top: 1px solid var(--border-color);
     border-left: 1px solid var(--border-color);
     width: 100%;
+    background-color: var(--border-color);
+    gap: 0;
 }
 
+/* 👇 GRID ORIGINAL 3 COLUMNAS (para CompositionGrid) */
 .conditions-grid {
     grid-template-columns: 160px 140px 1fr;
 }
 
+/* 👇 GRID COMPOSITION (5 columnas) */
 .composition-grid {
     grid-template-columns: 150px 130px 130px 130px 130px;
 }
 
+/* Scrollable container para tabs con mucho contenido */
 .scrollable-container {
     overflow-x: auto;
     width: 100%;
-    max-height: 400px;
+    max-height: 420px;
     overflow-y: auto;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background-color: #ffffff;
 }
-
-/* Celdas */
-.grid-header, .grid-cell {
-    border-right: 1px solid var(--border-color);
-    border-bottom: 1px solid var(--border-color);
-    padding: 2px 6px;
-    display: flex;
-    align-items: center;
-    min-height: 24px;
-}
-
-.grid-header {
-    background-color: var(--header-bg) !important;
-    font-weight: bold;
-    text-align: left;
-    color: var(--calc-black);
-}
-
-.label {
-    background-color: var(--label-bg) !important;
-    color: var(--calc-black);
-}
-
-.empty {
-    background-color: var(--label-bg) !important;
-}
-
-.value, .unit {
-    background-color: #ffffff !important;
-}
-
-    /* ==================== EDICIÓN EN LÍNEA ==================== */
-    .value input, .value select, .unit select {
-        width: 100%;
-        height: 100%;
-        border: none;
-        background-color: transparent !important;
-        font-family: inherit;
-        font-size: inherit;
-        color: inherit;
-        outline: none;
-        /* Resaltado más grande internamente */
-        padding: 0 10px;
-        margin: 0;
-        box-sizing: border-box;
-    }
-
-        /* Quitar flechas de números nativas */
-        .value input[type="number"]::-webkit-outer-spin-button,
-        .value input[type="number"]::-webkit-inner-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
-        }
-
-        .value input[type="number"] {
-            -moz-appearance: textfield;
-        }
-
-        /* FOCO: Borde más pequeño (1px) y elegante */
-        .value input:focus, .value select:focus, .unit select:focus {
-            background-color: #eef5ff !important;
-            box-shadow: inset 0 0 0 1px var(--user-blue) !important;
-            border-radius: 0;
-        }
-
-        .value input:hover, .value select:hover, .unit select:hover {
-            background-color: #f8faff !important;
-            cursor: pointer;
-        }
-
-    /* FLECHAS SVG PERSONALIZADAS */
-    .value select, .unit select {
-        -webkit-appearance: none !important;
-        -moz-appearance: none !important;
-        appearance: none !important;
-        background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e") !important;
-        background-repeat: no-repeat !important;
-        background-position: right 6px center !important;
-        background-size: 12px !important;
-        padding-right: 20px !important;
-    }
-
-    .value input, .value span {
-        text-align: right;
-        width: 100%;
-        display: block;
-    }
-
-/* ==================== STATUS BAR ==================== */
-
 
 /* ==================== SCROLLBARS INDUSTRIALES ==================== */
 ::-webkit-scrollbar {
@@ -214,6 +142,7 @@
     background: #c1c1c1;
     border-radius: 4px;
 }
+
 /* ==================== STATUS BAR ==================== */
 .status-bar {
     display: flex;
@@ -228,18 +157,15 @@
     transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* Icono de estado */
 .status-icon {
     font-size: 14px;
     line-height: 1;
 }
 
-/* Texto principal */
 .status-text {
     font-weight: 600;
 }
 
-/* Subtexto informativo */
 .status-subtext {
     font-size: 11px;
     font-weight: 400;
@@ -247,55 +173,36 @@
 }
 
 /* ==================== ESTADOS SEMÁNTICOS ==================== */
-
-/* 👇 Waiting (gris claro) */
 .status-waiting {
     background-color: #f5f5f5 !important;
     color: #666666 !important;
     border-left: 4px solid #999999;
 }
 
-/* 👇 Idle (gris muy claro) */
 .status-idle {
     background-color: #fafafa !important;
     color: #888888 !important;
     border-left: 4px solid #cccccc;
 }
 
-
-
-
-
-
-/* 👇 Created: Gris tenue */
-.status-waiting {
-    background-color: #F9FAFB !important;
-    color: #9CA3AF !important;
-    border-left: 4px solid #D1D5DB;
-}
-
-/* 👇 MethodDefined: Naranja tenue */
 .status-warning {
     background-color: #FFF7ED !important;
     color: #F59E0B !important;
     border-left: 4px solid #FFD180;
 }
 
-/* 👇 Equilibrium: Amarillo tenue */
 .status-success {
     background-color: #FEFCE8 !important;
     color: #CA8A04 !important;
     border-left: 4px solid #FFF59D;
 }
 
-/* 👇 Solved: Gris Oscuro (Finalizado) */
 .status-solved {
     background-color: #F3F4F6 !important;
     color: #1F2937 !important;
-    border-left: 4px solid #374151; /* El color de "meta" */
+    border-left: 4px solid #374151;
 }
 
-/* 👇 Error (rojo) */
 .status-error {
     background-color: #fee2e2 !important;
     color: #dc2626 !important;

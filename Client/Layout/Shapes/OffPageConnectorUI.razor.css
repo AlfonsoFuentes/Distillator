@@ -1,0 +1,9 @@
+﻿/* OffPageConnectorUI.razor.css */
+.opc-svg {
+    cursor: pointer;
+    transition: transform 0.1s ease-in-out;
+}
+
+    .opc-svg:hover {
+        transform: scale(1.05); /* Pequeño feedback visual de que es clickeable */
+    }

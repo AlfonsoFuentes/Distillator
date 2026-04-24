@@ -1,0 +1,93 @@
+﻿<MudDialog Gutters="false" ContentClass="pa-0">
+    <DialogContent>
+        <div class="equipment-dialog">
+            
+            @* ENCABEZADO: Solo usa Equipment.Label *@
+            <div class="dialog-header">
+                <span class="dialog-title">@Equipment.Label</span>
+                <button class="close-button" @onclick="Cancel">✕</button>
+            </div>
+
+            @* PESTAÑAS *@
+            <div class="tabs-header">
+                <div class="tab @(activeTab == "Main" ? "active" : "")" @onclick='() => SetTab("Main")'>Main</div>
+                <div class="tab @(activeTab == "Design" ? "active" : "")" @onclick='() => SetTab("Design")'>Design</div>
+                <div class="tab @(activeTab == "Streams" ? "active" : "")" @onclick='() => SetTab("Streams")'>Streams</div>
+                <div class="tab @(activeTab == "Composition" ? "active" : "")" @onclick='() => SetTab("Composition")'>Composition</div>
+            </div>
+
+            @* CONTENIDO DINÁMICO *@
+            <div class="tab-content">
+                @if (activeTab == "Main")
+                {
+                    <div class="main-tab-container">
+        
+                        @* 1. Topología (Conexiones y Dibujo) *@
+                        <div class="main-slot-container">
+                            @MainSlot
+                        </div>
+
+                        @* 2. Propiedades Operativas Básicas *@
+                        @if (PropertiesSlot != null)
+                        {
+                            <div class="properties-section">
+                                <h4 class="properties-title">Operating Parameters</h4>
+                                <div class="properties-grid">
+                                    @PropertiesSlot
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else if (activeTab == "Design")
+                {
+                    @(DesignSlot ?? (RenderFragment)(b => b.AddContent(0, "Design parameters will be defined after mass balance calculation.")))
+                }
+                else if (activeTab == "Streams")
+                {
+                    <EquipmentBaseStreams Ports="_Ports" AvailableMethods="AvailableMethods"></EquipmentBaseStreams>
+                }
+                else if (activeTab == "Composition")
+                {
+                    <EquipmentBaseCompositionGrid Ports="_Ports"></EquipmentBaseCompositionGrid>
+                }
+            </div>
+
+            @* BARRA DE ESTADO: Solo usa Equipment.StatusColor/Text *@
+            <div class="status-bar" style="background-color: @Equipment.StatusColor; color: #fff;">
+                <span class="status-text">@Equipment.StatusText</span>
+            </div>
+
+        </div>
+    </DialogContent>
+</MudDialog>
+
+@code {
+    [CascadingParameter] public IMudDialogInstance MudDialog { get; set; } = default!;
+    [Parameter, EditorRequired] public IVisualElement Equipment { get; set; } = default!;
+    
+    [Parameter] public RenderFragment? MainSlot { get; set; }
+    [Parameter] public RenderFragment? PropertiesSlot { get; set; }
+    [Parameter] public RenderFragment? DesignSlot { get; set; }
+    
+    public List<ThermodynamicMethodFullDto> AvailableMethods { get; set; } = new();
+    private string activeTab = "Main";
+
+    List<EquipmentPort> _Ports => Equipment.Ports;
+
+    private void SetTab(string tabName) { activeTab = tabName; StateHasChanged(); }
+    private void Cancel() => MudDialog.Cancel();
+    
+    protected override async Task OnInitializedAsync()
+    {
+        if (AvailableMethods == null || AvailableMethods.Count == 0)
+        {
+            var request = new GetAllCompleteMethods();
+            var result = await HttpServices.PostAsync<GetAllCompleteMethods, Result<List<ThermodynamicMethodFullDto>>>(request);
+            if (result.Succeeded)
+            {
+                AvailableMethods = result.Data;
+            }
+        }
+    }
+}

@@ -7,6 +7,7 @@ namespace Shared.ProcessFlowDiagram.Columns
 {
     public class ColumnVisualElement : VisualElementBase
     {
+         public override List<ToolTipLegend> GetToolTipData() => Facade.GetToolTipLegend();
         public override EquipmentType Type => EquipmentType.Column;
         public override string Prefix => "T";
         public override bool AllowFreeRotation => false;

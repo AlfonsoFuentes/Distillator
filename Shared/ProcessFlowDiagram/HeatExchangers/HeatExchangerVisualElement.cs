@@ -5,6 +5,7 @@ namespace Shared.ProcessFlowDiagram.HeatExchangers
 {
     public class HeatExchangerVisualElement : VisualElementBase
     {
+         public override List<ToolTipLegend> GetToolTipData() => Facade.GetToolTipLegend();
         public override EquipmentType Type => EquipmentType.Exchanger;
         public override string Prefix => "E"; // "E" por Exchanger
 

@@ -5,6 +5,7 @@ namespace Shared.ProcessFlowDiagram.Vessels
 {
     public class FlashTankVisualElement : VisualElementBase
     {
+        public override List<ToolTipLegend> GetToolTipData() => Facade.GetToolTipLegend();
         public override EquipmentType Type => EquipmentType.FlashDrum;
         public override string Prefix => "V"; // O "S" de Separador
 

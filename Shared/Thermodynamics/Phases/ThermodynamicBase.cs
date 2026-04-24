@@ -29,6 +29,8 @@ namespace Shared.Thermodynamics.Phases
         public MassEnergy MassEnthalpy { get; set; } = new MassEnergy(0);
         public MassEntropy MassHeatCapacity { get; set; } = new MassEntropy(0);
         public MolarEntropy MolarHeatCapacity { get; set; } = new MolarEntropy(0);
+        public MassEntropy MassEntropy { get; set; } = new MassEntropy(0);
+        public MolarEntropy MolarEntropy { get; set; } = new MolarEntropy(0);
         public Viscosity Viscosity { get; set; } = new Viscosity(0);
         public ThermalConductivity ThermalConductivity { get; set; } = new ThermalConductivity(0);
         public SuperficialTension SurfaceTension { get; set; } = new SuperficialTension(0);

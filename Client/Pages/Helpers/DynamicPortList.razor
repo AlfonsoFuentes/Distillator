@@ -1,0 +1,39 @@
+﻿@using Client.Pages.UnitOperations.DialogBase
+<div class="dynamic-port-list @CssClass">
+    @if (!string.IsNullOrEmpty(Title))
+    {
+        <div class="port-list-title">@Title</div>
+    }
+
+    <div class="port-list-container">
+        @foreach (var port in Ports)
+        {
+            <div class="dynamic-port-item">
+                <div class="port-connector-wrapper">
+                    <EquipmentPortConnector Port="port"
+                                            ParentEquipment="ParentEquipment"
+                                            OnConnectionChanged="OnPortConnectionChanged" />
+                </div>
+
+                @* 🚩 LA MAGIA: Si el padre envía contenido extra, lo renderizamos aquí *@
+                @if (ItemContent != null)
+                {
+                    <div class="port-extra-content">
+                        @ItemContent(port)
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public string Title { get; set; } = string.Empty;
+    [Parameter] public string CssClass { get; set; } = string.Empty;
+    [Parameter, EditorRequired] public IVisualElement ParentEquipment { get; set; } = default!;
+    [Parameter, EditorRequired] public IEnumerable<EquipmentPort> Ports { get; set; } = new List<EquipmentPort>();
+    [Parameter] public EventCallback OnPortConnectionChanged { get; set; }
+
+    // 🧩 Fragmento dinámico que recibe el puerto actual como contexto
+    [Parameter] public RenderFragment<EquipmentPort>? ItemContent { get; set; }
+}

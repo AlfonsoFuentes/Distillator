@@ -1,0 +1,35 @@
+﻿@* 👇 display: contents hace que este div sea "invisible" para el Grid.
+      Sus hijos se convierten en celdas directas de la columna actual. *@
+<div style="display: contents;">
+    
+    <VisualElementName Facade="Facade" />
+    <NewProcessMethodRow @bind-Variable="Facade.ThermodynamicMethod" AvailableMethods="AvailableMethods" />
+    <NewSimpleVariableRow @bind-Variable="Facade.VaporFraction" MinValue="0" MaxValue="1" RangeErrorText="..." />
+    <NewProcessVariableRow @bind-Variable="Facade.Temperature" />
+    <NewProcessVariableRow @bind-Variable="Facade.Pressure" />
+    <NewProcessVariableRow @bind-Variable="Facade.MassFlow" />
+    <NewProcessVariableRow @bind-Variable="Facade.MolarFlow" />
+    <NewProcessVariableRow @bind-Variable="Facade.VolumetricFlow" />
+    <NewReadOnlyVariableRow Variable="Facade.EnthalpyFlow" />
+    
+    @* 👇 Placeholders para mantener alineación con los títulos de grupo del padre *@
+    <div class="grid-cell value group-spacer"></div>
+    <NewReadOnlyVariableRow Variable="Facade.MassDensity" />
+    <NewReadOnlyVariableRow Variable="Facade.MolarDensity" />
+    
+    <div class="grid-cell value group-spacer"></div>
+    <NewReadOnlyVariableRow Variable="Facade.MassEnthalpy" />
+    <NewReadOnlyVariableRow Variable="Facade.MolarEnthalpy" />
+    <NewReadOnlyVariableRow Variable="Facade.MassCp" />
+    <NewReadOnlyVariableRow Variable="Facade.MolarCp" />
+    
+    <div class="grid-cell value group-spacer"></div>
+    <NewReadOnlyVariableRow Variable="Facade.Viscosity" />
+    <NewReadOnlyVariableRow Variable="Facade.ThermalConductivity" />
+    <NewReadOnlyVariableRow Variable="Facade.SuperficialTension" />
+</div>
+
+@code {
+    [Parameter] public StreamSimulationFacade Facade { get; set; } = default!;
+    [Parameter] public List<ThermodynamicMethodFullDto> AvailableMethods { get; set; } = new();
+}

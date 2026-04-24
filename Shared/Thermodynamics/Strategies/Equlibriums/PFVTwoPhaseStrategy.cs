@@ -11,15 +11,15 @@ namespace Shared.Thermodynamics.Strategies.Equlibriums
 
         public void Execute()
         {
-            double targetVF = _facade.VaporFractionControlled.Value;
+            double targetVF = _facade.VaporFraction.Value;
             // Buscamos la T que genera ese VF a la Presión actual
             double tFound = _facade.MaterialStream.SolveFlashPVF(_facade.MaterialStream.Pressure, targetVF);
 
-            var temp = _facade.TemperatureControlled.Value!;
+            var temp = _facade.Temperature.Value!;
             temp.SetValue(tFound, TemperatureUnits.Kelvin);
 
-            _facade.TemperatureControlled.SetValueCalculated(temp, _facade.Name);
-            _facade.AddCalculatedVariable(_facade.TemperatureControlled);
+            _facade.Temperature.SetValueCalculated(temp, _facade.Name);
+         
         }
     }
 }

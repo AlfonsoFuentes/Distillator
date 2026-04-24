@@ -8,6 +8,7 @@ namespace Shared.ProcessFlowDiagram.Pipes
 {
     public class PipeVisualElement : VisualElementBase
     {
+        public override List<ToolTipLegend> GetToolTipData() => Facade.GetToolTipLegend();
         public override EquipmentType Type => EquipmentType.None;
         public bool ShowTechnicalLabel { get; set; } = true;
         public override string Prefix => "PIPE";
@@ -57,7 +58,7 @@ namespace Shared.ProcessFlowDiagram.Pipes
             {
                 if (PipeFacade == null) return "Undefined Pipe";
                 // Usamos las propiedades exactas del Facade
-                return $"{PipeFacade.Diameter}\" - {PipeFacade.FluidName} - {PipeFacade.Material}";
+                return $"";
             }
             set
             {

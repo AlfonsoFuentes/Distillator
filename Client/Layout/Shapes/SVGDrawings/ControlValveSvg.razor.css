@@ -1,0 +1,25 @@
+﻿/* =================================================================
+   ControlValveSvg.razor.css
+   ================================================================= */
+
+/* Transición suave para los cambios de estado (Gris -> Naranja -> Azul -> Verde) */
+.cv-dynamic-fill {
+    transition: fill 0.3s ease-in-out;
+}
+
+/* Transición para los bordes y trazos */
+.cv-part {
+    transition: all 0.2s ease-in-out;
+}
+
+/* Evitamos que el usuario seleccione las partes del SVG por accidente */
+.cv-svg {
+    user-select: none;
+    -webkit-user-select: none;
+    overflow: visible;
+}
+
+    /* Un ligero feedback visual al pasar el ratón (opcional, el Wrapper ya hace algo de esto) */
+    .cv-svg:hover .cv-dynamic-fill {
+        filter: brightness(0.95);
+    }

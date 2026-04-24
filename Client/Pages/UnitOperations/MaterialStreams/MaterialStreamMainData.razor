@@ -1,0 +1,220 @@
+﻿@using Shared.ProcessFlowDiagram.Streams
+
+
+
+<div class="data-grid conditions-grid-three-col">
+    
+    @* 👇 HEADERS: 3 columnas *@
+    <div class="grid-header">Property</div>
+    <div class="grid-header">Value</div>
+    <div class="grid-header unit-placeholder-header"></div>
+
+    @* 👇 FILA EDITABLE: Stream Name con validación de unicidad *@
+    <div class="grid-cell label">Stream Name</div>
+    <div class="grid-cell value @(IsStreamNameInvalid ? "invalid" : "")"
+         @onmouseenter="ShowStreamNameTooltip"
+         @onmouseleave="HideStreamNameTooltip">
+        
+        <input type="text"
+               value="@_streamNameInput"
+               placeholder="Enter stream name..."
+               class="@(IsStreamNameInvalid ? "input-error" : "")"
+               @onfocus="HandleStreamNameFocus"
+               @oninput="HandleStreamNameInput"
+               @onkeyup="HandleStreamNameKeyUp"
+               @onblur="HandleStreamNameBlur"
+               @ref="StreamNameInputRef" />
+        
+        @* 👇 Botón para generar nombre automático *@
+        <button type="button"
+                class="generate-name-btn"
+                @onclick="GenerateUniqueStreamName"
+                title="Generate unique name">
+            🔄
+        </button>
+        
+        @* 👇 Tooltip de error cuando el nombre ya existe *@
+        @if (_showStreamNameError && IsStreamNameInvalid)
+        {
+            <div class="stream-name-error-tooltip">
+                <span>⚠ Name already exists in workspace</span>
+            </div>
+        }
+    </div>
+    <div class="grid-cell unit-placeholder"></div>
+
+    @* 👇 FILAS DINÁMICAS: Componentes + placeholder *@
+    <LabeledProcessMethodRow Label="Thermodynamic Method"
+                             @bind-Variable="Facade.ThermodynamicMethod"
+                             AvailableMethods="AvailableMethods" />
+    <div class="grid-cell unit-placeholder"></div>
+
+    <LabeledSimpleVariableRow Label="Vapor Fraction"
+                              @bind-Variable="Facade.VaporFraction"
+                              MinValue="0"
+                              MaxValue="1"
+                              RangeErrorText="Vapor fraction must be between 0 and 1" />
+    <div class="grid-cell unit-placeholder"></div>
+
+    <LabeledProcessVariableRow Label="Temperature"
+                               @bind-Variable="Facade.Temperature" />
+    <div class="grid-cell unit-placeholder"></div>
+
+    <LabeledProcessVariableRow Label="Pressure"
+                               @bind-Variable="Facade.Pressure" />
+    <div class="grid-cell unit-placeholder"></div>
+
+    <LabeledProcessVariableRow Label="Molar Flow"
+                               @bind-Variable="Facade.MolarFlow" />
+    <div class="grid-cell unit-placeholder"></div>
+
+    <LabeledProcessVariableRow Label="Mass Flow"
+                               @bind-Variable="Facade.MassFlow" />
+    <div class="grid-cell unit-placeholder"></div>
+
+    <LabeledProcessVariableRow Label="Volumetric Flow"
+                               @bind-Variable="Facade.VolumetricFlow" />
+    <div class="grid-cell unit-placeholder"></div>
+
+    <LabeledReadOnlyVariableRow Label="Heat Flow"
+                                @bind-Variable="Facade.EnthalpyFlow" />
+    <div class="grid-cell unit-placeholder"></div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public StreamSimulationFacade Facade { get; set; } = default!;
+    [Parameter, EditorRequired] public List<ThermodynamicMethodFullDto> AvailableMethods { get; set; } = new();
+    
+    // 👇 Estado local para el nombre de la corriente
+    private string _streamNameInput = "";
+    // private bool _isEditingStreamName;
+    private bool _showStreamNameError;
+    private ElementReference StreamNameInputRef;
+
+    // 👇 Propiedad computada: verifica si el nombre ya existe en el workspace
+    private bool IsStreamNameInvalid =>
+        !string.IsNullOrWhiteSpace(_streamNameInput) &&
+        WM?.Elements?.Any(e =>
+            !string.Equals(e.Name, _streamNameInput, StringComparison.OrdinalIgnoreCase) == false &&
+            e.Id != Facade?.Id) == true;
+
+    protected override void OnInitialized()
+    {
+        _streamNameInput = Facade?.Name ?? "";
+    }
+
+    // 👇 Handlers para el input de Stream Name
+    private void HandleStreamNameFocus(FocusEventArgs e)
+    {
+        // _isEditingStreamName = true;
+        _showStreamNameError = false;
+        StateHasChanged();
+    }
+
+    private void HandleStreamNameInput(ChangeEventArgs e)
+    {
+        _streamNameInput = e.Value?.ToString() ?? "";
+        _showStreamNameError = false;
+        StateHasChanged();
+    }
+
+    private async Task HandleStreamNameKeyUp(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter" || e.Key == "NumpadEnter")
+        {
+            await CommitStreamName();
+        }
+        if (e.Key == "Escape")
+        {
+            _streamNameInput = Facade?.Name ?? "";
+            // _isEditingStreamName = false;
+            _showStreamNameError = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task HandleStreamNameBlur(FocusEventArgs e)
+    {
+        await CommitStreamName();
+    }
+
+    // 👇 Validar y guardar el nombre de la corriente
+    private async Task CommitStreamName()
+    {
+        var trimmedName = _streamNameInput?.Trim();
+        
+        // Si está vacío, restaurar el nombre anterior
+        if (string.IsNullOrWhiteSpace(trimmedName))
+        {
+            _streamNameInput = Facade?.Name ?? "";
+            // _isEditingStreamName = false;
+            _showStreamNameError = false;
+            StateHasChanged();
+            return;
+        }
+        
+        // Validar unicidad en el workspace
+        if (IsStreamNameInvalid)
+        {
+            _showStreamNameError = true;
+            // _isEditingStreamName = true; // Mantener en edición para corregir
+            StateHasChanged();
+            return;
+        }
+        
+        // ✅ Nombre válido: actualizar Facade
+        if (Facade != null && !string.Equals(Facade.Name, trimmedName, StringComparison.OrdinalIgnoreCase))
+        {
+            Facade.Name = trimmedName;
+            // Notificar al padre si es necesario
+            // OnDataChanged?.Invoke();
+        }
+        
+        // _isEditingStreamName = false;
+        _showStreamNameError = false;
+        StateHasChanged();
+    }
+
+    // 👇 Generar nombre único automático usando INamingService
+    private void GenerateUniqueStreamName()
+    {
+        if (NamingService == null || WM == null) return;
+        
+        var prefix = "S"; // Prefijo para streams
+        var suggestedName = NamingService.GenerateNextName(prefix);
+        
+        // Asegurar que el nombre sugerido no colisione
+        while (WM.Elements?.Any(e =>
+            string.Equals(e.Name, suggestedName, StringComparison.OrdinalIgnoreCase)) == true)
+        {
+            suggestedName = NamingService.GenerateNextName(prefix);
+        }
+        
+        _streamNameInput = suggestedName;
+        _showStreamNameError = false;
+        
+        // Auto-commit si es válido
+        if (!IsStreamNameInvalid && Facade != null)
+        {
+            Facade.Name = suggestedName;
+        }
+        
+        StateHasChanged();
+    }
+
+    // 👇 Handlers para tooltip de error
+    private void ShowStreamNameTooltip()
+    {
+        if (IsStreamNameInvalid)
+        {
+            _showStreamNameError = true;
+            StateHasChanged();
+        }
+    }
+
+    private void HideStreamNameTooltip()
+    {
+        _showStreamNameError = false;
+        StateHasChanged();
+    }
+}

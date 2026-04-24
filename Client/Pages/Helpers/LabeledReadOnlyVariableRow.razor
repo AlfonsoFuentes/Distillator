@@ -1,0 +1,22 @@
+﻿@typeparam T where T : Amount
+
+@* 👇 Estructura completa: Label (Col 1) + Core (Col 2) *@
+<div class="grid-cell label @(GetCssClass())">@Label</div>
+<NewReadOnlyVariableRow T="T"
+                        Variable="Variable"
+                        VariableChanged="VariableChanged" />
+
+@code {
+    [Parameter] public string Label { get; set; } = string.Empty;
+    [Parameter] public ControlledAmountVariable<T> Variable { get; set; } = default!;
+    [Parameter] public EventCallback<ControlledAmountVariable<T>> VariableChanged { get; set; } = default!;
+
+    // 👇 Coordina estado visual para que Label y Value tengan la misma clase CSS
+    private string GetCssClass() => Variable.Source switch
+    {
+        MethodSource.None => "source-none",
+        MethodSource.UserInterface => "source-ui",
+        MethodSource.Other => "source-other",
+        _ => "source-none"
+    };
+}

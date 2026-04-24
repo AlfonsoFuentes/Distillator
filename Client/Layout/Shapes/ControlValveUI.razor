@@ -1,4 +1,5 @@
-﻿
+﻿@using Client.Layout.Shapes.SVGDrawings
+@using Client.Pages.UnitOperations.Valves
 
 @inherits EquipmentUIBase<ControlValveVisualElement>
 
@@ -9,33 +10,34 @@
                         OnDragStart="OnDragStart"
                         OnOpenDetails="OpenPropertiesDialogAsync">
 
-    <svg class="cv-svg" width="@Element.Width" height="@Element.Height" viewBox="0 0 60 80">
-        @* 1. CUERPO DE LA VÁLVULA (Corbatín) *@
-        <g class="cv-part">
-            @* Triángulo Izquierdo *@
-            <path d="M 10, 40 L 30, 50 L 10, 60 Z" class="cv-dynamic-fill" fill="@(Element.Facade?.StatusColor ?? "#CBD5E0")" />
-            @* Triángulo Derecho *@
-            <path d="M 50, 40 L 30, 50 L 50, 60 Z" class="cv-dynamic-fill" fill="@(Element.Facade?.StatusColor ?? "#CBD5E0")" />
-        </g>
-
-        @* 2. ACTUADOR (Línea y Semicírculo) *@
-        <g class="cv-part" fill="none">
-            <line x1="30" y1="50" x2="30" y2="25" />
-            @* Semicírculo (Actuador de diafragma) *@
-            <path d="M 15, 25 Q 30, 5 45, 25 Z" stroke="#334155" stroke-width="2" />
-        </g>
-
-        @* 3. BRIDAS / BOQUILLAS *@
-        <rect x="0" y="45" width="10" height="10" class="cv-nozzle" />  @* Inlet *@
-        <rect x="50" y="45" width="10" height="10" class="cv-nozzle" /> @* Outlet *@
-    </svg>
+    <ControlValveSvg Width="@Element.Width" 
+                     Height="@Element.Height" 
+                     StatusColor="@(Element.Facade?.StatusColor ?? "#CBD5E0")" 
+                     CssClass="cv-svg" />
 
 </CanvasEquipmentWrapper>
 
 @code {
     protected override async Task OpenPropertiesDialogAsync()
     {
-        Console.WriteLine($"[PFD-PRO] Opening Control Valve: {Element.Facade?.Name}");
-        await Task.CompletedTask;
+        var parameters = new DialogParameters { ["Equipment"] = Element };
+        
+        var options = new DialogOptions
+        {
+            MaxWidth = MaxWidth.False,
+            FullWidth = false,
+            NoHeader = true,
+            CloseOnEscapeKey = true,
+            BackdropClick = true
+        };
+
+        // 🚩 LLAMAMOS AL NUEVO DIÁLOGO
+        var dialog = await DialogService.ShowAsync<ControlValveDialog>("", parameters, options);
+        var result = await dialog.Result;
+
+        if (result != null && !result.Canceled)
+        {
+            StateHasChanged();
+        }
     }
 }

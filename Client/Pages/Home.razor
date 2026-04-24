@@ -1,7 +1,7 @@
 ﻿@page "/"
 @using Client.Layout.Diagrams
 @implements IDisposable
-@inject WorkspaceManager WM
+@attribute [Authorize]
 
 <PageTitle>Distillator System - PFD Workspace</PageTitle>
 
@@ -9,7 +9,9 @@
 <div class="area-tabs-container">
     @foreach (var area in WM.Areas)
     {
-        <div class="area-tab @(WM.ActiveArea.Id == area.Id ? "active" : "") @(area.Id == _draggingAreaId ? "dragging" : "")"
+        // 🚩 CLAVE: El @key es vital para que Blazor no recicle HTML y mezcle estados al crear o borrar áreas
+        <div @key="area.Id"
+             class="area-tab @(WM.ActiveArea.Id == area.Id ? "active" : "") @(area.Id == _draggingAreaId ? "dragging" : "")"
              draggable="true"
              @onclick="() => HandleTabClick(area)"
              @ondragstart="() => HandleDragStart(area)"
@@ -25,12 +27,12 @@
                        @bind:event="oninput"
                        @onkeyup="(e) => HandleRenameKeyUp(e, area)"
                        @onblur="() => FinishRename(area, true)"
+                       @onclick:stopPropagation="true"
                        autofocus />
             }
             @* MODO LECTURA *@
             else
             {
-                @* El título ya no necesita @ondblclick, el clic del padre se encarga *@
                 <span class="tab-title">@area.Name</span>
                 
                 @if (WM.Areas.Count > 1)
@@ -53,8 +55,8 @@
 <PfdCanvas />
 
 @code {
-    private string? _editingAreaId;
-    private string? _draggingAreaId;
+    private Guid? _editingAreaId;
+    private Guid? _draggingAreaId;
     private DiagramArea? _draggedArea;
     private string _editingName = "";
 
@@ -71,10 +73,9 @@
     // =========================================================
     // LÓGICA DE PESTAÑAS Y EDICIÓN
     // =========================================================
-
     private void HandleTabClick(DiagramArea area)
     {
-        // 🚩 Si la pestaña ya es la activa y hacemos clic, la editamos.
+        // Si la pestaña ya es la activa y hacemos clic, la editamos.
         // Si no es la activa, simplemente cambiamos a ella.
         if (WM.ActiveArea.Id == area.Id && _editingAreaId != area.Id)
         {
@@ -82,6 +83,8 @@
         }
         else if (WM.ActiveArea.Id != area.Id)
         {
+            // Solo cancelamos la edición si estamos cambiando de área
+            _editingAreaId = null;
             WM.SwitchToArea(area);
         }
     }
@@ -108,7 +111,7 @@
         }
         
         _editingAreaId = null;
-        StateHasChanged(); // Forzamos actualización visual al terminar
+        StateHasChanged();
     }
 
     // =========================================================
@@ -133,7 +136,18 @@
 
     private void CreateNewArea()
     {
+        // Cancelamos cualquier edición activa al crear una nueva área
+        _editingAreaId = null;
+        
+        // Hacemos el nombre seguro para evitar repeticiones tontas "Area 2", "Area 2"
         int num = WM.Areas.Count + 1;
-        WM.CreateArea($"Area {num}");
+        string newName = $"Area {num}";
+        while (WM.Areas.Any(a => a.Name == newName))
+        {
+            num++;
+            newName = $"Area {num}";
+        }
+
+        WM.CreateArea(newName);
     }
 }

@@ -82,60 +82,70 @@ public static class ThermodynamicMethodSeeder
         {
             var firstRow = group.First();
 
-            var method = new ThermodynamicMethod
+            try
             {
-                Name = firstRow[0],
-                Description = firstRow[1],
-                VaporModel = Enum.Parse<VaporPhaseModel>(firstRow[2]),
-                LiquidModel = Enum.Parse<LiquidPhaseModel>(firstRow[3]),
-                MethodComponents = new List<MethodComponent>(),
-                BinaryParameters = new List<BinaryInteractionParameter>()
-            };
-
-            // Extraer e indexar los componentes únicos de este método
-            var componentNames = group.SelectMany(r => new[] { r[4], r[5] })
-                                      .Where(n => !string.IsNullOrWhiteSpace(n))
-                                      .Distinct()
-                                      .ToList();
-
-            for (int i = 0; i < componentNames.Count; i++)
-            {
-                if (componentsDict.TryGetValue(componentNames[i], out var comp))
+                var liquidmodel = Enum.Parse<LiquidPhaseModel>(firstRow[3]);
+                var method = new ThermodynamicMethod
                 {
-                    method.MethodComponents.Add(new MethodComponent
-                    {
-                        Component = comp,
-                        MatrixIndex = i
-                    });
-                }
-            }
+                    Name = firstRow[0],
+                    Description = firstRow[1],
+                    VaporModel = Enum.Parse<VaporPhaseModel>(firstRow[2]),
+                    LiquidModel = Enum.Parse<LiquidPhaseModel>(firstRow[3]),
+                    MethodComponents = new List<MethodComponent>(),
+                    BinaryParameters = new List<BinaryInteractionParameter>()
+                };
+                var componentNames = group.SelectMany(r => new[] { r[4], r[5] })
+                                     .Where(n => !string.IsNullOrWhiteSpace(n))
+                                     .Distinct()
+                                     .ToList();
 
-            // Mapear los parámetros binarios
-            foreach (var r in group)
-            {
-                var compI_Name = r[4];
-                var compJ_Name = r[5];
-                var paramTypeStr = r[6];
-                var valueStr = r[7];
-
-                if (!string.IsNullOrWhiteSpace(compJ_Name) && !string.IsNullOrWhiteSpace(paramTypeStr))
+                for (int i = 0; i < componentNames.Count; i++)
                 {
-                    if (componentsDict.TryGetValue(compI_Name, out var compI) &&
-                        componentsDict.TryGetValue(compJ_Name, out var compJ) &&
-                        Enum.TryParse<BinaryParameterType>(paramTypeStr, out var paramType))
+                    if (componentsDict.TryGetValue(componentNames[i], out var comp))
                     {
-                        method.BinaryParameters.Add(new BinaryInteractionParameter
+                        method.MethodComponents.Add(new MethodComponent
                         {
-                            ComponentI = compI,
-                            ComponentJ = compJ,
-                            ParameterType = paramType,
-                            Value = double.TryParse(valueStr, NumberStyles.Any, ci, out var val) ? val : 0
+                            Component = comp,
+                            MatrixIndex = i
                         });
                     }
                 }
+
+                // Mapear los parámetros binarios
+                foreach (var r in group)
+                {
+                    var compI_Name = r[4];
+                    var compJ_Name = r[5];
+                    var paramTypeStr = r[6];
+                    var valueStr = r[7];
+
+                    if (!string.IsNullOrWhiteSpace(compJ_Name) && !string.IsNullOrWhiteSpace(paramTypeStr))
+                    {
+                        if (componentsDict.TryGetValue(compI_Name, out var compI) &&
+                            componentsDict.TryGetValue(compJ_Name, out var compJ) &&
+                            Enum.TryParse<BinaryParameterType>(paramTypeStr, out var paramType))
+                        {
+                            method.BinaryParameters.Add(new BinaryInteractionParameter
+                            {
+                                ComponentI = compI,
+                                ComponentJ = compJ,
+                                ParameterType = paramType,
+                                Value = double.TryParse(valueStr, NumberStyles.Any, ci, out var val) ? val : 0
+                            });
+                        }
+                    }
+                }
+
+                metodosToInsert.Add(method);
+            }
+            catch (Exception ex)
+            {
+                string message = ex.Message;
             }
 
-            metodosToInsert.Add(method);
+
+            // Extraer e indexar los componentes únicos de este método
+           
         }
 
         await context.ThermodynamicMethods.AddRangeAsync(metodosToInsert);

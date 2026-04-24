@@ -38,8 +38,10 @@
 @using Shared.ProcessFlowDiagram.ControlValves
 @using Shared.ProcessFlowDiagram.Vessels
 @using Client.Services.Helpers
+@using Client.Pages.Helpers
+@using Pages.UnitOperations.Pumps
 
-
+@inject INamingService NamingService
 @inject DragStateService DragState
 
 @inject IHttpService HttpServices
@@ -49,4 +51,6 @@
 @inject ISnackBarService SnackbarService
 @inject ExcelExportService ExcelService
 @inject ChemicalComponentReportService ChemicalExcelService
+@inject IEquipmentFactory Factory
+@inject IJSRuntime JS
 @inject WorkspaceManager WM

@@ -7,6 +7,7 @@ namespace Shared.ProcessFlowDiagram.HeatExchangers
 {
     public class ReboilerVisualElement : VisualElementBase
     {
+         public override List<ToolTipLegend> GetToolTipData() => Facade.GetToolTipLegend();
         public override EquipmentType Type => EquipmentType.Reboiler;
         public override string Prefix => "E"; // Sigue siendo un intercambiador
 

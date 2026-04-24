@@ -8,6 +8,7 @@ namespace Shared.ProcessFlowDiagram.Vessels
 
     public class VesselVisualElement : VisualElementBase
     {
+        public override List<ToolTipLegend> GetToolTipData() => Facade.GetToolTipLegend();
         public override EquipmentType Type => EquipmentType.Tank;
         public override string Prefix => "V";
 

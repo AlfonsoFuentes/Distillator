@@ -1,10 +1,7 @@
-﻿namespace Shared.Thermodynamics.ControlledVariables
+﻿using Shared.UnitOperations.Basiss;
+
+namespace Shared.Thermodynamics.ControlledVariables
 {
-    /// <summary>
-    /// Variable controlada que mantiene una unidad preferida para presentación en UI.
-    /// Los cálculos internos pueden usar cualquier unidad; la UI siempre muestra en la unidad que eligió el usuario.
-    /// </summary>
-    /// <typeparam name="T">Tipo derivado de Amount (Temperature, Pressure, Viscosity, etc.)</typeparam>
     public class ControlledVariable<T> : IControlledVariable
     {
         // ─────────────────────────────────────────────────────────
@@ -23,9 +20,20 @@
         // ─────────────────────────────────────────────────────────
 
         public T? Value { get; protected set; }
-        public MethodSource Source { get;  set; } = MethodSource.None;
-        public string SourceId { get;  set; } = string.Empty;
-        public bool IsDefined => Value != null && Source != MethodSource.None;
+        public MethodSource Source { get; set; } = MethodSource.None;
+        public string SourceId { get; set; } = string.Empty;
+        public bool IsDefined =>  Source != MethodSource.None;
+
+       
+        public Action<ValueChangedEventArgs<T>>? StateChanged;
+
+        /// <summary>
+        /// Se dispara EXCLUSIVAMENTE para ordenar al motor local (ej. EquilibriumCalculator) que re-evalúe.
+        /// </summary>
+        public  Action? LocalCalculationRequested;
+
+        public  Action<ControlledVariable<T>>? AddCalculatedVariable;
+        public Action? OnExecuteSolver { get; set; }
 
         // ─────────────────────────────────────────────────────────
         // 🔹 MÉTODOS
@@ -34,15 +42,23 @@
         public virtual void SetValue(T newValue, MethodSource source, string sourceId = "")
         {
             var wasDefined = IsDefined;
-            var oldSource = Source;
 
             Value = newValue;
             Source = source;
             SourceId = sourceId ?? string.Empty;
 
-            ValueChanged?.Invoke(new ValueChangedEventArgs<T>(Value, Source, SourceId));
+            // 1. Avisamos al exterior (UI / Facade) del cambio
+            StateChanged?.Invoke(new ValueChangedEventArgs<T>(Value, Source, SourceId));
 
-            ConstraintsChanged?.Invoke();
+            // 2. Exigimos que la corriente recalcule su termodinámica local
+            LocalCalculationRequested?.Invoke();
+            if (source != MethodSource.Other)
+            {
+                if(OnExecuteSolver!=null)
+                {
+                    OnExecuteSolver.Invoke();
+                }
+            }
         }
 
         public virtual void ClearValue()
@@ -50,34 +66,42 @@
             var oldValue = Value;
             var wasDefined = IsDefined;
 
-            Value = default;
-            Source = MethodSource.None;
+         
+            Source = MethodSource.None; // El estado interno queda limpio
             SourceId = string.Empty;
 
-            ValueChanged?.Invoke(new ValueChangedEventArgs<T>(oldValue, MethodSource.None, string.Empty));
-
-            if (wasDefined)
-            {
-                ConstraintsChanged?.Invoke();
-            }
+            // 👇 AQUÍ ESTÁ LA MAGIA: Avisamos que el valor cambió (a nulo) y QUIÉN ordenó limpiarlo
+            SetValue(Value!, Source, SourceId);
         }
 
-        // ─────────────────────────────────────────────────────────
-        // 🔹 EVENTOS
-        // ─────────────────────────────────────────────────────────
-
-        public event Action<ValueChangedEventArgs<T>>? ValueChanged;
-        public event Action? ConstraintsChanged;
-
-        // ✅ DEJAR ASÍ:
+        // ✅ DEJAMOS ASÍ: Silenciado para no causar recálculos locales infinitos.
         public void SetValueCalculated(T? newValue, string sourceId = "System")
         {
             Value = newValue;
             Source = MethodSource.Other;
             SourceId = sourceId;
-            // Sin eventos → perfecto ✅
+
+            // Opcional: Solo repintamos UI, NO disparamos LocalCalculationRequested
+            StateChanged?.Invoke(new ValueChangedEventArgs<T>(Value, Source, SourceId));
+
+            AddCalculatedVariable?.Invoke(this);
+        }
+        // Lo agregas en IControlledVariable y en ControlledVariable<T>
+        public void RevertCalculatedValue()
+        {
+            // Si lo puso el humano, la máquina no lo toca
+            if (Source == MethodSource.UserInterface) return;
+
+            var wasDefined = IsDefined;
+
+            // No borramos el Value por seguridad de la UI de Blazor, como bien notaste antes.
+            Source = MethodSource.None;
+            SourceId = string.Empty;
+
+           
         }
     }
+    
 }
 
 

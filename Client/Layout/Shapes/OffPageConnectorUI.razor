@@ -1,0 +1,53 @@
+﻿@using Client.Layout.Shapes.SVGDrawings
+@inherits EquipmentUIBase<OffPageConnectorElement>
+
+<CanvasEquipmentWrapper Element="Element"
+                        IsSelected="IsSelected"
+                        IsDragging="IsDragging"
+                        OnSelect="HandleSelectionAsync"
+                        OnDragStart="OnDragStart"
+                        OnOpenDetails="OpenPropertiesDialogAsync">
+
+    <OffPageConnectorSvg Width="@Element.Width"
+                         Height="@Element.Height"
+                         IsOutlet="@Element.IsOutlet"
+                         TargetAreaName="@GetTargetAreaName()"
+                         CssClass="opc-svg" />
+
+</CanvasEquipmentWrapper>
+
+@code {
+    private string GetTargetAreaName()
+    {
+        if (Element.TargetAreaId.HasValue)
+        {
+            var area = WM.Areas.FirstOrDefault(a => a.Id == Element.TargetAreaId.Value);
+            return area?.Name ?? "?";
+        }
+        return "?";
+    }
+
+    // 🚩 EL SALTO DIRECTO Y CENTRADO
+    protected override async Task OpenPropertiesDialogAsync()
+    {
+        if (Element.TargetAreaId.HasValue && Element.TargetConnectorId.HasValue)
+        {
+            var targetArea = WM.Areas.FirstOrDefault(a => a.Id == Element.TargetAreaId.Value);
+            
+            if (targetArea != null)
+            {
+                WM.SwitchToArea(targetArea);
+                await Task.Yield();
+
+                var twinOpc = targetArea.Elements.FirstOrDefault(e => e.Id == Element.TargetConnectorId.Value);
+
+                if (twinOpc != null)
+                {
+                    WM.PanX = -(twinOpc.X * WM.Zoom) + 300;
+                    WM.PanY = -(twinOpc.Y * WM.Zoom) + 300;
+                    WM.SelectElement(twinOpc);
+                }
+            }
+        }
+    }
+}

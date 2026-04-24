@@ -7,6 +7,7 @@ namespace Shared.ProcessFlowDiagram.Helpers
 {
     public class MixerVisualElement : VisualElementBase
     {
+         public override List<ToolTipLegend> GetToolTipData() => Facade.GetToolTipLegend();
         public override EquipmentType Type => EquipmentType.Mixer;
         public override string Prefix => "MIX"; // Mixer
 

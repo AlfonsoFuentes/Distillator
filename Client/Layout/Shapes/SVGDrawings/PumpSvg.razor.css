@@ -1,0 +1,27 @@
+﻿/* =================================================
+   PumpSvg.razor.css
+   Estilos visuales del dibujo de la bomba
+   ================================================= */
+
+svg {
+    /* Asegura que el SVG no deje espacios raros debajo y se adapte a su contenedor */
+    display: block;
+    max-width: 100%;
+    height: auto;
+    /* Un sombreado sutil para que el equipo "flote" un poco sobre el lienzo/diálogo */
+    filter: drop-shadow(0px 4px 6px rgba(0, 0, 0, 0.08));
+}
+
+/* Transiciones suaves para cuando el equipo cambie de StatusColor (Ej: Verde a Rojo) */
+.pump-part {
+    transition: fill 0.3s ease-in-out, stroke 0.3s ease-in-out;
+}
+
+.pump-dynamic-fill {
+    transition: fill 0.3s ease-in-out;
+}
+
+/* Efecto hover opcional: si quieres que el equipo brille un poco al pasar el mouse en el lienzo */
+svg:hover .pump-dynamic-fill {
+    filter: brightness(1.05);
+}

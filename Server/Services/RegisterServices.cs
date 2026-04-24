@@ -94,9 +94,18 @@ namespace Server.Services
         internal static IServiceCollection AddDatabase(this IServiceCollection services, IConfiguration configuration)
         {
             var connectionString = configuration.GetConnectionString("DefaultConnection");
-
             services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseSqlServer(connectionString));
+                    options.UseSqlServer(
+                        connectionString,
+                        sqlServerOptionsAction: sqlOptions =>
+                        {
+                            sqlOptions.EnableRetryOnFailure(
+                                maxRetryCount: 5,
+                                maxRetryDelay: TimeSpan.FromSeconds(30),
+                                errorNumbersToAdd: null);
+                        }));
+
+    
 
             // CAMBIO 1: Usar AddIdentity en lugar de AddIdentityCore
             services.AddIdentity<ApplicationUser, IdentityRole>(options => {

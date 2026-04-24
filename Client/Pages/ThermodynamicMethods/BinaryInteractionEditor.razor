@@ -59,13 +59,13 @@
         <MudTable Items="GetPairs()" Dense="true" Bordered="true" Elevation="0" Striped="true">
             <HeaderContent>
                 <MudTh>Pair (i - j)</MudTh>
-                @if (Model.LiquidModel == LiquidPhaseModel.NRTL_ASPEN)
+                @if (Model.LiquidModel == LiquidPhaseModel.NRTLAspen)
                 {
                     <MudTh>Aij</MudTh>
                     <MudTh>Bij</MudTh>
                     <MudTh>Cij (Alpha)</MudTh>
                 }
-                else if (Model.LiquidModel == LiquidPhaseModel.WilsonASPEN)
+                else if (Model.LiquidModel == LiquidPhaseModel.WilsonAspen)
                 {
                     <MudTh>Aij</MudTh>
                     <MudTh>Bij</MudTh>
@@ -168,10 +168,10 @@
 
     private List<BinaryParameterType> GetRequiredParameters()
     {
-        if (Model.LiquidModel == LiquidPhaseModel.NRTL_ASPEN)
+        if (Model.LiquidModel == LiquidPhaseModel.NRTLAspen)
             return new() { BinaryParameterType.NRTL_A, BinaryParameterType.NRTL_B, BinaryParameterType.NRTL_C };
         
-        if (Model.LiquidModel == LiquidPhaseModel.WilsonASPEN)
+        if (Model.LiquidModel == LiquidPhaseModel.WilsonAspen)
             return new() { BinaryParameterType.Wilson_A, BinaryParameterType.Wilson_B };
             
         return new();

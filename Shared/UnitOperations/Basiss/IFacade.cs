@@ -1,10 +1,11 @@
-﻿using System;
+﻿using Shared.ProcessFlowDiagram;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Shared.UnitOperations
+namespace Shared.UnitOperations.Basiss
 {
-    public interface IEquipmentFacade
+    public interface IFacade
     {
         Guid Id { get; set; }
         string Name { get; set; }
@@ -13,12 +14,15 @@ namespace Shared.UnitOperations
         string StatusColor { get; }
 
         // Diccionario mágico para el Tooltip genérico
-        Dictionary<string, string> GetQuickViewData();
+        List<ToolTipLegend> GetToolTipLegend();
 
-        void AttachConnection(string portName, IEquipmentFacade connectedFacade);
+        void AttachConnection(string portName, IFacade connectedFacade);
 
         // Desconecta lo que sea que esté en ese puerto
         void DetachConnection(string portName);
-        Action? OnTopologyChanged { get; set; }
+        Action<IFacade>? OnExecuteSolver { get; set; }
+        void Calculate();
+        void ResetCalculatedVariable();
     }
+   
 }

@@ -1,0 +1,22 @@
+﻿<svg width="@Width" height="@Height" viewBox="0 0 @Width @Height" class="@CssClass">
+    <g class="spl-part">
+        @* Triángulo principal (Apunta de izquierda a derecha) *@
+        <path d="M 10, @(Height / 2)
+        L @(Width - 10), 10
+        L @(Width - 10), @(Height - 10) Z"
+              fill="@StatusColor"
+              stroke="#334155" stroke-width="2" stroke-linejoin="round" />
+        
+        @* Línea decorativa base *@
+        <line x1="@(Width - 14)" y1="15"
+              x2="@(Width - 14)" y2="@(Height - 15)"
+              stroke="#334155" stroke-width="1.5" opacity="0.4" />
+    </g>
+</svg>
+
+@code {
+    [Parameter] public double Width { get; set; } = 150;
+    [Parameter] public double Height { get; set; } = 150;
+    [Parameter] public string StatusColor { get; set; } = "#CBD5E0";
+    [Parameter] public string CssClass { get; set; } = string.Empty;
+}

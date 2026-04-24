@@ -4,6 +4,7 @@ namespace Shared.ProcessFlowDiagram.Streams
 {
     public class StreamVisualElement : VisualElementBase
     {
+        public override List<ToolTipLegend> GetToolTipData() => Facade.GetToolTipLegend();
         public override EquipmentType Type => EquipmentType.MaterialStream;
         public override string Prefix => "S";
 

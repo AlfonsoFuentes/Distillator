@@ -1,0 +1,187 @@
+﻿@using Shared.ProcessFlowDiagram
+
+
+<div class="grid-cell value @(IsNameInvalid ? "invalid" : "")"
+     @onmouseenter="ShowNameTooltip"
+     @onmouseleave="HideNameTooltip">
+    
+    <input type="text"
+           value="@_nameInput"
+           placeholder="Enter name..."
+           class="@(IsNameInvalid ? "input-error" : "")"
+           @onfocus="HandleNameFocus"
+           @oninput="HandleNameInput"
+           @onkeyup="HandleNameKeyUp"
+           @onblur="HandleNameBlur"
+           @ref="NameInputRef" />
+    
+    @* 👇 Botón para generar nombre automático *@
+    <button type="button"
+            class="generate-name-btn"
+            @onclick="GenerateUniqueName"
+            title="Generate unique name"
+            disabled="@IsReadOnly">
+        🔄
+    </button>
+    
+    @* 👇 Tooltip de error cuando el nombre ya existe *@
+    @if (_showNameError && IsNameInvalid)
+    {
+        <div class="name-error-tooltip">
+            <span>⚠ Name already exists in workspace</span>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public StreamSimulationFacade Facade { get; set; } = default!;
+    [Parameter] public string Prefix { get; set; } = "E";
+    [Parameter] public bool IsReadOnly { get; set; } = false;
+    [Parameter] public EventCallback<string> OnNameChanged { get; set; }
+
+    private string _nameInput = "";
+    private bool _showNameError;
+    private ElementReference NameInputRef;
+
+    // 👇 Verifica si el nombre ya existe en el workspace (excluyendo el elemento actual)
+    private bool IsNameInvalid =>
+        !string.IsNullOrWhiteSpace(_nameInput) &&
+        WM?.Elements?.Any(e =>
+            !string.Equals(e.Name, _nameInput, StringComparison.OrdinalIgnoreCase) == false &&
+            e.Id != Facade?.Id) == true;
+
+    protected override void OnInitialized()
+    {
+        _nameInput = Facade?.Name ?? "";
+    }
+
+    protected override void OnParametersSet()
+    {
+        // Si el nombre del elemento cambia externamente, actualizar el input
+        if (Facade?.Name != _nameInput)
+        {
+            _nameInput = Facade?.Name ?? "";
+        }
+    }
+
+    // 👇 Handlers para el input de nombre
+    private void HandleNameFocus(FocusEventArgs e)
+    {
+        if (IsReadOnly) return;
+        _showNameError = false;
+        StateHasChanged();
+    }
+
+    private void HandleNameInput(ChangeEventArgs e)
+    {
+        if (IsReadOnly) return;
+        _nameInput = e.Value?.ToString() ?? "";
+        _showNameError = false;
+        StateHasChanged();
+    }
+
+    private async Task HandleNameKeyUp(KeyboardEventArgs e)
+    {
+        if (IsReadOnly) return;
+        if (e.Key == "Enter" || e.Key == "NumpadEnter")
+        {
+            await CommitName();
+        }
+        if (e.Key == "Escape")
+        {
+            _nameInput = Facade?.Name ?? "";
+            _showNameError = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task HandleNameBlur(FocusEventArgs e)
+    {
+        if (IsReadOnly) return;
+        await CommitName();
+    }
+
+    // 👇 Validar y guardar el nombre
+    private async Task CommitName()
+    {
+        if (IsReadOnly) return;
+        
+        var trimmedName = _nameInput?.Trim();
+        
+        // Si está vacío, restaurar el nombre anterior
+        if (string.IsNullOrWhiteSpace(trimmedName))
+        {
+            _nameInput = Facade?.Name ?? "";
+            _showNameError = false;
+            StateHasChanged();
+            return;
+        }
+        
+        // Validar unicidad en el workspace
+        if (IsNameInvalid)
+        {
+            _showNameError = true;
+            StateHasChanged();
+            return;
+        }
+        
+        // ✅ Nombre válido: actualizar elemento y notificar
+        if (Facade != null && !string.Equals(Facade.Name, trimmedName, StringComparison.OrdinalIgnoreCase))
+        {
+            Facade.Name = trimmedName;
+            if (OnNameChanged.HasDelegate)
+            {
+                await OnNameChanged.InvokeAsync(trimmedName);
+            }
+        }
+        
+        _showNameError = false;
+        StateHasChanged();
+    }
+
+    // 👇 Generar nombre único automático
+    private void GenerateUniqueName()
+    {
+        if (IsReadOnly || NamingService == null || WM == null) return;
+        
+        var suggestedName = NamingService.GenerateNextName(Prefix);
+        
+        // Asegurar que el nombre sugerido no colisione
+        while (WM.Elements?.Any(e =>
+            string.Equals(e.Name, suggestedName, StringComparison.OrdinalIgnoreCase)) == true)
+        {
+            suggestedName = NamingService.GenerateNextName(Prefix);
+        }
+        
+        _nameInput = suggestedName;
+        _showNameError = false;
+        
+        // Auto-commit si es válido
+        if (!IsNameInvalid && Facade != null)
+        {
+            Facade.Name = suggestedName;
+            if (OnNameChanged.HasDelegate)
+            {
+                OnNameChanged.InvokeAsync(suggestedName);
+            }
+        }
+        
+        StateHasChanged();
+    }
+
+    // 👇 Handlers para tooltip de error
+    private void ShowNameTooltip()
+    {
+        if (IsNameInvalid)
+        {
+            _showNameError = true;
+            StateHasChanged();
+        }
+    }
+
+    private void HideNameTooltip()
+    {
+        _showNameError = false;
+        StateHasChanged();
+    }
+}

@@ -1,0 +1,185 @@
+﻿/* =================================================
+   CONTENEDOR PRINCIPAL: Estilo "Floating Legend"
+   ================================================= */
+.port-connector-container {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: 220px;
+    background: #ffffff;
+    border: 1px solid #b0bec5;
+    border-radius: 4px;
+    padding: 10px 6px 6px 6px;
+    margin-top: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+    transition: border-color 0.2s;
+}
+
+    .port-connector-container:focus-within {
+        border-color: #4674a6;
+    }
+
+.material-theme::before {
+    content: '';
+    position: absolute;
+    left: -1px;
+    top: -1px;
+    bottom: -1px;
+    width: 4px;
+    background-color: #2563eb;
+    border-radius: 4px 0 0 4px;
+}
+
+/* =================================================
+   CABECERA
+   ================================================= */
+.connector-header {
+    position: absolute;
+    top: -9px;
+    left: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: #ffffff;
+    padding: 0 4px;
+    z-index: 2;
+}
+
+.port-label {
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    color: #455a64;
+    letter-spacing: 0.5px;
+}
+
+.status-badge {
+    font-size: 9px;
+    padding: 1px 6px;
+    border-radius: 12px;
+    background: #10b981;
+    color: white;
+    text-transform: uppercase;
+    font-weight: bold;
+}
+
+/* =================================================
+   GRUPO DE ENTRADA Y BOTONES DE ACCIÓN
+   ================================================= */
+.input-group {
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: #fdfdfd;
+    border: 1px solid #e0e0e0;
+    border-radius: 3px;
+    overflow: visible;
+}
+
+.port-input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    font-size: 13px;
+    padding: 5px 8px;
+    outline: none;
+    color: #333;
+    font-family: 'Consolas', monospace;
+    min-width: 0;
+}
+
+    .port-input::-webkit-calendar-picker-indicator {
+        display: none !important;
+    }
+
+.btn-tooltip-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+/* Estilo base para todos los botones de acción */
+.action-btn {
+    background: none;
+    border: none;
+    border-left: 1px solid #e0e0e0;
+    padding: 2px 8px;
+    height: 24px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+/* Variaciones de color según el estado (Semántica Visual) */
+/* 1. Botón + (Autogenerar) */
+.generate-btn {
+    color: #4674a6;
+}
+
+    .generate-btn:hover {
+        background: #f1f5f9;
+        color: #2563eb;
+    }
+
+/* 2. Botón ✓ (Confirmar) */
+.confirm-btn {
+    color: #10b981; /* Verde esmeralda */
+}
+
+    .confirm-btn:hover {
+        background: #ecfdf5;
+        color: #059669;
+    }
+
+/* 3. Botón X (Desconectar) */
+.disconnect-btn {
+    color: #ef4444; /* Rojo alerta */
+}
+
+    .disconnect-btn:hover {
+        background: #fef2f2;
+        color: #dc2626;
+    }
+
+/* =================================================
+   TOOLTIP PERSONALIZADO
+   ================================================= */
+.port-tooltip-fixed {
+    position: absolute;
+    left: calc(100% + 12px);
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: #F8FAFC;
+    color: #4A5568;
+    font-family: 'Consolas', monospace;
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 3px 6px;
+    border: 1px solid #E2E8F0;
+    border-radius: 4px;
+    white-space: nowrap;
+    pointer-events: none;
+    box-shadow: 4px 4px 12px rgba(0,0,0,0.08);
+    z-index: 10000 !important;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.15s ease-in-out;
+}
+
+    .port-tooltip-fixed::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        right: 100%;
+        transform: translateY(-50%);
+        border-width: 5px;
+        border-style: solid;
+        border-color: transparent #E2E8F0 transparent transparent;
+    }
+
+.btn-tooltip-container:hover .port-tooltip-fixed {
+    opacity: 1;
+    visibility: visible;
+}

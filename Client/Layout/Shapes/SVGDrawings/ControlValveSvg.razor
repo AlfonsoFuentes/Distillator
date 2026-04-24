@@ -1,0 +1,30 @@
+﻿@* ControlValveSvg.razor *@
+<svg width="@Width" height="@Height" viewBox="0 0 60 80" class="@CssClass">
+    
+    @* 1. CUERPO DE LA VÁLVULA (Corbatín) *@
+    <g class="cv-part" stroke="#334155" stroke-width="1.5">
+        @* Triángulo Izquierdo *@
+        <path d="M 10, 40 L 30, 50 L 10, 60 Z" class="cv-dynamic-fill" fill="@StatusColor" />
+        @* Triángulo Derecho *@
+        <path d="M 50, 40 L 30, 50 L 50, 60 Z" class="cv-dynamic-fill" fill="@StatusColor" />
+    </g>
+
+    @* 2. ACTUADOR (Línea y Semicírculo) *@
+    <g class="cv-part" stroke="#334155" stroke-width="1.5">
+        <line x1="30" y1="50" x2="30" y2="25" fill="none" />
+        @* Semicírculo (Actuador de diafragma) *@
+        <path d="M 15, 25 Q 30, 5 45, 25 Z" fill="#F8FAFC" />
+    </g>
+
+    @* 3. BRIDAS / BOQUILLAS *@
+    <rect x="0" y="45" width="10" height="10" class="cv-nozzle cv-dynamic-fill" fill="@StatusColor" stroke="#334155" stroke-width="1.5" />  @* Inlet *@
+    <rect x="50" y="45" width="10" height="10" class="cv-nozzle cv-dynamic-fill" fill="@StatusColor" stroke="#334155" stroke-width="1.5" /> @* Outlet *@
+
+</svg>
+
+@code {
+    [Parameter] public double Width { get; set; } = 60;
+    [Parameter] public double Height { get; set; } = 80;
+    [Parameter] public string StatusColor { get; set; } = "#CBD5E0";
+    [Parameter] public string CssClass { get; set; } = "";
+}

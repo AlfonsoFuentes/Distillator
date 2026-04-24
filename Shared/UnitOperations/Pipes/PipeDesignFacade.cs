@@ -1,36 +1,39 @@
-﻿using System;
+﻿using Shared.ProcessFlowDiagram;
+using Shared.UnitOperations.Basiss;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace Shared.UnitOperations.Pipes
 {
-    public class PipeDesignFacade : IEquipmentFacade
+    public class PipeDesignFacade : EquipmentFacade
     {
-        public Guid Id { get; set; } = Guid.NewGuid();
-        public string Name { get; set; } = string.Empty;
-        public string StatusText => "Flowing";
-        public string StatusColor => "#10B981";
 
-        // Propiedades de ingeniería sincronizadas
-        public double Diameter { get; set; } = 4.0;
-        public string FluidName { get; set; } = "Water";
-        public string Material { get; set; } = "CS"; // Agregamos esta que faltaba
-        public double Schedule { get; set; } = 40;
 
-        public Action? OnTopologyChanged { get; set; }
+        public override string StatusColor => "#63B3ED"; // Azul claro (Ready to solve)
+        public override string StatusText => "Awaiting Feed";
 
-        public Dictionary<string, string> GetQuickViewData()
+        public override List<ToolTipLegend> GetToolTipLegend()
         {
-            return new Dictionary<string, string>
-        {
-            { "Size", $"{Diameter}\"" },
-            { "Fluid", FluidName },
-            { "Material", Material },
-            { "Sch", Schedule.ToString() }
-        };
+            List<ToolTipLegend> result = new();
+
+            return result;
+
         }
 
-        public void AttachConnection(string portName, IEquipmentFacade connectedFacade) { }
-        public void DetachConnection(string portName) { }
+        public override void AttachConnection(string portName, IFacade connectedFacade)
+        {
+
+        }
+        public override void DetachConnection(string portName)
+        {
+
+        }
+
+
+        protected override void CalculatedEquipment()
+        {
+
+        }
     }
 }

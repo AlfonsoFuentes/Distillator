@@ -28,11 +28,11 @@ namespace Shared.Thermodynamics.Strategies.Equlibriums
             // ✅ 3. Resolver P_bubble: encontrar P donde Σ(K_i · z_i) = 1
             double pBubble = Stream.SolveSaturationPressure();
 
-            var pressure = _facade.PressureControlled.Value;
+            var pressure = _facade.Pressure.Value;
             pressure!.SetValue(pBubble, PressureUnits.KiloPascala);
             // ✅ 4. Actualizar UI con resultado calculado
-            _facade.PressureControlled.SetValueCalculated(pressure,_facade.Name);
-            _facade.AddCalculatedVariable(_facade.PressureControlled);
+            _facade.Pressure.SetValueCalculated(pressure,_facade.Name);
+          
 
         }
 
@@ -40,4 +40,6 @@ namespace Shared.Thermodynamics.Strategies.Equlibriums
       
 
     }
+
+   
 }

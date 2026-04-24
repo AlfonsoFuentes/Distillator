@@ -1,0 +1,70 @@
+﻿@using Client.Layout.Shapes.SVGDrawings
+@using Client.Pages.UnitOperations.DialogBase
+@using Shared.UnitOperations.Helpers
+
+
+<EquipmentBaseDialog Equipment="Equipment">
+    <MainSlot>
+        <div class="splitter-canvas-layout">
+            
+            @* 1. FEED *@
+            <div class="port-zone inlet-zone">
+                <div class="port-list-title">Feed (Inlet)</div>
+                <EquipmentPortConnector Port="@Equipment.Ports.First(p => p.Name == "Inlet")"
+                                        ParentEquipment="Equipment"
+                                        OnConnectionChanged="HandleTopologyChanged" />
+            </div>
+
+            @* 2. SVG *@
+            <div class="equipment-drawing-zone">
+                <SplitterSvg Width="180" Height="180" StatusColor="@(Equipment.Facade?.StatusColor ?? "#CBD5E0")" />
+            </div>
+
+            @* 3. PRODUCTS (Con integración visual de fracciones) *@
+            <div class="port-zone outlet-zone">
+                <DynamicPortList Title="Products (Outlets)"
+                                 ParentEquipment="Equipment"
+                                 Ports="@(Equipment.Ports.Where(p => p.Type == PortType.Outlet))"
+                                 OnPortConnectionChanged="HandleTopologyChanged">
+                    
+                    @* 🚩 INYECCIÓN DE UI: Definimos el fragmento para cada puerto de salida *@
+                    @* 🚩 INYECCIÓN DE UI ELEGANTE *@
+                    <ItemContent Context="port">
+                        @if (Equipment.Facade is SplitterSimulationFacade splFacade && splFacade.SplitFractions.ContainsKey(port.Name))
+                        {
+                            <div class="fraction-input-box">
+                                <LabeledSimpleVariableRow Label="Split"
+                                                          @bind-Variable="splFacade.SplitFractions[port.Name]"
+                                                          MinValue="0"
+                                                          MaxValue="100" />
+                            </div>
+                        }
+                    </ItemContent>
+
+                </DynamicPortList>
+            </div>
+        </div>
+    </MainSlot>
+
+    @* PropertiesSlot queda vacío o para otros parámetros globales, la tabla ha muerto *@
+    <PropertiesSlot></PropertiesSlot>
+</EquipmentBaseDialog>
+
+@code {
+    [Parameter] public SplitterVisualElement Equipment { get; set; } = default!;
+
+    // 🚩 Nos suscribimos a los cambios de la UI para refrescar la topología en tiempo real
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        Equipment.RefreshDynamicPorts();
+    }
+    private void HandleTopologyChanged()
+    {
+        // 1. Forzamos al Splitter a borrar salidas vacías o crear una nueva
+        Equipment.RefreshDynamicPorts();
+        
+        // 2. Le decimos al Diálogo que se repinte (para mostrar/ocultar el nuevo puerto y la fila en la tabla)
+        StateHasChanged();
+    }
+}

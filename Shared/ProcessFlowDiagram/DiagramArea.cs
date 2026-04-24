@@ -4,7 +4,7 @@ namespace Shared.ProcessFlowDiagram
 {
     public class DiagramArea
     {
-        public string Id { get; set; } = Guid.NewGuid().ToString();
+        public Guid Id { get; set; } = Guid.NewGuid();
         public string Name { get; set; } = "Nueva Área";
 
         // Cada área tiene su propio listado exclusivo de equipos y tuberías

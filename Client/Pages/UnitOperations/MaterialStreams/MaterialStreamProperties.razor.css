@@ -1,0 +1,112 @@
+﻿/* ==================== CONTENEDOR SCROLLABLE ==================== */
+.scrollable-container {
+    overflow-x: auto;
+    overflow-y: auto;
+    max-height: 420px;
+    width: 100%;
+    border: 1px solid var(--border-color, #b0b0b0);
+    border-radius: 4px;
+    background-color: #ffffff;
+    margin-top: 8px;
+}
+
+    /* Scrollbars personalizados */
+    .scrollable-container::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+    }
+
+    .scrollable-container::-webkit-scrollbar-track {
+        background: #f1f1f1;
+    }
+
+    .scrollable-container::-webkit-scrollbar-thumb {
+        background: #c1c1c1;
+        border-radius: 3px;
+    }
+
+/* ==================== GRID 3 COLUMNAS ==================== */
+.data-grid.conditions-grid {
+    display: grid;
+    grid-template-columns: 160px 140px 1fr;
+    gap: 0;
+    width: 100%;
+    background-color: var(--border-color, #b0b0b0);
+}
+
+/* Headers */
+.grid-header {
+    background-color: var(--header-bg, #e4e4e4) !important;
+    font-weight: bold;
+    text-align: left;
+    color: var(--calc-black, #333333);
+    border-right: 1px solid var(--border-color, #b0b0b0);
+    border-bottom: 1px solid var(--border-color, #b0b0b0);
+    padding: 2px 8px;
+    display: flex;
+    align-items: center;
+    min-height: 26px;
+    font-family: "Segoe UI", Arial, sans-serif;
+    font-size: 12px;
+    box-sizing: border-box;
+}
+
+.unit-placeholder-header {
+    background-color: var(--header-bg) !important;
+    border-right: none !important;
+}
+
+/* Celdas base */
+.grid-cell {
+    background-color: #ffffff !important;
+    border-right: 1px solid var(--border-color, #b0b0b0);
+    border-bottom: 1px solid var(--border-color, #b0b0b0);
+    padding: 0 8px;
+    display: flex;
+    align-items: center;
+    min-height: 24px;
+    box-sizing: border-box;
+    overflow: visible;
+    font-family: "Segoe UI", Arial, sans-serif;
+    font-size: 12px;
+}
+
+    /* Columna Label */
+    .grid-cell.label {
+        background-color: var(--label-bg, #f5f5f5) !important;
+        color: var(--calc-black, #333333);
+        font-weight: normal;
+        justify-content: flex-start;
+    }
+
+    /* Títulos de Grupo (Span 3 columnas) */
+    .grid-cell.group-title {
+        grid-column: span 3;
+        background-color: #e8e8e8 !important;
+        font-weight: bold !important;
+        padding: 4px 8px !important;
+        border-bottom: 1px solid var(--border-color, #b0b0b0);
+        color: #222 !important;
+        font-size: 12px;
+        letter-spacing: 0.3px;
+    }
+
+    /* Placeholder (Columna 3) */
+    .grid-cell.unit-placeholder {
+        background-color: var(--label-bg) !important;
+        border-right: none !important;
+        pointer-events: none;
+    }
+
+/* ==================== INTEGRACIÓN CON LabeledReadOnlyVariableRow ==================== */
+/* Asegura que los componentes hijos se alineen perfectamente */
+.data-grid.conditions-grid ::deep LabeledReadOnlyVariableRow {
+    display: contents;
+}
+
+.data-grid.conditions-grid ::deep .grid-cell.label,
+.data-grid.conditions-grid ::deep .grid-cell.value,
+.data-grid.conditions-grid ::deep .grid-cell.unit {
+    border-right: 1px solid var(--border-color, #b0b0b0);
+    border-bottom: 1px solid var(--border-color, #b0b0b0);
+}

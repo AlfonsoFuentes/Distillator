@@ -12,20 +12,20 @@ namespace Shared.Thermodynamics.Strategies.Flows
         }
         public void Execute()
         {
-            var composition = _facade.StreamCompositionControlled.Value!;
+            var composition = _facade.StreamComposition.Value!;
             double totalMassFlow = composition.Components.Sum(c => c.MassFlowValue?.GetValue(MassFlowUnits.Kg_hr) ?? 0);
-            _facade.MassFlowControlled.SetValueCalculated(new(totalMassFlow, MassFlowUnits.Kg_hr), _facade.Name);
-            _facade.AddFlowVariable(_facade.MassFlowControlled);
+            _facade.MassFlow.SetValueCalculated(new(totalMassFlow, MassFlowUnits.Kg_hr), _facade.Name);
+  
 
             double Molecularweight = _facade.MaterialStream.MolecularWeight;
             double molarFlow = totalMassFlow / Molecularweight;
-            _facade.MolarFlowControlled.SetValueCalculated(new(molarFlow, MolarFlowUnits.Kgmol_hr), _facade.Name);
-            _facade.AddFlowVariable(_facade.MolarFlowControlled);
+            _facade.MolarFlow.SetValueCalculated(new(molarFlow, MolarFlowUnits.Kgmol_hr), _facade.Name);
+      
 
             double density = _facade.MaterialStream.MassDensity.GetValue(MassDensityUnits.Kg_m3); // Suponiendo que el Facade tiene esta propiedad
             double volumetricFlow = totalMassFlow / density;
-            _facade.VolumetricFlowControlled.SetValueCalculated(new(volumetricFlow, VolumetricFlowUnits.m3_hr), _facade.Name);
-            _facade.State = StreamStateType.StreamCalculated;
+            _facade.VolumetricFlow.SetValueCalculated(new(volumetricFlow, VolumetricFlowUnits.m3_hr), _facade.Name);
+            _facade.IsFlowSolved = true;
         }
     }
 }

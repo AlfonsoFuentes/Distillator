@@ -25,7 +25,7 @@ namespace Shared.Thermodynamics.Phases
                     return vanLaar;
 
                 case LiquidPhaseModel.Wilson:
-                case LiquidPhaseModel.WilsonASPEN:
+                case LiquidPhaseModel.WilsonAspen:
                     var wilson = new double[2][,];
                     wilson[0] = new double[n, n]; // Wilson Aij
                     wilson[1] = new double[n, n]; // Wilson Bij
@@ -39,7 +39,7 @@ namespace Shared.Thermodynamics.Phases
                         }
                     return wilson;
 
-                case LiquidPhaseModel.NRTL_ASPEN:
+                case LiquidPhaseModel.NRTLAspen:
                     var nrtl = new double[3][,];
                     nrtl[0] = new double[n, n]; // Aij
                     nrtl[1] = new double[n, n]; // Bij

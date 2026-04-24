@@ -154,19 +154,23 @@
 .tooltip-row {
     display: flex;
     justify-content: space-between;
-    gap: 25px;
-    margin-bottom: 4px;
+    align-items: center; /* 🚩 Centrado vertical perfecto */
+    gap: 16px; /* Reducimos el gap para un look más compacto */
+    margin-bottom: 6px;
 }
 
     .tooltip-row .label {
         color: #718096;
-        font-weight: 500;
+        font-weight: 600;
+        white-space: nowrap; /* 🚩 Evita que la etiqueta se parta */
     }
 
     .tooltip-row .value {
         color: #2B6CB0;
-        font-family: monospace;
+        font-family: 'Consolas', monospace;
         font-weight: 700;
+        text-align: right; /* Mantiene los valores alineados a la derecha */
+        white-space: nowrap; /* 🚩 Evita que "<Not Defined>" salte a otra línea */
     }
 
 /* 6. PUERTOS DE CONEXIÓN (ACTUALIZADO FASE 2) */
@@ -314,3 +318,14 @@
         box-shadow: 0 0 22px 8px rgba(0, 210, 106, 0.95);
     }
 }
+/**nuevo aqui*/
+/* 5. TOOLTIP (EXPANSIÓN) */
+
+
+
+
+
+
+    
+
+    

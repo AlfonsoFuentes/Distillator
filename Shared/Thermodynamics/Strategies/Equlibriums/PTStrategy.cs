@@ -22,9 +22,9 @@ namespace Shared.Thermodynamics.Strategies.Equlibriums
             Stream.PerformFlashPT();
 
            
-            _facade.VaporFractionControlled.SetValueCalculated(Stream.VaporFraction, _facade.Name);
+            _facade.VaporFraction.SetValueCalculated(Stream.VaporFraction, _facade.Name);
 
-            _facade.AddCalculatedVariable(_facade.VaporFractionControlled);
+      
 
             
         }

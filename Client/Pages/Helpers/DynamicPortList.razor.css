@@ -1,0 +1,22 @@
+﻿.port-list-container {
+    display: flex;
+    flex-direction: column;
+    gap: 16px; /* Aumentamos el espacio para que respire */
+}
+
+.dynamic-port-item {
+    display: flex;
+    align-items: center; /* Alineación vertical perfecta */
+    gap: 12px;
+    width: 100%;
+}
+
+.port-connector-wrapper {
+    flex: 1; /* El conector ocupa el espacio principal */
+}
+
+.port-extra-content {
+    flex: 0 0 120px; /* El espacio para el porcentaje es fijo y preciso */
+    display: flex;
+    align-items: center;
+}

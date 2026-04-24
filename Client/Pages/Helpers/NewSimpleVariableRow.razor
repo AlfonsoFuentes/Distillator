@@ -1,0 +1,240 @@
+﻿@* 👇 Renderiza SOLO Columna 2: Value (con validación visual de rango y obligatoriedad) *@
+<div class="grid-cell value @(GetCssClass()) @(IsOutOfRange() ? "out-of-range" : "") @(IsRequired() && !Variable.IsDefined && _isEditing ? "required-empty" : "")"
+     @onmouseenter="ShowCalculatedTooltip"
+     @onmouseleave="HideCalculatedTooltip">
+    
+    @if (IsReadOnly())
+    {
+        <div class="readonly-container">
+            <span class="readonly-value">@GetDisplayValue()</span>
+            @if (_showCalculatedTooltip && Variable.Source == MethodSource.Other && !string.IsNullOrWhiteSpace(Variable.SourceId))
+            {
+                <div class="calculated-tooltip">
+                    <span>Calculated by: @Variable.SourceId</span>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <input type="text"
+               inputmode="decimal"
+               value="@GetInputValue()"
+               placeholder="@GetPlaceholder()"
+               @onfocus="HandleFocus"
+               @oninput="HandleInput"
+               @onkeyup="HandleKeyUp"
+               @onblur="HandleInputBlur"
+               @ref="InputRef" />
+        
+        @if (IsRequired() && !Variable.IsDefined && _isEditing)
+        {
+            <span class="required-indicator" title="This field is required">*</span>
+        }
+    }
+
+    @* 👇 Mensaje de validación visual (no integrado con EditContext) *@
+    @if (_showValidationMessage)
+    {
+        <div class="validation-message">@_validationMessage</div>
+    }
+</div>
+
+@code {
+    [Parameter] public ControlledVariable<double> Variable { get; set; } = default!;
+    [Parameter] public EventCallback<ControlledVariable<double>> VariableChanged { get; set; } = default!;
+    
+    [Parameter] public double? MinValue { get; set; }
+    [Parameter] public double? MaxValue { get; set; }
+    [Parameter] public string? RangeErrorText { get; set; } = "Value out of allowed range";
+
+    private MethodSource CurrentSource => Variable.Source;
+    private string? _tempInputValue;
+    private bool _isEditing;
+    private bool _showCalculatedTooltip = false;
+    private bool _showValidationMessage;
+    private string? _validationMessage;
+    private ElementReference InputRef;
+
+    private string GetCssClass() => Variable.Source switch
+    {
+        MethodSource.None => "source-none",
+        MethodSource.UserInterface => "source-ui",
+        MethodSource.Other => "source-other",
+        _ => "source-none"
+    };
+
+    private bool IsRequired() => !MinValue.HasValue && !MaxValue.HasValue;
+
+    private bool IsOutOfRange()
+    {
+        if (string.IsNullOrWhiteSpace(_tempInputValue)) return false;
+        if (!double.TryParse(_tempInputValue, NumberStyles.Any, CultureInfo.InvariantCulture, out var val))
+            return false;
+        if (MinValue.HasValue && val < MinValue.Value) return true;
+        if (MaxValue.HasValue && val > MaxValue.Value) return true;
+        return false;
+    }
+
+    private string GetDisplayValue()
+    {
+        if (!Variable.IsDefined) return "<Not defined>";
+        var val = Variable.Value;
+        return Math.Abs(val) >= 0.01
+            ? val.ToString("F2", CultureInfo.InvariantCulture)
+            : val == 0 ? "0.00"
+            : val.ToString("F6", CultureInfo.InvariantCulture).TrimEnd('0').TrimEnd('.');
+    }
+
+    private string GetInputValue()
+    {
+        if (_isEditing && _tempInputValue != null) return _tempInputValue;
+        if (!Variable.IsDefined) return "";
+        var val = Variable.Value;
+        return Math.Abs(val) >= 0.01
+            ? val.ToString("F2", CultureInfo.InvariantCulture)
+            : val == 0 ? "0.00"
+            : val.ToString("F6", CultureInfo.InvariantCulture).TrimEnd('0').TrimEnd('.');
+    }
+
+    private string GetPlaceholder()
+    {
+        if (!Variable.IsDefined && !_isEditing)
+            return IsRequired() ? "<Required>*" : "<Not defined>";
+        return "";
+    }
+
+    private bool IsReadOnly() => Variable.Source == MethodSource.Other;
+
+    private void HandleFocus(FocusEventArgs e)
+    {
+        if (IsReadOnly()) return;
+        _showValidationMessage = false;
+        if (!Variable.IsDefined) { _isEditing = true; StateHasChanged(); }
+    }
+    
+    private async Task HandleInput(ChangeEventArgs e)
+    {
+        if (IsReadOnly()) return;
+        _tempInputValue = e.Value?.ToString();
+        _isEditing = true;
+        _showValidationMessage = false;
+        StateHasChanged(); // 👈 Limpiado de redundancias
+    }
+
+    private async Task HandleKeyUp(KeyboardEventArgs e)
+    {
+        if (IsReadOnly()) return;
+        
+        if (e.Key == "Enter" || e.Key == "NumpadEnter")
+        {
+            await CommitValue();
+        }
+        else if (e.Key == "Escape")
+        {
+            _isEditing = false;
+            _tempInputValue = null;
+            _showValidationMessage = false;
+            StateHasChanged();
+        }
+        // 👇 SOPORTE PARA BORRADO INSTANTÁNEO
+        else if ((e.Key == "Delete" || e.Key == "Backspace") && string.IsNullOrWhiteSpace(_tempInputValue))
+        {
+            await CommitValue();
+        }
+    }
+
+    private async Task HandleInputBlur(FocusEventArgs e)
+    {
+        if (IsReadOnly()) return;
+        await CommitValue();
+    }
+
+    private async Task CommitValue()
+    {
+        if (IsReadOnly()) return;
+        if (!_isEditing) return;
+
+        // 👇 Si el campo está vacío (ya sea porque borró o nunca escribió)
+        if (string.IsNullOrWhiteSpace(_tempInputValue))
+        {
+            // 1. Siempre limpiamos el motor para que el Solver sepa que ya no hay dato
+            Variable.ClearValue();
+            
+            _tempInputValue = null;
+            _isEditing = false;
+            
+            // 2. Mostramos error visual SOLO si era obligatorio
+            if (IsRequired())
+            {
+                _showValidationMessage = true;
+                _validationMessage = "This field is required.";
+            }
+            else
+            {
+                _showValidationMessage = false;
+            }
+            
+            if (VariableChanged.HasDelegate) await VariableChanged.InvokeAsync(Variable);
+            StateHasChanged();
+            return;
+        }
+
+        var normalizedInput = _tempInputValue.Replace(',', '.');
+        
+        if (!double.TryParse(normalizedInput, NumberStyles.Any, CultureInfo.InvariantCulture, out var newVal))
+        {
+            // 👇 CORRECCIÓN: Usar ClearValue en lugar de Source = None
+            Variable.ClearValue();
+            _tempInputValue = null;
+            _isEditing = false;
+            _showValidationMessage = false;
+            if (VariableChanged.HasDelegate) await VariableChanged.InvokeAsync(Variable);
+            StateHasChanged();
+            return;
+        }
+        
+        // Validar rango (visual y bloqueante)
+        if ((MinValue.HasValue && newVal < MinValue.Value) || (MaxValue.HasValue && newVal > MaxValue.Value))
+        {
+            _showValidationMessage = true;
+            _validationMessage = RangeErrorText ?? "Value out of allowed range.";
+            StateHasChanged();
+            return;
+        }
+        
+        // ✅ Todo válido: guardar con Source = UserInterface
+        Variable.SetValue(newVal, MethodSource.UserInterface);
+        _tempInputValue = null;
+        _isEditing = false;
+        _showValidationMessage = false;
+        
+        if (VariableChanged.HasDelegate) await VariableChanged.InvokeAsync(Variable);
+        StateHasChanged();
+    }
+
+    private async Task ClearValue()
+    {
+        Variable.ClearValue();
+        _tempInputValue = null;
+        _isEditing = false;
+        _showValidationMessage = false;
+        if (VariableChanged.HasDelegate) await VariableChanged.InvokeAsync(Variable);
+        StateHasChanged();
+    }
+
+    private void ShowCalculatedTooltip()
+    {
+        if (Variable.Source == MethodSource.Other && !string.IsNullOrWhiteSpace(Variable.SourceId))
+        {
+            _showCalculatedTooltip = true;
+            StateHasChanged();
+        }
+    }
+
+    private void HideCalculatedTooltip()
+    {
+        _showCalculatedTooltip = false;
+        StateHasChanged();
+    }
+}

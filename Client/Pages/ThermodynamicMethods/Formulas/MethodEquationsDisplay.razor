@@ -34,8 +34,8 @@
                 @switch (LiquidModel)
                 {
                     case LiquidPhaseModel.IdealLiquid: <EquationLiquidIdeal />; break;
-                    case LiquidPhaseModel.NRTL_ASPEN: <EquationLiquidNRTL />; break;
-                    case LiquidPhaseModel.WilsonASPEN: <EquationLiquidWilson />; break;
+                    case LiquidPhaseModel.NRTLAspen: <EquationLiquidNRTL />; break;
+                    case LiquidPhaseModel.WilsonAspen: <EquationLiquidWilson />; break;
                     case LiquidPhaseModel.SteamTables: <span class="text-hint">IAPWS-IF97 Steam Tables Formulation</span>; break;
                     default: <span class="text-hint">Equation not defined</span>; break;
                 }

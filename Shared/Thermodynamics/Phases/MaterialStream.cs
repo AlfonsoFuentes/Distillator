@@ -88,6 +88,7 @@ namespace Shared.Thermodynamics.Phases
                         localComponent.MolarFraction = comp.MolarFraction.Value / 100;
                 }
             }
+            CalculateMixtureMolecularWeight();
         }
 
 
@@ -521,15 +522,13 @@ namespace Shared.Thermodynamics.Phases
             // mezcla bifásica o vapor sobrecalentado.
             MolecularWeight = Components.Sum(c => c.MolarFraction * c.PureComponentData.MolecularWeight);
         }
-        // ========================================================================
-        // PROPIEDADES GLOBALES DE LA CORRIENTE (BULK PROPERTIES)
-        // ========================================================================
         public void CalculateBulkProperties(Temperature _temperature, Pressure _pressure)
         {
             if (CurrentState == ThermodynamicState.Undefined) return;
             Temperature = _temperature;
             Pressure = _pressure;
-            CalculateMixtureMolecularWeight();
+        
+
             // 1. Calcular propiedades de las fases usando la T y P reales de la corriente
             // (Esto garantiza que capturemos el subenfriamiento o sobrecalentamiento)
             if (CurrentState != ThermodynamicState.SuperheatedVapor)
@@ -557,10 +556,11 @@ namespace Shared.Thermodynamics.Phases
             double vaporMassFraction = (mwGlobal > 0) ? (VaporFraction * mwVap) / mwGlobal : 0.0;
 
             // ====================================================================
-            // 3. MEZCLA DE PROPIEDADES TERMODINÁMICAS (H, Cp, Densidad)
+            // 3. MEZCLA DE PROPIEDADES TERMODINÁMICAS (H, S, Cp, Densidad)
             // ====================================================================
 
             double hMolarMix = 0.0, hMassMix = 0.0;
+            double sMolarMix = 0.0, sMassMix = 0.0; // <-- Agregado para Entropía
             double cpMolarMix = 0.0, cpMassMix = 0.0;
             double vMolarMix = 0.0; // Volumen específico molar
 
@@ -568,6 +568,10 @@ namespace Shared.Thermodynamics.Phases
             {
                 hMolarMix = LiquidPhase.MolarEnthalpy.GetValue(MolarEnergyUnits.J_Kgmol);
                 hMassMix = LiquidPhase.MassEnthalpy.GetValue(MassEnergyUnits.J_Kg);
+
+                sMolarMix = LiquidPhase.MolarEntropy.GetValue(MolarEntropyUnits.J_Kgmol_C); // <-- Entropía Líquido
+                sMassMix = LiquidPhase.MassEntropy.GetValue(MassEntropyUnits.J_Kg_C);       // <-- Entropía Líquido
+
                 cpMolarMix = LiquidPhase.MolarHeatCapacity.GetValue(MolarEntropyUnits.KJ_Kgmol_C);
                 cpMassMix = LiquidPhase.MassHeatCapacity.GetValue(MassEntropyUnits.KJ_Kg_C);
                 vMolarMix = 1.0 / LiquidPhase.MolarDensity.GetValue(MolarDensityUnits.Kgmol_m3);
@@ -576,6 +580,10 @@ namespace Shared.Thermodynamics.Phases
             {
                 hMolarMix = VaporPhase.MolarEnthalpy.GetValue(MolarEnergyUnits.J_Kgmol);
                 hMassMix = VaporPhase.MassEnthalpy.GetValue(MassEnergyUnits.J_Kg);
+
+                sMolarMix = VaporPhase.MolarEntropy.GetValue(MolarEntropyUnits.J_Kgmol_C); // <-- Entropía Vapor
+                sMassMix = VaporPhase.MassEntropy.GetValue(MassEntropyUnits.J_Kg_C);       // <-- Entropía Vapor
+
                 cpMolarMix = VaporPhase.MolarHeatCapacity.GetValue(MolarEntropyUnits.KJ_Kgmol_C);
                 cpMassMix = VaporPhase.MassHeatCapacity.GetValue(MassEntropyUnits.KJ_Kg_C);
                 vMolarMix = 1.0 / VaporPhase.MolarDensity.GetValue(MolarDensityUnits.Kgmol_m3);
@@ -586,6 +594,12 @@ namespace Shared.Thermodynamics.Phases
                             VaporFraction * VaporPhase.MolarEnthalpy.GetValue(MolarEnergyUnits.J_Kgmol);
                 hMassMix = (1.0 - vaporMassFraction) * LiquidPhase.MassEnthalpy.GetValue(MassEnergyUnits.J_Kg) +
                            vaporMassFraction * VaporPhase.MassEnthalpy.GetValue(MassEnergyUnits.J_Kg);
+
+                // <-- Mezcla Bifásica de Entropía
+                sMolarMix = (1.0 - VaporFraction) * LiquidPhase.MolarEntropy.GetValue(MolarEntropyUnits.J_Kgmol_C) +
+                            VaporFraction * VaporPhase.MolarEntropy.GetValue(MolarEntropyUnits.J_Kgmol_C);
+                sMassMix = (1.0 - vaporMassFraction) * LiquidPhase.MassEntropy.GetValue(MassEntropyUnits.J_Kg_C) +
+                           vaporMassFraction * VaporPhase.MassEntropy.GetValue(MassEntropyUnits.J_Kg_C);
 
                 cpMolarMix = (1.0 - VaporFraction) * LiquidPhase.MolarHeatCapacity.GetValue(MolarEntropyUnits.KJ_Kgmol_C) +
                              VaporFraction * VaporPhase.MolarHeatCapacity.GetValue(MolarEntropyUnits.KJ_Kgmol_C);
@@ -600,6 +614,10 @@ namespace Shared.Thermodynamics.Phases
 
             MolarEnthalpy = new MolarEnergy(hMolarMix, MolarEnergyUnits.J_Kgmol);
             MassEnthalpy = new MassEnergy(hMassMix, MassEnergyUnits.J_Kg);
+
+            MolarEntropy = new MolarEntropy(sMolarMix, MolarEntropyUnits.J_Kgmol_C); // <-- Asignación Entropía Molar
+            MassEntropy = new MassEntropy(sMassMix, MassEntropyUnits.J_Kg_C);       // <-- Asignación Entropía Másica
+
             MolarHeatCapacity = new MolarEntropy(cpMolarMix, MolarEntropyUnits.KJ_Kgmol_C);
             MassHeatCapacity = new MassEntropy(cpMassMix, MassEntropyUnits.KJ_Kg_C);
 
@@ -659,9 +677,7 @@ namespace Shared.Thermodynamics.Phases
                 SurfaceTension = new SuperficialTension(LiquidPhase.SurfaceTension.GetValue(SuperficialTensionUnits.N_m), SuperficialTensionUnits.N_m);
             }
         }
-        // ========================================================================
-        // FLASH ADIABÁTICO P-H (Válvulas, Mezcladores, Intercambiadores)
-        // ========================================================================
+      
         public void PerformFlashPH(Pressure targetPressure, MolarEnergy targetEnthalpy)
         {
             double hTargetJ = targetEnthalpy.GetValue(MolarEnergyUnits.J_Kgmol);
@@ -764,6 +780,55 @@ namespace Shared.Thermodynamics.Phases
 
             CurrentState = ThermodynamicState.VaporLiquidMixture;
             return result.Value;
+        }
+        public void PerformFlashPS(Pressure targetPressure, MolarEntropy targetEntropy)
+        {
+            double sTargetJ_K = targetEntropy.GetValue(MolarEntropyUnits.J_Kgmol_C);
+            Pressure = targetPressure;
+
+            // Estimación inicial
+            double tK = (Temperature != null && Temperature.GetValue(TemperatureUnits.Kelvin) > 0)
+                        ? Temperature.GetValue(TemperatureUnits.Kelvin)
+                        : 298.15;
+            Temperature = new Temperature(tK, TemperatureUnits.Kelvin);
+
+            int maxIters = 50;
+            double tolerance = 1e-4; // Tolerancia estricta para entropía
+            double error = double.MaxValue;
+            int iter = 0;
+
+            while (Math.Abs(error) > tolerance && iter < maxIters)
+            {
+                PerformFlashPT(Temperature, Pressure);
+                CalculateBulkProperties(Temperature, Pressure);
+
+                // NOTA: Asegúrate de que CalculateBulkProperties esté calculando MolarEntropy
+                double sCalc = MolarEntropy.GetValue(MolarEntropyUnits.J_Kgmol_C);
+                double cpMix = MolarHeatCapacity.GetValue(MolarEntropyUnits.KJ_Kgmol_C) * 1000.0;
+
+                error = sCalc - sTargetJ_K;
+
+                if (Math.Abs(error) < tolerance) break;
+
+                if (cpMix <= 1e-6) cpMix = 1000.0;
+
+                // Newton-Raphson: dS/dT = Cp / T
+                double derivative = cpMix / tK;
+                double deltaT = error / derivative;
+
+                // Clamping para estabilidad
+                deltaT = Math.Clamp(deltaT, -50.0, 50.0);
+
+                tK -= deltaT;
+                Temperature = new Temperature(tK, TemperatureUnits.Kelvin);
+
+                iter++;
+            }
+
+            if (iter >= maxIters)
+            {
+                System.Diagnostics.Debug.WriteLine($"[Flash P-S] ADVERTENCIA: No convergió. Error final: {error:E3}");
+            }
         }
 
     }

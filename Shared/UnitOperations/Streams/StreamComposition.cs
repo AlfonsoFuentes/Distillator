@@ -19,9 +19,23 @@ namespace Shared.UnitOperations.Streams
             Components = components;
         }
 
-        // ─────────────────────────────────────────────────────────
-        // 🔹 MÉTODOS DE CONVERSIÓN (delegan a ComponentComposition)
-        // ─────────────────────────────────────────────────────────
+        public StreamComposition Clone()
+        {
+            // 1. Creamos una nueva instancia del contenedor
+            var clonedComposition = new StreamComposition
+            {
+                InputType = this.InputType // Respetamos si el usuario metió masa o moles
+            };
+
+            // 2. Iteramos sobre los componentes y CLONAMOS CADA UNO individualmente
+            foreach (var comp in this.Components)
+            {
+                // Aquí es donde se llama al método Clone() de ComponentComposition que ya arreglaste
+                clonedComposition.Components.Add(comp.Clone());
+            }
+
+            return clonedComposition;
+        }
 
         public void CalculateMolarFractionsFromMass()
         {

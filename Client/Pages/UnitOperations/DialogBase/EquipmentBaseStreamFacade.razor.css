@@ -1,0 +1,6 @@
+﻿.group-spacer {
+    background: transparent !important;
+    border-right: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+    min-height: 28px;
+}

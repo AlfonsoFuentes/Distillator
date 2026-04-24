@@ -8,8 +8,11 @@
     {
         MethodSource Source { get; set; }
         string SourceId { get; set; }
-        bool IsDefined { get;  }
+        bool IsDefined { get; }
+
+        // 👇 Agregamos los parámetros opcionales
         void ClearValue();
+        void RevertCalculatedValue();
     }
 }
 

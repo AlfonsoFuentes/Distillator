@@ -1,25 +1,40 @@
-﻿using System;
+﻿using Shared.ProcessFlowDiagram;
+using Shared.UnitOperations.Basiss;
+using Shared.UnitOperations.Streams;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace Shared.UnitOperations.Columns
 {
-    public class ColumnSimulationFacade : IEquipmentFacade
+    public class ColumnSimulationFacade : EquipmentFacade
     {
-        public Guid Id { get; set; }
-        public string Name { get; set; } = string.Empty;
-        public string StatusColor { get; set; } = "#CBD5E0";
-        public void AttachConnection(string port, IEquipmentFacade target) { }
-        public void DetachConnection(string port) { }
 
-        public string StatusText => "Text";
 
-        public Dictionary<string, string> GetQuickViewData()
+        public override string StatusColor => "#63B3ED"; // Azul claro (Ready to solve)
+        public override string StatusText => "Awaiting Feed";
+
+        public override List<ToolTipLegend> GetToolTipLegend()
         {
-           
-            return new Dictionary<string, string>();
+            List<ToolTipLegend> result = new();
+
+            return result;
+
         }
 
-        public Action? OnTopologyChanged { get; set; }
+        public override void AttachConnection(string portName, IFacade connectedFacade)
+        {
+
+        }
+        public override void DetachConnection(string portName)
+        {
+
+        }
+
+
+        protected override void CalculatedEquipment()
+        {
+
+        }
     }
 }

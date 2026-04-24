@@ -24,11 +24,11 @@ namespace Shared.Thermodynamics.Strategies.Equlibriums
             double tBubble = Stream.SolveSaturationTemperature();
 
             // ✅ 4. Actualizar UI con resultado calculado
-            var temperature = _facade.TemperatureControlled.Value;
+            var temperature = _facade.Temperature.Value;
             temperature!.SetValue(tBubble, TemperatureUnits.Kelvin);
             // ✅ 4. Actualizar UI con resultado calculado
-            _facade.TemperatureControlled.SetValueCalculated(temperature, _facade.Name);
-            _facade.AddCalculatedVariable(_facade.TemperatureControlled);
+            _facade.Temperature.SetValueCalculated(temperature, _facade.Name);
+            
 
         }
 

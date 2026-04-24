@@ -51,7 +51,7 @@ namespace Server.Entities.UserManagement.EndPoints
 
                 return Result<UserInfoResponse>.Success(responseData, "User info retrieved.");
             })
-            .RequireAuthorization() // 🔒 Esto asegura que el endpoint rechace peticiones sin Cookie válida
+            .AllowAnonymous() // 🔒 Esto asegura que el endpoint rechace peticiones sin Cookie válida
             .WithTags("Identity");
         }
     }

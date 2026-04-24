@@ -30,6 +30,10 @@
     padding: 0 !important;
     overflow: hidden;
     background-color: #F4F5F7;
+    /* 🚩 PUNTO 7: Empujamos el contenido a la derecha para respetar la paleta flotante. 
+       El ancho de la paleta es 135px + 20px de margen = 155px. 
+       Le damos 175px para que respire. */
+    margin-left: 175px;
 }
 
 /* --- SIDEBAR --- */
@@ -51,3 +55,5 @@
         text-transform: uppercase;
         margin: 0;
     }
+/* --- MainLayout.razor.css --- */
+

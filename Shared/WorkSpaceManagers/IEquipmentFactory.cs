@@ -18,16 +18,6 @@ namespace Shared.WorkSpaceManagers
         string GenerateNextName(string prefix);
     }
 
-    public class EquipmentNamingService : INamingService
-    {
-        private readonly Dictionary<string, int> _counters = new();
-
-        public string GenerateNextName(string prefix)
-        {
-            if (!_counters.ContainsKey(prefix)) _counters[prefix] = 101;
-            return $"{prefix}-{_counters[prefix]++}";
-        }
-    }
     public interface IEquipmentFactory
     {
         IVisualElement? Create(EquipmentType type, double x, double y, Func<double, double> snap);

@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Shared.ProcessFlowDiagram;
+using Shared.UnitOperations.Basiss;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -6,25 +8,28 @@ namespace Shared.UnitOperations.Vessels
 {
     public enum VesselStateType { Created, PartiallyConnected, Solved }
 
-    public class VesselSimulationFacade : IEquipmentFacade
+    public class VesselSimulationFacade : EquipmentFacade
     {
-        public Guid Id { get; set; } = Guid.NewGuid();
-        public string Name { get; set; } = "V-101";
-        public double LiquidLevel { get; set; } = 45.0; // %
 
-        public string StatusColor => "#CBD5E0"; // Gris por defecto
-        public string StatusText => "Operational";
 
-        public Dictionary<string, string> GetQuickViewData()
+        public override string StatusColor => "#63B3ED"; // Azul claro (Ready to solve)
+        public override string StatusText => "Awaiting Feed";
+
+        public override List<ToolTipLegend> GetToolTipLegend()
         {
-            return new Dictionary<string, string> {
-                { "Level", $"{LiquidLevel}%" },
-                { "Status", "In Service" }
-            };
+            List<ToolTipLegend> result = new();
+
+            return result;
+
         }
 
-        public void AttachConnection(string portName, IEquipmentFacade connectedFacade) { OnTopologyChanged?.Invoke(); }
-        public void DetachConnection(string portName) { OnTopologyChanged?.Invoke(); }
-        public Action? OnTopologyChanged { get; set; }
+        public override void AttachConnection(string portName, IFacade connectedFacade) => OnExecuteSolver?.Invoke(this);
+        public override void DetachConnection(string portName) => OnExecuteSolver?.Invoke(this);
+  
+
+        protected override void CalculatedEquipment()
+        {
+
+        }
     }
 }

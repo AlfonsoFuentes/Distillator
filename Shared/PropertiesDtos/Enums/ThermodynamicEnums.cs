@@ -6,30 +6,30 @@ namespace Shared.PropertiesDtos.Enums
 {
     public enum VaporPhaseModel
     {
-        None=0,
+        None = 0,
         IdealGas = 1,
         SoaveRedlichKwong1972 = 2,
-        SteamTables = 3  ,
-        VanDerWaals=4,
-        RedlichKwong=5,
-        Wilson=6,
-        PengRobinson=7,
-        SoaveRedlichKwong1984=8,
-        SoaveRedlichKwong1995=9,
+        SteamTables = 3,
+        VanDerWaals = 4,
+        RedlichKwong = 5,
+        Wilson = 6,
+        PengRobinson = 7,
+        SoaveRedlichKwong1984 = 8,
+        SoaveRedlichKwong1995 = 9,
 
     }
 
     public enum LiquidPhaseModel
     {
-        None=0,
+        None = 0,
         IdealLiquid = 1,
-        NRTL_ASPEN = 2,
+        NRTLAspen = 2,
         Wilson = 3,
-        SteamTables = 4 ,
-        EA_Van_Laar   =5,
-        WilsonASPEN=6,
-        UNIQUAC=7,
-       
+        SteamTables = 4,
+        EA_Van_Laar = 5,
+        WilsonAspen = 6,
+        UNIQUAC = 7,
+
 
     }
 

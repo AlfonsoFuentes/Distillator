@@ -5,10 +5,12 @@
 .area-tabs-container {
     display: flex;
     align-items: flex-end;
-    background-color: #CBD5E1; /* Gris industrial que conecta con el header */
+    background-color: #CBD5E1;
     padding: 6px 6px 0 6px;
     gap: 4px;
     height: 40px;
+    /* 🚩 PUNTO 7 (A): Empujamos las pestañas a la derecha */
+    padding-left: 175px;
 }
 
 .area-tab {
@@ -106,4 +108,20 @@
     overflow: hidden;
     text-overflow: ellipsis;
     user-select: none;
+}
+/**nuevo*/
+/* --- Home.razor.css --- */
+
+
+
+/* Y EN TU PFD CANVAS CSS (PfdCanvas.razor.css) */
+.pfd-workspace {
+    position: relative;
+    width: 100%; /* Volvemos al 100% */
+    height: 85vh;
+    background-color: #E2E8F0;
+    overflow: hidden;
+    outline: none;
+    box-shadow: inset 0 0 40px rgba(0,0,0,0.02);
+    cursor: grab;
 }

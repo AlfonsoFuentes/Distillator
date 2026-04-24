@@ -45,13 +45,34 @@ namespace Shared.Thermodynamics.ControlledVariables
         }
 
         // ─────────────────────────────────────────────────────────
-        // 🔹 MÉTODOS DE CONVERSIÓN (in-place)
-        // ─────────────────────────────────────────────────────────
+        public ComponentComposition Clone()
+        {
+            var clone = new ComponentComposition(this.ComponentId, this.ComponentName, this.MolecularWeight)
+            {
+                MassFraction = this.MassFraction,
+                MolarFraction = this.MolarFraction
+            };
 
-        /// <summary>
-        /// Calcula fracción molar a partir de fracción másica.
-        /// Requiere que TODOS los componentes tengan MassFraction definida.
-        /// </summary>
+            // 👇 CLONACIÓN PROFUNDA REAL PARA OBJETOS 'AMOUNT'
+            // Instanciamos objetos 100% nuevos en memoria copiando el Value y el UnitName
+
+            if (this.MassFlowValue != null)
+            {
+                clone.MassFlowValue = new MassFlow(this.MassFlowValue.Value, this.MassFlowValue.UnitName);
+            }
+
+            if (this.MolarFlowValue != null)
+            {
+                clone.MolarFlowValue = new MolarFlow(this.MolarFlowValue.Value, this.MolarFlowValue.UnitName);
+            }
+
+            if (this.VolumetricFlowValue != null)
+            {
+                clone.VolumetricFlowValue = new VolumetricFlow(this.VolumetricFlowValue.Value, this.VolumetricFlowValue.UnitName);
+            }
+
+            return clone;
+        }
 
     }
 }

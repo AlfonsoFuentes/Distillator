@@ -30,12 +30,12 @@ namespace Shared.Thermodynamics.Strategies.Equlibriums
             // ✅ 3. Resolver T_bubble: encontrar T donde Σ(K_i · z_i) = 1
             double tBubble = Stream.SolveSaturationTemperature();
 
-            var temperature = _facade.TemperatureControlled.Value;
+            var temperature = _facade.Temperature.Value;
             temperature!.SetValue(tBubble, TemperatureUnits.Kelvin);
 
             // ✅ 4. Actualizar UI con resultado calculado
-            _facade.TemperatureControlled.SetValueCalculated(temperature,_facade.Name);
-            _facade.AddCalculatedVariable(_facade.TemperatureControlled);
+            _facade.Temperature.SetValueCalculated(temperature,_facade.Name);
+    
            
         }
 

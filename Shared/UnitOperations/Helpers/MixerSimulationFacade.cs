@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Shared.ProcessFlowDiagram;
+using Shared.UnitOperations.Basiss;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -6,74 +8,34 @@ namespace Shared.UnitOperations.Helpers
 {
     public enum MixerStateType { Created, PartiallyConnected, ReadyToCalculate, Solved }
 
-    public class MixerSimulationFacade : IEquipmentFacade
+    public class MixerSimulationFacade : EquipmentFacade
     {
-        public Guid Id { get; set; } = Guid.NewGuid();
-        public string Name { get; set; } = "MIX-101";
 
-        public MixerStateType State { get; private set; } = MixerStateType.Created;
 
-        public string StatusColor => State switch
+        public override string StatusColor => "#63B3ED"; // Azul claro (Ready to solve)
+        public override string StatusText => "Awaiting Feed";
+
+        public override List<ToolTipLegend> GetToolTipLegend()
         {
-            MixerStateType.Created => "#CBD5E0",
-            MixerStateType.PartiallyConnected => "#F6AD55",
-            MixerStateType.ReadyToCalculate => "#63B3ED",
-            MixerStateType.Solved => "#34D399",
-            _ => "#CBD5E0"
-        };
+            List<ToolTipLegend> result = new();
 
-        public string StatusText => State switch
-        {
-            MixerStateType.Created => "Ready",
-            MixerStateType.PartiallyConnected => "Underspecified",
-            MixerStateType.ReadyToCalculate => "Ready to Solve",
-            MixerStateType.Solved => "Converged",
-            _ => "Unknown"
-        };
+            return result;
 
-        public Dictionary<string, string> GetQuickViewData()
-        {
-            var data = new Dictionary<string, string>();
-            data.Add("Type", "Mass Mixer");
-            data.Add("Status", State == MixerStateType.Solved ? "Blended" : "Pending");
-            return data;
         }
 
-        public Dictionary<string, IEquipmentFacade> InletStreams { get; } = new();
-        public IEquipmentFacade? OutletStream { get; private set; }
-
-        public Action? OnTopologyChanged { get; set; }
-
-        public void AttachConnection(string portName, IEquipmentFacade connectedFacade)
+        public override void AttachConnection(string portName, IFacade connectedFacade)
         {
-            if (portName == "Outlet") OutletStream = connectedFacade;
-            else if (portName.StartsWith("Inlet")) InletStreams[portName] = connectedFacade;
-            EvaluateAutoCalculation();
+
+        }
+        public override void DetachConnection(string portName)
+        {
+
         }
 
-        public void DetachConnection(string portName)
-        {
-            if (portName == "Outlet") OutletStream = null;
-            else if (portName.StartsWith("Inlet")) InletStreams.Remove(portName);
-            EvaluateAutoCalculation();
-        }
 
-        private void EvaluateAutoCalculation()
+        protected override void CalculatedEquipment()
         {
-            // Un mezclador necesita al menos 2 entradas y 1 salida para estar resuelto
-            if (OutletStream != null && InletStreams.Count >= 2)
-            {
-                State = MixerStateType.Solved;
-            }
-            else if (OutletStream != null || InletStreams.Count > 0)
-            {
-                State = MixerStateType.PartiallyConnected;
-            }
-            else
-            {
-                State = MixerStateType.Created;
-            }
-            OnTopologyChanged?.Invoke();
+
         }
     }
 }

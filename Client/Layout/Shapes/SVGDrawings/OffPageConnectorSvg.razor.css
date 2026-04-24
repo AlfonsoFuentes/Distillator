@@ -1,0 +1,30 @@
+﻿/* =================================================
+   OffPageConnectorSvg.razor.css
+   Estilos visuales para los portales (OPC)
+   ================================================= */
+
+.opc-container {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    /* 🚩 CLAVE: Evita que el usuario seleccione el texto "?" o "Area..." 
+       accidentalmente al hacer doble clic o arrastrar */
+    user-select: none;
+    -webkit-user-select: none;
+    overflow: visible;
+}
+
+/* Transiciones suaves para los bordes y colores */
+.opc-body, .opc-port {
+    transition: all 0.2s ease-in-out;
+}
+
+/* Un ligero brillo al pasar el ratón para dar feedback visual */
+.opc-container:hover .opc-body {
+    filter: brightness(0.96);
+}
+
+/* Que el clic siempre lo reciba la flecha, no el texto */
+.opc-label {
+    pointer-events: none;
+}

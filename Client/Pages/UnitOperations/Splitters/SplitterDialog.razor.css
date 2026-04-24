@@ -1,0 +1,88 @@
+﻿.splitter-canvas-layout {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    min-height: 350px;
+    background-color: #f8fafc;
+    border-radius: 4px;
+    padding: 20px;
+    overflow: hidden;
+}
+
+/* El SVG se queda estático en el centro */
+.equipment-drawing-zone {
+    flex: 0 0 auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Zonas laterales que empujan los puertos hacia los bordes */
+.port-zone {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.inlet-zone {
+    align-items: flex-start;
+    padding-left: 20px;
+}
+
+.outlet-zone {
+    align-items: flex-end;
+    padding-right: 20px;
+}
+
+/* Estilos de la tabla de fracciones (Minimalista Industrial) */
+.property-table-wrapper {
+    margin-top: 16px;
+    width: 100%;
+}
+
+.cp-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+    .cp-table th {
+        text-align: left;
+        padding: 8px 12px;
+        background-color: #f1f5f9;
+        color: #475569;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        border-bottom: 2px solid #cbd5e0;
+    }
+
+    .cp-table td {
+        padding: 8px 12px;
+        border-bottom: 1px solid #e2e8f0;
+        vertical-align: middle;
+    }
+/* Contenedor del componente inyectado */
+.fraction-input-box {
+    display: grid;
+    /* Ajusta estos anchos según tu diseño: 
+       45px para el label "Split", 80px para la caja de texto */
+    grid-template-columns: 45px 80px;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Modificamos sutilmente las celdas inyectadas para que quepan en el diseño compacto */
+::deep .fraction-input-box .grid-cell.label {
+    font-size: 0.7rem;
+    color: #64748b;
+    font-weight: 600;
+    text-transform: uppercase;
+    text-align: right; /* Pegamos el texto hacia la caja */
+}
+
+::deep .fraction-input-box .simple-variable-row {
+    margin: 0; /* Quitamos márgenes extra si los tuviera */
+}

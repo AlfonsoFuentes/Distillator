@@ -1,31 +1,39 @@
-﻿using System;
+﻿using Shared.ProcessFlowDiagram;
+using Shared.UnitOperations.Basiss;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace Shared.UnitOperations.Instruments
 {
-    public class InstrumentSimulationFacade : IEquipmentFacade
+    public class InstrumentSimulationFacade : EquipmentFacade
     {
-        public Guid Id { get; set; }
-        public string Name { get; set; } = "PT-101";
 
-        // Valor que se muestra en la UI
-        public double CurrentValue { get; set; } = 0.0;
-        public string Unit { get; set; } = "bar";
 
-        public string StatusColor => "#FFFFFF"; // Fondo blanco típico de instrumentos
-        public string StatusText => $"{CurrentValue} {Unit}";
+        public override string StatusColor => "#63B3ED"; // Azul claro (Ready to solve)
+        public override string StatusText => "Awaiting Feed";
 
-        public Dictionary<string, string> GetQuickViewData()
+        public override List<ToolTipLegend> GetToolTipLegend()
         {
-            return new Dictionary<string, string> {
-                { "Tag", Name },
-                { "Reading", $"{CurrentValue} {Unit}" }
-            };
+            List<ToolTipLegend> result = new();
+
+            return result;
+
         }
 
-        public void AttachConnection(string portName, IEquipmentFacade connectedFacade) { }
-        public void DetachConnection(string portName) { }
-        public Action? OnTopologyChanged { get; set; }
+        public override void AttachConnection(string portName, IFacade connectedFacade)
+        {
+
+        }
+        public override void DetachConnection(string portName)
+        {
+
+        }
+
+
+        protected override void CalculatedEquipment()
+        {
+
+        }
     }
 }

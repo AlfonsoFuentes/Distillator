@@ -1,0 +1,69 @@
+﻿/* =================================================================
+   PumpDialog.razor.css (SOLO TOPOLOGÍA Y SVG)
+   ================================================================= */
+
+/* 1. EL LIENZO (CANVAS) */
+.pump-canvas-layout {
+    position: relative;
+    min-width: 600px;
+    width: 100%;
+    height: 350px;
+    /* Recuperamos el fondo sutil para que parezca un área de trabajo */
+    background-color: #f8fafc;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+/* 2. ZONA DEL DIBUJO (Desplazada 50px a la derecha) */
+.equipment-drawing-zone {
+    position: absolute;
+    top: 50%;
+    /* 🔥 MAGIA: Movimos el centro exacto de la bomba 50px hacia la derecha */
+    left: calc(50% + 50px);
+    transform: translate(-50%, -50%);
+    z-index: 1;
+}
+
+/* 3. PUERTOS DE CONEXIÓN */
+.port-selector {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    z-index: 10;
+    width: 220px;
+}
+
+/* SUCCIÓN: Acompaña el desplazamiento */
+.suction-pos {
+    top: 50%;
+    /* Al mover el centro 50px a la derecha, compensamos aquí para que siga pegado al tubo. 
+       (95px originales - 50px de desplazamiento = 45px) */
+    right: calc(50% + 45px);
+    transform: translateY(-50%);
+}
+
+/* DESCARGA: Acompaña el desplazamiento */
+.discharge-pos {
+    bottom: calc(50% + 95px);
+    /* 🔥 Sigue al nuevo centro exacto de la bomba */
+    left: calc(50% + 50px);
+    transform: translateX(-50%);
+}
+
+/* 4. CORRECCIÓN DE TOOLTIPS (Para que el de descarga no choque) */
+::deep .discharge-pos .port-tooltip-fixed {
+    top: 50% !important;
+    left: calc(100% + 12px) !important;
+    transform: translateY(-50%) !important;
+}
+
+    ::deep .discharge-pos .port-tooltip-fixed::after {
+        top: 50% !important;
+        bottom: auto !important;
+        right: 100% !important;
+        left: auto !important;
+        transform: translateY(-50%) !important;
+        border-width: 5px;
+        border-style: solid;
+        border-color: transparent #E2E8F0 transparent transparent !important;
+    }

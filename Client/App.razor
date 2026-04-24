@@ -1,5 +1,4 @@
-﻿
-
+﻿@using Client.Pages.Users
 <CascadingAuthenticationState>
     <Router AppAssembly="@typeof(App).Assembly" NotFoundPage="typeof(Pages.NotFound)">
         <Found Context="routeData">
@@ -7,10 +6,8 @@
                 <NotAuthorized>
                     @if (context.User.Identity?.IsAuthenticated != true)
                     {
-                        <div class="pa-4 text-center">
-                            <h2>You are not logged in.</h2>
-                            <p>Please <a href="/login">Sign In</a> to access this page.</p>
-                        </div>
+                        @* 👇 ¡AQUÍ ESTÁ LA MAGIA! *@
+                        <RedirectToLogin />
                     }
                     else
                     {

@@ -1,0 +1,51 @@
+﻿@using Client.Layout.Shapes.SVGDrawings
+@using Client.Pages.UnitOperations.DialogBase
+@using Shared.UnitOperations.Pumps
+
+<EquipmentBaseDialog Equipment="Equipment">
+    
+    @* TOPOLOGÍA, DIBUJO Y PARÁMETROS FLOTANTES (ESTILO HYSYS) *@
+    <MainSlot>
+        <div class="pump-canvas-layout">
+            
+            @* 1. PUERTOS DE CONEXIÓN *@
+            <div class="port-selector suction-pos">
+                <EquipmentPortConnector Port='Equipment.SuctionPort' ParentEquipment="Equipment" />
+            </div>
+
+            <div class="port-selector discharge-pos">
+                <EquipmentPortConnector Port='Equipment.DischargePort' ParentEquipment="Equipment" />
+            </div>
+
+            @* 2. DIBUJO CENTRAL *@
+            <div class="equipment-drawing-zone">
+                <PumpSvg Width="180" Height="180" StatusColor="@(Equipment.Facade?.StatusColor ?? "#CBD5E0")" CssClass="pump-svg-dialog" />
+            </div>
+
+            @* 3. PROPIEDADES FLOTANTES *@
+           
+        </div>
+    </MainSlot>
+    <PropertiesSlot>
+        @if (Equipment.Facade is PumpSimulationFacade pumpFacade)
+        {
+            <div class="property-row">
+                <ProcessVariableRow Label="Delta P" @bind-Variable="pumpFacade.DeltaPressure" />
+            </div>
+
+            <div class="property-row">
+                <SimpleVariableRow Label="Adiabatic Eff (%)" @bind-Variable="pumpFacade.AdiabaticEfficiency" MinValue="0" MaxValue="100" />
+            </div>
+                
+            <div class="property-row">
+                <ReadOnlyVariableRow Label="Duty (Power)" Variable="pumpFacade.PowerConsumed"></ReadOnlyVariableRow>
+            </div>
+           
+        }
+    </PropertiesSlot>
+
+</EquipmentBaseDialog>
+
+@code {
+    [Parameter] public PumpVisualElement Equipment { get; set; } = default!;
+}

@@ -1,4 +1,5 @@
-﻿using Shared.Thermodynamics.Phases;
+﻿using Shared.Thermodynamics.ControlledVariables;
+using Shared.Thermodynamics.Phases;
 using Shared.UnitOperations.Streams;
 
 namespace Shared.Thermodynamics.Strategies.Equlibriums
@@ -13,11 +14,11 @@ namespace Shared.Thermodynamics.Strategies.Equlibriums
         private IEquilibriumStrategy? _currentStrategy;
         private EquilibriumMode _currentMode;
 
-        private double VaporFraction => _facade.VaporFractionControlled.Value;
+        private double VaporFraction => _facade.VaporFraction.Value;
         public event Action? EquilibriumReady;
 
         public event Action? FlowsReady;
-        public bool IsEquilibriumReady { get; private set; }
+        //public bool IsEquilibriumReady { get; private set; }
         public EquilibriumMode CurrentMode => _currentMode;
 
         // ✅ Constructor inyecta interfaz
@@ -26,50 +27,51 @@ namespace Shared.Thermodynamics.Strategies.Equlibriums
             _facade = facade;  // ← No conoce el Facade concreto
             _materialStream = facade.MaterialStream;
             _currentMode = EquilibriumMode.None;
-            IsEquilibriumReady = false;
+        
         }
 
         public void OnConstraintsChanged()
         {
-            _facade.ResetCalculatedVariable();
+            // ✅ 1. Solo reseteamos la memoria de la termodinámica. 
+            // ¡PROHIBIDO tocar _facade.ResetFlowsCalculatedVariable() aquí!
+            _facade.ResetEquilibriumCalculatedVariable();
             _facade.ResetFlowsCalculatedVariable();
             // ✅ PASO 1: Validar Regla de Fases de Gibbs
             var gibbsValidation = ValidateGibbsPhaseRule();
-            _facade.State = StreamStateType.MethodDefined;
+
+            // (Borramos el _facade.IsEquilibriumSolved = false porque el Reset de arriba ya lo hace)
+
             if (!gibbsValidation.IsValid)
             {
                 // ❌ Sistema no válido termodinámicamente
-                IsEquilibriumReady = false;
                 _currentMode = EquilibriumMode.None;
                 _currentStrategy = null;
 
-                // ✅ Opcional: Log o evento de error
-                System.Diagnostics.Debug.WriteLine(
-                    $"[Gibbs] {gibbsValidation.ErrorMessage}");
-
+                // Avisamos a los flujos para que se evalúen (ellos sabrán si pueden calcular masa/moles o no)
+                FlowsReady?.Invoke();
                 return;  // ← Retornar temprano, NO ejecutar estrategia
             }
 
-       
-
             _currentStrategy = CreateStrategy(
-                P: _facade.PressureControlled.IsDefined,
-                T: _facade.TemperatureControlled.IsDefined,
-                FV: _facade.VaporFractionControlled.IsDefined,
-                Comp: _facade.StreamCompositionControlled.IsDefined,
-                FV_defined: _facade.VaporFractionControlled.Value
-);
-            IsEquilibriumReady = _currentStrategy != null;
+                P: _facade.Pressure.IsDefined,
+                T: _facade.Temperature.IsDefined,
+                FV: _facade.VaporFraction.IsDefined,
+                H: _facade.MolarEnthalpy.IsDefined && _facade.MolarEnthalpy.Source != MethodSource.None,
+              
+                Comp: _facade.StreamComposition.IsDefined,
+                FV_defined: _facade.VaporFraction.Value);
+
             _materialStream.CurrentState = ThermodynamicState.Undefined;
             _currentStrategy?.Execute();
+
             if (_materialStream.CurrentState != ThermodynamicState.Undefined)
             {
-                _facade.State = StreamStateType.EquilibriumCalculated;
-                IsEquilibriumReady = true;
-
+                // ✅ Solo si el Flash fue un éxito, levantamos la bandera
+                _facade.IsEquilibriumSolved = true;
                 EquilibriumReady?.Invoke();
-                FlowsReady?.Invoke();
             }
+
+            FlowsReady?.Invoke();
         }
 
         /// <summary>
@@ -81,7 +83,7 @@ namespace Shared.Thermodynamics.Strategies.Equlibriums
         /// <param name="Comp">¿Composition está definido?</param>
         /// <param name="FV_defined">Valor actual de VaporFraction (usado solo si FV=true)</param>
         /// <returns>IEquilibriumStrategy o null si no hay modo válido</returns>
-        private IEquilibriumStrategy? CreateStrategy(bool P, bool T, bool FV, bool Comp, double FV_defined)
+        private IEquilibriumStrategy? CreateStrategy(bool P, bool T, bool FV,bool H,  bool Comp, double FV_defined)
         {
             // ─────────────────────────────────────────────────────────
             // 🔹 MODO PT: Se conocen P y T → se calcula VF
@@ -116,6 +118,18 @@ namespace Shared.Thermodynamics.Strategies.Equlibriums
                     _ => new TFVTwoPhaseStrategy(_facade)   // Bifásico (0 < VF < 1)
                 };
             }
+            if (P && H && Comp && !T)
+            {
+                return new PHStrategy(_facade);
+            }
+
+            //// ─────────────────────────────────────────────────────────
+            //// 🔹 MODO P-S: Se conocen Presión y Entropía (Ej: Compresión Isentrópica)
+            //// ─────────────────────────────────────────────────────────
+            //if (P && S && Comp && !T)
+            //{
+            //    return new PSStrategy(_facade);
+            //}
 
             // ─────────────────────────────────────────────────────────
             // 🔹 Sin combinación válida → no hay estrategia
@@ -124,21 +138,18 @@ namespace Shared.Thermodynamics.Strategies.Equlibriums
         }
 
 
-        public void CalculateEquilibrium()
-        {
-            if (_currentStrategy != null && IsEquilibriumReady)
-            {
-                _currentStrategy.Execute();
-            }
-        }
         /// <summary>
         /// Valida la Regla de las Fases de Gibbs para el sistema VLE actual.
         /// F = C - P + 2, donde P = 2 (líquido + vapor)
         /// Para C componentes: F = C grados de libertad permitidos.
         /// </summary>
+        /// <summary>
+        /// Valida la Regla de las Fases de Gibbs para el sistema VLE actual.
+        /// Según el Teorema de Duhem, para una mezcla de composición CONOCIDA,
+        /// siempre se requieren EXACTAMENTE 2 variables intensivas (T y P, P y FV, etc.)
+        /// </summary>
         private GibbsValidationResult ValidateGibbsPhaseRule()
         {
-            // ✅ Obtener número de componentes
             int componentCount = GetComponentCount();
 
             if (componentCount == 0)
@@ -147,31 +158,31 @@ namespace Shared.Thermodynamics.Strategies.Equlibriums
                     "No hay componentes definidos. Se requiere al menos 1 componente para equilibrio VLE.");
             }
 
-            // ✅ Calcular grados de libertad permitidos (F = C para VLE)
-            int allowedDegreesOfFreedom = componentCount;
+            // ✅ CORRECCIÓN CRÍTICA: Siempre 2 grados de libertad permitidos
+            int allowedDegreesOfFreedom = 2;
 
-            // ✅ Contar variables intensivas especificadas
+            // Contar variables intensivas especificadas (T, P, FV)
             int specifiedVariables = CountSpecifiedIntensiveVariables();
 
-            // ✅ Validar: especificadas <= permitidas
+            // Validar: especificadas <= permitidas
             if (specifiedVariables > allowedDegreesOfFreedom)
             {
                 return GibbsValidationResult.Invalid(
-                    $"Sistema SOBRE-ESPECIFICADO: {specifiedVariables} variables definidas, " +
-                    $"pero solo {allowedDegreesOfFreedom} grados de libertad permitidos " +
-                    $"para {componentCount} componente(s) en equilibrio VLE.");
+                    $"Sistema SOBRE-ESPECIFICADO: {specifiedVariables} variables definidas (Ej: T, P y FV), " +
+                    $"pero solo {allowedDegreesOfFreedom} grados de libertad son permitidos " +
+                    $"para resolver el estado termodinámico.");
             }
 
-            // ✅ Validar: se requieren al menos 2 variables para flash (ej: T+P, P+FV, T+FV)
-            if (specifiedVariables < 2)
+            // Validar: se requieren al menos 2 variables para flash
+            if (specifiedVariables < allowedDegreesOfFreedom)
             {
                 return GibbsValidationResult.Invalid(
-                    $"Sistema SUB-ESPECIFICADO: {specifiedVariables} variables definidas. " +
-                    $"Se requieren al menos 2 variables intensivas para cálculo de flash VLE.");
+                    $"Sistema SUB-ESPECIFICADO: {specifiedVariables} variable(s) definida(s). " +
+                    $"Se requieren exactamente 2 variables intensivas para cálculo de flash VLE.");
             }
 
-            // ✅ Validación de composición (si está definida)
-            if (_facade.StreamCompositionControlled.IsDefined)
+            // Validación de composición (si está definida)
+            if (_facade.StreamComposition.IsDefined)
             {
                 var compositionValidation = ValidateComposition();
                 if (!compositionValidation.IsValid)
@@ -188,7 +199,7 @@ namespace Shared.Thermodynamics.Strategies.Equlibriums
         private int GetComponentCount()
         {
             // ✅ Intentar obtener desde StreamComposition
-            var composition = _facade.StreamCompositionControlled.Value;
+            var composition = _facade.StreamComposition.Value;
 
             return composition?.Components?.Count ?? 0;
         }
@@ -200,9 +211,10 @@ namespace Shared.Thermodynamics.Strategies.Equlibriums
         {
             int count = 0;
 
-            if (_facade.TemperatureControlled.IsDefined) count++;
-            if (_facade.PressureControlled.IsDefined) count++;
-            if (_facade.VaporFractionControlled.IsDefined) count++;
+            if (_facade.Temperature.IsDefined) count++;
+            if (_facade.Pressure.IsDefined) count++;
+            if (_facade.VaporFraction.IsDefined) count++;
+            if (_facade.MolarEnthalpy.IsDefined) count++;
 
             // ✅ Composición NO cuenta aquí (se valida separadamente en ValidateComposition)
             return count;
@@ -211,16 +223,19 @@ namespace Shared.Thermodynamics.Strategies.Equlibriums
         /// <summary>
         /// Valida que la composición sume ~1.0 y todas las fracciones estén definidas.
         /// </summary>
+        /// <summary>
+        /// Valida que la composición sume ~100% y todas las fracciones estén definidas.
+        /// </summary>
         private GibbsValidationResult ValidateComposition()
         {
-            var composition = _facade.StreamCompositionControlled.Value;
+            var composition = _facade.StreamComposition.Value;
 
             if (composition == null || composition.Components == null)
             {
                 return GibbsValidationResult.Invalid("Composición es null.");
             }
 
-            // ✅ Validar suma de fracciones
+            // Validar suma de fracciones
             double sum = 0;
 
             // Determinar tipo de fracción (masa o molar)
@@ -234,12 +249,13 @@ namespace Shared.Thermodynamics.Strategies.Equlibriums
                 sum = composition.Components.Sum(c => c.MassFraction ?? 0);
             }
 
-            const double tolerance = 0.01;  // 1% de tolerancia
+            const double tolerance = 0.01;  // 0.01% de tolerancia
 
-            if (Math.Abs(sum - 100) > tolerance)
+            // ✅ CORRECCIÓN VISUAL: El mensaje ahora refleja la base 100 usada en la matemática
+            if (Math.Abs(sum - 100.0) > tolerance)
             {
                 return GibbsValidationResult.Invalid(
-                    $"Suma de fracciones = {sum:F4}, debe estar en [{1.0 - tolerance}, {1.0 + tolerance}]");
+                    $"Suma de fracciones = {sum:F4}%, debe estar exactamente en el rango [{100.0 - tolerance}%, {100.0 + tolerance}%]");
             }
 
             return GibbsValidationResult.Valid();

@@ -1,4 +1,5 @@
-﻿
+﻿@using Client.Layout.Shapes.SVGDrawings
+@using Client.Pages.UnitOperations.Splitters
 @inherits EquipmentUIBase<SplitterVisualElement>
 
 <CanvasEquipmentWrapper Element="Element"
@@ -8,29 +9,23 @@
                         OnDragStart="OnDragStart"
                         OnOpenDetails="OpenPropertiesDialogAsync">
 
-    <svg class="spl-svg" width="@Element.Width" height="@Element.Height" viewBox="0 0 @Element.Width @Element.Height">
-        <g class="spl-part">
-            @* 🚩 Triángulo que usa todo el ancho disponible *@
-            <path d="M 10, @(Element.Height / 2)
-            L @(Element.Width - 10), 10
-            L @(Element.Width - 10), @(Element.Height - 10) Z"
-                  class="spl-dynamic-fill"
-                  fill="@(Element.Facade?.StatusColor ?? "#CBD5E0")"
-                  stroke="#334155" stroke-width="1.5" stroke-linejoin="round" />
-            
-            @* Línea decorativa de la base *@
-            <line x1="@(Element.Width - 14)" y1="15"
-                  x2="@(Element.Width - 14)" y2="@(Element.Height - 15)"
-                  stroke="#334155" stroke-width="1" opacity="0.3" />
-        </g>
+    @* 1. EL DIBUJO BASE (Encapsulado y Limpio) *@
+    <SplitterSvg Width="@Element.Width"
+                 Height="@Element.Height"
+                 StatusColor="@(Element.Facade?.StatusColor ?? "#CBD5E0")"
+                 CssClass="spl-svg" />
 
+    @* 2. CAPA SUPERIOR: Puertos Dinámicos (N Salidas)
+          Usamos pointer-events: none en el svg contenedor para que no bloquee los clics del equipo,
+          y pointer-events: all en los rectángulos para que sigan siendo interactivos. *@
+    <svg width="@Element.Width" height="@Element.Height" style="position: absolute; top: 0; left: 0; pointer-events: none;">
         @foreach (var port in Element.Ports)
         {
-            @* 🚩 Rectángulos centrados en la coordenada exacta del puerto *@
             <rect x="@(port.OffsetX - 5)"
                   y="@(port.OffsetY - 5)"
                   width="10" height="10"
-                  class="spl-nozzle" />
+                  class="spl-nozzle"
+                  style="pointer-events: all;" />
         }
     </svg>
 
@@ -40,19 +35,31 @@
     protected override void OnParametersSet()
     {
         base.OnParametersSet();
-        // Disparamos la auto-generación de puertos al igual que la columna
+        // Disparamos la auto-generación de coordenadas visuales para las N salidas
         Element.RefreshDynamicPorts();
     }
 
     protected override async Task OpenPropertiesDialogAsync()
     {
-        Console.WriteLine($"[PFD-PRO] Interacting with Splitter: {Element.Facade?.Name}");
-        await Task.CompletedTask;
-    }
+        // 🚩 LLAMADA AL DIÁLOGO DEL SPLITTER
+        var parameters = new DialogParameters { ["Equipment"] = Element };
+        
+        var options = new DialogOptions
+        {
+            MaxWidth = MaxWidth.False,
+            FullWidth = false,
+            NoHeader = true,
+            CloseOnEscapeKey = true,
+            BackdropClick = true
+        };
 
-    private double GetNozzleX(Shared.ProcessFlowDiagram.EquipmentPort port)
-    {
-        // La entrada se dibuja en x=0, las salidas en x=30 (pegadas a la base plana del triángulo)
-        return port.Direction == Shared.ProcessFlowDiagram.PortDirection.Left ? 0 : 30;
+        var dialog = await DialogService.ShowAsync<SplitterDialog>("", parameters, options);
+        var result = await dialog.Result;
+
+        if (result != null && !result.Canceled)
+        {
+            // Refrescamos el componente si el usuario hizo cambios en el diálogo (ej. agregó puertos)
+            StateHasChanged();
+        }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using Shared.UnitOperations;
+using Shared.UnitOperations.ControlValves;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -7,6 +8,7 @@ namespace Shared.ProcessFlowDiagram.ControlValves
 {
     public class ControlValveVisualElement : VisualElementBase
     {
+         public override List<ToolTipLegend> GetToolTipData() => Facade.GetToolTipLegend();
         public override EquipmentType Type => EquipmentType.ControlValve;
         public override string Prefix => "CV"; // Control Valve
 

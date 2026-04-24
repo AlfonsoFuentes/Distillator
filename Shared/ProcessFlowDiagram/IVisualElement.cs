@@ -1,4 +1,4 @@
-﻿using Shared.UnitOperations;
+﻿using Shared.UnitOperations.Basiss;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -7,6 +7,7 @@ using System.Xml.Linq;
 
 namespace Shared.ProcessFlowDiagram
 {
+    public record ToolTipLegend(string Variable, string Value);
     public enum EquipmentType
     {
         [Description("None")] None,
@@ -38,13 +39,13 @@ namespace Shared.ProcessFlowDiagram
 
         // Instrumentation
         [Description("Transmitter")] Instrument,
+        [Description("Off-Page Connector")] OffPageConnector,
     }
     public enum PortType
     {
         Inlet,      // Entrada de materia
         Outlet,     // Salida de materia
-        EnergyIn,   // Entrada de energía (ej. calor al Reboiler o motor a Bomba)
-        EnergyOut   // Salida de energía (ej. calor del Condensador)
+
     }
 
     // Dirección visual para rutear las tuberías automáticamente (Orthogonal Routing)
@@ -80,9 +81,14 @@ namespace Shared.ProcessFlowDiagram
 
     public interface IVisualElement
     {
-        // Identidad y Estado de Renderizado
+        List<ToolTipLegend> GetToolTipData();
+        string StatusColor { get; }
+        string StatusText { get; }
+
+        string Name { get; set; }
         Guid Id { get; set; }
         EquipmentType Type { get; }
+        bool ShowLabel { get; set; }
         string Label { get; set; }
         bool IsLocked { get; set; }  // Para fijarlo en el lienzo y no moverlo por error
         int ZIndex { get; set; }     // Para saber quién tapa a quién (Profundidad)
@@ -106,7 +112,7 @@ namespace Shared.ProcessFlowDiagram
 
         // Nodos de Conexión y Lógica
         List<EquipmentPort> Ports { get; set; }
-        IEquipmentFacade Facade { get; set; }
+        IFacade Facade { get; set; }
         string Prefix { get; }
         int ToolbarOffsetY { get; }
         int LabelOffsetY { get; }
@@ -142,6 +148,15 @@ namespace Shared.ProcessFlowDiagram
 
     public abstract class VisualElementBase : IVisualElement
     {
+        public abstract List<ToolTipLegend> GetToolTipData();
+        public virtual bool ShowLabel { get; set; } = true;
+        public string StatusColor => Facade?.StatusColor ?? "#CBD5E0";
+        public string StatusText => Facade?.StatusText ?? "Unknown";
+        public string Name
+        {
+            get { return Facade?.Name ?? "Unknown"; }
+            set { Facade?.Name = value; }
+        }
         public abstract EquipmentType Type { get; }
         // 1. Propiedad para guardar el ángulo de rotación (0, 90, 180, 270)
         public int RotationAngle { get; set; } = 0;
@@ -189,7 +204,7 @@ namespace Shared.ProcessFlowDiagram
         public List<EquipmentPort> Ports { get; set; } = new();
 
         // Asignaremos la Facade desde afuera o en el constructor de cada clase hija
-        public IEquipmentFacade Facade { get; set; } = default!;
+        public IFacade Facade { get; set; } = default!;
 
         // Método Helper para no repetir código al crear puertos en los hijos
         protected void AddPort(string name, PortType type, double x, double y, PortDirection dir)
@@ -224,46 +239,13 @@ namespace Shared.ProcessFlowDiagram
             {
                 (PortType.Inlet, PortType.Outlet) => true,
                 (PortType.Outlet, PortType.Inlet) => true,
-                (PortType.EnergyIn, PortType.EnergyOut) => true,
-                (PortType.EnergyOut, PortType.EnergyIn) => true,
+
                 _ => false
             };
 
             return isCompatible;
         }
-        public virtual bool CanConnect2(string myPortName, IVisualElement targetElement, string targetPortName)
-        {
-            var myPort = Ports.FirstOrDefault(p => p.Name == myPortName);
-            var targetPort = targetElement.Ports.FirstOrDefault(p => p.Name == targetPortName);
 
-            // 1. Filtro de Existencia
-            if (myPort == null || targetPort == null) return false;
-
-            // 2. Filtro de Disponibilidad (Regla de Ocupación)
-            if (myPort.ConnectedElementId != null || targetPort.ConnectedElementId != null) return false;
-
-            // 3. Filtro de Naturaleza (Equipo <-> Corriente)
-            bool iAmStream = this.Type == EquipmentType.MaterialStream || this.Type == EquipmentType.EnergyStream;
-            bool targetIsStream = targetElement.Type == EquipmentType.MaterialStream || targetElement.Type == EquipmentType.EnergyStream;
-
-            if (iAmStream == targetIsStream) return false; // Si ambos son iguales (Stream-Stream o Equipo-Equipo), error.
-
-            // 4. Filtro de Polaridad (Salida -> Entrada o viceversa)
-            // Regla: Inlet (0) solo conecta con Outlet (1). EnergyIn (2) con EnergyOut (3).
-            // Un truco matemático: Si sumas los tipos compatibles en tu Enum (Inlet=0 + Outlet=1 = 1) 
-            // o (EnergyIn=2 + EnergyOut=3 = 5), puedes validarlo, pero es más claro así:
-
-            bool isCompatible = (myPort.Type, targetPort.Type) switch
-            {
-                (PortType.Inlet, PortType.Outlet) => true,
-                (PortType.Outlet, PortType.Inlet) => true,
-                (PortType.EnergyIn, PortType.EnergyOut) => true,
-                (PortType.EnergyOut, PortType.EnergyIn) => true,
-                _ => false
-            };
-
-            return isCompatible;
-        }
 
         public bool Connect(string myPortName, IVisualElement targetElement, string targetPortName)
         {
@@ -311,80 +293,7 @@ namespace Shared.ProcessFlowDiagram
             var (offsetX, offsetY, direction) = GetTransformedPort(portName);
             return new AbsoluteCoordinates(X + offsetX, Y + offsetY, direction);
         }
-        public AbsoluteCoordinates GetAbsolutePortCoordinates2(string portName)
-        {
-            var port = Ports.FirstOrDefault(p => p.Name == portName);
-            if (port == null) return new AbsoluteCoordinates(X, Y, PortDirection.Top);
 
-            double relX = port.OffsetX;
-            double relY = port.OffsetY;
-            PortDirection dir = port.Direction;
-
-            // ─────────────────────────────────────────────────────────
-            // 1. Aplicar Flips (Reflejan sobre el centro, lógica correcta)
-            // ─────────────────────────────────────────────────────────
-            if (IsFlippedHorizontal)
-            {
-                relX = Width - relX;
-                dir = dir switch
-                {
-                    PortDirection.Left => PortDirection.Right,
-                    PortDirection.Right => PortDirection.Left,
-                    _ => dir
-                };
-            }
-
-            if (IsFlippedVertical)
-            {
-                relY = Height - relY;
-                dir = dir switch
-                {
-                    PortDirection.Top => PortDirection.Bottom,
-                    PortDirection.Bottom => PortDirection.Top,
-                    _ => dir
-                };
-            }
-
-            // ─────────────────────────────────────────────────────────
-            // 2. Rotar alrededor del CENTRO (Corregido)
-            // CSS usa transform-origin: center center
-            // ─────────────────────────────────────────────────────────
-            double centerX = Width / 2.0;
-            double centerY = Height / 2.0;
-
-            // Offset relativo al centro
-            double dx = relX - centerX;
-            double dy = relY - centerY;
-
-            if (RotationAngle == 90)
-            {
-                // Rotación 90° CW: (dx, dy) → (dy, -dx)
-                // Nuevo centro local: (Height/2, Width/2)
-                relX = centerY + dy;
-                relY = centerX - dx;
-                dir = RotateDirection(dir, 1);
-            }
-            else if (RotationAngle == 180)
-            {
-                // Rotación 180°: (dx, dy) → (-dx, -dy)
-                relX = centerX - dx;
-                relY = centerY - dy;
-                dir = RotateDirection(dir, 2);
-            }
-            else if (RotationAngle == 270)
-            {
-                // Rotación 270° CW: (dx, dy) → (-dy, dx)
-                // Nuevo centro local: (Height/2, Width/2)
-                relX = centerY - dy;
-                relY = centerX + dx;
-                dir = RotateDirection(dir, 3);
-            }
-
-            // ─────────────────────────────────────────────────────────
-            // 3. Retornar coordenadas absolutas
-            // ─────────────────────────────────────────────────────────
-            return new AbsoluteCoordinates(X + relX, Y + relY, dir);
-        }
         // Obligamos a que cada equipo defina su prefijo (ej. "P" para bombas, "S" para corrientes)
         public abstract string Prefix { get; }
 
@@ -407,7 +316,7 @@ namespace Shared.ProcessFlowDiagram
 
             if (steps == 0) return current;
 
-            var result= steps switch
+            var result = steps switch
             {
                 1 => current switch
                 {
@@ -439,12 +348,7 @@ namespace Shared.ProcessFlowDiagram
         }
 
         // Método auxiliar para que la flecha de la tubería sepa hacia dónde salir
-        private PortDirection RotateDirection2(PortDirection current, int steps)
-        {
-            // Asumiendo que PortDirection es: Top=0, Right=1, Bottom=2, Left=3
-            int dirValue = (int)current;
-            return (PortDirection)((dirValue + steps) % 4);
-        }
+
         /// <summary>
         /// ÚNICA fuente de verdad para la posición y dirección transformada de un puerto.
         /// Retorna offset local transformado (relativo al top-left) y dirección absoluta.
@@ -550,27 +454,6 @@ namespace Shared.ProcessFlowDiagram
 
             return (finalX, finalY, nx, ny);
         }
-        //public (double X, double Y) GetCanvasPoint(string portName)
-        //{
-        //    var (offsetX, offsetY, _) = GetTransformedPort(portName);
-
-        //    double cx = Width / 2.0;
-        //    double cy = Height / 2.0;
-
-        //    // Vector desde el centro
-        //    double vx = offsetX - cx;
-        //    double vy = offsetY - cy;
-
-        //    double length = Math.Sqrt(vx * vx + vy * vy);
-        //    double nx = length > 0 ? vx / length : 0;
-        //    double ny = length > 0 ? vy / length : -1;
-
-        //    double pushDistance = 15;
-        //    double finalX = offsetX + (nx * pushDistance);
-        //    double finalY = offsetY + (ny * pushDistance);
-
-        //    return (finalX, finalY);
-        //}
 
     }
 }

@@ -1,0 +1,45 @@
+﻿@using Client.Layout.Shapes.SVGDrawings
+@using Client.Pages.UnitOperations.DialogBase
+@using Shared.UnitOperations.ControlValves
+
+<EquipmentBaseDialog Equipment="Equipment">
+    
+    <MainSlot>
+        <div class="cv-canvas-layout">
+            
+            @* 1. PUERTO DE ENTRADA (IZQUIERDA) *@
+            <div class="port-selector inlet-pos">
+                <EquipmentPortConnector Port='Equipment.Ports.First(p => p.Name == "Inlet")' ParentEquipment="Equipment" />
+            </div>
+
+            @* 2. PUERTO DE SALIDA (DERECHA) *@
+            <div class="port-selector outlet-pos">
+                <EquipmentPortConnector Port='Equipment.Ports.First(p => p.Name == "Outlet")' ParentEquipment="Equipment" />
+            </div>
+
+            @* 3. DIBUJO CENTRAL *@
+            <div class="equipment-drawing-zone">
+                <ControlValveSvg Width="120" Height="160" StatusColor="@(Equipment.Facade?.StatusColor ?? "#CBD5E0")" CssClass="cv-svg-dialog" />
+            </div>
+
+        </div>
+    </MainSlot>
+
+    <PropertiesSlot>
+        @if (Equipment.Facade is ControlValveSimulationFacade cvFacade)
+        {
+            <div class="property-row">
+                <ProcessVariableRow Label="Delta P" @bind-Variable="cvFacade.DeltaPressure" />
+            </div>
+
+            <div class="property-row">
+                <SimpleVariableRow Label="Valve Cv" @bind-Variable="cvFacade.ValveCv" MinValue="0" MaxValue="10000" />
+            </div>
+        }
+    </PropertiesSlot>
+
+</EquipmentBaseDialog>
+
+@code {
+    [Parameter] public ControlValveVisualElement Equipment { get; set; } = default!;
+}
