@@ -1,0 +1,55 @@
+﻿@using Client.Layout.Shapes.SVGDrawings
+@using Client.Pages.UnitOperations.DialogBase
+@using Shared.UnitOperations.Helpers
+
+<EquipmentBaseDialog Equipment="Equipment">
+    <MainSlot>
+        <div class="phe-canvas-layout">
+
+            @* 1. ZONA IZQUIERDA: Entradas (Hot In arriba, Cold In abajo) *@
+            <div class="side-zone left-zone">
+                <div class="static-port-container top-align">
+                    <span class="sub-label hot-label">Hot Inlet</span>
+                    <EquipmentPortConnector Port="@Equipment.Ports.First(p => p.Name == "HotIn")" ParentEquipment="Equipment" />
+                </div>
+
+                <div class="static-port-container bottom-align">
+                    <span class="sub-label cold-label">Cold Inlet</span>
+                    <EquipmentPortConnector Port="@Equipment.Ports.First(p => p.Name == "ColdIn")" ParentEquipment="Equipment" />
+                </div>
+            </div>
+
+            @* 2. ZONA CENTRAL: Dibujo del equipo *@
+            <div class="center-zone">
+                <div class="port-label">Plate Pack</div>
+
+                <div class="equipment-drawing-zone">
+                    <PlateExchangerSvg Width="80"
+                                       Height="80"
+                                       StatusColor="@(Equipment.Facade?.StatusColor ?? "#CBD5E0")"
+                                       ElementId="@Equipment.Id.ToString()" />
+                </div>
+            </div>
+
+            @* 3. ZONA DERECHA: Salidas (Cold Out arriba, Hot Out abajo) *@
+            <div class="side-zone right-zone">
+                <div class="static-port-container top-align">
+                    <EquipmentPortConnector Port="@Equipment.Ports.First(p => p.Name == "ColdOut")" ParentEquipment="Equipment" />
+                    <span class="sub-label cold-label">Cold Outlet</span>
+                </div>
+
+                <div class="static-port-container bottom-align">
+                    <EquipmentPortConnector Port="@Equipment.Ports.First(p => p.Name == "HotOut")" ParentEquipment="Equipment" />
+                    <span class="sub-label hot-label">Hot Outlet</span>
+                </div>
+            </div>
+
+        </div>
+    </MainSlot>
+
+    <PropertiesSlot></PropertiesSlot>
+</EquipmentBaseDialog>
+
+@code {
+    [Parameter] public Shared.ProcessFlowDiagram.HeatExchangers.PlateExchangerVisualElement Equipment { get; set; } = default!;
+}

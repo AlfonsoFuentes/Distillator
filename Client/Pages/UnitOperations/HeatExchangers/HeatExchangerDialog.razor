@@ -1,0 +1,62 @@
+﻿@using Client.Layout.Shapes.SVGDrawings
+@using Client.Pages.UnitOperations.DialogBase
+@using Shared.UnitOperations.Helpers
+
+<EquipmentBaseDialog Equipment="Equipment">
+    <MainSlot>
+        <div class="hx-canvas-layout">
+
+            @* 1. ZONA IZQUIERDA: Lado de los Tubos *@
+            <div class="tube-side-zone">
+                <div class="port-label">Tube Side</div>
+                <div class="static-port-container">
+                    <EquipmentPortConnector Port="@Equipment.Ports.First(p => p.Name == "TubeIn")" ParentEquipment="Equipment" />
+                    <span class="sub-label">Inlet</span>
+                </div>
+                <div class="static-port-container" style="margin-top: 30px;">
+                    <EquipmentPortConnector Port="@Equipment.Ports.First(p => p.Name == "TubeOut")" ParentEquipment="Equipment" />
+                    <span class="sub-label">Outlet</span>
+                </div>
+            </div>
+
+            @* 2. ZONA DERECHA/CENTRO: Lado de la Coraza y Dibujo *@
+            <div class="shell-side-zone">
+
+                @* Puertos Superiores (Shell In y Vapor Vent) *@
+                <div class="top-ports">
+                    <div class="static-port-container">
+                        <span class="sub-label">Shell In</span>
+                        <EquipmentPortConnector Port="@Equipment.Ports.First(p => p.Name == "ShellIn")" ParentEquipment="Equipment" />
+                    </div>
+                    <div class="static-port-container">
+                        <span class="sub-label">Vapor Vent</span>
+                        <EquipmentPortConnector Port="@Equipment.Ports.First(p => p.Name == "VaporVent")" ParentEquipment="Equipment" />
+                    </div>
+                </div>
+
+                @* Dibujo del Intercambiador *@
+                <div class="equipment-drawing-zone">
+                    <HeatExchangerSvg Width="200"
+                                      Height="75"
+                                      StatusColor="@(Equipment.Facade?.StatusColor ?? "#CBD5E0")"
+                                      ElementId="@Equipment.Id.ToString()" />
+                </div>
+
+                @* Puerto Inferior (Condensate Out) *@
+                <div class="bottom-ports">
+                    <div class="static-port-container">
+                        <EquipmentPortConnector Port="@Equipment.Ports.First(p => p.Name == "CondensateOut")" ParentEquipment="Equipment" />
+                        <span class="sub-label">Condensate Out</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </MainSlot>
+
+    <PropertiesSlot></PropertiesSlot>
+</EquipmentBaseDialog>
+
+@code {
+    [Parameter] public Shared.ProcessFlowDiagram.HeatExchangers.HeatExchangerVisualElement Equipment { get; set; } = default!;
+}

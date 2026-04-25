@@ -1,4 +1,7 @@
-﻿@inherits EquipmentUIBase<FlashTankVisualElement>
+﻿@using Client.Layout.Shapes.SVGDrawings
+@using Client.Pages.UnitOperations.Vessels
+@using Shared.ProcessFlowDiagram.Vessels
+@inherits EquipmentUIBase<FlashTankVisualElement>
 
 <CanvasEquipmentWrapper Element="Element"
                         IsSelected="IsSelected"
@@ -7,74 +10,51 @@
                         OnDragStart="OnDragStart"
                         OnOpenDetails="OpenPropertiesDialogAsync">
 
-    <svg width="@Element.Width" height="@Element.Height" viewBox="0 0 @Element.Width @Element.Height" class="flash-svg">
-        <defs>
-            @* 1. Degradado Metálico Industrial (Rotado para equipo horizontal) *@
-            <linearGradient id="flashMetal-@Element.Id" x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" style="stop-color:#94A3B8" /> @* Sombra superior *@
-                <stop offset="30%" style="stop-color:#F1F5F9" /> @* Brillo central *@
-                <stop offset="100%" style="stop-color:#64748B" /> @* Sombra inferior *@
-            </linearGradient>
+    @* 1. DIBUJO BASE *@
+    <FlashTankSvg Width="@Element.Width"
+                  Height="@Element.Height"
+                  StatusColor="@(Element.Facade?.StatusColor ?? "#CBD5E0")"
+                  ElementId="@Element.Id.ToString()"
+                  CssClass="flash-svg" />
 
-            @* 2. Degradado Líquido (El azul exacto del Vessel) *@
-            <linearGradient id="liquidGrad-@Element.Id" x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" style="stop-color:#60A5FA; stop-opacity:0.6" />
-                <stop offset="100%" style="stop-color:#2563EB; stop-opacity:0.8" />
-            </linearGradient>
-
-            @* 3. Máscara para que el líquido respete la forma de cápsula *@
-            <clipPath id="clip-@Element.Id">
-                <path d="@GetCapsulePath()" />
-            </clipPath>
-        </defs>
-
-        @* A. Cuerpo Base Metálico *@
-        <path d="@GetCapsulePath()"
-              fill="url(#flashMetal-@Element.Id)"
-              stroke="#334155"
-              stroke-width="2" />
-
-        @* B. Líquido (Solo en la parte inferior, con el azul correcto) *@
-        @{
-            double levelH = Element.Height * 0.45;
-            double topY = Element.Height - levelH;
-        }
-        <rect x="0" y="@topY" width="@Element.Width" height="@levelH"
-              fill="url(#liquidGrad-@Element.Id)"
-              clip-path="url(#clip-@Element.Id)" />
-
-        @* C. Capa de Brillo Superior (Sutil, para dar volumen extra) *@
-        <path d="@GetCapsulePath()"
-              fill="none"
-              stroke="#334155"
-              stroke-width="1.5"
-              style="pointer-events:none; opacity: 0.3;" />
-
-        @* D. Boquillas (Unificadas con ControlValve y Vessel) *@
+    @* 2. BOQUILLAS INTERACTIVAS *@
+    <svg width="@Element.Width" height="@Element.Height" style="position: absolute; top: 0; left: 0; pointer-events: none;">
         @foreach (var port in Element.Ports)
         {
-            <rect x="@(GetNozzleX(port))" y="@(GetNozzleY(port))"
+            <rect x="@GetNozzleX(port)" y="@GetNozzleY(port)"
                   width="10" height="10"
-                  class="flash-nozzle" />
+                  class="flash-nozzle"
+                  style="pointer-events: all;" />
         }
     </svg>
 </CanvasEquipmentWrapper>
 
 @code {
-    private string GetCapsulePath()
+    protected override void OnParametersSet()
     {
-        double w = Element.Width; double h = Element.Height; double r = h / 2;
-        // Path corregido para que la cápsula horizontal sea perfecta
-        return $"M {r},2 L {w - r},2 A {r - 2},{r - 2} 0 0 1 {w - r},{h - 2} L {r},{h - 2} A {r - 2},{r - 2} 0 0 1 {r},2 Z";
+        base.OnParametersSet();
+        Element.RefreshDynamicPorts();
     }
 
-    private double GetNozzleX(EquipmentPort p) =>
-        p.Direction == PortDirection.Left ? 0 :
-        (p.Direction == PortDirection.Right ? Element.Width - 10 : p.OffsetX - 5);
+    private double GetNozzleX(Shared.ProcessFlowDiagram.EquipmentPort p) =>
+        p.Direction == Shared.ProcessFlowDiagram.PortDirection.Left ? 0 :
+        (p.Direction == Shared.ProcessFlowDiagram.PortDirection.Right ? Element.Width - 10 : p.OffsetX - 5);
 
-    private double GetNozzleY(EquipmentPort p) =>
-        p.Direction == PortDirection.Top ? 0 :
-        (p.Direction == PortDirection.Bottom ? Element.Height - 10 : p.OffsetY - 5);
+    private double GetNozzleY(Shared.ProcessFlowDiagram.EquipmentPort p) =>
+        p.Direction == Shared.ProcessFlowDiagram.PortDirection.Top ? 0 :
+        (p.Direction == Shared.ProcessFlowDiagram.PortDirection.Bottom ? Element.Height - 10 : p.OffsetY - 5);
 
-    protected override async Task OpenPropertiesDialogAsync() => await Task.CompletedTask;
+    protected override async Task OpenPropertiesDialogAsync()
+    {
+        var parameters = new DialogParameters { ["Equipment"] = Element };
+        var options = new DialogOptions { MaxWidth = MaxWidth.False, FullWidth = false, NoHeader = true, CloseOnEscapeKey = true, BackdropClick = true };
+
+        var dialog = await DialogService.ShowAsync<FlashTankDialog>("", parameters, options);
+        var result = await dialog.Result;
+
+        if (result != null && !result.Canceled)
+        {
+            StateHasChanged();
+        }
+    }
 }

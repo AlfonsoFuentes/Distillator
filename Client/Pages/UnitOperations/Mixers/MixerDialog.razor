@@ -1,0 +1,57 @@
+﻿@using Client.Layout.Shapes.SVGDrawings
+@using Client.Pages.UnitOperations.DialogBase
+
+
+<EquipmentBaseDialog Equipment="Equipment">
+    <MainSlot>
+        <div class="mixer-canvas-layout">
+
+            @* 1. FEEDS (Múltiples entradas dinámicas) *@
+            <div class="port-zone inlet-zone">
+                <DynamicPortList Title="Feeds (Inlets)"
+                                 ParentEquipment="Equipment"
+                                 Ports="@(Equipment.Ports.Where(p => p.Type == PortType.Inlet))"
+                                 OnPortConnectionChanged="HandleTopologyChanged">
+                    @* No inyectamos ItemContent porque el Mixer no requiere
+                       fracciones de usuario ni variables por cada entrada. *@
+                </DynamicPortList>
+            </div>
+
+            @* 2. SVG (El mezclador central) *@
+            <div class="equipment-drawing-zone">
+                <MixerSvg Width="180" Height="180" StatusColor="@(Equipment.Facade?.StatusColor ?? "#CBD5E0")" />
+            </div>
+
+            @* 3. PRODUCT (Una sola salida fija) *@
+            <div class="port-zone outlet-zone">
+                <div class="port-list-title">Product (Outlet)</div>
+                <EquipmentPortConnector Port="@Equipment.Ports.First(p => p.Name == "Outlet")"
+                                        ParentEquipment="Equipment"
+                                        OnConnectionChanged="HandleTopologyChanged" />
+            </div>
+        </div>
+    </MainSlot>
+
+    @* PropertiesSlot queda vacío. El Mixer se rige puramente por termodinámica *@
+    <PropertiesSlot></PropertiesSlot>
+</EquipmentBaseDialog>
+
+@code {
+    [Parameter] public MixerVisualElement Equipment { get; set; } = default!;
+
+    // 🚩 Nos suscribimos a los cambios de la UI para refrescar la topología dinámica
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        Equipment.RefreshDynamicPorts();
+    }
+
+    private void HandleTopologyChanged()
+    {
+        // 1. Forzamos al Mixer a borrar entradas vacías o crear una nueva
+        Equipment.RefreshDynamicPorts();
+
+        // 2. Repintamos para mostrar/ocultar el nuevo puerto
+        StateHasChanged();
+    }
+}

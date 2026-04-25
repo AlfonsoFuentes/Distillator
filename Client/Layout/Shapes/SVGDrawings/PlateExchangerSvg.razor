@@ -1,0 +1,44 @@
+﻿@code {
+    [Parameter] public double Width { get; set; } = 80;
+    [Parameter] public double Height { get; set; } = 80;
+    [Parameter] public string StatusColor { get; set; } = "#CBD5E0";
+    [Parameter] public string ElementId { get; set; } = Guid.NewGuid().ToString();
+    [Parameter] public string CssClass { get; set; } = "";
+}
+
+<svg class="@CssClass" width="@Width" height="@Height" viewBox="0 0 80 80" style="display: block; overflow: visible; filter: drop-shadow(0px 4px 5px rgba(0, 0, 0, 0.2));">
+    <defs>
+        <linearGradient id="pheReflex-@ElementId" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" style="stop-color:#ffffff;stop-opacity:0.6" />
+            <stop offset="30%" style="stop-color:#ffffff;stop-opacity:0.1" />
+            <stop offset="100%" style="stop-color:#000000;stop-opacity:0.2" />
+        </linearGradient>
+    </defs>
+
+    @* 1. CUERPO PRINCIPAL (El bloque de placas) *@
+    <g style="pointer-events: none;">
+        <rect x="10" y="5" width="60" height="70" rx="4"
+              fill="@StatusColor"
+              style="transition: fill 0.5s cubic-bezier(0.4, 0, 0.2, 1);" />
+
+        <rect x="10" y="5" width="60" height="70" rx="4"
+              fill="url(#pheReflex-@ElementId)"
+              stroke="#334155" stroke-width="1.5" />
+    </g>
+
+    @* 2. DETALLES INTERNOS (Placas y Flujo) *@
+    <g style="pointer-events: none; stroke: #334155;">
+        @* Rayas verticales simulando el paquete de placas *@
+        <g style="stroke-width: 1px; opacity: 0.4;">
+            <line x1="25" y1="5" x2="25" y2="75" />
+            <line x1="40" y1="5" x2="40" y2="75" />
+            <line x1="55" y1="5" x2="55" y2="75" />
+        </g>
+
+        @* La "X" de flujo de calor: de esquinas superiores a inferiores *@
+        <g style="stroke-width: 1.5px; stroke-dasharray: 4, 3; opacity: 0.6;">
+            <line x1="15" y1="20" x2="65" y2="60" /> @* Hot In -> Hot Out *@
+            <line x1="15" y1="60" x2="65" y2="20" /> @* Cold In -> Cold Out *@
+        </g>
+    </g>
+</svg>

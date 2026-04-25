@@ -1,0 +1,62 @@
+﻿@using Client.Layout.Shapes.SVGDrawings
+@using Client.Pages.UnitOperations.DialogBase
+@using Shared.UnitOperations.Helpers
+
+<EquipmentBaseDialog Equipment="Equipment">
+    <MainSlot>
+        <div class="vessel-canvas-layout">
+
+            @* 1. ZONA IZQUIERDA: Entradas (Inlets) *@
+            <div class="port-zone left-zone">
+                <DynamicPortList Title="Feeds (Inlets)"
+                                 ParentEquipment="Equipment"
+                                 Ports="@(Equipment.Ports.Where(p => p.Name.StartsWith("Inlet")))"
+                                 OnPortConnectionChanged="HandleTopologyChanged" />
+            </div>
+
+            @* 2. ZONA CENTRAL: Tanque + Salida de Fondo *@
+            <div class="center-zone">
+                <div class="equipment-drawing-zone">
+                    <VesselSvg Width="@Equipment.Width"
+                               Height="@Equipment.Height"
+                               StatusColor="@(Equipment.Facade?.StatusColor ?? "#CBD5E0")"
+                               ElementId="@Equipment.Id.ToString()" />
+                </div>
+
+                <div class="static-port-container bottom-port">
+                    <EquipmentPortConnector Port="@Equipment.Ports.First(p => p.Name == "Outlet_1")"
+                                            ParentEquipment="Equipment"
+                                            OnConnectionChanged="HandleTopologyChanged" />
+                    <div class="port-label">Main Bottoms</div>
+                </div>
+            </div>
+
+            @* 3. ZONA DERECHA: Salidas Laterales (Outlet_2 en adelante) *@
+            <div class="port-zone right-zone">
+                <DynamicPortList Title="Side Draws"
+                                 ParentEquipment="Equipment"
+                                 Ports="@(Equipment.Ports.Where(p => p.Name.StartsWith("Outlet") && p.Name != "Outlet_1"))"
+                                 OnPortConnectionChanged="HandleTopologyChanged" />
+            </div>
+
+        </div>
+    </MainSlot>
+
+    <PropertiesSlot></PropertiesSlot>
+</EquipmentBaseDialog>
+
+@code {
+    [Parameter] public Shared.ProcessFlowDiagram.Vessels.VesselVisualElement Equipment { get; set; } = default!;
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        Equipment.RefreshDynamicPorts();
+    }
+
+    private void HandleTopologyChanged()
+    {
+        Equipment.RefreshDynamicPorts();
+        StateHasChanged();
+    }
+}

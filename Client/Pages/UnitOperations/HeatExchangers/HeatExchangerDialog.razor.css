@@ -1,0 +1,73 @@
+﻿.hx-canvas-layout {
+    display: flex;
+    justify-content: center;
+    align-items: stretch;
+    width: 100%;
+    min-height: 350px;
+    background-color: #f8fafc;
+    border-radius: 4px;
+    padding: 20px 40px;
+    gap: 40px;
+}
+
+/* Zona de Tubos (Izquierda) */
+.tube-side-zone {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    border-right: 2px dashed #cbd5e0;
+    padding-right: 40px;
+}
+
+/* Zona de Coraza (Derecha con SVG) */
+.shell-side-zone {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: stretch;
+}
+
+.top-ports {
+    display: flex;
+    justify-content: space-between;
+    padding: 0 15px; /* Alineado al SVG */
+    margin-bottom: 10px;
+}
+
+.bottom-ports {
+    display: flex;
+    justify-content: flex-end; /* Alineado a la derecha, bajo el Vent */
+    padding-right: 15px;
+    margin-top: 10px;
+}
+
+.equipment-drawing-zone {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px 0;
+}
+
+.static-port-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+}
+
+.port-label {
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #475569;
+    margin-bottom: 20px;
+    letter-spacing: 0.05em;
+}
+
+.sub-label {
+    font-size: 0.65rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #64748b;
+}

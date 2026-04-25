@@ -1,0 +1,54 @@
+﻿@code {
+    [Parameter] public double Width { get; set; } = 80;
+    [Parameter] public double Height { get; set; } = 120;
+    [Parameter] public string StatusColor { get; set; } = "#CBD5E0";
+    [Parameter] public string ElementId { get; set; } = Guid.NewGuid().ToString();
+    [Parameter] public string CssClass { get; set; } = "";
+
+    private string GetTankPath()
+    {
+        double w = Width;
+        double h = Height;
+        return $"M 10,{h} L {w - 10},{h} L {w - 10},20 Q {w / 2},0 10,20 Z";
+    }
+}
+
+<svg class="@CssClass" width="@Width" height="@Height" viewBox="0 0 @Width @Height" style="display: block; overflow: visible; filter: drop-shadow(0px 4px 6px rgba(0, 0, 0, 0.25));">
+    <defs>
+        <linearGradient id="vesselReflex-@ElementId" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" style="stop-color:#ffffff;stop-opacity:0.6" />
+            <stop offset="30%" style="stop-color:#ffffff;stop-opacity:0.1" />
+            <stop offset="100%" style="stop-color:#000000;stop-opacity:0.2" />
+        </linearGradient>
+
+        <linearGradient id="liquidGrad-@ElementId" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" style="stop-color:#93C5FD; stop-opacity:0.85" />
+            <stop offset="100%" style="stop-color:#3B82F6; stop-opacity:0.95" />
+        </linearGradient>
+
+        <clipPath id="tankClip-@ElementId">
+            <path d="@GetTankPath()" />
+        </clipPath>
+    </defs>
+
+    @* 1. CAPA DE FONDO *@
+    <path d="@GetTankPath()"
+          fill="@StatusColor"
+          style="transition: fill 0.5s cubic-bezier(0.4, 0, 0.2, 1);" />
+
+    @* 2. CAPA DE LÍQUIDO *@
+    @{
+        double levelH = (Height - 20) * 0.5;
+        double topY = Height - levelH;
+    }
+    <rect x="0" y="@topY" width="@Width" height="@levelH"
+          fill="url(#liquidGrad-@ElementId)"
+          clip-path="url(#tankClip-@ElementId)" />
+
+    @* 3. CAPA DE CRISTAL/BRILLO *@
+    <path d="@GetTankPath()"
+          fill="url(#vesselReflex-@ElementId)"
+          stroke="#334155"
+          stroke-width="1.5px"
+          style="pointer-events: none;" />
+</svg>

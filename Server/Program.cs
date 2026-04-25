@@ -9,7 +9,7 @@ builder.AddServerServices();
 UnitManager.RegisterByAssembly(typeof(SIUnitTypes).Assembly);
 
 var app = builder.Build();
-await app.SeedDatabaseAsync();
+//await app.SeedDatabaseAsync();
 app.UseApp();
 
 

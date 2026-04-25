@@ -1,0 +1,57 @@
+﻿@using Client.Layout.Shapes.SVGDrawings
+@using Client.Pages.UnitOperations.DialogBase
+@using Shared.UnitOperations.Helpers
+
+<EquipmentBaseDialog Equipment="Equipment">
+    <MainSlot>
+        <div class="reb-canvas-layout">
+
+            @* 1. ZONA IZQUIERDA: Salida a la Torre *@
+            <div class="side-zone left-zone">
+                <div class="static-port-container top-align">
+                    <span class="sub-label">Vapor/Mix Out</span>
+                    <EquipmentPortConnector Port="@Equipment.Ports.First(p => p.Name == "TubeOut")" ParentEquipment="Equipment" />
+                </div>
+            </div>
+
+            @* 2. ZONA CENTRAL: SVG + Alimentación desde la Torre *@
+            <div class="center-zone">
+                <div class="port-label">Process Side</div>
+
+                <div class="equipment-drawing-zone">
+                    <ReboilerSvg Width="60"
+                                 Height="140"
+                                 StatusColor="@(Equipment.Facade?.StatusColor ?? "#CBD5E0")"
+                                 ElementId="@Equipment.Id.ToString()" />
+                </div>
+
+                <div class="static-port-container bottom-align">
+                    <EquipmentPortConnector Port="@Equipment.Ports.First(p => p.Name == "TubeIn")" ParentEquipment="Equipment" />
+                    <span class="sub-label">Liquid Feed</span>
+                </div>
+            </div>
+
+            @* 3. ZONA DERECHA: Vapor de Calentamiento *@
+            <div class="side-zone right-zone">
+                <div class="port-label">Utility Side</div>
+
+                <div class="static-port-container top-align">
+                    <EquipmentPortConnector Port="@Equipment.Ports.First(p => p.Name == "ShellIn")" ParentEquipment="Equipment" />
+                    <span class="sub-label">Steam In</span>
+                </div>
+
+                <div class="static-port-container bottom-align">
+                    <EquipmentPortConnector Port="@Equipment.Ports.First(p => p.Name == "CondensateOut")" ParentEquipment="Equipment" />
+                    <span class="sub-label">Condensate Out</span>
+                </div>
+            </div>
+
+        </div>
+    </MainSlot>
+
+    <PropertiesSlot></PropertiesSlot>
+</EquipmentBaseDialog>
+
+@code {
+    [Parameter] public Shared.ProcessFlowDiagram.HeatExchangers.ReboilerVisualElement Equipment { get; set; } = default!;
+}

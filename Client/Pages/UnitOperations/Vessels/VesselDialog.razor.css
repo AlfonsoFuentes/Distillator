@@ -1,0 +1,54 @@
+﻿.vessel-canvas-layout {
+    display: flex;
+    justify-content: space-between;
+    align-items: stretch;
+    width: 100%;
+    min-height: 400px;
+    background-color: #f8fafc;
+    border-radius: 4px;
+    padding: 20px;
+    overflow-x: auto;
+}
+
+.port-zone {
+    flex: 1 1 200px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.left-zone {
+    padding-right: 20px;
+}
+
+.right-zone {
+    padding-left: 20px;
+    align-items: flex-end;
+}
+
+.center-zone {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end; /* Para que el tanque y el Bottom descansen en la base */
+}
+
+.equipment-drawing-zone {
+    margin-bottom: 10px;
+}
+
+.static-port-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.port-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #64748b;
+    letter-spacing: 0.05em;
+}

@@ -1,0 +1,70 @@
+﻿.reb-canvas-layout {
+    display: flex;
+    justify-content: space-between;
+    align-items: stretch;
+    width: 100%;
+    min-height: 380px;
+    background-color: #f8fafc;
+    border-radius: 4px;
+    padding: 30px;
+}
+
+/* Zonas laterales (Izquierda y Derecha) */
+.side-zone {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding-top: 45px; /* Alineado con la boquilla superior */
+    padding-bottom: 25px; /* Alineado con la boquilla inferior */
+}
+
+.left-zone {
+    align-items: flex-end;
+    padding-right: 15px;
+    border-right: 2px dashed #e2e8f0;
+}
+
+.right-zone {
+    align-items: flex-start;
+    padding-left: 15px;
+    border-left: 2px dashed #e2e8f0;
+}
+
+/* Zona Central (Destilación / SVG) */
+.center-zone {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0 30px;
+}
+
+.equipment-drawing-zone {
+    margin: 15px 0;
+}
+
+.static-port-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+}
+
+/* Etiquetas */
+.port-label {
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #475569;
+    letter-spacing: 0.05em;
+    margin-bottom: 10px;
+}
+
+.sub-label {
+    font-size: 0.65rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #64748b;
+    text-align: center;
+}

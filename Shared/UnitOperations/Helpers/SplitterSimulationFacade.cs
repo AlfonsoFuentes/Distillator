@@ -14,6 +14,7 @@ namespace Shared.UnitOperations.Helpers
     public enum SplitterStateType { Created, PartiallyConnected, ReadyToCalculate, Solved }
 
 
+
     public class SplitterSimulationFacade : EquipmentFacade
     {
         // ==============================================================================
@@ -87,9 +88,9 @@ namespace Shared.UnitOperations.Helpers
 
                 if (!SplitFractions.ContainsKey(portName))
                 {
-                    var newFraction = new ControlledVariable<double>(50.0);
+                    // 🚩 NACEN VACÍAS: Sin valor por defecto para permitir grados de libertad
+                    var newFraction = new ControlledVariable<double>();
                     newFraction.OnExecuteSolver += EvaluateSolverTrigger;
-                    // 🚩 PATERNIDAD: Le decimos a la variable que pertenece a este Splitter
                     newFraction.AddCalculatedVariable = this.AddCalculatedVariable;
                     SplitFractions[portName] = newFraction;
                 }
@@ -114,9 +115,9 @@ namespace Shared.UnitOperations.Helpers
             {
                 if (!SplitFractions.ContainsKey(name))
                 {
+                    // 🚩 NACEN VACÍAS
                     var newFraction = new ControlledVariable<double>();
                     newFraction.OnExecuteSolver += EvaluateSolverTrigger;
-                    // 🚩 PATERNIDAD: Le decimos a la variable que pertenece a este Splitter
                     newFraction.AddCalculatedVariable = this.AddCalculatedVariable;
                     SplitFractions[name] = newFraction;
                 }
@@ -152,37 +153,25 @@ namespace Shared.UnitOperations.Helpers
                 return;
             }
 
-            // 🚩 LÍNEA ELIMINADA AQUÍ (El foreach con el ResetCalculatedVariable sobraba)
-
-            // 1. REGLA N-1: Auto-completar fracciones sobre 100%
-            BalanceFractions();
-
-            // 2. PROPAGACIÓN: Repartir variables intensivas y extensivas
+            // 1. PROPAGACIÓN INTENSIVA: Repartir variables intensivas y termodinámica
             bool intensiveOk = PropagateIntensiveProperties(allStreams);
-            bool flowsOk = PropagateFlows();
 
-            // 3. CÁLCULO FINAL: Cada corriente se resetea y se calcula a sí misma internamente
+            // 2. MOTOR ITERATIVO DE MASA: Resuelve flujos y fracciones sin importar el orden
+            bool flowsOk = SolveMassBalance();
+
+            // 3. CÁLCULO FINAL: Cada corriente se calcula a sí misma internamente (Densidad, Entalpía, etc.)
             foreach (var s in allStreams) s.Calculate();
 
-        }
-
-            // REGLA N-1
-        private void BalanceFractions()
-        {
-            var userDefined = SplitFractions.Values.Where(f => f.Source == MethodSource.UserInterface).ToList();
-            var missing = SplitFractions.Values.Where(f => f.Source != MethodSource.UserInterface).ToList();
-
-            double sumDefined = userDefined.Sum(f => f.Value );
-
-            if (missing.Count == 1 && sumDefined <= 100.0)
+            if (intensiveOk && flowsOk)
             {
-                double calculatedValue = Math.Round(100.0 - sumDefined, 4);
-                missing[0].SetValueCalculated(calculatedValue, Name);
-                // Ya no hace falta el AddCalculatedVariable explícito aquí porque amarramos el delegado arriba
+                State = SplitterStateType.Solved;
+            }
+            else
+            {
+                State = SplitterStateType.ReadyToCalculate;
             }
         }
 
-        // 🌊 PISCINA INTENSIVA Y TERMODINÁMICA
         // 🌊 PISCINA INTENSIVA Y TERMODINÁMICA
         private bool PropagateIntensiveProperties(List<StreamSimulationFacade> allStreams)
         {
@@ -192,19 +181,16 @@ namespace Shared.UnitOperations.Helpers
             var masterVapFrac = allStreams.FirstOrDefault(s => s.VaporFraction.IsDefined)?.VaporFraction;
             var masterEnthalpy = allStreams.FirstOrDefault(s => s.MolarEnthalpy.IsDefined)?.MolarEnthalpy.Value;
 
-            // 🚩 CORRECCIÓN: Tratamos al Método Termo como el ControlledVariable que es
             var masterThermo = allStreams.FirstOrDefault(s => s.ThermodynamicMethod != null && s.ThermodynamicMethod.IsDefined)?.ThermodynamicMethod.Value;
 
             foreach (var stream in allStreams)
             {
-                // 1. 🚩 PROPAGAR EL MÉTODO TERMODINÁMICO CON SETVALUE
                 if (masterThermo != null && stream.ThermodynamicMethod != null && !stream.ThermodynamicMethod.IsDefined)
                 {
                     stream.ThermodynamicMethod.SetValue(masterThermo, MethodSource.Other, Name);
-                    this.AddCalculatedVariable(stream.ThermodynamicMethod); // El Splitter asume la paternidad
+                    this.AddCalculatedVariable(stream.ThermodynamicMethod);
                 }
 
-                // 2. Propagar variables asumiendo la paternidad desde el Splitter
                 if (masterT != null && !stream.Temperature.IsDefined)
                 {
                     stream.Temperature.SetValue(new Temperature(masterT.Value, masterT.Unit), MethodSource.Other, Name);
@@ -239,117 +225,114 @@ namespace Shared.UnitOperations.Helpers
             return masterT != null && masterP != null;
         }
 
-        // ⚖️ BALANCE EXTENSIVO
-        private bool PropagateFlows()
+        // ==============================================================================
+        // ⚖️ MOTOR ITERATIVO DE MASA (Reemplaza a PropagateFlows y BalanceFractions)
+        // ==============================================================================
+        private bool SolveMassBalance()
         {
-            bool propagated = false;
+           
+            bool keepChecking = true;
+            int maxIterations = 10; // Evita bucles infinitos
+            int iter = 0;
 
-            // ==============================================================================
-            // FASE 0: INFERENCIA DE FRACCIONES DESDE FLUJOS (Grados de Libertad)
-            // ==============================================================================
-            // Si tenemos la entrada y alguna salida con flujo, calculamos su porcentaje real
-            if (InletStream != null && InletStream.MassFlow.IsDefined)
+            while (keepChecking && iter < maxIterations)
             {
-                double totalInlet = InletStream.MassFlow.GetValueInUnit(MassFlowUnits.Kg_hr);
+                keepChecking = false;
+                iter++;
 
-                if (totalInlet > 0)
+                double? inletMass = InletStream?.MassFlow.IsDefined == true
+                    ? InletStream.MassFlow.GetValueInUnit(MassFlowUnits.Kg_hr)
+                    : null;
+
+                // REGLA 1: BALANCE GLOBAL (BACKWARD COMPLETO)
+                // Si no hay entrada, pero todas las salidas tienen flujo -> Sumamos
+                if (inletMass == null && OutletStreams.Count > 0 && OutletStreams.All(s => s.Value.MassFlow.IsDefined))
                 {
-                    foreach (var kvp in OutletStreams)
+                    double sumOutlets = OutletStreams.Sum(s => s.Value.MassFlow.GetValueInUnit(MassFlowUnits.Kg_hr));
+                    InletStream!.MassFlow.SetValue(new MassFlow(sumOutlets, MassFlowUnits.Kg_hr), MethodSource.Other, Name);
+                    this.AddCalculatedVariable(InletStream.MassFlow);
+                    inletMass = sumOutlets;
+             
+                    keepChecking = true;
+                }
+
+                // REGLA 2: BALANCE GLOBAL (FALTA UNA SALIDA)
+                // Si hay entrada, y falta exactamente UN flujo de salida -> Diferencia
+                if (inletMass != null && OutletStreams.Count > 1)
+                {
+                    var unknownOutlets = OutletStreams.Where(s => !s.Value.MassFlow.IsDefined).ToList();
+                    if (unknownOutlets.Count == 1)
                     {
-                        var portName = kvp.Key;
-                        var stream = kvp.Value;
+                        double sumKnownOutlets = OutletStreams.Where(s => s.Value.MassFlow.IsDefined)
+                                                              .Sum(s => s.Value.MassFlow.GetValueInUnit(MassFlowUnits.Kg_hr));
 
-                        // Si la salida tiene flujo y el porcentaje NO lo definió el usuario, lo calculamos
-                        if (stream.MassFlow.IsDefined && SplitFractions.TryGetValue(portName, out var fraction))
-                        {
-                            if (fraction.Source != MethodSource.UserInterface)
-                            {
-                                double calcPercent = (stream.MassFlow.GetValueInUnit(MassFlowUnits.Kg_hr) / totalInlet) * 100.0;
-
-                                // Seteamos el valor y registramos la paternidad del Splitter
-                                fraction.SetValueCalculated(Math.Round(calcPercent, 4), Name);
-                                this.AddCalculatedVariable(fraction);
-                                propagated = true;
-                            }
-                        }
+                        double missingMass = Math.Max(0, inletMass.Value - sumKnownOutlets);
+                        unknownOutlets[0].Value.MassFlow.SetValue(new MassFlow(missingMass, MassFlowUnits.Kg_hr), MethodSource.Other, Name);
+                        this.AddCalculatedVariable(unknownOutlets[0].Value.MassFlow);
+                        keepChecking = true;
                     }
                 }
-            }
 
-            // Una vez inferidas las fracciones desde los flujos, intentamos balancear las que faltan (N-1)
-            BalanceFractions();
-
-            // ==============================================================================
-            // FASE 1: ESCENARIO FORWARD (Entrada -> Salidas)
-            // ==============================================================================
-            if (InletStream != null && InletStream.MassFlow.IsDefined)
-            {
-                double inletMass = InletStream.MassFlow.GetValueInUnit(MassFlowUnits.Kg_hr);
-
+                // REGLA 3: RELACIONES FLUJO <-> FRACCIÓN
                 foreach (var kvp in OutletStreams)
                 {
                     var portName = kvp.Key;
-                    var outletStream = kvp.Value;
+                    var stream = kvp.Value;
+                    SplitFractions.TryGetValue(portName, out var fractionVar);
 
-                    // Si tenemos la fracción (venga de donde venga) y el flujo de salida no está definido
-                    if (SplitFractions.TryGetValue(portName, out var fraction) && fraction.IsDefined)
+                    bool hasFlow = stream.MassFlow.IsDefined;
+                    bool hasFrac = fractionVar != null && fractionVar.IsDefined;
+
+                    // A. Flujo de Salida conocido + Entrada conocida -> Calcular Fracción (Si falta)
+                    if (hasFlow && inletMass != null && inletMass > 0 && !hasFrac && fractionVar != null)
                     {
-                        if (!outletStream.MassFlow.IsDefined)
-                        {
-                            double outletMass = inletMass * (fraction.Value / 100.0);
-                            outletStream.MassFlow.SetValue(new MassFlow(outletMass, MassFlowUnits.Kg_hr), MethodSource.Other, Name);
-                            this.AddCalculatedVariable(outletStream.MassFlow);
-                            propagated = true;
-                        }
+                        double calcFrac = (stream.MassFlow.GetValueInUnit(MassFlowUnits.Kg_hr) / inletMass.Value) * 100.0;
+                        fractionVar.SetValueCalculated(Math.Round(calcFrac, 4), Name);
+                        this.AddCalculatedVariable(fractionVar);
+                     
+                        keepChecking = true;
                     }
-                }
-                // Si logramos llegar aquí con entrada definida, el balance de flujos se considera exitoso
-                return true;
-            }
 
-            // ==============================================================================
-            // FASE 2: ESCENARIO BACKWARD (Salida -> Entrada)
-            // ==============================================================================
-            if (InletStream != null && !InletStream.MassFlow.IsDefined)
-            {
-                foreach (var kvp in OutletStreams)
-                {
-                    var portName = kvp.Key;
-                    var outletStream = kvp.Value;
-
-                    // Buscamos una salida que el usuario haya definido Y que tenga fracción válida
-                    if (outletStream.MassFlow.IsDefined &&
-                        SplitFractions.TryGetValue(portName, out var fraction) &&
-                        fraction.IsDefined && fraction.Value > 0)
+                    // B. Fracción conocida + Entrada conocida -> Calcular Flujo de Salida (FORWARD)
+                    if (hasFrac && inletMass != null && !hasFlow)
                     {
-                        double knownOutletMass = outletStream.MassFlow.GetValueInUnit(MassFlowUnits.Kg_hr);
+                        double calcFlow = inletMass.Value * (fractionVar!.Value / 100.0);
+                        stream.MassFlow.SetValue(new MassFlow(calcFlow, MassFlowUnits.Kg_hr), MethodSource.Other, Name);
+                        this.AddCalculatedVariable(stream.MassFlow);
+                       
+                        keepChecking = true;
+                    }
 
-                        // Reconstruimos la entrada
-                        double calculatedInletMass = knownOutletMass / (fraction.Value / 100.0);
-                        InletStream.MassFlow.SetValue(new MassFlow(calculatedInletMass, MassFlowUnits.Kg_hr), MethodSource.Other, Name);
+                    // C. Flujo de Salida conocido + Fracción conocida -> Calcular Entrada (BACKWARD)
+                    if (hasFlow && hasFrac && fractionVar!.Value > 0 && inletMass == null)
+                    {
+                        double calcInlet = stream.MassFlow.GetValueInUnit(MassFlowUnits.Kg_hr) / (fractionVar.Value / 100.0);
+                        InletStream!.MassFlow.SetValue(new MassFlow(calcInlet, MassFlowUnits.Kg_hr), MethodSource.Other, Name);
                         this.AddCalculatedVariable(InletStream.MassFlow);
-                        propagated = true;
+                        inletMass = calcInlet;
+                 
+                        keepChecking = true;
+                    }
+                }
 
-                        // Ahora que "descubrimos" la entrada, propagamos hacia los hermanos que falten
-                        foreach (var siblingKvp in OutletStreams)
-                        {
-                            if (siblingKvp.Key == portName) continue;
-
-                            var siblingStream = siblingKvp.Value;
-                            if (SplitFractions.TryGetValue(siblingKvp.Key, out var siblingFrac) &&
-                                siblingFrac.IsDefined && !siblingStream.MassFlow.IsDefined)
-                            {
-                                double siblingMass = calculatedInletMass * (siblingFrac.Value / 100.0);
-                                siblingStream.MassFlow.SetValue(new MassFlow(siblingMass, MassFlowUnits.Kg_hr), MethodSource.Other, Name);
-                                this.AddCalculatedVariable(siblingStream.MassFlow);
-                            }
-                        }
-                        return true;
+                // REGLA 4: REGLA N-1 SOBRE LOS PORCENTAJES
+                var unknownFractions = SplitFractions.Where(f => !f.Value.IsDefined).ToList();
+                if (unknownFractions.Count == 1)
+                {
+                    double sumKnownFrac = SplitFractions.Where(f => f.Value.IsDefined).Sum(f => f.Value.Value);
+                    if (sumKnownFrac <= 100.0)
+                    {
+                        double calcFrac = Math.Round(100.0 - sumKnownFrac, 4);
+                        unknownFractions[0].Value.SetValueCalculated(calcFrac, Name);
+                        this.AddCalculatedVariable(unknownFractions[0].Value);
+              
+                        keepChecking = true;
                     }
                 }
             }
 
-            return propagated;
+            // El balance es exitoso si, después de iterar, tenemos la entrada y TODAS las salidas definidas
+            return InletStream != null && InletStream.MassFlow.IsDefined && OutletStreams.All(s => s.Value.MassFlow.IsDefined);
         }
     }
 }

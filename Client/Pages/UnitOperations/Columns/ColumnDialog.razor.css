@@ -1,0 +1,73 @@
+﻿.column-canvas-layout {
+    display: flex;
+    justify-content: space-between;
+    align-items: stretch;
+    width: 100%;
+    min-height: 450px;
+    background-color: #f8fafc;
+    border-radius: 4px;
+    padding: 20px;
+    overflow-x: auto;
+}
+
+/* Zonas laterales */
+.port-zone {
+    flex: 1 1 250px;
+    display: flex;
+    flex-direction: column;
+}
+
+.left-zone {
+    justify-content: center;
+    padding-right: 20px;
+}
+
+.right-zone {
+    justify-content: space-between; /* Espacia Reflux, SideDraws y Reboiler */
+    padding-left: 20px;
+}
+
+/* Zona Central (Destilación) */
+.center-zone {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.equipment-drawing-zone {
+    margin: 10px 0;
+}
+
+/* Contenedores de puertos estáticos */
+.static-port-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.static-right-port {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end; /* Alinea a la derecha para que se pegue al borde */
+    gap: 4px;
+    margin: 10px 0;
+}
+
+.side-draws-container {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+/* Etiquetas minimalistas */
+.port-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #64748b;
+    letter-spacing: 0.05em;
+}

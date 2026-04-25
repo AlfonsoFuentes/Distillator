@@ -1,4 +1,6 @@
-﻿@using Shared.ProcessFlowDiagram.HeatExchangers
+﻿@using Client.Layout.Shapes.SVGDrawings
+@using Client.Pages.UnitOperations.HeatExchangers
+@using Shared.ProcessFlowDiagram.HeatExchangers
 @inherits EquipmentUIBase<PlateExchangerVisualElement>
 
 <CanvasEquipmentWrapper Element="Element"
@@ -8,51 +10,42 @@
                         OnDragStart="OnDragStart"
                         OnOpenDetails="OpenPropertiesDialogAsync">
 
-    <svg class="phe-svg" width="@Element.Width" height="@Element.Height" viewBox="0 0 80 80">
-        <defs>
-            <linearGradient id="pheReflex" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" style="stop-color:#ffffff;stop-opacity:0.6" />
-                <stop offset="30%" style="stop-color:#ffffff;stop-opacity:0.1" />
-                <stop offset="100%" style="stop-color:#000000;stop-opacity:0.2" />
-            </linearGradient>
-        </defs>
+    @* 1. DIBUJO BASE *@
+    <PlateExchangerSvg Width="@Element.Width"
+                       Height="@Element.Height"
+                       StatusColor="@(Element.Facade?.StatusColor ?? "#CBD5E0")"
+                       ElementId="@Element.Id.ToString()"
+                       CssClass="phe-svg" />
 
-        @* 1. CUERPO PRINCIPAL (El bloque de placas) *@
-        <g class="phe-part">
-            <rect x="10" y="5" width="60" height="70" rx="4" class="phe-dynamic-fill" fill="@(Element.Facade?.StatusColor ?? "#CBD5E0")" />
-            <rect x="10" y="5" width="60" height="70" rx="4" fill="url(#pheReflex)" stroke="#334155" stroke-width="1.5" />
-        </g>
-
-        @* 2. DETALLES INTERNOS (Placas verticales y Flujo en X) *@
-        <g class="phe-internals phe-part">
-            @* Rayas verticales simulando el paquete de placas *@
-            <line x1="25" y1="5" x2="25" y2="75" />
-            <line x1="40" y1="5" x2="40" y2="75" />
-            <line x1="55" y1="5" x2="55" y2="75" />
-        </g>
-
-        <g class="phe-flow-lines phe-part">
-            @* La "X" de flujo de calor: de esquinas superiores a inferiores *@
-            <line x1="15" y1="20" x2="65" y2="60" /> @* Hot In -> Hot Out *@
-            <line x1="15" y1="60" x2="65" y2="20" /> @* Cold In -> Cold Out *@
-        </g>
-
-        @* 3. BRIDAS / BOQUILLAS *@
-        @* Izquierda (Hot In y Cold In) *@
-        <rect x="0" y="15" width="10" height="10" class="phe-nozzle" /> @* HotIn (0, 20) *@
-        <rect x="0" y="55" width="10" height="10" class="phe-nozzle" /> @* ColdIn (0, 60) *@
-        
-        @* Derecha (Hot Out y Cold Out) *@
-        <rect x="70" y="15" width="10" height="10" class="phe-nozzle" /> @* ColdOut (80, 20) *@
-        <rect x="70" y="55" width="10" height="10" class="phe-nozzle" /> @* HotOut (80, 60) *@
+    @* 2. BOQUILLAS INTERACTIVAS *@
+    <svg width="@Element.Width" height="@Element.Height" style="position: absolute; top: 0; left: 0; pointer-events: none;">
+        @foreach (var port in Element.Ports)
+        {
+            <rect x="@GetNozzleX(port)" y="@GetNozzleY(port)"
+                  width="10" height="10"
+                  class="phe-nozzle"
+                  style="pointer-events: all;" />
+        }
     </svg>
-
 </CanvasEquipmentWrapper>
 
 @code {
+    private double GetNozzleX(Shared.ProcessFlowDiagram.EquipmentPort p) =>
+        p.Direction == Shared.ProcessFlowDiagram.PortDirection.Left ? 0 : p.OffsetX - 10;
+
+    private double GetNozzleY(Shared.ProcessFlowDiagram.EquipmentPort p) => p.OffsetY - 5;
+
     protected override async Task OpenPropertiesDialogAsync()
     {
-        Console.WriteLine($"[PFD-PRO] Interacting with Plate Exchanger: {Element.Facade?.Name}");
-        await Task.CompletedTask;
+        var parameters = new DialogParameters { ["Equipment"] = Element };
+        var options = new DialogOptions { MaxWidth = MaxWidth.False, FullWidth = false, NoHeader = true, CloseOnEscapeKey = true, BackdropClick = true };
+
+        var dialog = await DialogService.ShowAsync<PlateExchangerDialog>("", parameters, options);
+        var result = await dialog.Result;
+
+        if (result != null && !result.Canceled)
+        {
+            StateHasChanged();
+        }
     }
 }

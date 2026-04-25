@@ -1,0 +1,24 @@
+﻿
+
+<svg class="@CssClass" width="@Width" height="@Height" viewBox="0 0 @Width @Height" style="display: block; overflow: visible; filter: drop-shadow(0px 4px 5px rgba(0, 0, 0, 0.2));">
+    <g style="pointer-events: none;">
+        @* Triángulo invertido proporcional (Apunta a la derecha) *@
+        <path d="M 10, 10
+        L @(Width - 10), @(Height / 2)
+        L 10, @(Height - 10) Z"
+              fill="@StatusColor"
+              stroke="#334155"
+              stroke-width="1.5"
+              stroke-linejoin="round"
+              style="transition: fill 0.5s cubic-bezier(0.4, 0, 0.2, 1);" />
+
+        @* Línea decorativa interna estilo industrial *@
+        <line x1="18" y1="20" x2="18" y2="@(Height - 20)" stroke="#334155" stroke-width="1" opacity="0.3" />
+    </g>
+</svg>
+@code {
+    [Parameter] public double Width { get; set; } = 180;
+    [Parameter] public double Height { get; set; } = 180;
+    [Parameter] public string StatusColor { get; set; } = "#CBD5E0"; 
+    [Parameter] public string CssClass { get; set; } = "";
+}

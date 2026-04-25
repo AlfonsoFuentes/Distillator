@@ -1,4 +1,5 @@
-﻿
+﻿@using Client.Layout.Shapes.SVGDrawings
+@using Client.Pages.UnitOperations.Mixers
 @inherits EquipmentUIBase<MixerVisualElement>
 
 <CanvasEquipmentWrapper Element="Element"
@@ -7,46 +8,63 @@
                         OnSelect="HandleSelectionAsync"
                         OnDragStart="OnDragStart"
                         OnOpenDetails="OpenPropertiesDialogAsync">
-    <svg class="mix-svg" width="@Element.Width" height="@Element.Height" viewBox="0 0 @Element.Width @Element.Height">
-        <g class="mix-part">
-            @* Triángulo invertido proporcional *@
-            <path d="M 10, 10
-            L @(Element.Width - 10), @(Element.Height / 2)
-            L 10, @(Element.Height - 10) Z"
-                  class="mix-dynamic-fill"
-                  fill="@(Element.Facade?.StatusColor ?? "#CBD5E0")"
-                  stroke="#334155" stroke-width="1.5" stroke-linejoin="round" />
-        
-            <line x1="14" y1="15" x2="14" y2="@(Element.Height - 15)" stroke="#334155" stroke-width="1" opacity="0.3" />
-        </g>
 
+    @* 1. EL DIBUJO BASE (Encapsulado y Limpio) *@
+    @* Nota: Si quieres que el hover funcione igual que en el splitter,
+       asegúrate de que MixerSvg.razor acepte el parámetro CssClass *@
+    <MixerSvg Width="@Element.Width"
+              Height="@Element.Height"
+              StatusColor="@(Element.Facade?.StatusColor ?? "#CBD5E0")"
+              CssClass="mix-svg" />
+
+    @* 2. CAPA SUPERIOR: Puertos Dinámicos (N Entradas, 1 Salida)
+          Igual que en el Splitter, usamos pointer-events: none en el svg contenedor
+          y pointer-events: all en los nozzles para no bloquear clics del equipo principal. *@
+    <svg width="@Element.Width" height="@Element.Height" style="position: absolute; top: 0; left: 0; pointer-events: none;">
         @foreach (var port in Element.Ports)
         {
             <rect x="@(port.OffsetX - 5)"
                   y="@(port.OffsetY - 5)"
                   width="10" height="10"
-                  class="mix-nozzle" />
+                  class="mix-nozzle"
+                  style="pointer-events: all;" />
         }
     </svg>
-
 </CanvasEquipmentWrapper>
 
 @code {
     protected override void OnParametersSet()
     {
         base.OnParametersSet();
+        // Disparamos la auto-generación de coordenadas visuales para las entradas y la salida
         Element.RefreshDynamicPorts();
     }
 
     protected override async Task OpenPropertiesDialogAsync()
     {
-        Console.WriteLine($"[PFD-PRO] Interacting with Mixer: {Element.Facade?.Name}");
-        await Task.CompletedTask;
+        // 🚩 LLAMADA AL DIÁLOGO DEL MIXER
+        var parameters = new DialogParameters { ["Equipment"] = Element };
+
+        var options = new DialogOptions
+        {
+            MaxWidth = MaxWidth.False,
+            FullWidth = false,
+            NoHeader = true,
+            CloseOnEscapeKey = true,
+            BackdropClick = true
+        };
+
+        var dialog = await DialogService.ShowAsync<MixerDialog>("", parameters, options);
+        var result = await dialog.Result;
+
+        if (result != null && !result.Canceled)
+        {
+            // Refrescamos el componente si el usuario conectó/desconectó tuberías desde el UI
+            StateHasChanged();
+        }
     }
 
-    private double GetNozzleX(Shared.ProcessFlowDiagram.EquipmentPort port)
-    {
-        // Las entradas se dibujan en x=0 (base plana izquierda), la salida en x=30 (punta derecha)
-        return port.Direction == Shared.ProcessFlowDiagram.PortDirection.Left ? 0 : 30;
-    }
+    // 🚩 ELIMINADO: GetNozzleX se fue.
+    // La responsabilidad de saber dónde se dibuja (x=0 o x=Width) ahora es del
+    // Element.RefreshDynamicPorts() en la clase MixerVisualElement, tal como hace el Splitter.
 }

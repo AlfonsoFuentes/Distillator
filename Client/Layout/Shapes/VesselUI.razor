@@ -1,4 +1,6 @@
-﻿@using Shared.ProcessFlowDiagram.Vessels
+﻿@using Client.Layout.Shapes.SVGDrawings
+@using Client.Pages.UnitOperations.Vessels
+@using Shared.ProcessFlowDiagram.Vessels
 @inherits EquipmentUIBase<VesselVisualElement>
 
 <CanvasEquipmentWrapper Element="Element"
@@ -8,50 +10,21 @@
                         OnDragStart="OnDragStart"
                         OnOpenDetails="OpenPropertiesDialogAsync">
 
-    <svg class="vessel-svg" width="@Element.Width" height="@Element.Height" viewBox="0 0 @Element.Width @Element.Height">
-        <defs>
-            @* 1. Degradado Cilíndrico Metálico (Igual al Reboiler/Exchanger) *@
-            <linearGradient id="vesselReflex-@Element.Id" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" style="stop-color:#ffffff;stop-opacity:0.6" />
-                <stop offset="30%" style="stop-color:#ffffff;stop-opacity:0.1" />
-                <stop offset="100%" style="stop-color:#000000;stop-opacity:0.2" />
-            </linearGradient>
+    @* 1. DIBUJO BASE *@
+    <VesselSvg Width="@Element.Width"
+               Height="@Element.Height"
+               StatusColor="@(Element.Facade?.StatusColor ?? "#CBD5E0")"
+               ElementId="@Element.Id.ToString()"
+               CssClass="vessel-svg" />
 
-            @* 2. Degradado del Líquido (Azul profundo) *@
-            <linearGradient id="liquidGrad-@Element.Id" x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" style="stop-color:#93C5FD; stop-opacity:0.85" />
-                <stop offset="100%" style="stop-color:#3B82F6; stop-opacity:0.95" />
-            </linearGradient>
-
-            @* 3. Clip Path exacto al cuerpo del tanque para que el líquido no se salga *@
-            <clipPath id="tankClip-@Element.Id">
-                <path d="@GetTankPath()" />
-            </clipPath>
-        </defs>
-
-        @* 1. CAPA DE FONDO: Color de estado (Gris por defecto) *@
-        <path d="@GetTankPath()"
-              class="vessel-dynamic-fill"
-              fill="@(Element.Facade?.StatusColor ?? "#CBD5E0")" />
-
-        @* 2. CAPA DE LÍQUIDO (Solo se dibuja dentro del Clip Path) *@
-        @{
-            double levelH = (Element.Height - 20) * 0.5; // Nivel al 50%
-            double topY = Element.Height - levelH;
-        }
-        <rect x="0" y="@topY" width="@Element.Width" height="@levelH"
-              fill="url(#liquidGrad-@Element.Id)"
-              clip-path="url(#tankClip-@Element.Id)" />
-
-        @* 3. CAPA DE CRISTAL/BRILLO: Le da el aspecto cilíndrico al metal Y al líquido *@
-        <path d="@GetTankPath()"
-              fill="url(#vesselReflex-@Element.Id)"
-              class="vessel-border" />
-
-        @* 4. BOQUILLAS / BRIDAS *@
+    @* 2. BOQUILLAS INTERACTIVAS *@
+    <svg width="@Element.Width" height="@Element.Height" style="position: absolute; top: 0; left: 0; pointer-events: none;">
         @foreach (var port in Element.Ports)
         {
-            <rect x="@(GetNozzleX(port))" y="@(GetNozzleY(port))" width="10" height="10" class="vessel-nozzle" />
+            <rect x="@GetNozzleX(port)" y="@GetNozzleY(port)"
+                  width="10" height="10"
+                  class="vessel-nozzle"
+                  style="pointer-events: all;" />
         }
     </svg>
 </CanvasEquipmentWrapper>
@@ -63,20 +36,24 @@
         Element.RefreshDynamicPorts();
     }
 
-    private string GetTankPath()
+    private double GetNozzleX(Shared.ProcessFlowDiagram.EquipmentPort p) =>
+        p.Direction == Shared.ProcessFlowDiagram.PortDirection.Left ? 0 :
+        (p.Direction == Shared.ProcessFlowDiagram.PortDirection.Right ? Element.Width - 10 : Element.Width / 2 - 5);
+
+    private double GetNozzleY(Shared.ProcessFlowDiagram.EquipmentPort p) =>
+            p.Direction == Shared.ProcessFlowDiagram.PortDirection.Bottom ? Element.Height - 10 : p.OffsetY - 5;
+
+    protected override async Task OpenPropertiesDialogAsync()
     {
-        double w = Element.Width;
-        double h = Element.Height;
-        // Dibuja una cápsula perfecta (Tapa curva arriba, fondo plano)
-        return $"M 10,{h} L {w - 10},{h} L {w - 10},20 Q {w / 2},0 10,20 Z";
+        var parameters = new DialogParameters { ["Equipment"] = Element };
+        var options = new DialogOptions { MaxWidth = MaxWidth.False, FullWidth = false, NoHeader = true, CloseOnEscapeKey = true, BackdropClick = true };
+
+        var dialog = await DialogService.ShowAsync<VesselDialog>("", parameters, options);
+        var result = await dialog.Result;
+
+        if (result != null && !result.Canceled)
+        {
+            StateHasChanged();
+        }
     }
-
-    private double GetNozzleX(EquipmentPort p) =>
-        p.Direction == PortDirection.Left ? 0 :
-        (p.Direction == PortDirection.Right ? Element.Width - 10 : Element.Width / 2 - 5);
-        
-    private double GetNozzleY(EquipmentPort p) =>
-        p.Direction == PortDirection.Bottom ? Element.Height - 10 : p.OffsetY - 5;
-
-    protected override async Task OpenPropertiesDialogAsync() => await Task.CompletedTask;
 }

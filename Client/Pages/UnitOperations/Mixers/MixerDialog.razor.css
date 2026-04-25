@@ -1,0 +1,48 @@
+﻿.mixer-canvas-layout {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    min-height: 350px;
+    background-color: #f8fafc;
+    border-radius: 4px;
+    padding: 20px;
+    overflow: hidden;
+}
+
+/* El SVG estático en el centro */
+.equipment-drawing-zone {
+    flex: 0 0 auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Zonas laterales que empujan los puertos hacia los bordes */
+.port-zone {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.inlet-zone {
+    align-items: flex-start;
+    padding-left: 20px;
+}
+
+.outlet-zone {
+    align-items: flex-end;
+    padding-right: 20px;
+}
+
+/* Título para el puerto individual (Product) */
+.port-list-title {
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #475569;
+    margin-bottom: 12px;
+    letter-spacing: 0.05em;
+}

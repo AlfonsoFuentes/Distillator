@@ -17,7 +17,7 @@ namespace Server.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.3")
+                .HasAnnotation("ProductVersion", "10.0.6")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -220,7 +220,7 @@ namespace Server.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ChemicalComponents");
+                    b.ToTable("ChemicalComponents", (string)null);
                 });
 
             modelBuilder.Entity("Server.Entities.Thermodynamics.Methods.BinaryInteractionParameter", b =>
@@ -272,7 +272,7 @@ namespace Server.Migrations
 
                     b.HasIndex("MethodId");
 
-                    b.ToTable("BinaryInteractionParameters");
+                    b.ToTable("BinaryInteractionParameters", (string)null);
                 });
 
             modelBuilder.Entity("Server.Entities.Thermodynamics.Methods.MethodComponent", b =>
@@ -317,7 +317,7 @@ namespace Server.Migrations
                     b.HasIndex("MethodId", "ComponentId")
                         .IsUnique();
 
-                    b.ToTable("MethodComponents");
+                    b.ToTable("MethodComponents", (string)null);
                 });
 
             modelBuilder.Entity("Server.Entities.Thermodynamics.Methods.ThermodynamicMethod", b =>
@@ -364,7 +364,7 @@ namespace Server.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ThermodynamicMethods");
+                    b.ToTable("ThermodynamicMethods", (string)null);
                 });
 
             modelBuilder.Entity("Server.Entities.UserManagement.ApplicationUser", b =>
@@ -521,7 +521,7 @@ namespace Server.Migrations
 
                             b1.HasKey("ChemicalComponentId");
 
-                            b1.ToTable("ChemicalComponents");
+                            b1.ToTable("ChemicalComponents", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("ChemicalComponentId");
@@ -544,7 +544,7 @@ namespace Server.Migrations
 
                             b1.HasKey("ChemicalComponentId");
 
-                            b1.ToTable("ChemicalComponents");
+                            b1.ToTable("ChemicalComponents", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("ChemicalComponentId");
@@ -567,7 +567,7 @@ namespace Server.Migrations
 
                             b1.HasKey("ChemicalComponentId");
 
-                            b1.ToTable("ChemicalComponents");
+                            b1.ToTable("ChemicalComponents", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("ChemicalComponentId");
@@ -590,7 +590,7 @@ namespace Server.Migrations
 
                             b1.HasKey("ChemicalComponentId");
 
-                            b1.ToTable("ChemicalComponents");
+                            b1.ToTable("ChemicalComponents", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("ChemicalComponentId");
@@ -613,7 +613,7 @@ namespace Server.Migrations
 
                             b1.HasKey("ChemicalComponentId");
 
-                            b1.ToTable("ChemicalComponents");
+                            b1.ToTable("ChemicalComponents", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("ChemicalComponentId");
@@ -654,7 +654,7 @@ namespace Server.Migrations
 
                             b1.HasKey("ChemicalComponentId");
 
-                            b1.ToTable("ChemicalComponents");
+                            b1.ToTable("ChemicalComponents", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("ChemicalComponentId");
@@ -676,7 +676,7 @@ namespace Server.Migrations
 
                                     b2.HasKey("CorrelationCoefficientsChemicalComponentId");
 
-                                    b2.ToTable("ChemicalComponents");
+                                    b2.ToTable("ChemicalComponents", (string)null);
 
                                     b2.WithOwner()
                                         .HasForeignKey("CorrelationCoefficientsChemicalComponentId");
@@ -699,7 +699,7 @@ namespace Server.Migrations
 
                                     b2.HasKey("CorrelationCoefficientsChemicalComponentId");
 
-                                    b2.ToTable("ChemicalComponents");
+                                    b2.ToTable("ChemicalComponents", (string)null);
 
                                     b2.WithOwner()
                                         .HasForeignKey("CorrelationCoefficientsChemicalComponentId");
@@ -729,7 +729,7 @@ namespace Server.Migrations
 
                             b1.HasKey("ChemicalComponentId");
 
-                            b1.ToTable("ChemicalComponents");
+                            b1.ToTable("ChemicalComponents", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("ChemicalComponentId");
@@ -752,7 +752,7 @@ namespace Server.Migrations
 
                             b1.HasKey("ChemicalComponentId");
 
-                            b1.ToTable("ChemicalComponents");
+                            b1.ToTable("ChemicalComponents", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("ChemicalComponentId");
@@ -793,7 +793,7 @@ namespace Server.Migrations
 
                             b1.HasKey("ChemicalComponentId");
 
-                            b1.ToTable("ChemicalComponents");
+                            b1.ToTable("ChemicalComponents", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("ChemicalComponentId");
@@ -815,7 +815,7 @@ namespace Server.Migrations
 
                                     b2.HasKey("CorrelationCoefficientsChemicalComponentId");
 
-                                    b2.ToTable("ChemicalComponents");
+                                    b2.ToTable("ChemicalComponents", (string)null);
 
                                     b2.WithOwner()
                                         .HasForeignKey("CorrelationCoefficientsChemicalComponentId");
@@ -838,7 +838,7 @@ namespace Server.Migrations
 
                                     b2.HasKey("CorrelationCoefficientsChemicalComponentId");
 
-                                    b2.ToTable("ChemicalComponents");
+                                    b2.ToTable("ChemicalComponents", (string)null);
 
                                     b2.WithOwner()
                                         .HasForeignKey("CorrelationCoefficientsChemicalComponentId");
@@ -886,7 +886,7 @@ namespace Server.Migrations
 
                             b1.HasKey("ChemicalComponentId");
 
-                            b1.ToTable("ChemicalComponents");
+                            b1.ToTable("ChemicalComponents", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("ChemicalComponentId");
@@ -908,7 +908,7 @@ namespace Server.Migrations
 
                                     b2.HasKey("CorrelationCoefficientsChemicalComponentId");
 
-                                    b2.ToTable("ChemicalComponents");
+                                    b2.ToTable("ChemicalComponents", (string)null);
 
                                     b2.WithOwner()
                                         .HasForeignKey("CorrelationCoefficientsChemicalComponentId");
@@ -931,7 +931,7 @@ namespace Server.Migrations
 
                                     b2.HasKey("CorrelationCoefficientsChemicalComponentId");
 
-                                    b2.ToTable("ChemicalComponents");
+                                    b2.ToTable("ChemicalComponents", (string)null);
 
                                     b2.WithOwner()
                                         .HasForeignKey("CorrelationCoefficientsChemicalComponentId");
@@ -979,7 +979,7 @@ namespace Server.Migrations
 
                             b1.HasKey("ChemicalComponentId");
 
-                            b1.ToTable("ChemicalComponents");
+                            b1.ToTable("ChemicalComponents", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("ChemicalComponentId");
@@ -1001,7 +1001,7 @@ namespace Server.Migrations
 
                                     b2.HasKey("CorrelationCoefficientsChemicalComponentId");
 
-                                    b2.ToTable("ChemicalComponents");
+                                    b2.ToTable("ChemicalComponents", (string)null);
 
                                     b2.WithOwner()
                                         .HasForeignKey("CorrelationCoefficientsChemicalComponentId");
@@ -1024,7 +1024,7 @@ namespace Server.Migrations
 
                                     b2.HasKey("CorrelationCoefficientsChemicalComponentId");
 
-                                    b2.ToTable("ChemicalComponents");
+                                    b2.ToTable("ChemicalComponents", (string)null);
 
                                     b2.WithOwner()
                                         .HasForeignKey("CorrelationCoefficientsChemicalComponentId");
@@ -1054,7 +1054,7 @@ namespace Server.Migrations
 
                             b1.HasKey("ChemicalComponentId");
 
-                            b1.ToTable("ChemicalComponents");
+                            b1.ToTable("ChemicalComponents", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("ChemicalComponentId");
@@ -1095,7 +1095,7 @@ namespace Server.Migrations
 
                             b1.HasKey("ChemicalComponentId");
 
-                            b1.ToTable("ChemicalComponents");
+                            b1.ToTable("ChemicalComponents", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("ChemicalComponentId");
@@ -1117,7 +1117,7 @@ namespace Server.Migrations
 
                                     b2.HasKey("CorrelationCoefficientsChemicalComponentId");
 
-                                    b2.ToTable("ChemicalComponents");
+                                    b2.ToTable("ChemicalComponents", (string)null);
 
                                     b2.WithOwner()
                                         .HasForeignKey("CorrelationCoefficientsChemicalComponentId");
@@ -1140,7 +1140,7 @@ namespace Server.Migrations
 
                                     b2.HasKey("CorrelationCoefficientsChemicalComponentId");
 
-                                    b2.ToTable("ChemicalComponents");
+                                    b2.ToTable("ChemicalComponents", (string)null);
 
                                     b2.WithOwner()
                                         .HasForeignKey("CorrelationCoefficientsChemicalComponentId");
@@ -1188,7 +1188,7 @@ namespace Server.Migrations
 
                             b1.HasKey("ChemicalComponentId");
 
-                            b1.ToTable("ChemicalComponents");
+                            b1.ToTable("ChemicalComponents", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("ChemicalComponentId");
@@ -1210,7 +1210,7 @@ namespace Server.Migrations
 
                                     b2.HasKey("CorrelationCoefficientsChemicalComponentId");
 
-                                    b2.ToTable("ChemicalComponents");
+                                    b2.ToTable("ChemicalComponents", (string)null);
 
                                     b2.WithOwner()
                                         .HasForeignKey("CorrelationCoefficientsChemicalComponentId");
@@ -1233,7 +1233,7 @@ namespace Server.Migrations
 
                                     b2.HasKey("CorrelationCoefficientsChemicalComponentId");
 
-                                    b2.ToTable("ChemicalComponents");
+                                    b2.ToTable("ChemicalComponents", (string)null);
 
                                     b2.WithOwner()
                                         .HasForeignKey("CorrelationCoefficientsChemicalComponentId");
@@ -1281,7 +1281,7 @@ namespace Server.Migrations
 
                             b1.HasKey("ChemicalComponentId");
 
-                            b1.ToTable("ChemicalComponents");
+                            b1.ToTable("ChemicalComponents", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("ChemicalComponentId");
@@ -1303,7 +1303,7 @@ namespace Server.Migrations
 
                                     b2.HasKey("CorrelationCoefficientsChemicalComponentId");
 
-                                    b2.ToTable("ChemicalComponents");
+                                    b2.ToTable("ChemicalComponents", (string)null);
 
                                     b2.WithOwner()
                                         .HasForeignKey("CorrelationCoefficientsChemicalComponentId");
@@ -1326,7 +1326,7 @@ namespace Server.Migrations
 
                                     b2.HasKey("CorrelationCoefficientsChemicalComponentId");
 
-                                    b2.ToTable("ChemicalComponents");
+                                    b2.ToTable("ChemicalComponents", (string)null);
 
                                     b2.WithOwner()
                                         .HasForeignKey("CorrelationCoefficientsChemicalComponentId");
@@ -1374,7 +1374,7 @@ namespace Server.Migrations
 
                             b1.HasKey("ChemicalComponentId");
 
-                            b1.ToTable("ChemicalComponents");
+                            b1.ToTable("ChemicalComponents", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("ChemicalComponentId");
@@ -1396,7 +1396,7 @@ namespace Server.Migrations
 
                                     b2.HasKey("CorrelationCoefficientsChemicalComponentId");
 
-                                    b2.ToTable("ChemicalComponents");
+                                    b2.ToTable("ChemicalComponents", (string)null);
 
                                     b2.WithOwner()
                                         .HasForeignKey("CorrelationCoefficientsChemicalComponentId");
@@ -1419,7 +1419,7 @@ namespace Server.Migrations
 
                                     b2.HasKey("CorrelationCoefficientsChemicalComponentId");
 
-                                    b2.ToTable("ChemicalComponents");
+                                    b2.ToTable("ChemicalComponents", (string)null);
 
                                     b2.WithOwner()
                                         .HasForeignKey("CorrelationCoefficientsChemicalComponentId");
@@ -1449,7 +1449,7 @@ namespace Server.Migrations
 
                             b1.HasKey("ChemicalComponentId");
 
-                            b1.ToTable("ChemicalComponents");
+                            b1.ToTable("ChemicalComponents", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("ChemicalComponentId");
@@ -1490,7 +1490,7 @@ namespace Server.Migrations
 
                             b1.HasKey("ChemicalComponentId");
 
-                            b1.ToTable("ChemicalComponents");
+                            b1.ToTable("ChemicalComponents", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("ChemicalComponentId");
@@ -1512,7 +1512,7 @@ namespace Server.Migrations
 
                                     b2.HasKey("CorrelationCoefficientsChemicalComponentId");
 
-                                    b2.ToTable("ChemicalComponents");
+                                    b2.ToTable("ChemicalComponents", (string)null);
 
                                     b2.WithOwner()
                                         .HasForeignKey("CorrelationCoefficientsChemicalComponentId");
@@ -1535,7 +1535,7 @@ namespace Server.Migrations
 
                                     b2.HasKey("CorrelationCoefficientsChemicalComponentId");
 
-                                    b2.ToTable("ChemicalComponents");
+                                    b2.ToTable("ChemicalComponents", (string)null);
 
                                     b2.WithOwner()
                                         .HasForeignKey("CorrelationCoefficientsChemicalComponentId");
@@ -1583,7 +1583,7 @@ namespace Server.Migrations
 
                             b1.HasKey("ChemicalComponentId");
 
-                            b1.ToTable("ChemicalComponents");
+                            b1.ToTable("ChemicalComponents", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("ChemicalComponentId");
@@ -1605,7 +1605,7 @@ namespace Server.Migrations
 
                                     b2.HasKey("CorrelationCoefficientsChemicalComponentId");
 
-                                    b2.ToTable("ChemicalComponents");
+                                    b2.ToTable("ChemicalComponents", (string)null);
 
                                     b2.WithOwner()
                                         .HasForeignKey("CorrelationCoefficientsChemicalComponentId");
@@ -1628,7 +1628,7 @@ namespace Server.Migrations
 
                                     b2.HasKey("CorrelationCoefficientsChemicalComponentId");
 
-                                    b2.ToTable("ChemicalComponents");
+                                    b2.ToTable("ChemicalComponents", (string)null);
 
                                     b2.WithOwner()
                                         .HasForeignKey("CorrelationCoefficientsChemicalComponentId");
@@ -1658,7 +1658,7 @@ namespace Server.Migrations
 
                             b1.HasKey("ChemicalComponentId");
 
-                            b1.ToTable("ChemicalComponents");
+                            b1.ToTable("ChemicalComponents", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("ChemicalComponentId");
