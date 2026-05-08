@@ -166,6 +166,24 @@ namespace Shared.Thermodynamics.Phases
             MolarHeatCapacity = new MolarEntropy(cpMixMolar, MolarEntropyUnits.KJ_Kgmol_C);
             MassHeatCapacity = new MassEntropy(cpMixMolar / mwMix, MassEntropyUnits.KJ_Kg_C);
         }
+        public MolarEntropy CalculateGasMixtureHeatCapacity(Temperature _temperature)
+        {
+            var _MolarHeatCapacity = new MolarEntropy(0, MolarEntropyUnits.KJ_Kgmol_C);
+            if (Components is null || Components.Count == 0) return _MolarHeatCapacity;
+
+            double cpMixMolar = 0.0;
+
+            foreach (var component in Components)
+            {
+                cpMixMolar += component.MolarFraction * component.PureComponentData.GetGasHeatCapacity(_temperature)
+                    .GetValue(MolarEntropyUnits.KJ_Kgmol_C);
+            }
+
+            double mwMix = CalculateMixtureMolecularWeight();
+            _MolarHeatCapacity = new MolarEntropy(cpMixMolar, MolarEntropyUnits.KJ_Kgmol_C);
+
+            return _MolarHeatCapacity;
+        }
 
         // ========================================================================
         // ENTALPÍA DE MEZCLA
@@ -185,6 +203,23 @@ namespace Shared.Thermodynamics.Phases
             double mwMix = CalculateMixtureMolecularWeight();
             MolarEnthalpy = new MolarEnergy(hMixMolar, MolarEnergyUnits.J_Kgmol);
             MassEnthalpy = new MassEnergy(hMixMolar / mwMix, MassEnergyUnits.J_Kg);
+        }
+        public MolarEnergy CalculateGasMixtureEnthalpy(Temperature _temperature)
+        {
+            if (Components is null || Components.Count == 0) return new MolarEnergy(0, MolarEnergyUnits.J_Kgmol);
+
+            double hMixMolar = 0.0;
+
+            foreach (var component in Components)
+            {
+                hMixMolar += component.MolarFraction * component.PureComponentData.GetGasEnthalpy(_temperature)
+                    .GetValue(MolarEnergyUnits.J_Kgmol);
+            }
+
+            double mwMix = CalculateMixtureMolecularWeight();
+            var _MolarEnthalpy = new MolarEnergy(hMixMolar, MolarEnergyUnits.J_Kgmol);
+
+            return _MolarEnthalpy;
         }
 
         // ========================================================================
@@ -296,7 +331,7 @@ namespace Shared.Thermodynamics.Phases
         public void CalculateEquilibrium(Temperature temperature, Pressure pressure)
         {
             if (Components.Count == 0) return;
-            Temperature = temperature; 
+            Temperature = temperature;
             Pressure = pressure;
 
             // 1. Pure Properties
@@ -341,7 +376,7 @@ namespace Shared.Thermodynamics.Phases
         {
             if (Components is null || Components.Count == 0) return;
 
-   
+
             CalculateEquilibrium(temperature, pressure);
 
             // 2. Densidad
@@ -487,5 +522,5 @@ namespace Shared.Thermodynamics.Phases
             Viscosity = new Viscosity(mixVisc, ViscosityUnits.Pa_s);
         }
     }
-    
+
 }

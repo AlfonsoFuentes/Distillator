@@ -37,4 +37,38 @@ namespace Shared.Thermodynamics.Strategies.Equlibriums
        
         
     }
+    public class PFVVaporStrategy2 : IEquilibriumStrategy
+    {
+        private readonly IStreamFacade _facade;
+        private IMaterialStream Stream => _facade.MaterialStream;
+
+        // Tolerancias locales
+
+
+        public PFVVaporStrategy2(IStreamFacade facade)
+        {
+            _facade = facade;
+        }
+
+        public void Execute()
+        {
+
+
+            double tBubble = Stream.SolveSaturationTemperature();
+
+            // ✅ 4. Actualizar UI con resultado calculado
+            var temperature = _facade.Temperature.Value;
+            temperature!.SetValue(tBubble, TemperatureUnits.Kelvin);
+            // ✅ 4. Actualizar UI con resultado calculado
+            _facade.Temperature.SetValueFromStream(temperature, _facade.Name);
+            _facade.MaterialStream.CalculateBulkProperties();
+            _facade.MolarEnthalpy.SetValueFromStream(_facade.MaterialStream.MolarEnthalpy, _facade.Name);
+
+        }
+
+
+
+
+
+    }
 }

@@ -12,7 +12,7 @@ public static class ThermodynamicMethodSeeder
         var seedDataFolder = Path.Combine(contentRootPath, "SeedData");
         var filePath = Path.Combine(seedDataFolder, "MasterThermodynamicMethods.csv");
 
-        // 1. SI NO EXISTE EL ARCHIVO, LO CREAMOS (ADN del sistema)
+        //1.SI NO EXISTE EL ARCHIVO, LO CREAMOS(ADN del sistema)
         if (!File.Exists(filePath))
         {
             if (!Directory.Exists(seedDataFolder)) Directory.CreateDirectory(seedDataFolder);
@@ -24,6 +24,10 @@ public static class ThermodynamicMethodSeeder
         {
             await LoadFromCsvAsync(context, filePath);
         }
+
+        //await GenerateMasterFileFromHardcode(filePath);
+
+        //await LoadFromCsvAsync(context, filePath);
     }
 
     private static async Task GenerateMasterFileFromHardcode(string path)

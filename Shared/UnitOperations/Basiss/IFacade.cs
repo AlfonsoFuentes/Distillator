@@ -1,4 +1,5 @@
 ﻿using Shared.ProcessFlowDiagram;
+using Shared.Thermodynamics.ControlledVariables;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -20,9 +21,9 @@ namespace Shared.UnitOperations.Basiss
 
         // Desconecta lo que sea que esté en ese puerto
         void DetachConnection(string portName);
-        Action<IFacade>? OnExecuteSolver { get; set; }
-        void Calculate();
-        void ResetCalculatedVariable();
-    }
+        Action? OnExecuteSolver { get; set; }
    
+
+    }
+ 
 }

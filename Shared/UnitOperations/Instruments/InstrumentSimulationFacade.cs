@@ -1,4 +1,6 @@
-﻿using Shared.ProcessFlowDiagram;
+﻿using Shared.MatrixSolvers;
+using Shared.ProcessFlowDiagram;
+using Shared.Thermodynamics.ControlledVariables;
 using Shared.UnitOperations.Basiss;
 using System;
 using System.Collections.Generic;
@@ -34,6 +36,15 @@ namespace Shared.UnitOperations.Instruments
         protected override void CalculatedEquipment()
         {
 
+        }
+        public override void BuildEquations(EquationSystem eqs)
+        {
+
+        }
+
+        public override IEnumerable<INewVariable> GetSolverVariables()
+        {
+            return null!;
         }
     }
 }

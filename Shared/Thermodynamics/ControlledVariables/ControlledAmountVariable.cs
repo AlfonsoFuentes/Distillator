@@ -1,12 +1,11 @@
-﻿using System;
+﻿using Shared.MatrixSolvers;
+using Shared.UnitOperations.Basiss;
+using System;
 using UnitSystem;
 
 namespace Shared.Thermodynamics.ControlledVariables
 {
-    /// <summary>
-    /// Variable controlada especializada para tipos Amount (Temperature, Pressure, etc.).
-    /// Agrega unidad preferida para presentación en UI y conversión automática.
-    /// </summary>
+
     public class ControlledAmountVariable<T> : ControlledVariable<T> where T : Amount
     {
         public ControlledAmountVariable(UnitMeasure preferredUnit, T? initialValue = default, MethodSource source = MethodSource.None, string sourceId = "")
@@ -82,6 +81,6 @@ namespace Shared.Thermodynamics.ControlledVariables
             }
         }
 
-       
+
     }
 }

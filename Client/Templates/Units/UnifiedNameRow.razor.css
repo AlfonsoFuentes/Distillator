@@ -1,0 +1,167 @@
+﻿/* ============================================================
+   1. COLORES Y ESTILOS BASE
+   ============================================================ */
+.source-userinterface {
+    color: #4674a6;
+    font-weight: 500;
+}
+
+.variable-container {
+    width: 100%;
+    box-sizing: border-box;
+    font-family: "Segoe UI", Arial, sans-serif;
+    font-size: 12px;
+}
+
+/* MODO STANDARD */
+.variable-standard-grid {
+    display: grid;
+    grid-template-columns: 180px 1fr 80px;
+    width: 100%;
+    border-bottom: 1px solid #cbd5e0;
+    border-right: 1px solid #cbd5e0;
+    border-left: 1px solid #cbd5e0;
+    background-color: #ffffff;
+    transition: background-color 0.2s;
+}
+
+.variable-container.mode-standard:first-child .variable-standard-grid {
+    border-top: 1px solid #cbd5e0;
+}
+
+.mode-standard .grid-cell {
+    display: flex;
+    align-items: center;
+    min-height: 26px;
+}
+
+.mode-standard .label {
+    background-color: #f8fafc !important;
+    border-right: 1px solid #cbd5e0;
+    padding: 0 8px;
+    color: #475569;
+}
+
+.mode-standard .value-cell {
+    border-right: 1px solid #cbd5e0;
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+/* MODO COMPACTO */
+.variable-container.mode-compact {
+    display: contents;
+}
+
+.mode-compact .grid-cell.label {
+    background-color: #f5f5f5 !important;
+    border-right: 1px solid #b0b0b0;
+    border-bottom: 1px solid #b0b0b0;
+    padding: 0 8px;
+    display: flex;
+    align-items: center;
+    min-height: 28px;
+    color: #333;
+}
+
+.mode-compact .integrated-cell {
+    display: flex;
+    align-items: center;
+    background-color: #fff;
+    border-right: 1px solid #b0b0b0;
+    border-bottom: 1px solid #b0b0b0;
+    min-height: 28px;
+    padding: 0 !important;
+    position: relative;
+    transition: background-color 0.2s;
+}
+
+.value-container-compact {
+    flex-grow: 1;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 0 4px 0 8px;
+}
+
+/* ============================================================
+   2. ESTADOS DE VALIDACIÓN (ERROR / DUPLICADO)
+   ============================================================ */
+/* Fondo sutil rojizo y texto rojo alerta */
+.is-invalid {
+    background-color: #fff4f4 !important;
+}
+
+    .is-invalid .name-input {
+        color: #dc2626 !important;
+        font-weight: bold;
+    }
+
+/* ============================================================
+   3. INPUTS
+   ============================================================ */
+.compact-input, .std-input {
+    width: 100%;
+    border: none;
+    outline: none;
+    background: transparent;
+    text-align: right;
+    font: inherit;
+    color: inherit;
+    padding: 0 4px;
+}
+
+.std-input {
+    padding: 0 8px;
+}
+
+    .compact-input:focus, .std-input:focus {
+        background-color: #f0f7ff;
+        color: #4674a6;
+    }
+
+.is-invalid .compact-input:focus, .is-invalid .std-input:focus {
+    background-color: #fee2e2;
+    color: #dc2626;
+}
+
+/* ============================================================
+   4. BOTÓN GENERAR (ACCIÓN 🔄)
+   ============================================================ */
+.action-cell {
+    justify-content: center;
+    cursor: pointer;
+    background-color: #fafafa;
+    transition: background-color 0.2s;
+}
+
+.action-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 100%;
+    cursor: pointer;
+    border-left: 1px solid #eee;
+    background-color: #fafafa;
+    transition: background-color 0.2s;
+}
+
+    .action-cell:hover, .action-trigger:hover {
+        background-color: #eef5ff;
+    }
+
+.action-icon {
+    font-size: 12px;
+    color: #64748b;
+    transition: transform 0.3s, color 0.2s;
+}
+
+.action-cell:hover .action-icon, .action-trigger:hover .action-icon {
+    color: #4674a6;
+    transform: rotate(180deg);
+}
+/* Gira al hacer hover */

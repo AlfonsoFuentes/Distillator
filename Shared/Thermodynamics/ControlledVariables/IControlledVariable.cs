@@ -1,8 +1,18 @@
-﻿namespace Shared.Thermodynamics.ControlledVariables
+﻿using Shared.MatrixSolvers;
+using Shared.UnitOperations.Basiss;
+
+namespace Shared.Thermodynamics.ControlledVariables
 {
-    // ─────────────────────────────────────────────────────────
-    // 🔹 INTERFAZ NO-GENÉRICA
-    // ─────────────────────────────────────────────────────────
+    public interface IVariable
+    {
+        int Index { get; set; }
+        string Name { get; set; }
+        double UnitLessValue { get; set; }
+        IFacade Owner { get; set; }
+        bool IsDefined { get; }
+        double? SpecifiedValue { get; }
+    }
+   
 
     public interface IControlledVariable
     {
@@ -14,6 +24,7 @@
         void ClearValue();
         void RevertCalculatedValue();
     }
+   
 }
 
 

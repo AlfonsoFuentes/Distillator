@@ -1,5 +1,12 @@
 ﻿<div class="scrollable-container">
-    <div class="data-grid equipment-streams-grid">
+    @{
+        // 🔥 EL TRUCO MAESTRO: Calculamos las columnas explícitas basadas en la cantidad de puertos
+        // 180px fijos para los labels + 1fr elástico por cada puerto
+        string gridColumns = $"180px repeat({Ports.Count}, minmax(180px, 1fr))";
+    }
+
+    @* 👇 Inyectamos la regla dinámicamente aquí *@
+    <div class="data-grid equipment-streams-grid" style="grid-template-columns: @gridColumns;">
         
         @* ==========================================
            COLUMNA 1: ETIQUETAS (LABELS FIJOS)
@@ -41,7 +48,9 @@
             var facade = GetFacadeForPort(port);
             @if (facade != null)
             {
-                <EquipmentBaseStreamFacade Facade="facade" AvailableMethods="AvailableMethods" />
+                <EquipmentBaseStreamFacade Facade="facade"
+                                           AvailableMethods="AvailableMethods"
+                                           OnStreamUpdated="HandleAnyStreamUpdated" />
             }
             else
             {
@@ -51,46 +60,26 @@
                 }
             }
         }
-
-        @* ==========================================
-           COLUMNA FINAL: RELLENO VISUAL (FILLER)
-           ========================================== *@
-        <div class="grid-header filler"></div>
-        
-        <div class="grid-cell filler"></div>
-        <div class="grid-cell filler"></div>
-        <div class="grid-cell filler"></div>
-        <div class="grid-cell filler"></div>
-        <div class="grid-cell filler"></div>
-        <div class="grid-cell filler"></div>
-        <div class="grid-cell filler"></div>
-        <div class="grid-cell filler"></div>
-        <div class="grid-cell filler"></div>
-        
-        <div class="grid-cell filler group-title"></div>
-        <div class="grid-cell filler"></div>
-        <div class="grid-cell filler"></div>
-        
-        <div class="grid-cell filler group-title"></div>
-        <div class="grid-cell filler"></div>
-        <div class="grid-cell filler"></div>
-        <div class="grid-cell filler"></div>
-        <div class="grid-cell filler"></div>
-        
-        <div class="grid-cell filler group-title"></div>
-        <div class="grid-cell filler"></div>
-        <div class="grid-cell filler"></div>
-        <div class="grid-cell filler"></div>
     </div>
 </div>
 
 @code {
     [Parameter] public List<EquipmentPort> Ports { get; set; } = new();
     [Parameter] public List<ThermodynamicMethodFullDto> AvailableMethods { get; set; } = new();
-    
+    [Parameter] public EventCallback OnEquipmentStreamsUpdated { get; set; }
 
+    // 👇 NUEVO: Se ejecuta cada vez que CUALQUIER corriente cambia una propiedad
+    private async Task HandleAnyStreamUpdated()
+    {
+        // Forzamos al Grid a repintarse por si hay cambios visuales globales
+        StateHasChanged();
 
-   
+        // Le avisamos a la ventana principal de la bomba que algo se modificó
+        if (OnEquipmentStreamsUpdated.HasDelegate)
+        {
+            await OnEquipmentStreamsUpdated.InvokeAsync();
+        }
+    }
     private StreamSimulationFacade? GetFacadeForPort(EquipmentPort port)
     {
         if (!port.ConnectedElementId.HasValue) return null;

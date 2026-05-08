@@ -1,4 +1,9 @@
-﻿using Shared.UnitOperations.Basiss;
+﻿using Shared.MatrixSolvers;
+using Shared.ProcessFlowDiagram;
+using Shared.Thermodynamics.Phases;
+using Shared.UnitOperations.Basiss;
+using Shared.UnitOperations.Streams;
+using UnitSystem;
 
 namespace Shared.Thermodynamics.ControlledVariables
 {
@@ -22,17 +27,17 @@ namespace Shared.Thermodynamics.ControlledVariables
         public T? Value { get; protected set; }
         public MethodSource Source { get; set; } = MethodSource.None;
         public string SourceId { get; set; } = string.Empty;
-        public bool IsDefined =>  Source != MethodSource.None;
+        public bool IsDefined => Source != MethodSource.None;
 
-       
+
         public Action<ValueChangedEventArgs<T>>? StateChanged;
 
         /// <summary>
         /// Se dispara EXCLUSIVAMENTE para ordenar al motor local (ej. EquilibriumCalculator) que re-evalúe.
         /// </summary>
-        public  Action? LocalCalculationRequested;
+        public Action? LocalCalculationRequested;
 
-        public  Action<ControlledVariable<T>>? AddCalculatedVariable;
+        public Action<ControlledVariable<T>>? AddCalculatedVariable;
         public Action? OnExecuteSolver { get; set; }
 
         // ─────────────────────────────────────────────────────────
@@ -54,7 +59,7 @@ namespace Shared.Thermodynamics.ControlledVariables
             LocalCalculationRequested?.Invoke();
             if (source != MethodSource.Other)
             {
-                if(OnExecuteSolver!=null)
+                if (OnExecuteSolver != null)
                 {
                     OnExecuteSolver.Invoke();
                 }
@@ -66,7 +71,7 @@ namespace Shared.Thermodynamics.ControlledVariables
             var oldValue = Value;
             var wasDefined = IsDefined;
 
-         
+
             Source = MethodSource.None; // El estado interno queda limpio
             SourceId = string.Empty;
 
@@ -98,7 +103,7 @@ namespace Shared.Thermodynamics.ControlledVariables
             Source = MethodSource.None;
             SourceId = string.Empty;
 
-           
+
         }
     }
     

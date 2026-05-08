@@ -1,10 +1,11 @@
 ﻿@page "/"
 @using Client.Layout.Diagrams
+@using Shared.MatrixSolvers
 @implements IDisposable
 @attribute [Authorize]
 
 <PageTitle>Distillator System - PFD Workspace</PageTitle>
-
+<button class="add-tab-btn" title="New Area" @onclick="RunSolver">Solver</button>
 @* 1. LA BARRA DE PESTAÑAS (SHELL) *@
 <div class="area-tabs-container">
     @foreach (var area in WM.Areas)
@@ -18,7 +19,7 @@
              @ondragover:preventDefault="true"
              @ondragover="() => { }"
              @ondrop="() => HandleDrop(area)">
-             
+
             @* MODO EDICIÓN *@
             @if (_editingAreaId == area.Id)
             {
@@ -34,7 +35,7 @@
             else
             {
                 <span class="tab-title">@area.Name</span>
-                
+
                 @if (WM.Areas.Count > 1)
                 {
                     <button class="delete-tab-btn"
@@ -47,7 +48,7 @@
             }
         </div>
     }
-    
+
     <button class="add-tab-btn" title="New Area" @onclick="CreateNewArea">+</button>
 </div>
 
@@ -62,7 +63,40 @@
 
     protected override void OnInitialized()
     {
+    
+
+
+    }
+    protected override async Task OnInitializedAsync()
+    {
         WM.OnNotifyUI += StateHasChanged;
+         await ExectueSample();
+    }
+    async Task ExectueSample()
+    {
+        SolverMatrixManager manager = new();
+        var request = new GetAllCompleteMethods();
+        var resultAll = await HttpServices.PostAsync<GetAllCompleteMethods, Result<List<ThermodynamicMethodFullDto>>>(request);
+        if (resultAll.Succeeded)
+        {
+            var AvailableMethods = resultAll.Data;
+
+            var selectedMethod = AvailableMethods.FirstOrDefault(m => m.Name.Contains("Ethanol-Water (NRTL)"));
+            if (selectedMethod != null)
+            {
+                var result = await HttpServices.PostAsync<GetMethodFullRequest, Result<ThermodynamicMethodFullDto>>(new GetMethodFullRequest(selectedMethod.Id));
+
+                if (result.Succeeded && result.Data != null)
+                {
+                    manager.SetThermodynamicMethod(result.Data);
+                    manager.ExecuteSample();
+
+                }
+            }
+
+        }
+
+       
     }
 
     public void Dispose()
@@ -109,7 +143,7 @@
         {
             WM.RenameArea(area, _editingName);
         }
-        
+
         _editingAreaId = null;
         StateHasChanged();
     }
@@ -133,12 +167,15 @@
         _draggedArea = null;
         _draggingAreaId = null;
     }
-
+    void RunSolver()
+    {
+        // SeriesPumpValveTest.Run();
+    }
     private void CreateNewArea()
     {
         // Cancelamos cualquier edición activa al crear una nueva área
         _editingAreaId = null;
-        
+
         // Hacemos el nombre seguro para evitar repeticiones tontas "Area 2", "Area 2"
         int num = WM.Areas.Count + 1;
         string newName = $"Area {num}";

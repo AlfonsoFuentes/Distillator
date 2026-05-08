@@ -9,31 +9,17 @@ using UnitSystem;
 
 namespace Shared.UnitOperations.Streams
 {
+
     public class StreamSimulationFacade : IFacade
     {
-        public void ResetCalculatedVariable()
-        {
-            ResetEquilibriumCalculatedVariable();
-            ResetFlowsCalculatedVariable();
-
-        }
-
-        private List<IControlledVariable> _EquilibriumCalculatedVariables = new List<IControlledVariable>();
-
-        private List<IControlledVariable> _FlowVariables = new List<IControlledVariable>();
+       public Action? OnExecuteSolver { get; set; }
 
         private readonly EquilibriumCalculator _equilibriumCalculator;
         private readonly FlowsCalculator _flowsCalculator;
         public MaterialStream MaterialStream { get; } = new();
-        public Action<IFacade>? OnExecuteSolver { get; set; }
-        public void Calculate()
-        {
-            // 1. Obligamos al motor de equilibrio (Flash) a correr con los datos que el usuario digitó
-            _equilibriumCalculator.OnConstraintsChanged();
 
-            // 2. Obligamos al balance de masa/flujos a correr
-            _flowsCalculator.OnConstraintsChanged();
-        }
+        public Action<INewVariable>? OnAddUpdatedSpecification { get; set; }
+        public Action<INewVariable>? OnRemoveSpecification { get; set; }
         public ThermodynamicState EquilibriumState => MaterialStream.CurrentState;
         public string Name { get; set; } = string.Empty;
         public ControlledAmountVariable<Temperature> Temperature { get; set; }
@@ -132,19 +118,19 @@ namespace Shared.UnitOperations.Streams
 
 
 
-   //     public ControlledAmountVariable<MassEntropy> MassEntropy { get; set; }
-   //  = new ControlledAmountVariable<MassEntropy>(
-   //      preferredUnit: MassEntropyUnits.Kcal_Kg_C,  // 👇 OBLIGATORIO
-   //      initialValue: new MassEntropy(0, MassEntropyUnits.Kcal_Kg_C)
+        //     public ControlledAmountVariable<MassEntropy> MassEntropy { get; set; }
+        //  = new ControlledAmountVariable<MassEntropy>(
+        //      preferredUnit: MassEntropyUnits.Kcal_Kg_C,  // 👇 OBLIGATORIO
+        //      initialValue: new MassEntropy(0, MassEntropyUnits.Kcal_Kg_C)
 
-   //  );
+        //  );
 
-   //     public ControlledAmountVariable<MolarEntropy> MolarEntropy { get; set; }
-   //= new ControlledAmountVariable<MolarEntropy>(
-   //     preferredUnit: MolarEntropyUnits.Kcal_Kgmol_C,  // 👇 OBLIGATORIO
-   //       initialValue: new MolarEntropy(0, MolarEntropyUnits.Kcal_Kgmol_C)
+        //     public ControlledAmountVariable<MolarEntropy> MolarEntropy { get; set; }
+        //= new ControlledAmountVariable<MolarEntropy>(
+        //     preferredUnit: MolarEntropyUnits.Kcal_Kgmol_C,  // 👇 OBLIGATORIO
+        //       initialValue: new MolarEntropy(0, MolarEntropyUnits.Kcal_Kgmol_C)
 
-   //);
+        //);
 
         // ─────────────────────────────────────────────────────────
         // 🔹 Value Types (primitivos - default = 0)
@@ -166,21 +152,30 @@ namespace Shared.UnitOperations.Streams
 
             _equilibriumCalculator = new EquilibriumCalculator(this);
             _flowsCalculator = new FlowsCalculator(this);
-            Temperature.StateChanged += args => { MaterialStream.SetTemperature(args.NewValue); };
-            Temperature.OnExecuteSolver += EvaluateSolverTrigger;
+            Temperature.StateChanged += args =>
+            {
+                MaterialStream.SetTemperature(args.NewValue);
+                _equilibriumCalculator.OnConstraintsChanged();
+                _flowsCalculator.OnConstraintsChanged();
+            };
 
-            Temperature.LocalCalculationRequested += () => _equilibriumCalculator.OnConstraintsChanged();
-            Temperature.AddCalculatedVariable += AddEquilibriumCalculatedVariable;
 
-            Pressure.StateChanged += args => { MaterialStream.SetPressure(args.NewValue); };
-            Pressure.LocalCalculationRequested += () => _equilibriumCalculator.OnConstraintsChanged();
-            Pressure.OnExecuteSolver += EvaluateSolverTrigger;
-            Pressure.AddCalculatedVariable += AddEquilibriumCalculatedVariable;
+           
 
-            VaporFraction.StateChanged += args => { MaterialStream.SetVaporFraction(args.NewValue); };
-            VaporFraction.LocalCalculationRequested += () => _equilibriumCalculator.OnConstraintsChanged();
-            VaporFraction.OnExecuteSolver += EvaluateSolverTrigger;
-            VaporFraction.AddCalculatedVariable += AddEquilibriumCalculatedVariable;
+            Pressure.StateChanged += args => { 
+                MaterialStream.SetPressure(args.NewValue);
+                _equilibriumCalculator.OnConstraintsChanged();
+                _flowsCalculator.OnConstraintsChanged();
+            };
+           
+
+            VaporFraction.StateChanged += args => { 
+                MaterialStream.SetVaporFraction(args.NewValue);
+                _equilibriumCalculator.OnConstraintsChanged();
+                _flowsCalculator.OnConstraintsChanged();
+
+            };
+            
 
             // Suscríbete al chisme del método termodinámico
             ThermodynamicMethod.StateChanged += args =>
@@ -191,49 +186,47 @@ namespace Shared.UnitOperations.Streams
 
                 }
             };
-            ThermodynamicMethod.OnExecuteSolver += EvaluateSolverTrigger;
+
+            MassFlow.StateChanged += args => {
+               
+                _flowsCalculator.OnConstraintsChanged();
+
+            };
+            MolarFlow.StateChanged += args => {
+
+                _flowsCalculator.OnConstraintsChanged();
+
+            };
+
+            VolumetricFlow.StateChanged += args => {
+
+                _flowsCalculator.OnConstraintsChanged();
+
+            };
 
 
-
-            MassFlow.LocalCalculationRequested += () => _flowsCalculator.OnConstraintsChanged();  // 👈 AGREGAR
-            MassFlow.OnExecuteSolver += EvaluateSolverTrigger;
-            MassFlow.AddCalculatedVariable += AddFlowVariable;
-
-
-            MolarFlow.LocalCalculationRequested += () => _flowsCalculator.OnConstraintsChanged();  // 👈 AGREGAR
-            MolarFlow.OnExecuteSolver += EvaluateSolverTrigger;
-            MolarFlow.AddCalculatedVariable += AddFlowVariable;
-
-            VolumetricFlow.LocalCalculationRequested += () => _flowsCalculator.OnConstraintsChanged();  // 👈 AGREGAR
-            VolumetricFlow.OnExecuteSolver += EvaluateSolverTrigger;
-            VolumetricFlow.AddCalculatedVariable += AddFlowVariable;
-
-            StreamComposition.StateChanged += args => { MaterialStream.SetCompositionData(args.NewValue!); };
-            StreamComposition.OnExecuteSolver += EvaluateSolverTrigger;
-            StreamComposition.LocalCalculationRequested += () => _equilibriumCalculator.OnConstraintsChanged();
+            StreamComposition.StateChanged += args => { 
+                
+                MaterialStream.SetCompositionData(args.NewValue!);
+                _equilibriumCalculator.OnConstraintsChanged();
+                _flowsCalculator.OnConstraintsChanged();
+            };
+          
 
 
             _equilibriumCalculator.EquilibriumReady += OnEquilibriumReady;
             _equilibriumCalculator.FlowsReady += _flowsCalculator.OnConstraintsChanged;
 
-            MolarEnthalpy.LocalCalculationRequested += () => _equilibriumCalculator.OnConstraintsChanged();
-            MolarEnthalpy.AddCalculatedVariable += AddEquilibriumCalculatedVariable;
 
-            //MolarEntropy.LocalCalculationRequested += () => _equilibriumCalculator.OnConstraintsChanged();
-            //MolarEntropy.AddCalculatedVariable += AddEquilibriumCalculatedVariable;
+            MolarEnthalpy.StateChanged += args => {
+
+             
+                _equilibriumCalculator.OnConstraintsChanged();
+                _flowsCalculator.OnConstraintsChanged();
+            };
 
 
-            ThermalConductivity.AddCalculatedVariable += AddEquilibriumCalculatedVariable;
-            Viscosity.AddCalculatedVariable += AddEquilibriumCalculatedVariable;
-            MassCp.AddCalculatedVariable += AddEquilibriumCalculatedVariable;
-            MolarCp.AddCalculatedVariable += AddEquilibriumCalculatedVariable;
-            MassEnthalpy.AddCalculatedVariable += AddEquilibriumCalculatedVariable;
-         
-
-            MassDensity.AddCalculatedVariable += AddEquilibriumCalculatedVariable;
-            MolarDensity.AddCalculatedVariable += AddEquilibriumCalculatedVariable;
-            EnthalpyFlow.AddCalculatedVariable += AddFlowVariable;
-            SuperficialTension.AddCalculatedVariable += AddEquilibriumCalculatedVariable;
+          
 
 
         }
@@ -262,12 +255,12 @@ namespace Shared.UnitOperations.Streams
 
         private void OnEquilibriumReady()
         {
-            MaterialStream.CalculateBulkProperties(Temperature.Value!, Pressure.Value!);
+            MaterialStream.CalculateBulkProperties();
 
             ThermalConductivity.SetValueCalculated(MaterialStream.ThermalConductivity, Name);
-         
+
             Viscosity.SetValueCalculated(MaterialStream.Viscosity, Name);
-         
+
 
             MassCp.SetValueCalculated(MaterialStream.MassHeatCapacity, Name);
 
@@ -301,11 +294,7 @@ namespace Shared.UnitOperations.Streams
 
 
         }
-        private void EvaluateSolverTrigger()
-        {
-            // Si el cambio viene del usuario, gritamos al Solver. Si viene de otro lado, silenciamos.
-            OnExecuteSolver?.Invoke(this);
-        }
+       
         public void SetThermodynamicMethod(ThermodynamicMethodFullDto methodDto)
         {
             // 👇 El wrapper ControlledVariable YA actualizó Source/SourceId
@@ -356,42 +345,7 @@ namespace Shared.UnitOperations.Streams
 
         }
 
-        private void AddEquilibriumCalculatedVariable(IControlledVariable controlledVariable)
-        {
-            if (controlledVariable != null && !_EquilibriumCalculatedVariables.Contains(controlledVariable))
-            {
-                _EquilibriumCalculatedVariables.Add(controlledVariable);
-            }
-        }
-        private void AddFlowVariable(IControlledVariable controlledVariable)
-        {
-            if (controlledVariable != null && !_FlowVariables.Contains(controlledVariable))
-            {
-                _FlowVariables.Add(controlledVariable);
-            }
-        }
-        public void ResetEquilibriumCalculatedVariable()
-        {
-            IsEquilibriumSolved = false;
-            foreach (var controlledVariable in _EquilibriumCalculatedVariables)
-            {
-                // 🚩 ¡USAMOS TU NUEVO MÉTODO AQUÍ! 
-                // Así la UI se entera de que se borró y actualiza los colores/textos
-                controlledVariable.RevertCalculatedValue();
-            }
-            _EquilibriumCalculatedVariables.Clear();
-        }
-
-        public void ResetFlowsCalculatedVariable()
-        {
-            IsFlowSolved = false;
-            foreach (var controlledVariable in _FlowVariables)
-            {
-                // 🚩 IGUAL AQUÍ
-                controlledVariable.RevertCalculatedValue();
-            }
-            _FlowVariables.Clear();
-        }
+        
         public Guid Id { get; set; } = Guid.NewGuid();
         public string StatusText => State switch
         {
@@ -441,7 +395,7 @@ namespace Shared.UnitOperations.Streams
             else if (portName == "Outlet") TargetEquipment = connectedFacade;
 
             // Disparamos el evento (Placeholder para la estrategia de cálculo)
-  
+
 
 
         }
@@ -451,7 +405,7 @@ namespace Shared.UnitOperations.Streams
             if (portName == "Inlet") SourceEquipment = null;
             else if (portName == "Outlet") TargetEquipment = null;
 
-     
+
 
         }
 

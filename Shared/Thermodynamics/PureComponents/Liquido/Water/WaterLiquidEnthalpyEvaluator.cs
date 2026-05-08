@@ -9,7 +9,9 @@ namespace Shared.Thermodynamics.PureComponents.Liquido.Water
         public MolarEnergy EvaluateAt(Temperature temperature)
         {
             double tempK = temperature.GetValue(TemperatureUnits.Kelvin);
-            double hMolar = CPropiAgua.enthalpySatLiqTW(tempK) * 1000.0 * 18.01528;
+
+            double entalpiaSatLiq = CPropiAgua.enthalpySatLiqTW(tempK);
+            double hMolar = entalpiaSatLiq * 1000.0 * 18.01528;
 
             return new MolarEnergy(hMolar, MolarEnergyUnits.J_Kgmol);
         }

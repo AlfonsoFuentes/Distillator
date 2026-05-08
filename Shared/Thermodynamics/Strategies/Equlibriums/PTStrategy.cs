@@ -29,4 +29,28 @@ namespace Shared.Thermodynamics.Strategies.Equlibriums
             
         }
     }
+    public class PTStrategy2 : IEquilibriumStrategy
+    {
+        private readonly IStreamFacade _facade;
+        private IMaterialStream Stream => _facade.MaterialStream;
+
+        public PTStrategy2(IStreamFacade facade)
+        {
+            _facade = facade;
+        }
+
+        public void Execute()
+        {
+
+            Stream.PerformFlashPT();
+
+
+            _facade.VaporFraction.SetValueFromStream(Stream.VaporFraction, _facade.Name);
+
+            _facade.MaterialStream.CalculateBulkProperties();
+            _facade.MolarEnthalpy.SetValueFromStream(_facade.MaterialStream.MolarEnthalpy, _facade.Name);
+
+        }
+    }
+
 }

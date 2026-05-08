@@ -4,10 +4,64 @@ using Shared.Thermodynamics.PureComponents;
 using Shared.Thermodynamics.Solvers;
 using Shared.UnitOperations.Streams;
 using UnitSystem;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Shared.Thermodynamics.Phases
 {
-    public class MaterialStream : Phase
+    public interface IMaterialStream
+    {
+        string Name { get; }
+        List<MainComponentNode> Components { get; }
+        LiquidPhaseMixture LiquidPhase { get; }
+        VaporPhaseMixture VaporPhase { get; }
+        double VaporFraction { get; }
+        ThermodynamicState CurrentState { get; set; }
+        void SetComponentsProperties(ThermodynamicMethodFullDto method);
+        void ClearComponentsProperties();
+        void SetCompositionData(StreamComposition streamComposition);
+        void SetVaporFraction(double vaporFraction);
+        double SolveSaturationTemperature();
+        double SolveSaturationPressure();
+        void PerformFlashPT();
+
+        void PerformFlashPH(Pressure targetPressure, MolarEnergy targetEnthalpy);
+        double SolveFlashPVF(Pressure P, double targetVF);
+        double SolveFlashTVF(Temperature T, double targetVF);
+
+        Temperature Temperature { get; set; }
+        Pressure Pressure { get; set; }
+
+        void SetThermodynamicMethod(ThermodynamicMethodFullDto _method);
+        void ClearThermodynamicMethod();
+        void SetPressure(Pressure? pressure);
+        void SetTemperature(Temperature? temperature);
+        void CalculateBulkProperties();
+
+
+        // Extensive Properties (Allowed to be set in the leaf)
+        MolarFlow MolarFlow { get; set; }
+        MassFlow MassFlow { get; set; }
+        VolumetricFlow VolumetricFlow { get; set; }
+        EnergyFlow EnthalpyFlow { get; set; }
+
+        // Intensive Properties
+        double MolecularWeight { get; set; }
+        MassDensity MassDensity { get; set; }
+        MolarDensity MolarDensity { get; set; }
+        MolarEnergy MolarEnthalpy { get; set; }
+        MassEnergy MassEnthalpy { get; set; }
+        MassEntropy MassHeatCapacity { get; set; }
+        MolarEntropy MolarHeatCapacity { get; set; }
+        MassEntropy MassEntropy { get; set; }
+        MolarEntropy MolarEntropy { get; set; }
+        Viscosity Viscosity { get; set; }
+        ThermalConductivity ThermalConductivity { get; set; }
+        SuperficialTension SurfaceTension { get; set; }
+
+
+        MolarVolumeSpecific MolarVolume { get; set; }
+    }
+    public class MaterialStream : Phase, IMaterialStream
     {
         // ========================================================================
         // PROPIEDADES
@@ -82,10 +136,10 @@ namespace Shared.Thermodynamics.Phases
                 var localComponent = Components.FirstOrDefault(x => x.Id == comp.ComponentId);
                 if (localComponent != null)
                 {
-                    if (comp.MassFraction.HasValue)
-                        localComponent.MassFraction = comp.MassFraction.Value / 100;
-                    if (comp.MolarFraction.HasValue)
-                        localComponent.MolarFraction = comp.MolarFraction.Value / 100;
+                    if (comp.MassFractionSolver.IsDefined)
+                        localComponent.MassFraction = comp.MassFractionSolver.Value / 100;
+                    if (comp.MolarFractionSolver.IsDefined)
+                        localComponent.MolarFraction = comp.MolarFractionSolver.Value / 100;
                 }
             }
             CalculateMixtureMolecularWeight();
@@ -111,6 +165,11 @@ namespace Shared.Thermodynamics.Phases
 
             foreach (var component in ComponentsForPropagation)
                 component.SetPressure(pressure);
+        }
+        public void SetMolarEnthalpy(MolarEnergy? molarEnthalpy)
+        {
+
+
         }
 
         // En MaterialStream.SetVaporFraction():
@@ -334,7 +393,7 @@ namespace Shared.Thermodynamics.Phases
             int maxIters = 50;
             double tolerance = 1e-7;
             int iter = 0;
-           
+
 
             while (iter < maxIters)
             {
@@ -405,7 +464,7 @@ namespace Shared.Thermodynamics.Phases
                 if (sumDeltaK < tolerance)
                 {
                     CurrentState = ThermodynamicState.VaporLiquidMixture;
-               
+
                     break;
                 }
 
@@ -416,7 +475,162 @@ namespace Shared.Thermodynamics.Phases
             NormalizePhaseCompositions();
         }
 
-        // Método auxiliar para evitar código duplicado en el test de estabilidad
+
+        // 🔥 NUEVO: Encontrar intervalo [T_low, T_high] que contenga la solución
+        private (double T_low, double T_high) FindTemperatureBracket(
+            Pressure P, double hTarget, double T_guess)
+        {
+            // Evaluar H en T_guess
+            var T_test = new Temperature(T_guess, TemperatureUnits.Kelvin);
+            PerformFlashPT(T_test, P);
+            CalculateBulkProperties();
+            double h_test = MolarEnthalpy.GetValue(MolarEnergyUnits.J_Kgmol);
+
+            // Si ya estamos cerca, retornar intervalo estrecho
+            if (Math.Abs(h_test - hTarget) < 100) // 100 J/kmol tolerancia inicial
+                return (T_guess - 10, T_guess + 10);
+
+            // Dirección de búsqueda: ¿H_target > H_test? → buscar T más alta
+            bool searchUp = hTarget > h_test;
+
+            // Expandir intervalo exponencialmente hasta bracketear
+            double T_low = T_guess, T_high = T_guess;
+            double step = 20; // K
+
+            for (int i = 0; i < 20; i++) // Máximo 20 intentos
+            {
+                if (searchUp)
+                    T_high += step;
+                else
+                    T_low -= step;
+
+                // Evaluar extremo
+                var T_extreme = new Temperature(searchUp ? T_high : T_low, TemperatureUnits.Kelvin);
+                PerformFlashPT(T_extreme, P);
+                CalculateBulkProperties();
+                double h_extreme = MolarEnthalpy.GetValue(MolarEnergyUnits.J_Kgmol);
+
+                // ¿Bracketeamos? (h_target entre h_low y h_high)
+                double h_low = searchUp ? h_test : h_extreme;
+                double h_high = searchUp ? h_extreme : h_test;
+
+                if ((hTarget >= h_low && hTarget <= h_high) ||
+                    (hTarget <= h_low && hTarget >= h_high))
+                {
+                    return (T_low, T_high);
+                }
+
+                step *= 1.5; // Expandir paso exponencialmente
+            }
+
+            // Fallback: intervalo amplio por defecto
+            return (250, 800); // K, cubre mayoría de casos industriales
+        }// 🔥 NUEVO: Calcular Cp efectivo que incluye término de calor latente en bifásico
+
+        private MolarEntropy GetEffectiveCpMolar(Temperature _temperature)
+        {
+            MolarEntropy result = new MolarEntropy(0, MolarEntropyUnits.J_Kgmol_C);
+
+            // Líquido: calcular Cp si el estado lo requiere
+            if (CurrentState == ThermodynamicState.SubcooledLiquid ||
+                CurrentState == ThermodynamicState.SaturatedLiquid ||
+                CurrentState == ThermodynamicState.VaporLiquidMixture)
+            {
+                // Calcula y almacena Cp en LiquidPhase.MolarHeatCapacity
+                result = LiquidPhase.CalculateLiquidMixtureHeatCapacity(_temperature);
+            }
+
+            // Vapor: calcular Cp si el estado lo requiere
+            if (CurrentState == ThermodynamicState.SuperheatedVapor ||
+                CurrentState == ThermodynamicState.SaturatedVapor ||
+                CurrentState == ThermodynamicState.VaporLiquidMixture)
+            {
+                // Calcula y almacena Cp en VaporPhase.MolarHeatCapacity
+                result = VaporPhase.CalculateGasMixtureHeatCapacity(_temperature);
+            }
+
+            // ====================================================================
+            // 2. CALCULAR Cp EFECTIVO SEGÚN ESTADO TERMODINÁMICO
+            // ====================================================================
+
+            if (CurrentState == ThermodynamicState.SubcooledLiquid ||
+                CurrentState == ThermodynamicState.SaturatedLiquid)
+            {
+                // 🔹 Líquido puro: Cp sensible directo de fase líquida
+                return result;
+            }
+            else if (CurrentState == ThermodynamicState.SuperheatedVapor ||
+                     CurrentState == ThermodynamicState.SaturatedVapor)
+            {
+                // 🔹 Vapor puro: Cp sensible directo de fase vapor
+                return result;
+            }
+            else if (CurrentState == ThermodynamicState.VaporLiquidMixture)
+            {
+                // 🔹 Zona bifásica: Cp_eff = Cp_sensible + (dVF/dT)_P · ΔH_vap
+
+                // --- Paso A: Cp sensible ponderado por fracción de vapor ---
+                double cpLiq = LiquidPhase.MolarHeatCapacity.GetValue(MolarEntropyUnits.KJ_Kgmol_C) * 1000.0; // → J/(Kgmol·K)
+                double cpVap = VaporPhase.MolarHeatCapacity.GetValue(MolarEntropyUnits.KJ_Kgmol_C) * 1000.0;
+                double cp_sensible = (1.0 - VaporFraction) * cpLiq + VaporFraction * cpVap;
+
+                // --- Paso B: Término de calor latente (dVF/dT · ΔH_vap) ---
+                const double dT = 0.1; // K, pequeño para derivada numérica estable
+
+                // Guardar estado original
+                var T_orig = new Temperature(_temperature.GetValue(TemperatureUnits.Kelvin), TemperatureUnits.Kelvin);
+                var vf_orig = VaporFraction;
+
+                try
+                {
+                    // Evaluar VF en T + dT
+                    var T_plus = new Temperature(T_orig.GetValue(TemperatureUnits.Kelvin) + dT, TemperatureUnits.Kelvin);
+                    PerformFlashPT(T_plus, Pressure);
+                    double vf_plus = VaporFraction;
+
+                    // Calcular derivada numérica dVF/dT
+                    double dVF_dT = (vf_plus - vf_orig) / dT;
+
+                    // Calcular ΔH_vap a T original (restaurar estado primero)
+                    PerformFlashPT(T_orig, Pressure);
+                    VaporFraction = vf_orig; // Restaurar fracción de vapor original
+
+                    // Entalpías de fase a T original (asegurar que están calculadas)
+                    LiquidPhase.CalculateLiquidMixtureEnthalpy(_temperature);
+                    VaporPhase.CalculateGasMixtureEnthalpy(_temperature);
+
+                    double h_vap = VaporPhase.MolarEnthalpy.GetValue(MolarEnergyUnits.J_Kgmol);
+                    double h_liq = LiquidPhase.MolarEnthalpy.GetValue(MolarEnergyUnits.J_Kgmol);
+                    double deltaH_vap = h_vap - h_liq;
+
+                    // --- Paso C: Cp efectivo total ---
+                    double cp_effective = cp_sensible + dVF_dT * deltaH_vap;
+
+                    // Validar que Cp no sea negativo o extremo (protección numérica)
+                    if (cp_effective < 10.0) cp_effective = 1000.0; // Fallback razonable para mezclas
+                    if (cp_effective > 1e6) cp_effective = 1e5;     // Límite superior por seguridad
+
+                    return new MolarEntropy(cp_effective, MolarEntropyUnits.J_Kgmol_C);
+                }
+                catch (Exception ex)
+                {
+                    // Fallback robusto si la derivada numérica falla
+                    System.Diagnostics.Debug.WriteLine(
+                        $"[GetEffectiveCpMolar] Fallback por excepción: {ex.Message}. Usando Cp sensible.");
+                    return new MolarEntropy(cp_sensible > 10.0 ? cp_sensible : 1000.0, MolarEntropyUnits.J_Kgmol_C);
+                }
+            }
+            else
+            {
+                // 🔹 Fallback por seguridad (estado no manejado)
+                System.Diagnostics.Debug.WriteLine(
+                    $"[GetEffectiveCpMolar] WARNING: Estado no manejado: {CurrentState}. Usando Cp líquido por defecto.");
+
+                // Asegurar que LiquidPhase tenga Cp calculado
+                result = LiquidPhase.CalculateLiquidMixtureHeatCapacity(_temperature);
+                return result;
+            }
+        }
         private double CalculateRRFunction(double beta, double[] z, double[] K)
         {
             double f = 0.0;
@@ -437,7 +651,7 @@ namespace Shared.Thermodynamics.Phases
             }
             return K;
         }
-        
+
         private double SolveRachfordRice(double[] z, double[] K)
         {
             // Función objetivo: f(β) = Σ [ z_i * (K_i - 1) / (1 + β*(K_i - 1)) ] = 0
@@ -489,7 +703,7 @@ namespace Shared.Thermodynamics.Phases
 
             return beta;
         }
-  
+
         private void NormalizePhaseCompositions()
         {
             double sumX = LiquidPhase.Components.Sum(c => c.MolarFraction);
@@ -522,12 +736,12 @@ namespace Shared.Thermodynamics.Phases
             // mezcla bifásica o vapor sobrecalentado.
             MolecularWeight = Components.Sum(c => c.MolarFraction * c.PureComponentData.MolecularWeight);
         }
-        public void CalculateBulkProperties(Temperature _temperature, Pressure _pressure)
+
+        public void CalculateBulkProperties()
         {
             if (CurrentState == ThermodynamicState.Undefined) return;
-            Temperature = _temperature;
-            Pressure = _pressure;
-        
+
+
 
             // 1. Calcular propiedades de las fases usando la T y P reales de la corriente
             // (Esto garantiza que capturemos el subenfriamiento o sobrecalentamiento)
@@ -677,10 +891,317 @@ namespace Shared.Thermodynamics.Phases
                 SurfaceTension = new SuperficialTension(LiquidPhase.SurfaceTension.GetValue(SuperficialTensionUnits.N_m), SuperficialTensionUnits.N_m);
             }
         }
-      
+        // 🔥 REEMPLAZAR el while loop de PerformFlashPH por este:
+        /// <summary>
+        /// Flash isentálpico (P-H): encuentra T tal que H(T,P) = H_target.
+        /// Enfoque: While-scan para bracketing + while-bisección para convergencia.
+        /// Cero for-loops, control manual de iteraciones.
+        /// </summary>
         public void PerformFlashPH(Pressure targetPressure, MolarEnergy targetEnthalpy)
         {
-            double hTargetJ = targetEnthalpy.GetValue(MolarEnergyUnits.J_Kgmol);
+            // 🔹 1. Normalizar unidades: target en J/Kgmol para consistencia interna
+            double hTargetJ = targetEnthalpy.GetValue(MolarEnergyUnits.KJ_Kgmol);
+            Pressure = targetPressure;
+
+            // 🔹 2. Parámetros del scan incremental
+            const double T_START = 273.15;    // 0°C, punto de partida
+            const double T_MAX = 1000.0;      // Límite superior de seguridad
+            const double T_STEP = 20.0;       // Paso del scan: 20 K
+            const double TOL_SCAN = 1e-1;     // Tolerancia relajada durante el scan
+            const double TOL_BISECTION_H = 1e-2;  // Tolerancia en entalpía para bisección
+            const double TOL_BISECTION_T = 1e-4;  // Tolerancia en temperatura para bisección
+            const int MAX_BISECTION_ITERS = 100;
+
+            // 🔹 3. Inicializar variables del scan
+            double T_current = T_START;
+            double T_prev = T_START;
+            double error_prev = double.NaN;
+            bool bracketFound = false;
+            double T_low = 0, T_high = 0;
+
+            // 🔹 4. FASE 1: WHILE-SCAN para encontrar bracket [T_low, T_high]
+            while (T_current <= T_MAX)
+            {
+                var T_obj = new Temperature(T_current, TemperatureUnits.Kelvin);
+
+                // Flash PT para estado físico actual
+                PerformFlashPT(T_obj, Pressure);
+
+                // Calcular entalpía (sin side-effects)
+                var hResult = CalculateMolarEnthalpyOnly(T_obj);
+                double hCalc = hResult.GetValue(MolarEnergyUnits.KJ_Kgmol);
+
+                double error = hCalc - hTargetJ;
+
+                // ✅ Convergencia directa durante el scan (caso afortunado)
+                if (Math.Abs(error) < TOL_SCAN)
+                {
+                    Temperature = T_obj;
+                    MolarEnthalpy = hResult;
+                    return;
+                }
+
+                // 🔍 Detectar cambio de signo → bracket encontrado
+                if (!double.IsNaN(error_prev) && (error * error_prev) < 0)
+                {
+                    // ✅ Bracket: [T_prev, T_current] contiene la solución
+                    T_low = T_prev;
+                    T_high = T_current;
+                    bracketFound = true;
+                    break;
+                }
+
+                // Preparar para siguiente iteración
+                T_prev = T_current;
+                error_prev = error;
+                T_current += T_STEP;
+            }
+
+            // 🔹 5. Si no se encontró bracket, reportar error
+            if (!bracketFound)
+            {
+                System.Diagnostics.Debug.WriteLine(
+                    $"[Flash P-H] ERROR: No se encontró bracket con cambio de signo. " +
+                    $"hTarget={hTargetJ:E3} J/kmol, H_final={CalculateMolarEnthalpyOnly(new Temperature(T_current, TemperatureUnits.Kelvin)).GetValue(MolarEnergyUnits.J_Kgmol):E3} J/kmol, " +
+                    $"T_final={T_current:F1} K, VF={VaporFraction:F3}");
+                return;
+            }
+
+            // 🔹 6. FASE 2: WHILE-BISECCIÓN dentro del bracket [T_low, T_high]
+            double T_solution = (T_low + T_high) / 2;
+            double hFinal = double.NaN;
+            int bisectionIter = 0;  // 👈 Contador manual, no for
+
+            while (bisectionIter < MAX_BISECTION_ITERS)
+            {
+                var T_mid = new Temperature(T_solution, TemperatureUnits.Kelvin);
+
+                // Flash PT y cálculo de entalpía
+                PerformFlashPT(T_mid, Pressure);
+                var hResult = CalculateMolarEnthalpyOnly(T_mid);
+                hFinal = hResult.GetValue(MolarEnergyUnits.KJ_Kgmol);
+
+                double error = hFinal - hTargetJ;
+
+                // ✅ Convergencia
+                if (Math.Abs(error) < TOL_BISECTION_H || Math.Abs(T_high - T_low) < TOL_BISECTION_T)
+                {
+                    // Actualizar estado global al converger
+                    Temperature = T_mid;
+                    MolarEnthalpy = hResult;
+                    return;
+                }
+
+                // 🔍 Determinar subintervalo: evaluar error en T_low
+                var T_low_obj = new Temperature(T_low, TemperatureUnits.Kelvin);
+                PerformFlashPT(T_low_obj, Pressure);
+                double hLow = CalculateMolarEnthalpyOnly(T_low_obj).GetValue(MolarEnergyUnits.KJ_Kgmol);
+                double errorLow = hLow - hTargetJ;
+
+                if (errorLow * error <= 0)
+                {
+                    // Raíz en [T_low, T_mid]
+                    T_high = T_solution;
+                }
+                else
+                {
+                    // Raíz en [T_mid, T_high]
+                    T_low = T_solution;
+                }
+
+                T_solution = (T_low + T_high) / 2;
+                bisectionIter++;  // 👈 Incremento manual explícito
+            }
+
+            // ❌ Bisección no convergió en MAX_ITERS
+            System.Diagnostics.Debug.WriteLine(
+                $"[Flash P-H] ADVERTENCIA: Bisección no convergió en {bisectionIter} iteraciones. " +
+                $"Error final: {hFinal - hTargetJ:F2} J/kmol, T={T_solution:F2} K, VF={VaporFraction:F3}");
+        }
+        public void PerformFlashPH3(Pressure targetPressure, MolarEnergy targetEnthalpy)
+        {
+            double hTargetJ = targetEnthalpy.GetValue(MolarEnergyUnits.KJ_Kgmol);
+            Pressure = targetPressure;
+
+            // 🔥 1. Bracketing inicial inteligente
+            double T_guess = (Temperature != null && Temperature.GetValue(TemperatureUnits.Kelvin) > 0)
+                             ? Temperature.GetValue(TemperatureUnits.Kelvin)
+                             : 298.15;
+
+            var (T_low, T_high) = FindTemperatureBracket(targetPressure, hTargetJ, T_guess);
+            double tK = (T_low + T_high) / 2; // Empezar en el centro del bracket
+
+            int maxIters = 50;
+            double tolerance = 1e-2; // J/Kgmol (relajado para empezar)
+            int iter = 0;
+            double prevError = double.MaxValue;
+            // Flag para detectar si estamos cerca de cambio de fase
+            bool nearPhaseChange = false;
+            double damping = 1.0; // Factor de amortiguamiento para Newton-Raphson
+            double error = double.MaxValue;
+            while (iter < maxIters)
+            {
+                Temperature = new Temperature(tK, TemperatureUnits.Kelvin);
+
+                // 2. Flash PT para estado físico actual
+                PerformFlashPT(Temperature, Pressure);
+                var _MolarEnthalpy = CalculateMolarEnthalpyOnly(Temperature);
+
+                double hCalc = _MolarEnthalpy.GetValue(MolarEnergyUnits.KJ_Kgmol);
+                error = hCalc - hTargetJ;
+
+                // ✅ Convergencia
+                if (Math.Abs(error) < tolerance)
+                {
+                    // Refinar tolerancia para última iteración
+                    if (tolerance > 1e-3)
+                    {
+                        tolerance = 1e-3;
+                        continue;
+                    }
+                    break;
+                }
+
+                // 🔥 3. Detectar si estamos cerca de cambio de fase
+                // (VF cerca de 0 o 1, o Cp efectivo muy grande)
+                var _cp_eff = GetEffectiveCpMolar(Temperature);
+                var cp_eff = _cp_eff.GetValue(MolarEntropyUnits.J_Kgmol_C); // Convertir a J/Kgmol
+                nearPhaseChange = (VaporFraction < 0.05 || VaporFraction > 0.95 || cp_eff > 1e5);
+
+                double deltaT;
+
+                if (nearPhaseChange || iter > 10)
+                {
+                    // 🔹 USAR BISECCIÓN cuando hay cambio de fase o Newton falla
+                    // Bisección es más lenta pero garantizada si h(T) es monótona
+                    if (error > 0)
+                        T_high = tK; // H calculada > target → bajar T
+                    else
+                        T_low = tK;  // H calculada < target → subir T
+
+                    tK = (T_low + T_high) / 2;
+                }
+                else
+                {
+                    // 🔹 NEWTON-RAPHSON con Cp efectivo y damping adaptativo
+                    if (Math.Abs(cp_eff) < 1e-3) cp_eff = 1000.0; // Fallback
+
+                    deltaT = -error / cp_eff;
+
+                    // Damping adaptativo: reducir paso si error no disminuye
+                    if (iter > 3 && Math.Abs(error) > prevError * 0.9)
+                    {
+                        damping *= 0.7; // Reducir paso
+                    }
+                    damping = Math.Max(damping, 0.1); // Límite inferior
+
+                    deltaT *= damping;
+
+                    // Clamping suave (no cortar abruptamente)
+                    deltaT = Math.Clamp(deltaT, -20.0, 20.0);
+
+                    tK += deltaT;
+                }
+
+                // 🔥 4. Mantener T dentro de límites físicos
+                tK = Math.Clamp(tK, 200.0, 1000.0); // K, ajustable según componentes
+
+                // 🔥 5. Actualizar bracket si Newton se sale
+                if (!nearPhaseChange)
+                {
+                    if (error > 0) T_high = Math.Min(T_high, tK + 10);
+                    else T_low = Math.Max(T_low, tK - 10);
+                }
+
+                prevError = Math.Abs(error);
+                iter++;
+            }
+
+            if (iter >= maxIters)
+            {
+                System.Diagnostics.Debug.WriteLine(
+                    $"[Flash P-H] ADVERTENCIA: No convergió. Error final: {error:F2} J/kmol, VF={VaporFraction:F3}, T={tK:F1} K");
+            }
+        }
+        /// <summary>
+        /// Calcula la entalpía molar de la corriente para el estado actual (T, P, VF).
+        /// Optimizado: solo calcula entalpía, no Cp, S, densidad, viscosidad, etc.
+        /// </summary>
+        /// <returns>Entalpía molar en J/Kgmol</returns>
+        public MolarEnergy CalculateMolarEnthalpyOnly(Temperature _temperature)
+        {
+            if (CurrentState == ThermodynamicState.Undefined)
+                return new MolarEnergy(0, MolarEnergyUnits.J_Kgmol);
+
+            MolarEnergy liquidenthalpy = new MolarEnergy(0, MolarEnergyUnits.J_Kgmol);
+            MolarEnergy vaporenthalpy = new MolarEnergy(0, MolarEnergyUnits.J_Kgmol);
+
+            // Líquido: calcular si el estado lo requiere
+            if (CurrentState == ThermodynamicState.SubcooledLiquid ||
+                CurrentState == ThermodynamicState.SaturatedLiquid ||
+                CurrentState == ThermodynamicState.VaporLiquidMixture)
+            {
+                // Calcula y retorna entalpía líquida (asume que también la almacena en LiquidPhase.MolarEnthalpy)
+                liquidenthalpy = LiquidPhase.CalculateLiquidMixtureEnthalpy(_temperature);
+            }
+
+            // Vapor: calcular si el estado lo requiere
+            if (CurrentState == ThermodynamicState.SuperheatedVapor ||
+                CurrentState == ThermodynamicState.SaturatedVapor ||
+                CurrentState == ThermodynamicState.VaporLiquidMixture)
+            {
+                // Calcula y retorna entalpía vapor (asume que también la almacena en VaporPhase.MolarEnthalpy)
+                vaporenthalpy = VaporPhase.CalculateGasMixtureEnthalpy(_temperature);
+            }
+
+            // ====================================================================
+            // 2. MEZCLAR ENTALPÍAS SEGÚN ESTADO TERMODINÁMICO
+            // ====================================================================
+            double hMolarMix = 0.0;
+
+            if (CurrentState == ThermodynamicState.SubcooledLiquid ||
+                CurrentState == ThermodynamicState.SaturatedLiquid)
+            {
+                // 🔹 Líquido puro (subenfriado o saturado): entalpía directa de fase líquida
+                hMolarMix = liquidenthalpy.GetValue(MolarEnergyUnits.J_Kgmol);
+            }
+            else if (CurrentState == ThermodynamicState.SuperheatedVapor ||
+                     CurrentState == ThermodynamicState.SaturatedVapor)
+            {
+                // 🔹 Vapor puro (sobrecalentado o saturado): entalpía directa de fase vapor
+                hMolarMix = vaporenthalpy.GetValue(MolarEnergyUnits.J_Kgmol);
+            }
+            else if (CurrentState == ThermodynamicState.VaporLiquidMixture)
+            {
+                // 🔹 Zona bifásica: mezcla ponderada por fracción molar de vapor (VF)
+                double hLiq = liquidenthalpy.GetValue(MolarEnergyUnits.J_Kgmol);
+                double hVap = vaporenthalpy.GetValue(MolarEnergyUnits.J_Kgmol);
+
+                hMolarMix = (1.0 - VaporFraction) * hLiq + VaporFraction * hVap;
+            }
+            else
+            {
+                // 🔹 Fallback por seguridad (no debería ocurrir si CurrentState está bien definido)
+                System.Diagnostics.Debug.WriteLine(
+                    $"[CalculateMolarEnthalpyOnly] WARNING: Estado no manejado: {CurrentState}");
+                return new MolarEnergy(0, MolarEnergyUnits.J_Kgmol);
+            }
+
+            // ====================================================================
+            // 3. RETORNAR (y opcionalmente actualizar propiedad global para consistencia)
+            // ====================================================================
+
+            // Opción A: Solo retornar (sin side-effects) → más puro, pero menos consistente con el resto del código
+            // return new MolarEnergy(hMolarMix, MolarEnergyUnits.J_Kgmol);
+
+            // Opción B: Retornar + actualizar propiedad global → consistente con CalculateBulkProperties()
+            var _MolarEnthalpy = new MolarEnergy(hMolarMix, MolarEnergyUnits.J_Kgmol);
+            return _MolarEnthalpy;
+        }
+
+        public void PerformFlashPH2(Pressure targetPressure, MolarEnergy targetEnthalpy)
+        {
+            double hTargetJ = targetEnthalpy.GetValue(MolarEnergyUnits.KJ_Kgmol);
             Pressure = targetPressure;
 
             // 1. Estimación inicial de Temperatura
@@ -703,10 +1224,10 @@ namespace Shared.Thermodynamics.Phases
                 PerformFlashPT(Temperature, Pressure);
 
                 // 3. Calcular la Entalpía y el Cp global de la corriente
-                CalculateBulkProperties(Temperature, Pressure);
+                CalculateBulkProperties();
 
-                double hCalc = MolarEnthalpy.GetValue(MolarEnergyUnits.J_Kgmol);
-                double cpMix = MolarHeatCapacity.GetValue(MolarEntropyUnits.KJ_Kgmol_C) * 1000.0; // Convertir a J/(Kgmol·K)
+                double hCalc = MolarEnthalpy.GetValue(MolarEnergyUnits.KJ_Kgmol);
+                double cpMix = MolarHeatCapacity.GetValue(MolarEntropyUnits.KJ_Kgmol_C); // Convertir a J/(Kgmol·K)
 
                 // Error actual
                 error = hCalc - hTargetJ;
@@ -721,7 +1242,7 @@ namespace Shared.Thermodynamics.Phases
 
                 // Clamping (Limitador de paso) para evitar que la T salte a valores negativos o locos
                 // Máximo permitimos saltos de 50 grados por iteración
-                deltaT = Math.Clamp(deltaT, -50.0, 50.0);
+                deltaT = Math.Clamp(deltaT, -10.0, 10.0);
 
                 tK -= deltaT;
                 Temperature = new Temperature(tK, TemperatureUnits.Kelvin);
@@ -800,7 +1321,7 @@ namespace Shared.Thermodynamics.Phases
             while (Math.Abs(error) > tolerance && iter < maxIters)
             {
                 PerformFlashPT(Temperature, Pressure);
-                CalculateBulkProperties(Temperature, Pressure);
+                CalculateBulkProperties();
 
                 // NOTA: Asegúrate de que CalculateBulkProperties esté calculando MolarEntropy
                 double sCalc = MolarEntropy.GetValue(MolarEntropyUnits.J_Kgmol_C);

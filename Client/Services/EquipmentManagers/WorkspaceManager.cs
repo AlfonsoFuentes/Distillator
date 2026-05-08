@@ -273,7 +273,7 @@ namespace Client.Services.EquipmentManagers
                 }
 
                 // 3. 📢 ¡Disparo único al Solver protegiendo a la corriente!
-                triggerFacade.OnExecuteSolver?.Invoke(triggerFacade);
+
             }
 
             CurrentDraftPipe = null;

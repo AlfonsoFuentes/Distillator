@@ -26,7 +26,33 @@ namespace Shared.Thermodynamics.Strategies.Equlibriums
             _facade.Temperature.SetValueCalculated(temp, _facade.Name);
             _facade.VaporFraction.SetValueCalculated(calculatedVF, _facade.Name);
 
-         
+
+        }
+    }
+    public class PHStrategy2 : IEquilibriumStrategy
+    {
+        private readonly IStreamFacade _facade;
+        public PHStrategy2(IStreamFacade facade) => _facade = facade;
+
+        public void Execute()
+        {
+            var pres = _facade.Pressure.Value!;
+            var enth = _facade.MolarEnthalpy.Value!; // Asume que inyectaste la entalpía objetivo aquí
+
+            // 1. Ejecutar Flash Riguroso
+            _facade.MaterialStream.PerformFlashPH(pres, enth);
+
+            // 2. Extraer T y VF calculados
+
+
+            double calculatedVF = _facade.MaterialStream.VaporFraction;
+
+            // 3. Registrar en Facade
+            _facade.Temperature.SetValueFromStream(_facade.MaterialStream.Temperature, _facade.Name);
+
+            _facade.VaporFraction.SetValueFromStream(calculatedVF, _facade.Name);
+            _facade.MaterialStream.CalculateBulkProperties();
+
         }
     }
 }

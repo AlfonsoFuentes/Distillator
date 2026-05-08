@@ -1,220 +1,99 @@
-﻿@using Shared.ProcessFlowDiagram.Streams
-
-
+﻿@using Client.Templates.Units
 
 <div class="data-grid conditions-grid-three-col">
-    
-    @* 👇 HEADERS: 3 columnas *@
+
+    @* 1. HEADERS *@
     <div class="grid-header">Property</div>
     <div class="grid-header">Value</div>
-    <div class="grid-header unit-placeholder-header"></div>
 
-    @* 👇 FILA EDITABLE: Stream Name con validación de unicidad *@
-    <div class="grid-cell label">Stream Name</div>
-    <div class="grid-cell value @(IsStreamNameInvalid ? "invalid" : "")"
-         @onmouseenter="ShowStreamNameTooltip"
-         @onmouseleave="HideStreamNameTooltip">
-        
-        <input type="text"
-               value="@_streamNameInput"
-               placeholder="Enter stream name..."
-               class="@(IsStreamNameInvalid ? "input-error" : "")"
-               @onfocus="HandleStreamNameFocus"
-               @oninput="HandleStreamNameInput"
-               @onkeyup="HandleStreamNameKeyUp"
-               @onblur="HandleStreamNameBlur"
-               @ref="StreamNameInputRef" />
-        
-        @* 👇 Botón para generar nombre automático *@
-        <button type="button"
-                class="generate-name-btn"
-                @onclick="GenerateUniqueStreamName"
-                title="Generate unique name">
-            🔄
-        </button>
-        
-        @* 👇 Tooltip de error cuando el nombre ya existe *@
-        @if (_showStreamNameError && IsStreamNameInvalid)
-        {
-            <div class="stream-name-error-tooltip">
-                <span>⚠ Name already exists in workspace</span>
-            </div>
-        }
-    </div>
-    <div class="grid-cell unit-placeholder"></div>
+  
+    @* 2. STREAM NAME *@
+    <UnifiedNameRow Label="Stream Name"
+                    @bind-Value="Facade.Name"
+                    IsDuplicate="CheckDuplicateName"
+                    OnGenerate="GenerateUniqueStreamName"
+                    Mode="VariableMode.Compact" />
 
-    @* 👇 FILAS DINÁMICAS: Componentes + placeholder *@
-    <LabeledProcessMethodRow Label="Thermodynamic Method"
-                             @bind-Variable="Facade.ThermodynamicMethod"
-                             AvailableMethods="AvailableMethods" />
-    <div class="grid-cell unit-placeholder"></div>
 
-    <LabeledSimpleVariableRow Label="Vapor Fraction"
-                              @bind-Variable="Facade.VaporFraction"
-                              MinValue="0"
-                              MaxValue="1"
-                              RangeErrorText="Vapor fraction must be between 0 and 1" />
-    <div class="grid-cell unit-placeholder"></div>
 
-    <LabeledProcessVariableRow Label="Temperature"
-                               @bind-Variable="Facade.Temperature" />
-    <div class="grid-cell unit-placeholder"></div>
+    @* 3. THERMODYNAMIC METHOD *@
+    <UnifiedListRow TItem="ThermodynamicMethodFullDto"
+                    TValue="ThermodynamicMethodFullDto"
+                    Label="Thermodynamic Method"
+                    Variable="Facade.ThermodynamicMethod"
+                    Items="AvailableMethods"
+                    TextSelector="m => m.Name"
+                    ValueSelector="m => m"
+                    CustomComparer="(v1, v2) => v1.Id == v2.Id"
+                    Mode="VariableMode.Compact"
+                    OnItemSelected="HandleMethodSelection"
+                    OnCleared="HandleMethodClear" />
 
-    <LabeledProcessVariableRow Label="Pressure"
-                               @bind-Variable="Facade.Pressure" />
-    <div class="grid-cell unit-placeholder"></div>
 
-    <LabeledProcessVariableRow Label="Molar Flow"
-                               @bind-Variable="Facade.MolarFlow" />
-    <div class="grid-cell unit-placeholder"></div>
+    <UnifiedDoubleRow Label="Vapor Fraction"
+                      @bind-Variable="Facade.VaporFraction"
+                      Mode="VariableMode.Compact"
+                      MinValue="0"
+                      MaxValue="1" />
 
-    <LabeledProcessVariableRow Label="Mass Flow"
-                               @bind-Variable="Facade.MassFlow" />
-    <div class="grid-cell unit-placeholder"></div>
+    @* 5. PROPIEDADES CON NUEVO COMPONENTE (2 celdas del componente + 1 placeholder manual) *@
 
-    <LabeledProcessVariableRow Label="Volumetric Flow"
-                               @bind-Variable="Facade.VolumetricFlow" />
-    <div class="grid-cell unit-placeholder"></div>
+    <UnifiedVariableRow Label="Temperature" @bind-Variable="Facade.Temperature" Mode="VariableMode.Compact" />
 
-    <LabeledReadOnlyVariableRow Label="Heat Flow"
-                                @bind-Variable="Facade.EnthalpyFlow" />
-    <div class="grid-cell unit-placeholder"></div>
+    <UnifiedVariableRow Label="Pressure" @bind-Variable="Facade.Pressure" Mode="VariableMode.Compact" />
+
+
+    <UnifiedVariableRow Label="Mass Flow" @bind-Variable="Facade.MassFlow" Mode="VariableMode.Compact" />
+
+
+    <UnifiedVariableRow Label="Molar Flow" @bind-Variable="Facade.MolarFlow" Mode="VariableMode.Compact" />
+
+
+    <UnifiedVariableRow Label="Volumetric Flow" @bind-Variable="Facade.VolumetricFlow" Mode="VariableMode.Compact" />
+
+
+    <UnifiedVariableRow Label="Heat Flow" @bind-Variable="Facade.EnthalpyFlow" Mode="VariableMode.Compact" IsReadOnly="true" />
+
+
 </div>
 
 @code {
     [Parameter, EditorRequired] public StreamSimulationFacade Facade { get; set; } = default!;
     [Parameter, EditorRequired] public List<ThermodynamicMethodFullDto> AvailableMethods { get; set; } = new();
-    
-    // 👇 Estado local para el nombre de la corriente
-    private string _streamNameInput = "";
-    // private bool _isEditingStreamName;
-    private bool _showStreamNameError;
-    private ElementReference StreamNameInputRef;
 
-    // 👇 Propiedad computada: verifica si el nombre ya existe en el workspace
-    private bool IsStreamNameInvalid =>
-        !string.IsNullOrWhiteSpace(_streamNameInput) &&
-        WM?.Elements?.Any(e =>
-            !string.Equals(e.Name, _streamNameInput, StringComparison.OrdinalIgnoreCase) == false &&
-            e.Id != Facade?.Id) == true;
-
-    protected override void OnInitialized()
+    private bool CheckDuplicateName(string newName)
     {
-        _streamNameInput = Facade?.Name ?? "";
+        return WM?.Elements?.Any(e => e.Name.Equals(newName, StringComparison.OrdinalIgnoreCase) && e.Id != Facade?.Id) == true;
     }
 
-    // 👇 Handlers para el input de Stream Name
-    private void HandleStreamNameFocus(FocusEventArgs e)
-    {
-        // _isEditingStreamName = true;
-        _showStreamNameError = false;
-        StateHasChanged();
-    }
-
-    private void HandleStreamNameInput(ChangeEventArgs e)
-    {
-        _streamNameInput = e.Value?.ToString() ?? "";
-        _showStreamNameError = false;
-        StateHasChanged();
-    }
-
-    private async Task HandleStreamNameKeyUp(KeyboardEventArgs e)
-    {
-        if (e.Key == "Enter" || e.Key == "NumpadEnter")
-        {
-            await CommitStreamName();
-        }
-        if (e.Key == "Escape")
-        {
-            _streamNameInput = Facade?.Name ?? "";
-            // _isEditingStreamName = false;
-            _showStreamNameError = false;
-            StateHasChanged();
-        }
-    }
-
-    private async Task HandleStreamNameBlur(FocusEventArgs e)
-    {
-        await CommitStreamName();
-    }
-
-    // 👇 Validar y guardar el nombre de la corriente
-    private async Task CommitStreamName()
-    {
-        var trimmedName = _streamNameInput?.Trim();
-        
-        // Si está vacío, restaurar el nombre anterior
-        if (string.IsNullOrWhiteSpace(trimmedName))
-        {
-            _streamNameInput = Facade?.Name ?? "";
-            // _isEditingStreamName = false;
-            _showStreamNameError = false;
-            StateHasChanged();
-            return;
-        }
-        
-        // Validar unicidad en el workspace
-        if (IsStreamNameInvalid)
-        {
-            _showStreamNameError = true;
-            // _isEditingStreamName = true; // Mantener en edición para corregir
-            StateHasChanged();
-            return;
-        }
-        
-        // ✅ Nombre válido: actualizar Facade
-        if (Facade != null && !string.Equals(Facade.Name, trimmedName, StringComparison.OrdinalIgnoreCase))
-        {
-            Facade.Name = trimmedName;
-            // Notificar al padre si es necesario
-            // OnDataChanged?.Invoke();
-        }
-        
-        // _isEditingStreamName = false;
-        _showStreamNameError = false;
-        StateHasChanged();
-    }
-
-    // 👇 Generar nombre único automático usando INamingService
+    // 2. Le decimos al componente qué hacer cuando pulse el botón 🔄
     private void GenerateUniqueStreamName()
     {
-        if (NamingService == null || WM == null) return;
-        
-        var prefix = "S"; // Prefijo para streams
-        var suggestedName = NamingService.GenerateNextName(prefix);
-        
-        // Asegurar que el nombre sugerido no colisione
-        while (WM.Elements?.Any(e =>
-            string.Equals(e.Name, suggestedName, StringComparison.OrdinalIgnoreCase)) == true)
-        {
-            suggestedName = NamingService.GenerateNextName(prefix);
-        }
-        
-        _streamNameInput = suggestedName;
-        _showStreamNameError = false;
-        
-        // Auto-commit si es válido
-        if (!IsStreamNameInvalid && Facade != null)
-        {
-            Facade.Name = suggestedName;
-        }
-        
+        if (NamingService == null || Facade == null) return;
+
+        Facade.Name = NamingService.GenerateNextName("S");
         StateHasChanged();
     }
-
-    // 👇 Handlers para tooltip de error
-    private void ShowStreamNameTooltip()
+    private async Task HandleMethodSelection(ThermodynamicMethodFullDto selectedMethod)
     {
-        if (IsStreamNameInvalid)
+        if (Facade.ThermodynamicMethod == null) return;
+
+        // Llamamos al backend tal como usted lo hacía antes
+        var result = await HttpServices.PostAsync<GetMethodFullRequest, Result<ThermodynamicMethodFullDto>>(new GetMethodFullRequest(selectedMethod.Id));
+
+        if (result.Succeeded && result.Data != null)
         {
-            _showStreamNameError = true;
+            Facade.ThermodynamicMethod.SetValue(result.Data, MethodSource.UserInterface);
             StateHasChanged();
         }
     }
 
-    private void HideStreamNameTooltip()
+    private async Task HandleMethodClear()
     {
-        _showStreamNameError = false;
+        if (Facade.ThermodynamicMethod == null) return;
+
+        // Limpiamos o cambiamos el Source
+        Facade.ThermodynamicMethod.Source = MethodSource.None;
         StateHasChanged();
     }
 }

@@ -1,7 +1,9 @@
-﻿using Shared.ProcessFlowDiagram;
+﻿using Shared.MatrixSolvers;
+using Shared.ProcessFlowDiagram;
 using Shared.Thermodynamics.ControlledVariables;
 using Shared.UnitOperations.Basiss;
 using Shared.UnitOperations.Streams;
+using System.Net.NetworkInformation;
 using UnitSystem;
 
 namespace Shared.UnitOperations.Pumps
@@ -15,17 +17,23 @@ namespace Shared.UnitOperations.Pumps
     }
     public class PumpSimulationFacade : EquipmentFacade
     {
+        //private PumpModel? _model;
+        //private EquationSystem? _eqs;
         public PumpSimulationFacade()
         {
-            DeltaPressure.OnExecuteSolver += EvaluateSolverTrigger;
-            AdiabaticEfficiency.OnExecuteSolver += EvaluateSolverTrigger;
 
 
         }
-
-        private void EvaluateSolverTrigger()
+        public void InitializeSolver(EquationSystem eqs)
         {
-            OnExecuteSolver?.Invoke(this);
+            //_eqs = eqs;
+
+            //_model = new PumpModel(Name, eqs);
+
+            //_model.Inlet = SuctionStream as StreamSimulationFacadeV2;
+            //_model.Outlet = DischargeStream as StreamSimulationFacadeV2;
+
+            //_model.BuildEquations(eqs);
         }
 
         // 2. VARIABLES DEL EQUIPO
@@ -101,7 +109,7 @@ namespace Shared.UnitOperations.Pumps
             return result;
 
         }
-        
+
 
         // 4. TOPOLOGÍA DE SIMULACIÓN
         public StreamSimulationFacade? SuctionStream { get; private set; }
@@ -114,7 +122,7 @@ namespace Shared.UnitOperations.Pumps
             if (portName == "Suction") SuctionStream = connectedFacade as StreamSimulationFacade;
             else if (portName == "Discharge") DischargeStream = connectedFacade as StreamSimulationFacade;
 
-  
+
 
         }
 
@@ -122,269 +130,515 @@ namespace Shared.UnitOperations.Pumps
         {
             if (portName == "Suction") SuctionStream = null;
             else if (portName == "Discharge") DischargeStream = null;
- 
+
 
         }
 
         protected override void CalculatedEquipment()
         {
-            if (SuctionStream == null || DischargeStream == null)
+
+
+        }
+
+        public override void BuildEquations(EquationSystem eqs)
+        {
+
+        }
+
+        public override IEnumerable<INewVariable> GetSolverVariables()
+        {
+
+            return null!;
+        }
+    }
+    public class PumpSimulationFacade2 : EquipmentFacade2
+    {
+        // =========================
+        // 🔹 CONEXIONES
+        // =========================
+        public IStreamFacade? Inlet { get; private set; }
+        public IStreamFacade? Outlet { get; private set; }
+
+        public PumpStateType State { get; set; } = PumpStateType.Created;
+        public NewNewVariableAmount<PressureDrop> DeltaPressure { get; set; }
+        public NewNewVariableDouble Efficiency { get; set; }
+
+        public NewNewVariableAmount<Power> Power { get; private set; }
+        // =========================
+        // 🔹 CONSTRUCTOR
+        // =========================
+        public PumpSimulationFacade2()
+        {
+            DeltaPressure = new NewNewVariableAmount<PressureDrop>(
+                new PressureDrop(),
+                PressureDropUnits.Bar,
+                PressureDropUnits.Pascal,
+                (v, u) => new PressureDrop(v, u)
+            );
+            DeltaPressure.ExecuteGeneralSolver += ExecuteSolver;
+            DeltaPressure.ExecuteStreamCalculation += CalculatePower;
+            DeltaPressure.ExecuteEquipmentSolver += OnPropagatePressure;
+            Efficiency = new NewNewVariableDouble();
+
+            Efficiency.ExecuteGeneralSolver += ExecuteSolver;
+            Efficiency.ExecuteStreamCalculation += CalculatePower;
+
+            Power = new NewNewVariableAmount<Power>(
+                    new Power(),
+                    PowerUnits.KiloWatt,
+                    PowerUnits.Watt,
+                    (v, u) => new Power(v, u)
+                );
+
+        }
+
+        // =========================
+        // 🔹 ECUACIONES DEL EQUIPO
+        // =========================
+
+
+        private void CalculatePower()
+        {
+            if (Inlet == null || Outlet == null) return;
+
+            double flow = Inlet.MolarFlow.SolverValue; // mol/s
+            double deltaP = DeltaPressure.SolverValue; // Pa
+            double eff = Efficiency.Value;
+
+            double rho;
+
+            if (Inlet.MolarDensity.IsDefined)
+                rho = Inlet.MolarDensity.SolverValue;
+            else if (Outlet.MolarDensity.IsDefined)
+                rho = Outlet.MolarDensity.SolverValue;
+            else
+                rho = 55555.0; // fallback agua
+
+
+
+            double w = deltaP / (rho * eff); // J/mol
+
+            double power = flow * w; // J/s = W
+
+            Power.SetValueFromEquipmentSolver(power);
+        }
+        private bool HasVolumetricSpecification => (Inlet?.VolumetricFlow?.IsDefined == true) || (Outlet?.VolumetricFlow?.IsDefined == true);
+        EquationSystem eqConc = new EquationSystem();
+        EquationSystem eqMolarFlow = new EquationSystem();
+        EquationSystem eqPressure = new EquationSystem();
+        private void OnPropagateConcentrations()
+        {
+
+            if (Inlet == null || Outlet == null)
             {
-                State = PumpStateType.PartiallyConnected;
                 return;
             }
 
-            var suction = SuctionStream;
-            var discharge = DischargeStream;
-            suction.ResetCalculatedVariable();
-            discharge.ResetCalculatedVariable();
-            suction.Calculate();
-            discharge.Calculate();
-            bool thermoOk = PropagateThermoMethod(suction, discharge);
-            bool compOk = PropagateComposition(suction, discharge);
-            bool presOk = PropagatePressure(suction, discharge);
-            bool massOk = PropagateMassFlow(suction, discharge);
+            eqConc=GetEquationConcentration();
+            eqConc.SolveEquipmet();
 
-            // 🚩 POTENCIA ANTES DE ENERGÍA
-            // Necesitamos la potencia para calcular el salto de entalpía.
-            bool powerOk = CalculatePower(suction, discharge);
-
-            // 🚩 AHORA SÍ PROPAGAMOS ENERGÍA
-            bool energyOk = PropagateEnergy(suction, discharge);
-
-            if (thermoOk && compOk && presOk && energyOk && massOk && powerOk)
+        }
+        public override EquationSystem GetEquationConcentration()
+        {
+            EquationSystem eq = new EquationSystem();
+            if (Inlet == null || Outlet == null)
             {
-                State = PumpStateType.Solved;
+                return eq;
+            }
+            eq.AddVariables(GetConcentrationVariables());
+            var compsIn = Inlet.StreamComposition.Value.Components;
+            var compsOut = Outlet.StreamComposition.Value.Components;
+            for (int i = 0; i < compsIn.Count; i++)
+            {
+                var ni_in = compsIn[i].MolarFractionSolver;
+                var ni_out = compsOut[i].MolarFractionSolver;
+                eq.AddEquation(new Equation
+                {
+                    Function = x => x[ni_out.Index] - x[ni_in.Index],
+                    Type = EquationType.Model
+                });
+            }
+            return eq;
+        }
+
+        
+        private void OnPropagateMolarFlow()
+        {
+
+
+            if (Inlet == null || Outlet == null)
+            {
+                return;
+            }
+            eqMolarFlow.Clear();
+
+            eqMolarFlow.AddVariables(GetMassBalanceVariables());
+            if (!HasVolumetricSpecification)
+            {
+                eqMolarFlow.AddEquation(new Equation
+                {
+                    Function = x => x[Outlet.MolarFlow.Index] - x[Inlet.MolarFlow.Index],
+                    Type = EquationType.Model
+                });
+            }
+
+            eqMolarFlow.SolveEquipmet();
+
+        }
+        public override EquationSystem GetEquationPressure()
+        {
+            EquationSystem eq = new EquationSystem();
+            if (Inlet == null || Outlet == null)
+            {
+                return eq;
+            }
+            eq.AddVariables(GetPressureVariables());
+            var Pin = Inlet.Pressure;
+            var Pout = Outlet.Pressure;
+            eq.AddEquation(new Equation
+            {
+                Function = x => x[Pout.Index] - (x[Pin.Index] + x[DeltaPressure.Index]),
+                Type = EquationType.Model
+            });
+            if (HasVolumetricSpecification)
+            {
+                eq.AddEquation(new Equation
+                {
+                    Function = x => x[Outlet.MolarFlow.Index] - x[Inlet.MolarFlow.Index],
+                    Type = EquationType.Model
+                });
+            }
+            return eq;
+        }
+        private void OnPropagatePressure()
+        {
+
+
+
+            eqPressure = GetEquationPressure();
+
+            eqPressure.SolveEquipmet();
+
+        }
+
+
+        public override EquationSystem GetEquationSystem()
+        {
+            EquationSystem equationSystem = new EquationSystem();
+            if (Inlet == null || Outlet == null) return equationSystem;
+
+            equationSystem.AddVariables(GetEnergyBalanceVariables());
+            equationSystem.AddEquation(new Equation
+            {
+                Function = x => x[Outlet.MolarFlow.Index] - x[Inlet.MolarFlow.Index],
+                Type = EquationType.Model
+            });
+            var Hin = Inlet.MolarEnthalpy;
+            var Hout = Outlet.MolarEnthalpy;
+            var Eff = Efficiency;
+            double eff = Efficiency.Value;
+            double deltaP = DeltaPressure.SolverValue;
+            double rho;
+
+            if (Inlet.MolarDensity.IsDefined)
+                rho = Inlet.MolarDensity.SolverValue;
+            else if (Outlet.MolarDensity.IsDefined)
+                rho = Outlet.MolarDensity.SolverValue;
+            else
+                rho = 1000 / 18 * 1000;
+
+            equationSystem.AddEquation(new Equation
+            {
+                Function = x =>
+                {
+                    double hin = x[Hin.Index];
+                    double hout = x[Hout.Index];
+
+                    double w = deltaP / (rho * eff);
+
+                    return hout - (hin + w);
+                },
+                Type = EquationType.Model
+            }
+             );
+
+            return equationSystem;
+        }
+
+
+        IEnumerable<INewNewVariable> GetPressureVariables()
+        {
+            yield return DeltaPressure;
+            if (Inlet != null)
+            {
+                yield return Inlet.Pressure;
+                if (HasVolumetricSpecification)
+                {
+                    yield return Inlet.MolarFlow;
+
+                }
+            }
+            if (Outlet != null)
+            {
+                yield return Outlet.Pressure;
+                if (HasVolumetricSpecification)
+                {
+                    yield return Outlet.MolarFlow;
+
+                }
+            }
+        }
+        IEnumerable<INewNewVariable> GetConcentrationVariables()
+        {
+            if (Inlet != null)
+            {
+                foreach (var comp in Inlet.StreamComposition.Value.Components)
+                    yield return comp.MolarFractionSolver;
+
+
+
+            }
+            if (Outlet != null)
+            {
+                foreach (var comp in Outlet.StreamComposition.Value.Components)
+                    yield return comp.MolarFractionSolver;
+
+
+
+
+            }
+        }
+        IEnumerable<INewNewVariable> GetMassBalanceVariables()
+        {
+            if (Inlet != null)
+            {
+                if (!HasVolumetricSpecification)
+                {
+                    yield return Inlet.MolarFlow;
+
+                }
+
+
+
+
+            }
+            if (Outlet != null)
+            {
+                if (!HasVolumetricSpecification)
+                {
+                    yield return Outlet.MolarFlow;
+
+                }
+
+            }
+        }
+        //public List<Equation> BuildEnergyBalanceEquations()
+        //{
+        //    List<Equation> Equations = new List<Equation>();
+        //    if (Inlet == null || Outlet == null)
+        //    {
+        //        return Equations;
+        //    }
+        //    Equations.Add(new Equation
+        //    {
+        //        Function = x => x[Outlet.MolarFlow.Index] - x[Inlet.MolarFlow.Index],
+        //        Type = EquationType.Model
+        //    });
+
+        //    var Pin = Inlet.Pressure;
+        //    var Pout = Outlet.Pressure;
+
+        //    // 🔥 Pout = Pin + DeltaP
+        //    Equations.Add(new Equation
+        //    {
+        //        Function = x => x[Pout.Index] - (x[Pin.Index] + x[DeltaPressure.Index]),
+        //        Type = EquationType.Model,
+        //    }
+
+        //    );
+
+        //    // 🔥 Balance de flujo (simple)
+
+
+        //    var Hin = Inlet.MolarEnthalpy;
+        //    var Hout = Outlet.MolarEnthalpy;
+        //    var Eff = Efficiency;
+
+        //    Equations.Add(new Equation
+        //    {
+        //        Function = x =>
+        //        {
+        //            double hin = x[Hin.Index];
+        //            double hout = x[Hout.Index];
+        //            double deltaP = x[DeltaPressure.Index];
+        //            double eff = Efficiency.Value;
+
+        //            double rho;
+
+        //            if (Inlet.MolarDensity.IsDefined)
+        //                rho = Inlet.MolarDensity.SolverValue;
+        //            else if (Outlet.MolarDensity.IsDefined)
+        //                rho = Outlet.MolarDensity.SolverValue;
+        //            else
+        //                rho = 1000 / 18 * 1000;
+
+
+
+        //            double w = deltaP / (rho * eff);
+
+        //            return hout - (hin + w);
+        //        },
+        //        Type = EquationType.Model
+        //    }
+        //     );
+        //    return Equations;
+        //}
+        public IEnumerable<INewNewVariable> GetEnergyBalanceVariables()
+        {
+
+            if (Inlet != null)
+            {
+                yield return Inlet.MolarFlow;
+
+                yield return Inlet.MolarEnthalpy;
+
+
+            }
+            if (Outlet != null)
+            {
+                yield return Outlet.MolarFlow;
+
+                yield return Outlet.MolarEnthalpy;
+
+
+
+
+            }
+        }
+
+        // =========================
+        // 🔹 CONEXIONES
+        // =========================
+        public override void AttachConnection(string portName, IStreamFacade connectedFacade)
+        {
+            if (portName == "Inlet")
+            {
+                if (Inlet == null)
+                {
+                    Inlet = connectedFacade;
+                    Inlet.StreamComposition.ExecuteEquipmentSolver -= OnPropagateConcentrations;
+                    Inlet.StreamComposition.ExecuteEquipmentSolver += OnPropagateConcentrations;
+                    Inlet.MolarFlow.ExecuteEquipmentSolver -= OnPropagateMolarFlow;
+                    Inlet.MolarFlow.ExecuteEquipmentSolver += OnPropagateMolarFlow;
+                    Inlet.Pressure.ExecuteEquipmentSolver -= OnPropagatePressure;
+                    Inlet.Pressure.ExecuteEquipmentSolver += OnPropagatePressure;
+                    OnPropagateConcentrations();
+                    OnPropagateMolarFlow();
+                    OnPropagatePressure();
+                }
+
+
+            }
+
+
+            if (portName == "Outlet")
+            {
+                if (Outlet == null)
+                {
+                    Outlet = connectedFacade;
+                    Outlet.StreamComposition.ExecuteEquipmentSolver -= OnPropagateConcentrations;
+                    Outlet.StreamComposition.ExecuteEquipmentSolver += OnPropagateConcentrations;
+                    Outlet.MolarFlow.ExecuteEquipmentSolver -= OnPropagateMolarFlow;
+                    Outlet.MolarFlow.ExecuteEquipmentSolver += OnPropagateMolarFlow;
+                    Outlet.Pressure.ExecuteEquipmentSolver -= OnPropagatePressure;
+                    Outlet.Pressure.ExecuteEquipmentSolver += OnPropagatePressure;
+                    OnPropagateConcentrations();
+                    OnPropagateMolarFlow();
+                    OnPropagatePressure();
+                }
+
+
+            }
+
+
+        }
+
+        public override void DetachConnection(string portName)
+        {
+            if (portName == "Inlet")
+            {
+                Inlet?.StreamComposition.ExecuteEquipmentSolver -= OnPropagateConcentrations;
+                Inlet?.MolarFlow.ExecuteEquipmentSolver -= OnPropagateMolarFlow;
+                Inlet?.Pressure.ExecuteEquipmentSolver -= OnPropagatePressure;
+                OnPropagateConcentrations();
+                OnPropagateMolarFlow();
+                OnPropagatePressure();
+                Inlet = null;
+            }
+            if (portName == "Outlet")
+            {
+                Outlet?.StreamComposition.ExecuteEquipmentSolver -= OnPropagateConcentrations;
+                Outlet?.MolarFlow.ExecuteEquipmentSolver -= OnPropagateMolarFlow;
+                Outlet?.Pressure.ExecuteEquipmentSolver -= OnPropagatePressure;
+                OnPropagateConcentrations();
+                OnPropagateMolarFlow();
+                OnPropagatePressure();
+                Outlet = null;
+            }
+        }
+
+        // =========================
+        // 🔹 UI
+        // =========================
+        public override string StatusText => State switch
+        {
+            PumpStateType.Created => "Ready",
+            PumpStateType.PartiallyConnected => "Underspecified",
+            PumpStateType.ReadyToCalculate => "Ready to Solve",
+            PumpStateType.Solved => "Converged",
+            _ => "Unknown"
+        };
+
+        public override string StatusColor => State switch
+        {
+            PumpStateType.Created => "#CBD5E0",              // Gris
+            PumpStateType.PartiallyConnected => "#F6AD55",   // Naranja
+            PumpStateType.ReadyToCalculate => "#63B3ED",     // Azul
+            PumpStateType.Solved => "#34D399",               // Verde
+            _ => "#CBD5E0"
+        };
+        public override List<ToolTipLegend> GetToolTipLegend()
+        {
+            List<ToolTipLegend> result = new();
+            if (DeltaPressure.IsDefined)
+            {
+                result.Add(new("ΔP", DeltaPressure.Value?.ToString() ?? string.Empty));
             }
             else
             {
-                State = PumpStateType.ReadyToCalculate;
+                result.Add(new("ΔP", "<Not Defined>"));
             }
+
+            if (Efficiency.IsDefined)
+            {
+                result.Add(new ToolTipLegend("%Efficiency", $"{Efficiency.Value}"));
+            }
+            else
+            {
+                result.Add(new("%Efficiency", "<Not Defined>"));
+            }
+            if (Power.IsDefined)
+            {
+                result.Add(new ToolTipLegend("Power", Power.Value?.ToString() ?? string.Empty));
+            }
+            else
+            {
+                result.Add(new("Power", "<Not Calculated>"));
+            }
+            return result;
+
         }
 
-        private bool PropagateThermoMethod(StreamSimulationFacade suction, StreamSimulationFacade discharge)
-        {
-            // Conflicto Severo: Tienen métodos diferentes definidos explícitamente
-            if (suction.ThermodynamicMethod.IsDefined && discharge.ThermodynamicMethod.IsDefined &&
-                suction.ThermodynamicMethod.Value?.Name != discharge.ThermodynamicMethod.Value?.Name)
-            {
-                // ❌ El estado es inválido. Detenemos la máquina.
-                return false;
-            }
-
-            // Forward
-            if (suction.ThermodynamicMethod.IsDefined && !discharge.ThermodynamicMethod.IsDefined)
-            {
-                discharge.ThermodynamicMethod.SetValue(suction.ThermodynamicMethod.Value, MethodSource.Other, Name);
-                AddCalculatedVariable(discharge.ThermodynamicMethod);
-                return true;
-            }
-            // Backward (Solo confiamos en la descarga si fue el Humano/UI quien la puso ahí)
-            else if (discharge.ThermodynamicMethod.IsDefined && discharge.ThermodynamicMethod.Source == MethodSource.UserInterface && !suction.ThermodynamicMethod.IsDefined)
-            {
-                suction.ThermodynamicMethod.SetValue(discharge.ThermodynamicMethod.Value, MethodSource.Other, Name);
-                AddCalculatedVariable(suction.ThermodynamicMethod);
-                return true;
-            }
-
-            // ✅ Todo está bien
-            return false;
-        }
-
-        private bool PropagateComposition(StreamSimulationFacade suction, StreamSimulationFacade discharge)
-        {
-            // Forward
-            if (suction.StreamComposition.IsDefined && !discharge.StreamComposition.IsDefined)
-            {
-                discharge.StreamComposition.SetValue(suction.StreamComposition.Value!.Clone(), MethodSource.Other, Name);
-                AddCalculatedVariable(discharge.StreamComposition);
-                return true;
-            }
-            // Backward
-            if (discharge.StreamComposition.IsDefined && discharge.StreamComposition.Source == MethodSource.UserInterface && !suction.StreamComposition.IsDefined)
-            {
-                suction.StreamComposition.SetValue(discharge.StreamComposition.Value!.Clone(), MethodSource.Other, Name);
-                AddCalculatedVariable(suction.StreamComposition);
-                return true;
-            }
-
-            // ✅ Todo está bien
-            return false;
-        }
-        private bool PropagateEnergy(StreamSimulationFacade suction, StreamSimulationFacade discharge)
-        {
-            // Revisamos si la corriente ya tiene energía (ya sea por T o por Entalpía Molar)
-            bool hasSuctionEnergy = suction.Temperature.IsDefined || suction.MolarEnthalpy.IsDefined;
-            bool hasDischargeEnergy = discharge.Temperature.IsDefined || discharge.MolarEnthalpy.IsDefined;
-
-            // Si la potencia o el flujo MOLAR no están definidos aún, no calculamos.
-            if (!PowerConsumed.IsDefined || !suction.MolarFlow.IsDefined)
-                return false;
-
-            double power_kW = PowerConsumed.GetValueInUnit(PowerUnits.KiloWatt);
-            double molarFlow_kgmol_h = suction.MolarFlow.GetValueInUnit(MolarFlowUnits.Kgmol_hr);
-
-            if (molarFlow_kgmol_h <= 0) return false;
-
-            // 1 kW equivale aprox a 859.845 kcal/hr. 
-            // (Ajusta este factor si usas una clase conversora interna en tu framework)
-            double power_kcal_h = power_kW * 859.845;
-
-            // Delta H Molar = (kcal/h) / (kgmol/h) = kcal/kgmol
-            double deltaH_molar = power_kcal_h / molarFlow_kgmol_h;
-
-            // Forward: Succión a Descarga
-            if (hasSuctionEnergy && !hasDischargeEnergy)
-            {
-                double h_in = suction.MolarEnthalpy.GetValueInUnit(MolarEnergyUnits.Kcal_Kgmol);
-                double h_out = h_in + deltaH_molar;
-
-                // Le pasamos directamente la MOLAR y la corriente hace el resto
-                discharge.MolarEnthalpy.SetValue(new MolarEnergy(h_out, MolarEnergyUnits.Kcal_Kgmol), MethodSource.Other, Name);
-                AddCalculatedVariable(discharge.MolarEnthalpy);
-                return true;
-            }
-
-            // Backward: Descarga a Succión
-            if (!hasSuctionEnergy && hasDischargeEnergy)
-            {
-                double h_out = discharge.MolarEnthalpy.GetValueInUnit(MolarEnergyUnits.Kcal_Kgmol);
-                double h_in = h_out - deltaH_molar;
-
-                suction.MolarEnthalpy.SetValue(new MolarEnergy(h_in, MolarEnergyUnits.Kcal_Kgmol), MethodSource.Other, Name);
-                AddCalculatedVariable(suction.MolarEnthalpy);
-                return true;
-            }
-
-            return hasSuctionEnergy && hasDischargeEnergy;
-        }
-        private bool PropagateEnergy2(StreamSimulationFacade suction, StreamSimulationFacade discharge)
-        {
-            if (AdiabaticEfficiency.Value <= 0) return true; // No hay eficiencia, no hay cálculo de calor.
-
-            bool isTemperatureSuccionDefined = suction.Temperature.IsDefined;
-            bool isTemperatureDischargeDeined = discharge.Temperature.IsDefined;
-
-            if (isTemperatureSuccionDefined && !isTemperatureDischargeDeined)
-            {
-                double temperature = suction.Temperature.GetValueInUnit(TemperatureUnits.Kelvin);
-                discharge.Temperature.SetValue(new Temperature(temperature, TemperatureUnits.Kelvin), MethodSource.Other, Name);
-                AddCalculatedVariable(discharge.Temperature);
-                return true;
-            }
-            if (!isTemperatureSuccionDefined && isTemperatureDischargeDeined)
-            {
-                double temperature = discharge.Temperature.GetValueInUnit(TemperatureUnits.Kelvin);
-                suction.Temperature.SetValue(new Temperature(temperature, TemperatureUnits.Kelvin), MethodSource.Other, Name);
-                AddCalculatedVariable(suction.Temperature);
-                return true;
-            }
-            return false;
-        }
-
-        private bool PropagatePressure(StreamSimulationFacade suction, StreamSimulationFacade discharge)
-        {
-            if (DeltaPressure.IsDefined)
-            {
-                // Forward: Tengo Succión, calculo Descarga
-                if (suction.Pressure.IsDefined && !discharge.Pressure.IsDefined)
-                {
-                    var deltaP = DeltaPressure.GetValueInUnit(PressureDropUnits.Bar);
-                    var suctionPressure = suction.Pressure.GetValueInUnit(PressureUnits.Bara);
-                    var dischargepressure = suctionPressure + deltaP;
-
-                    discharge.Pressure.SetValue(new Pressure(dischargepressure, PressureUnits.Bara), MethodSource.Other, Name);
-                    AddCalculatedVariable(discharge.Pressure);
-                    return true;
-                }
-                // Backward: Tengo Descarga, calculo Succión
-                if (discharge.Pressure.IsDefined && !suction.Pressure.IsDefined)
-                {
-                    var deltaP = DeltaPressure.GetValueInUnit(PressureDropUnits.Bar);
-                    var dischargepressure = discharge.Pressure.GetValueInUnit(PressureUnits.Bara);
-                    var suctionPressure = dischargepressure - deltaP;
-
-                    // 👇 Corregido: Asignamos a la SUCCIÓN
-                    suction.Pressure.SetValue(new Pressure(suctionPressure, PressureUnits.Bara), MethodSource.Other, Name);
-                    AddCalculatedVariable(suction.Pressure);
-                    return true;
-                }
-            }
-            // Si el usuario borró el Delta P, pero definió las dos corrientes a mano
-            if (suction.Pressure.IsDefined && discharge.Pressure.IsDefined)
-            {
-                var dischargepressure = discharge.Pressure.GetValueInUnit(PressureUnits.Bara);
-                var suctionPressure = suction.Pressure.GetValueInUnit(PressureUnits.Bara);
-                var deltaP = dischargepressure - suctionPressure;
-
-                // Calculamos el Delta P interno de la bomba
-                DeltaPressure.SetValueCalculated(new PressureDrop(deltaP, PressureDropUnits.Bar), Name);
-                AddCalculatedVariable(DeltaPressure);
-                return true;
-            }
-
-            return false;
-        }
-        private bool PropagateMassFlow(StreamSimulationFacade suction, StreamSimulationFacade discharge)
-        {
-            bool isSuctionFlowDefined = suction.MassFlow.IsDefined;
-            bool isDischargeFlowDefined = discharge.MassFlow.IsDefined;
-
-            // Forward: Tengo masa en la entrada, la paso a la salida
-            if (isSuctionFlowDefined && !isDischargeFlowDefined)
-            {
-                double flow = suction.MassFlow.GetValueInUnit(MassFlowUnits.Kg_hr);
-                discharge.MassFlow.SetValue(new MassFlow(flow, MassFlowUnits.Kg_hr), MethodSource.Other, Name);
-                AddCalculatedVariable(discharge.MassFlow);
-                return true;
-            }
-
-            // Backward: Tengo masa en la salida, la paso a la entrada
-            if (!isSuctionFlowDefined && isDischargeFlowDefined)
-            {
-                double flow = discharge.MassFlow.GetValueInUnit(MassFlowUnits.Kg_hr);
-                suction.MassFlow.SetValue(new MassFlow(flow, MassFlowUnits.Kg_hr), MethodSource.Other, Name);
-                AddCalculatedVariable(suction.MassFlow);
-                return true;
-            }
-
-            // Si llega hasta aquí, puede ser porque AMBOS están definidos (Retorna true para continuar)
-            // O porque NINGUNO está definido (Retorna false para evitar que pase a Solved)
-            return isSuctionFlowDefined && isDischargeFlowDefined;
-        }
-        private bool CalculatePower(StreamSimulationFacade suction, StreamSimulationFacade discharge)
-        {
-            // Verificamos si tenemos lo mínimo necesario para calcular la potencia
-            bool hasFlow = suction.VolumetricFlow.IsDefined || suction.MassFlow.IsDefined;
-            bool hasDeltaP = DeltaPressure.IsDefined;
-
-            if (hasFlow && hasDeltaP && AdiabaticEfficiency.IsDefined )
-            {
-                // 1. Obtenemos el Delta P en Bar
-                double deltaP_bar = DeltaPressure.GetValueInUnit(PressureDropUnits.Bar);
-
-                // 2. Obtenemos el flujo volumétrico en m3/h
-                // Si tu simulador ya traduce masa a volumen en las corrientes, leemos el volumétrico.
-                // (Si no, tendrías que leer el másico y dividir por la densidad).
-                double volFlow_m3h = suction.VolumetricFlow.GetValueInUnit(VolumetricFlowUnits.m3_hr);
-
-                // 3. Eficiencia en fracción (ej. 75% -> 0.75)
-                double efficiency = AdiabaticEfficiency.Value / 100.0;
-
-                // 4. Fórmula Hidráulica: kW = (m3/h * bar) / (36 * ef)
-                double power_kW = (volFlow_m3h * deltaP_bar) / (36.0 * efficiency);
-
-                // 5. Inyectamos el valor calculado en la bomba
-                PowerConsumed.SetValueCalculated(new Power(power_kW, PowerUnits.KiloWatt), Name);
-                AddCalculatedVariable(PowerConsumed);
-
-                return true;
-            }
-
-            // Si faltan datos, limpiamos la variable por si el usuario borró el flujo
-
-            return false;
-        }
 
     }
 }

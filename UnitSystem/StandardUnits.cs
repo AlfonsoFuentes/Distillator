@@ -498,7 +498,7 @@ namespace UnitSystem
     public static class MolarDensityUnits
     {
         public static readonly UnitMeasure Kgmol_m3 = new UnitMeasure("Kgmol/m3", "Kgmol/m3", AmountOfSubstanceUnits.KMole / VolumeUnits.Meter3, "MolarDensity");
-        public static readonly UnitMeasure g_m3 = new UnitMeasure("gmol/m3", "gmol/m3", AmountOfSubstanceUnits.Mole / VolumeUnits.Meter3, "MolarDensity");
+        public static readonly UnitMeasure gmol_m3 = new UnitMeasure("gmol/m3", "gmol/m3", AmountOfSubstanceUnits.Mole / VolumeUnits.Meter3, "MolarDensity");
 
         public static readonly UnitMeasure Kgmol_cm3 = new UnitMeasure("Kgmol/cm3", "Kgmol/cm3", AmountOfSubstanceUnits.KMole / VolumeUnits.cMeter3, "MolarDensity");
         public static readonly UnitMeasure gmol_cm3 = new UnitMeasure("gmol/cm3", "gmol/cm3", AmountOfSubstanceUnits.Mole / VolumeUnits.cMeter3, "MolarDensity");

@@ -1,35 +1,105 @@
 ﻿@* 👇 display: contents hace que este div sea "invisible" para el Grid.
       Sus hijos se convierten en celdas directas de la columna actual. *@
 <div style="display: contents;">
+
+  
+    <UnifiedNameRow @bind-Value="Facade.Name"
+                    IsDuplicate="CheckDuplicateName"
+                    OnGenerate="GenerateUniqueStreamName"
+                    Mode="VariableMode.Compact" />
+    <UnifiedListRow TItem="ThermodynamicMethodFullDto"
+                    TValue="ThermodynamicMethodFullDto"
+                    Variable="Facade.ThermodynamicMethod"
+                    Items="AvailableMethods"
+                    TextSelector="m => m.Name"
+                    ValueSelector="m => m"
+                    CustomComparer="(v1, v2) => v1.Id == v2.Id"
+                    Mode="VariableMode.Compact"
+                    OnItemSelected="HandleMethodSelection"
+                    OnCleared="HandleMethodClear" />
+
+    <UnifiedDoubleRow @bind-Variable="Facade.VaporFraction" @bind-Variable:after="NotifyUpdate" Mode="VariableMode.Compact" MinValue="0" MaxValue="1" />
+    @* ==========================================
+       VARIABLES CON UNIFIED COMPONENT (Sin Label)
+       ========================================== *@
+    <UnifiedVariableRow @bind-Variable="Facade.Temperature" @bind-Variable:after="NotifyUpdate" Mode="VariableMode.Compact" />
+    <UnifiedVariableRow @bind-Variable="Facade.Pressure" @bind-Variable:after="NotifyUpdate" Mode="VariableMode.Compact" />
+    <UnifiedVariableRow @bind-Variable="Facade.MassFlow" @bind-Variable:after="NotifyUpdate" Mode="VariableMode.Compact" />
+    <UnifiedVariableRow @bind-Variable="Facade.MolarFlow" @bind-Variable:after="NotifyUpdate" Mode="VariableMode.Compact" />
+    <UnifiedVariableRow @bind-Variable="Facade.VolumetricFlow" @bind-Variable:after="NotifyUpdate" Mode="VariableMode.Compact" />
+
+
     
-    <VisualElementName Facade="Facade" />
-    <NewProcessMethodRow @bind-Variable="Facade.ThermodynamicMethod" AvailableMethods="AvailableMethods" />
-    <NewSimpleVariableRow @bind-Variable="Facade.VaporFraction" MinValue="0" MaxValue="1" RangeErrorText="..." />
-    <NewProcessVariableRow @bind-Variable="Facade.Temperature" />
-    <NewProcessVariableRow @bind-Variable="Facade.Pressure" />
-    <NewProcessVariableRow @bind-Variable="Facade.MassFlow" />
-    <NewProcessVariableRow @bind-Variable="Facade.MolarFlow" />
-    <NewProcessVariableRow @bind-Variable="Facade.VolumetricFlow" />
-    <NewReadOnlyVariableRow Variable="Facade.EnthalpyFlow" />
-    
+    <UnifiedVariableRow @bind-Variable="Facade.EnthalpyFlow" Mode="VariableMode.Compact" IsReadOnly="true" />
+
     @* 👇 Placeholders para mantener alineación con los títulos de grupo del padre *@
     <div class="grid-cell value group-spacer"></div>
-    <NewReadOnlyVariableRow Variable="Facade.MassDensity" />
-    <NewReadOnlyVariableRow Variable="Facade.MolarDensity" />
-    
+    <UnifiedVariableRow @bind-Variable="Facade.MassDensity" Mode="VariableMode.Compact" IsReadOnly="true" />
+    <UnifiedVariableRow @bind-Variable="Facade.MolarDensity" Mode="VariableMode.Compact" IsReadOnly="true" />
+
     <div class="grid-cell value group-spacer"></div>
-    <NewReadOnlyVariableRow Variable="Facade.MassEnthalpy" />
-    <NewReadOnlyVariableRow Variable="Facade.MolarEnthalpy" />
-    <NewReadOnlyVariableRow Variable="Facade.MassCp" />
-    <NewReadOnlyVariableRow Variable="Facade.MolarCp" />
-    
+    <UnifiedVariableRow @bind-Variable="Facade.MassEnthalpy" Mode="VariableMode.Compact" IsReadOnly="true" />
+    <UnifiedVariableRow @bind-Variable="Facade.MolarEnthalpy" Mode="VariableMode.Compact" IsReadOnly="true" />
+    <UnifiedVariableRow @bind-Variable="Facade.MassCp" Mode="VariableMode.Compact" IsReadOnly="true" />
+    <UnifiedVariableRow @bind-Variable="Facade.MolarCp" Mode="VariableMode.Compact" IsReadOnly="true" />
+
     <div class="grid-cell value group-spacer"></div>
-    <NewReadOnlyVariableRow Variable="Facade.Viscosity" />
-    <NewReadOnlyVariableRow Variable="Facade.ThermalConductivity" />
-    <NewReadOnlyVariableRow Variable="Facade.SuperficialTension" />
+    <UnifiedVariableRow @bind-Variable="Facade.Viscosity" Mode="VariableMode.Compact" IsReadOnly="true" />
+    <UnifiedVariableRow @bind-Variable="Facade.ThermalConductivity" Mode="VariableMode.Compact" IsReadOnly="true" />
+    <UnifiedVariableRow @bind-Variable="Facade.SuperficialTension" Mode="VariableMode.Compact" IsReadOnly="true" />
+
 </div>
 
 @code {
     [Parameter] public StreamSimulationFacade Facade { get; set; } = default!;
     [Parameter] public List<ThermodynamicMethodFullDto> AvailableMethods { get; set; } = new();
+    // 👇 NUEVO: Evento para avisar hacia arriba
+    [Parameter] public EventCallback OnStreamUpdated { get; set; }
+
+    // 👇 NUEVO: Dispara el evento
+    private async Task NotifyUpdate()
+    {
+        if (OnStreamUpdated.HasDelegate)
+        {
+            await OnStreamUpdated.InvokeAsync();
+        }
+    }
+    private async Task HandleMethodSelection(ThermodynamicMethodFullDto selectedMethod)
+    {
+        if (Facade.ThermodynamicMethod == null) return;
+
+        // Llamamos al backend tal como usted lo hacía antes
+        var result = await HttpServices.PostAsync<GetMethodFullRequest, Result<ThermodynamicMethodFullDto>>(new GetMethodFullRequest(selectedMethod.Id));
+
+        if (result.Succeeded && result.Data != null)
+        {
+            Facade.ThermodynamicMethod.SetValue(result.Data, MethodSource.UserInterface);
+            await NotifyUpdate();
+            StateHasChanged();
+        }
+    }
+
+    private async Task HandleMethodClear()
+    {
+        if (Facade.ThermodynamicMethod == null) return;
+
+        // Limpiamos o cambiamos el Source
+        Facade.ThermodynamicMethod.Source = MethodSource.None;
+        await NotifyUpdate();
+        StateHasChanged();
+    }
+    private bool CheckDuplicateName(string newName)
+    {
+        return WM?.Elements?.Any(e => e.Name.Equals(newName, StringComparison.OrdinalIgnoreCase) && e.Id != Facade?.Id) == true;
+    }
+
+    // 2. Le decimos al componente qué hacer cuando pulse el botón 🔄
+    private async Task GenerateUniqueStreamName()
+    {
+        if (NamingService == null || Facade == null) return;
+
+        Facade.Name = NamingService.GenerateNextName("S");
+        await NotifyUpdate();
+        StateHasChanged();
+    }
 }

@@ -1,0 +1,123 @@
+﻿
+<div class="variable-container @(Mode == VariableMode.Standard ? "mode-standard" : "mode-compact")">
+
+    @if (Mode == VariableMode.Standard)
+    {
+        @* --- MODO DIÁLOGO (3 Columnas - Ej: Bombas) --- *@
+        <div class="variable-standard-grid source-userinterface @(IsInvalid() ? "is-invalid" : "")">
+            <div class="grid-cell label">@Label</div>
+
+            <div class="grid-cell value-cell">
+                <input type="text" class="std-input name-input"
+                       value="@_tempValue"
+                       placeholder="Enter name..."
+                       @oninput="HandleInput"
+                       @onkeyup="HandleKeyUp"
+                       @onblur="CommitValue" />
+            </div>
+
+            @* Botón en la tercera columna *@
+            <div class="grid-cell unit-cell action-cell" @onclick="GenerateName" title="Generate unique name">
+                <span class="action-icon">🔄</span>
+            </div>
+        </div>
+    }
+    else
+    {
+        @* --- MODO COMPACTO (2 Columnas - Ej: Corrientes) --- *@
+        @if (!string.IsNullOrWhiteSpace(Label))
+        {
+            <div class="grid-cell label">@Label</div>
+        }
+
+        <div class="grid-cell integrated-cell source-userinterface @(IsInvalid() ? "is-invalid" : "")">
+
+            <div class="value-container-compact">
+                <input type="text" class="compact-input name-input"
+                       value="@_tempValue"
+                       placeholder="Enter name..."
+                       @oninput="HandleInput"
+                       @onkeyup="HandleKeyUp"
+                       @onblur="CommitValue" />
+            </div>
+
+            @* Botón integrado a la derecha (donde iría el chevron de las unidades) *@
+            <div class="unit-dropdown-trigger action-trigger" @onclick="GenerateName" title="Generate unique name">
+                <span class="action-icon">🔄</span>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public string Label { get; set; } = string.Empty;
+
+    // El valor real ligado al Facade
+    [Parameter] public string Value { get; set; } = string.Empty;
+    [Parameter] public EventCallback<string> ValueChanged { get; set; }
+
+    // 👇 INYECCIÓN DE LÓGICA: El padre le dice si el texto es duplicado
+    [Parameter] public Func<string, bool>? IsDuplicate { get; set; }
+
+    // 👇 INYECCIÓN DE LÓGICA: El padre le dice qué hacer al pulsar 🔄
+    [Parameter] public EventCallback OnGenerate { get; set; }
+
+    [Parameter] public VariableMode Mode { get; set; } = VariableMode.Standard;
+
+    private string _tempValue = "";
+
+    protected override void OnParametersSet()
+    {
+        // Si el valor externo cambió (ej. presionó el botón generar en el padre), actualizamos el texto local
+        if (Value != _tempValue)
+        {
+            _tempValue = Value;
+        }
+    }
+
+    private bool IsInvalid()
+    {
+        if (string.IsNullOrWhiteSpace(_tempValue)) return true; // No puede estar vacío
+        if (IsDuplicate != null) return IsDuplicate(_tempValue); // Pregunta al padre si existe
+        return false;
+    }
+
+    private void HandleInput(ChangeEventArgs e)
+    {
+        _tempValue = e.Value?.ToString() ?? "";
+    }
+
+    private async Task HandleKeyUp(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter" || e.Key == "NumpadEnter") await CommitValue();
+        if (e.Key == "Escape") { _tempValue = Value; StateHasChanged(); }
+    }
+
+    private async Task CommitValue()
+    {
+        var trimmed = _tempValue?.Trim() ?? "";
+
+        // Si está vacío o es duplicado, restauramos el valor original y cancelamos
+        if (string.IsNullOrWhiteSpace(trimmed) || (IsDuplicate != null && IsDuplicate(trimmed)))
+        {
+            _tempValue = Value;
+            StateHasChanged();
+            return;
+        }
+
+        // Si es válido y cambió, lo guardamos oficialmente
+        if (trimmed != Value)
+        {
+            Value = trimmed;
+            if (ValueChanged.HasDelegate) await ValueChanged.InvokeAsync(Value);
+        }
+    }
+
+    private async Task GenerateName()
+    {
+        if (OnGenerate.HasDelegate)
+        {
+            await OnGenerate.InvokeAsync();
+        }
+    }
+}
