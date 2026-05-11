@@ -7,7 +7,7 @@
                     IsDuplicate="CheckDuplicateName"
                     OnGenerate="GenerateUniqueStreamName"
                     Mode="VariableMode.Compact" />
-    <UnifiedListRow TItem="ThermodynamicMethodFullDto"
+    @* <UnifiedListRow TItem="ThermodynamicMethodFullDto"
                     TValue="ThermodynamicMethodFullDto"
                     Variable="Facade.ThermodynamicMethod"
                     Items="AvailableMethods"
@@ -16,43 +16,43 @@
                     CustomComparer="(v1, v2) => v1.Id == v2.Id"
                     Mode="VariableMode.Compact"
                     OnItemSelected="HandleMethodSelection"
-                    OnCleared="HandleMethodClear" />
+                    OnCleared="HandleMethodClear" /> *@
 
-    <UnifiedDoubleRow @bind-Variable="Facade.VaporFraction" @bind-Variable:after="NotifyUpdate" Mode="VariableMode.Compact" MinValue="0" MaxValue="1" />
+    <NewUnifiedDoubleRow @bind-Variable="Facade.VaporFraction" @bind-Variable:after="NotifyUpdate" Mode="VariableMode.Compact" MinValue="0" MaxValue="1" />
     @* ==========================================
        VARIABLES CON UNIFIED COMPONENT (Sin Label)
        ========================================== *@
-    <UnifiedVariableRow @bind-Variable="Facade.Temperature" @bind-Variable:after="NotifyUpdate" Mode="VariableMode.Compact" />
-    <UnifiedVariableRow @bind-Variable="Facade.Pressure" @bind-Variable:after="NotifyUpdate" Mode="VariableMode.Compact" />
-    <UnifiedVariableRow @bind-Variable="Facade.MassFlow" @bind-Variable:after="NotifyUpdate" Mode="VariableMode.Compact" />
-    <UnifiedVariableRow @bind-Variable="Facade.MolarFlow" @bind-Variable:after="NotifyUpdate" Mode="VariableMode.Compact" />
-    <UnifiedVariableRow @bind-Variable="Facade.VolumetricFlow" @bind-Variable:after="NotifyUpdate" Mode="VariableMode.Compact" />
+    <NewUnifiedVariableRow @bind-Variable="Facade.Temperature" @bind-Variable:after="NotifyUpdate" Mode="VariableMode.Compact" />
+    <NewUnifiedVariableRow @bind-Variable="Facade.Pressure" @bind-Variable:after="NotifyUpdate" Mode="VariableMode.Compact" />
+    <NewUnifiedVariableRow @bind-Variable="Facade.MassFlow" @bind-Variable:after="NotifyUpdate" Mode="VariableMode.Compact" />
+    <NewUnifiedVariableRow @bind-Variable="Facade.MolarFlow" @bind-Variable:after="NotifyUpdate" Mode="VariableMode.Compact" />
+    <NewUnifiedVariableRow @bind-Variable="Facade.VolumetricFlow" @bind-Variable:after="NotifyUpdate" Mode="VariableMode.Compact" />
 
 
     
-    <UnifiedVariableRow @bind-Variable="Facade.EnthalpyFlow" Mode="VariableMode.Compact" IsReadOnly="true" />
+    <NewUnifiedVariableRow @bind-Variable="Facade.EnthalpyFlow" Mode="VariableMode.Compact" IsReadOnly="true" />
 
     @* 👇 Placeholders para mantener alineación con los títulos de grupo del padre *@
     <div class="grid-cell value group-spacer"></div>
-    <UnifiedVariableRow @bind-Variable="Facade.MassDensity" Mode="VariableMode.Compact" IsReadOnly="true" />
-    <UnifiedVariableRow @bind-Variable="Facade.MolarDensity" Mode="VariableMode.Compact" IsReadOnly="true" />
+    <NewUnifiedVariableRow @bind-Variable="Facade.MassDensity" Mode="VariableMode.Compact" IsReadOnly="true" />
+    <NewUnifiedVariableRow @bind-Variable="Facade.MolarDensity" Mode="VariableMode.Compact" IsReadOnly="true" />
 
     <div class="grid-cell value group-spacer"></div>
-    <UnifiedVariableRow @bind-Variable="Facade.MassEnthalpy" Mode="VariableMode.Compact" IsReadOnly="true" />
-    <UnifiedVariableRow @bind-Variable="Facade.MolarEnthalpy" Mode="VariableMode.Compact" IsReadOnly="true" />
-    <UnifiedVariableRow @bind-Variable="Facade.MassCp" Mode="VariableMode.Compact" IsReadOnly="true" />
-    <UnifiedVariableRow @bind-Variable="Facade.MolarCp" Mode="VariableMode.Compact" IsReadOnly="true" />
+    <NewUnifiedVariableRow @bind-Variable="Facade.MassEnthalpy" Mode="VariableMode.Compact" IsReadOnly="true" />
+    <NewUnifiedVariableRow @bind-Variable="Facade.MolarEnthalpy" Mode="VariableMode.Compact" IsReadOnly="true" />
+    <NewUnifiedVariableRow @bind-Variable="Facade.MassCp" Mode="VariableMode.Compact" IsReadOnly="true" />
+    <NewUnifiedVariableRow @bind-Variable="Facade.MolarCp" Mode="VariableMode.Compact" IsReadOnly="true" />
 
     <div class="grid-cell value group-spacer"></div>
-    <UnifiedVariableRow @bind-Variable="Facade.Viscosity" Mode="VariableMode.Compact" IsReadOnly="true" />
-    <UnifiedVariableRow @bind-Variable="Facade.ThermalConductivity" Mode="VariableMode.Compact" IsReadOnly="true" />
-    <UnifiedVariableRow @bind-Variable="Facade.SuperficialTension" Mode="VariableMode.Compact" IsReadOnly="true" />
+    <NewUnifiedVariableRow @bind-Variable="Facade.Viscosity" Mode="VariableMode.Compact" IsReadOnly="true" />
+    <NewUnifiedVariableRow @bind-Variable="Facade.ThermalConductivity" Mode="VariableMode.Compact" IsReadOnly="true" />
+    <NewUnifiedVariableRow @bind-Variable="Facade.SuperficialTension" Mode="VariableMode.Compact" IsReadOnly="true" />
 
 </div>
 
 @code {
-    [Parameter] public StreamSimulationFacade Facade { get; set; } = default!;
-    [Parameter] public List<ThermodynamicMethodFullDto> AvailableMethods { get; set; } = new();
+    [Parameter] public StreamFacade Facade { get; set; } = default!;
+    // [Parameter] public List<ThermodynamicMethodFullDto> AvailableMethods { get; set; } = new();
     // 👇 NUEVO: Evento para avisar hacia arriba
     [Parameter] public EventCallback OnStreamUpdated { get; set; }
 
@@ -64,30 +64,30 @@
             await OnStreamUpdated.InvokeAsync();
         }
     }
-    private async Task HandleMethodSelection(ThermodynamicMethodFullDto selectedMethod)
-    {
-        if (Facade.ThermodynamicMethod == null) return;
+    // private async Task HandleMethodSelection(ThermodynamicMethodFullDto selectedMethod)
+    // {
+    //     if (Facade.ThermodynamicMethod == null) return;
 
-        // Llamamos al backend tal como usted lo hacía antes
-        var result = await HttpServices.PostAsync<GetMethodFullRequest, Result<ThermodynamicMethodFullDto>>(new GetMethodFullRequest(selectedMethod.Id));
+    //     // Llamamos al backend tal como usted lo hacía antes
+    //     var result = await HttpServices.PostAsync<GetMethodFullRequest, Result<ThermodynamicMethodFullDto>>(new GetMethodFullRequest(selectedMethod.Id));
 
-        if (result.Succeeded && result.Data != null)
-        {
-            Facade.ThermodynamicMethod.SetValue(result.Data, MethodSource.UserInterface);
-            await NotifyUpdate();
-            StateHasChanged();
-        }
-    }
+    //     if (result.Succeeded && result.Data != null)
+    //     {
+    //         Facade.ThermodynamicMethod.SetValue(result.Data, MethodSource.UserInterface);
+    //         await NotifyUpdate();
+    //         StateHasChanged();
+    //     }
+    // }
 
-    private async Task HandleMethodClear()
-    {
-        if (Facade.ThermodynamicMethod == null) return;
+    // private async Task HandleMethodClear()
+    // {
+    //     if (Facade.ThermodynamicMethod == null) return;
 
-        // Limpiamos o cambiamos el Source
-        Facade.ThermodynamicMethod.Source = MethodSource.None;
-        await NotifyUpdate();
-        StateHasChanged();
-    }
+    //     // Limpiamos o cambiamos el Source
+    //     Facade.ThermodynamicMethod.Source = MethodSource.None;
+    //     await NotifyUpdate();
+    //     StateHasChanged();
+    // }
     private bool CheckDuplicateName(string newName)
     {
         return WM?.Elements?.Any(e => e.Name.Equals(newName, StringComparison.OrdinalIgnoreCase) && e.Id != Facade?.Id) == true;

@@ -22,13 +22,13 @@
                 {
                     <div class="tab-content active">
                         <MaterialStreamMainData Facade="Facade"
-                                                AvailableMethods="AvailableMethods" />
+                                              />
                     </div>
                 }
                 @if (activeTab == "Composition")
                 {
                     <div class="tab-content active">
-                        <CompositionGrid @bind-Variable="Facade.StreamComposition" />
+                        <NewCompositionGrid @bind-Variable="Facade.StreamComposition" />
                     </div>
                 }
                 @if (activeTab == "Properties")
@@ -56,7 +56,7 @@
     [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
 
     // 2. Tu parámetro del Facade que ya tenías
-    [Parameter] public StreamSimulationFacade Facade { get; set; } = default!;
+    [Parameter] public StreamFacade Facade { get; set; } = default!;
 
     private void Submit() => MudDialog.Close(DialogResult.Ok(true));
     private void Cancel() => MudDialog.Cancel();
@@ -65,7 +65,7 @@
     [Parameter] public MethodSource CurrentSource { get; set; } = MethodSource.UserInterface;
     
     // 👇 Lista de métodos disponibles para el dropdown
-    public List<ThermodynamicMethodFullDto> AvailableMethods { get; set; } = new();
+    // public List<ThermodynamicMethodFullDto> AvailableMethods { get; set; } = new();
 
     // ─────────────────────────────────────────────────────────
     // 🔹 ESTADO LOCAL
@@ -75,15 +75,15 @@
     protected override async Task OnInitializedAsync()
     {
         // 👇 Si AvailableMethods no se pasó como parámetro, cargar desde Facade/Backend
-        if (AvailableMethods == null || AvailableMethods.Count == 0)
-        {
-            var request = new GetAllCompleteMethods();
-            var result = await HttpServices.PostAsync<GetAllCompleteMethods, Result<List<ThermodynamicMethodFullDto>>>(request);
-            if (result.Succeeded)
-            {
-                AvailableMethods = result.Data;
-            }
-        }
+        // if (AvailableMethods == null || AvailableMethods.Count == 0)
+        // {
+        //     var request = new GetAllCompleteMethods();
+        //     var result = await HttpServices.PostAsync<GetAllCompleteMethods, Result<List<ThermodynamicMethodFullDto>>>(request);
+        //     if (result.Succeeded)
+        //     {
+        //         AvailableMethods = result.Data;
+        //     }
+        // }
     }
 
     // 🔹 Handler que fuerza re-renderizado

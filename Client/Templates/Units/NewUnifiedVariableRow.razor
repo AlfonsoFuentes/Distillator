@@ -1,0 +1,116 @@
+﻿@typeparam T where T : Amount
+@inherits NewVariableBase<T>
+
+<div class="variable-container @(Mode == VariableMode.Standard ? "mode-standard" : "mode-compact")">
+
+    @if (Mode == VariableMode.Standard)
+    {
+        @* --- MODO DIÁLOGO (Bomba) --- *@
+        <div class="variable-standard-grid @GetSourceClass() @(IsEffectivelyReadOnly ? "is-readonly" : "")">
+            <div class="grid-cell label">@Label</div>
+
+            <div class="grid-cell value-cell">
+                @if (_isEditing)
+                {
+                    <input @ref="_inputRef" type="text" class="std-input" value="@_tempInputValue"
+                           @oninput="HandleInput" @onkeyup="HandleKeyUp" @onblur="CommitValue" />
+                }
+                else
+                {
+                    @* 🔥 NUEVO: Tooltip basado en Variable.Source == "Solver" *@
+                    <div class="readonly-wrapper @(Variable?.Source == "Solver" ? "has-tooltip" : "")"
+                         @onclick="EnterEditMode">
+                        <span class="value-text">@GetDisplayValue()</span>
+
+                        @if (Variable?.Source == "Solver" && !string.IsNullOrWhiteSpace(Variable.Source))
+                        {
+                            <span class="tooltip-text">Calculated by: @Variable.Source</span>
+                        }
+                    </div>
+                }
+            </div>
+
+            <div class="grid-cell unit-cell">
+                <select class="std-select" @onchange="e => SelectUnitByName(e.Value?.ToString())">
+                    @* 🔥 NUEVO: Iterar sobre UnitsList del Amount (si existe) *@
+                    @if (Variable?.Value?.UnitsList != null)
+                    {
+                        @foreach (var unit in Variable.Value.UnitsList)
+                        {
+                            <option value="@unit.Name" selected="@(unit.Name == Variable.GetDisplayUnit())">@unit.Symbol</option>
+                        }
+                    }
+                </select>
+            </div>
+        </div>
+    }
+    else
+    {
+        @* --- MODO COMPACTO (Multiuso) --- *@
+
+        @if (!string.IsNullOrWhiteSpace(Label))
+        {
+            <div class="grid-cell label">@Label</div>
+        }
+
+        <div class="grid-cell integrated-cell @GetSourceClass() @(IsEffectivelyReadOnly ? "is-readonly" : "")">
+
+            <div class="value-container-compact @(Variable?.Source == "Solver" ? "has-tooltip" : "")"
+                 @onclick="EnterEditMode">
+
+                @if (_isEditing)
+                {
+                    <input @ref="_inputRef" type="text" value="@_tempInputValue" class="compact-input"
+                           @oninput="HandleInput" @onkeyup="HandleKeyUp" @onblur="CommitValue"
+                           @onclick:stopPropagation />
+                }
+                else
+                {
+                    <div class="compact-display-text">
+                        <span class="value-text">@GetDisplayValue()</span>
+                        @if (Variable?.IsDefined == true)
+                        {
+                            <span class="unit-label-inline">@Variable.GetDisplayUnit()</span>
+                        }
+                    </div>
+
+                    @if (Variable?.Source == "Solver" && !string.IsNullOrWhiteSpace(Variable.Source))
+                    {
+                        <span class="tooltip-text">Calculated by: @Variable.Source</span>
+                    }
+                }
+            </div>
+
+            @if (Variable?.Value?.UnitsList?.Count > 1)
+            {
+                <div class="unit-dropdown-trigger" @onclick:stopPropagation @onclick="() => _showUnitSelector = !_showUnitSelector">
+                    <span class="chevron-icon">▾</span>
+                </div>
+            }
+
+            @if (_showUnitSelector && Variable?.Value?.UnitsList != null)
+            {
+                <div class="unit-popup" @onmouseleave="() => _showUnitSelector = false">
+                    @foreach (var unit in Variable.Value.UnitsList)
+                    {
+                        <div class="unit-item @(unit.Name == Variable.GetDisplayUnit() ? "selected" : "")"
+                             @onclick="() => SelectUnit(unit)">
+                            @unit.Symbol
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public VariableMode Mode { get; set; } = VariableMode.Standard;
+
+    private async Task SelectUnitByName(string? name)
+    {
+        // Buscar unidad por nombre en la lista disponible
+        var unit = Variable?.Value?.UnitsList?.FirstOrDefault(u => u.Name == name);
+        if (unit != null) await SelectUnit(unit);
+    }
+}

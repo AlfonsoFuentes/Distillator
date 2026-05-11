@@ -8,32 +8,32 @@
         @* 👇 GRUPO 1: Phase & Density *@
         <div class="grid-cell label group-title">Phase & Density</div>
 
-        <UnifiedVariableRow Label="Mass Density" @bind-Variable="Facade.MassDensity" Mode="VariableMode.Compact" IsReadOnly="true" />
-        <UnifiedVariableRow Label="Molar Density" @bind-Variable="Facade.MolarDensity" Mode="VariableMode.Compact" IsReadOnly="true" />
+        <NewUnifiedVariableRow Label="Mass Density" @bind-Variable="Facade.MassDensity" Mode="VariableMode.Compact" IsReadOnly="true" />
+        <NewUnifiedVariableRow Label="Molar Density" @bind-Variable="Facade.MolarDensity" Mode="VariableMode.Compact" IsReadOnly="true" />
 
         @* 👇 GRUPO 2: Thermodynamics *@
         <div class="grid-cell label group-title">Thermodynamics</div>
 
-        <UnifiedVariableRow Label="Mass Enthalpy" @bind-Variable="Facade.MassEnthalpy" Mode="VariableMode.Compact" IsReadOnly="true" />
-        <UnifiedVariableRow Label="Molar Enthalpy" @bind-Variable="Facade.MolarEnthalpy" Mode="VariableMode.Compact" IsReadOnly="true" />
-        <UnifiedVariableRow Label="Mass Cp" @bind-Variable="Facade.MassCp" Mode="VariableMode.Compact" IsReadOnly="true" />
-        <UnifiedVariableRow Label="Energy Flow" @bind-Variable="Facade.EnthalpyFlow" Mode="VariableMode.Compact" IsReadOnly="true" />
+        <NewUnifiedVariableRow Label="Mass Enthalpy" @bind-Variable="Facade.MassEnthalpy" Mode="VariableMode.Compact" IsReadOnly="true" />
+        <NewUnifiedVariableRow Label="Molar Enthalpy" @bind-Variable="Facade.MolarEnthalpy" Mode="VariableMode.Compact" IsReadOnly="true" />
+        <NewUnifiedVariableRow Label="Mass Cp" @bind-Variable="Facade.MassCp" Mode="VariableMode.Compact" IsReadOnly="true" />
+        <NewUnifiedVariableRow Label="Energy Flow" @bind-Variable="Facade.EnthalpyFlow" Mode="VariableMode.Compact" IsReadOnly="true" />
 
         @* 👇 GRUPO 3: Transport *@
         <div class="grid-cell label group-title">Transport</div>
 
-        <UnifiedVariableRow Label="Viscosity" @bind-Variable="Facade.Viscosity" Mode="VariableMode.Compact" IsReadOnly="true" />
-        <UnifiedVariableRow Label="Thermal Cond." @bind-Variable="Facade.ThermalConductivity" Mode="VariableMode.Compact" IsReadOnly="true" />
+        <NewUnifiedVariableRow Label="Viscosity" @bind-Variable="Facade.Viscosity" Mode="VariableMode.Compact" IsReadOnly="true" />
+        <NewUnifiedVariableRow Label="Thermal Cond." @bind-Variable="Facade.ThermalConductivity" Mode="VariableMode.Compact" IsReadOnly="true" />
 
         @if (Facade.EquilibriumState == ThermodynamicState.SaturatedLiquid ||
                      Facade.EquilibriumState == ThermodynamicState.SubcooledLiquid)
         {
-            <UnifiedVariableRow Label="Superficial Tension" @bind-Variable="Facade.SuperficialTension" Mode="VariableMode.Compact" IsReadOnly="true" />
+            <NewUnifiedVariableRow Label="Superficial Tension" @bind-Variable="Facade.SuperficialTension" Mode="VariableMode.Compact" IsReadOnly="true" />
         }
 
     </div>
 </div>
 
 @code {
-    [Parameter, EditorRequired] public StreamSimulationFacade Facade { get; set; } = default!;
+    [Parameter, EditorRequired] public StreamFacade Facade { get; set; } = default!;
 }

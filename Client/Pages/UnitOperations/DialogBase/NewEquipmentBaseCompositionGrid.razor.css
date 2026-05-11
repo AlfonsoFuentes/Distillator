@@ -1,0 +1,193 @@
+﻿/* =================================================
+   EquipmentBaseComposition.razor.css
+   Estilo Industrial Minimalista (Colgate-Palmolive)
+   ================================================= */
+.scrollable-container {
+    overflow: auto;
+    max-height: 500px;
+    border: 1px solid var(--border-color, #b0b0b0);
+    border-radius: 4px;
+    background: #ffffff;
+}
+
+.data-grid.composition-grid {
+    display: grid;
+    grid-auto-rows: minmax(28px, auto);
+    gap: 0;
+    width: 100%;
+    background-color: var(--border-color, #b0b0b0);
+}
+
+.grid-header {
+    background-color: var(--header-bg, #e4e4e4) !important;
+    font-weight: 600;
+    color: #333333;
+    padding: 6px 8px;
+    border-bottom: 1px solid #999999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 32px;
+    font-size: 12px;
+}
+
+/* ==================== CELDAS Y ETIQUETAS FIJAS ==================== */
+
+/* Columna 1: Component Name */
+.sticky-col-1 {
+    position: sticky;
+    left: 0;
+    z-index: 15;
+    background-color: #ffffff !important;
+    border-right: 1px solid #cccccc !important;
+}
+
+/* Columna 2: Property (Mass, Mole, etc.) */
+.sticky-col-2 {
+    position: sticky;
+    left: 140px; /* Exactamente el ancho de la Columna 1 */
+    z-index: 15;
+    background-color: var(--label-bg, #f5f5f5) !important;
+    border-right: 2px solid #888888 !important; /* Separador fuerte hacia los datos */
+}
+
+/* Esquinas de los Encabezados (Siempre por encima de todo) */
+.sticky-header {
+    position: sticky;
+    top: 0;
+    z-index: 40 !important;
+    background-color: var(--header-bg, #e4e4e4) !important;
+}
+
+.port-header {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    border-right: 1px solid var(--border-color, #b0b0b0);
+}
+
+.sticky-header-filler {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+}
+
+.grid-cell {
+    padding: 0; /* Quitamos padding para que el input ocupe el 100% */
+    border-bottom: 1px solid var(--border-color, #b0b0b0);
+    display: flex;
+    align-items: center;
+    font-size: 12px;
+    background-color: #ffffff;
+    border-right: 1px solid var(--border-color, #b0b0b0);
+}
+
+    .grid-cell.component-name {
+        font-weight: 700;
+        color: #222222;
+        justify-content: center;
+        text-align: center;
+        padding: 4px 8px;
+    }
+
+    .grid-cell.label {
+        color: #444444;
+        font-weight: 500;
+        padding: 4px 8px;
+    }
+
+        .grid-cell.label.special-gl {
+            background-color: #e3f2fd !important;
+            color: #0d47a1;
+            font-weight: 600;
+        }
+
+    /* ==================== CELDAS DE VALORES E INPUTS ==================== */
+
+    .grid-cell.value {
+        justify-content: flex-end;
+        font-family: 'Consolas', 'Courier New', monospace;
+    }
+
+.readonly-value {
+    user-select: all;
+    padding: 4px 8px;
+    width: 100%;
+    text-align: right;
+}
+
+/* Diseño del input integrado */
+.editable-cell input {
+    width: 100%;
+    height: 100%;
+    border: none;
+    background: transparent;
+    text-align: right;
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 12px;
+    padding: 4px 8px;
+    outline: none;
+    color: #0056b3;
+}
+
+    .editable-cell input:focus {
+        background-color: #f0f8ff;
+        box-shadow: inset 0 0 0 1px #0056b3;
+    }
+
+    .editable-cell input::placeholder {
+        color: #aaa;
+        font-style: italic;
+    }
+
+    .editable-cell input::-webkit-outer-spin-button,
+    .editable-cell input::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+
+/* ==================== ESTADOS SEMÁNTICOS (data-state) ==================== */
+
+.grid-cell.value[data-state="editable"] {
+    background-color: #ffffff;
+}
+
+    .grid-cell.value[data-state="editable"]:hover {
+        background-color: #fdfdfd;
+        cursor: text;
+    }
+
+.grid-cell.value[data-state="calculated"], .grid-cell.value.calculated {
+    background-color: #fafafa;
+    color: #666666;
+}
+
+.grid-cell.value[data-state="blocked"] {
+    background-color: #e9ecef;
+    color: #adb5bd;
+    cursor: not-allowed;
+}
+
+.grid-cell.value[data-state="empty"], .grid-cell.value.empty {
+    background-color: #fffaf0;
+}
+
+.grid-cell.value.special-gl-value {
+    background-color: #f8fbff;
+}
+
+    .grid-cell.value.special-gl-value[data-state="calculated"] {
+        color: #0d47a1;
+        font-weight: bold;
+    }
+
+/* ==================== RELLENO Y PUERTOS VACÍOS ==================== */
+
+.empty-port-column {
+    background-color: #f0f0f0;
+}
+
+.grid-header.filler, .grid-cell.filler {
+    border-right: none;
+    background-color: #ffffff;
+}

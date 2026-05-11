@@ -1,0 +1,94 @@
+﻿<div class="grid-cell label">@Label</div>
+
+<div class="grid-cell value @(GetCssClass())" title="@GetTooltipText()">
+    <select class="form-select-minimal"
+            disabled="@IsReadOnly()"
+            value="@(Value?.Id.ToString() ?? "")"
+            @onchange="HandleSelection">
+
+        <!-- 🔹 Placeholder dinámico: "Select Method..." o "<Not defined>" -->
+        <option value="" class="placeholder-option">
+            @(Value != null ? "" : "<Not defined>")
+        </option>
+
+        @if (AvailableMethods != null)
+        {
+            @foreach (var method in AvailableMethods)
+            {
+                <option value="@method.Id">@method.Name</option>
+            }
+        }
+    </select>
+</div>
+
+
+@code {
+    // ─────────────────────────────────────────────────────────
+    // 🔹 PARÁMETROS
+    // ─────────────────────────────────────────────────────────
+    [Parameter] public string Label { get; set; } = "Thermodynamic Method";
+
+    // 👇 Compatible con ControlledVariable<T> base (DTO no es Amount)
+    [Parameter] public ThermodynamicMethodFullDto Value { get; set; } = default!;
+
+    [Parameter] public List<ThermodynamicMethodFullDto> AvailableMethods { get; set; } = new();
+    [Parameter] public EventCallback<ThermodynamicMethodFullDto> ValueChanged { get; set; } = default!;
+
+
+
+    // ─────────────────────────────────────────────────────────
+    // 🔹 HELPERS VISUALES
+    // ─────────────────────────────────────────────────────────
+
+    private string GetCssClass() => "source-none";
+
+    // 🔹 Tooltip nativo: solo muestra SourceId cuando es calculado por sistema
+    private string? GetTooltipText()
+    {
+
+        return null;
+    }
+
+    // 🔹 Solo readonly si lo definió OTRO origen (sistema)
+    private bool IsReadOnly() => false;
+
+    // ─────────────────────────────────────────────────────────
+    // 🔹 HANDLERS
+    // ─────────────────────────────────────────────────────────
+
+    private async Task HandleSelection(ChangeEventArgs e)
+    {
+        // 👇 La UI valida con IsReadOnly() antes de actuar
+        if (IsReadOnly())
+            return;
+
+        var selectedIdString = e.Value?.ToString();
+
+        if (Guid.TryParse(selectedIdString, out var selectedId))
+        {
+            var result = await HttpServices.PostAsync<GetMethodFullRequest, Result<ThermodynamicMethodFullDto>>(new GetMethodFullRequest(selectedId));
+            if (result.Succeeded)
+            {
+                var selectedMethod = result.Data;
+
+                if (selectedMethod != null)
+                {
+                    Value = selectedMethod;
+
+                   
+
+                    if (ValueChanged.HasDelegate)
+                        await ValueChanged.InvokeAsync(Value);
+                }
+            }
+        }
+        else
+        {
+            if (ValueChanged.HasDelegate)
+                await ValueChanged.InvokeAsync(null!);
+
+        }
+
+        StateHasChanged();
+    }
+}

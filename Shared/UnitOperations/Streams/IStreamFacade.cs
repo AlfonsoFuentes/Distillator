@@ -44,7 +44,7 @@ namespace Shared.UnitOperations.Streams
         StreamStateType State { get; }
         ThermodynamicMethodFullDto? ThermoMethod { get; set; }
         bool IsFlowSolved { get; set; }
-       
+
 
         IEnumerable<INewVariable> GetSolverVariables();
         void RemoveEquilibriumCalculate();
@@ -109,7 +109,7 @@ namespace Shared.UnitOperations.Streams
                     newcompo.ComponentName = comp.ComponentName;
                     newcompo.MolecularWeight = comp.FullData.MolecularWeight;
                     data.Components.Add(newcompo);
-                   
+
                 }
                 data.AttachEvents();
             }
@@ -129,7 +129,7 @@ namespace Shared.UnitOperations.Streams
 
         // ¿El balance de materia (Flujos) está completo?
         public bool IsFlowSolved { get; set; } = false;
-      
+
 
         public NewNewVariableAmount<Temperature> Temperature { get; set; }
         public NewNewVariableAmount<Pressure> Pressure { get; set; }
@@ -207,7 +207,7 @@ namespace Shared.UnitOperations.Streams
             Temperature.AddToDefinedList += AddNewEquilibriumVariables;
             Temperature.ExecuteGeneralSolver += ExecuteSolver;
 
-   
+
 
 
             Pressure = new NewNewVariableAmount<Pressure>(new Pressure(),
@@ -221,15 +221,15 @@ namespace Shared.UnitOperations.Streams
             Pressure.AddToDefinedList += AddNewEquilibriumVariables;
             Pressure.ExecuteGeneralSolver += ExecuteSolver;
 
-           
+
 
             MassFlow = new NewNewVariableAmount<MassFlow>(new MassFlow(),
                 MassFlowUnits.Kg_hr,
                 MassFlowUnits.Kg_hr,
-                (v, u) => new MassFlow(v, u)   ,    1000
+                (v, u) => new MassFlow(v, u), 1000
             );
-        
-       
+
+
             MassFlow.ExecuteStreamCalculation += ExecuteFlows;
             MassFlow.AddToDefinedList += AddNewFlowsVariables;
             MassFlow.ExecuteGeneralSolver += ExecuteSolver;
@@ -240,16 +240,16 @@ namespace Shared.UnitOperations.Streams
                 (v, u) => new MolarFlow(v, u),
                 100 // InitValue
             );
-            
+
             MolarFlow.ExecuteStreamCalculation += ExecuteFlows;
             MolarFlow.AddToDefinedList += AddNewFlowsVariables;
             MolarFlow.ExecuteGeneralSolver += ExecuteSolver;
             VolumetricFlow = new NewNewVariableAmount<VolumetricFlow>(new VolumetricFlow(),
                 VolumetricFlowUnits.m3_hr,
                 VolumetricFlowUnits.m3_hr,
-                (v, u) => new VolumetricFlow(v, u) ,1
+                (v, u) => new VolumetricFlow(v, u), 1
             );
-           
+
             VolumetricFlow.ExecuteStreamCalculation += ExecuteFlows;
             VolumetricFlow.AddToDefinedList += AddNewFlowsVariables;
             VolumetricFlow.ExecuteGeneralSolver += ExecuteSolver;
@@ -284,16 +284,16 @@ namespace Shared.UnitOperations.Streams
                 MassEnergyUnits.Kcal_Kg,
                 (v, u) => new MassEnergy(v, u)
             );
-            MassEnthalpy.AddToDefinedList += AddNewEquilibriumVariables ;
+            MassEnthalpy.AddToDefinedList += AddNewEquilibriumVariables;
             MolarEnthalpy = new NewNewVariableAmount<MolarEnergy>(new MolarEnergy(),
                 MolarEnergyUnits.Kcal_Kgmol,
                 MolarEnergyUnits.J_gmol,
-                (v, u) => new MolarEnergy(v, u)  ,1000
+                (v, u) => new MolarEnergy(v, u), 1000
             );
 
             MolarEnthalpy.ExecuteStreamCalculation += ExecuteEquilibrium;
             MolarEnthalpy.AddToDefinedList += AddNewEquilibriumVariables;
-     
+
 
             MassDensity = new NewNewVariableAmount<MassDensity>(new MassDensity(),
                 MassDensityUnits.Kg_m3,
@@ -313,14 +313,14 @@ namespace Shared.UnitOperations.Streams
                 (v, u) => new EnergyFlow(v, u)
             );
             EnthalpyFlow.AddToDefinedList += AddNewFlowsVariables;
-            SuperficialTension = new NewNewVariableAmount   <SuperficialTension>(new SuperficialTension(),
+            SuperficialTension = new NewNewVariableAmount<SuperficialTension>(new SuperficialTension(),
                 SuperficialTensionUnits.dyn_cm,
                 SuperficialTensionUnits.dyn_cm,
                 (v, u) => new SuperficialTension(v, u)
             );
             SuperficialTension.AddToDefinedList += AddNewEquilibriumVariables;
         }
-       
+
         void ExecuteSolver()
         {
             OnExecuteSolver?.Invoke();
@@ -329,7 +329,7 @@ namespace Shared.UnitOperations.Streams
 
         void ExecuteEquilibrium()
         {
-            
+
             _equilibriumCalculator.Execute();
         }
         void ExecuteFlows()
@@ -338,10 +338,12 @@ namespace Shared.UnitOperations.Streams
         }
         public void AddNewEquilibriumVariables(INewNewVariable variable)
         {
+            if (NewEquilibriumVariables.Contains(variable)) return;
             NewEquilibriumVariables.Add(variable);
         }
         public void AddNewFlowsVariables(INewNewVariable variable)
         {
+            if(NewFlowsVariables.Contains(variable)) return;
             NewFlowsVariables.Add(variable);
         }
         public void AddEquilibriumCalculate(INewVariable variable)
@@ -373,7 +375,7 @@ namespace Shared.UnitOperations.Streams
             }
             NewFlowsVariables.Clear();
 
-          
+
         }
         // =========================
         // 🔹 UTILIDAD CLAVE (PARA SOLVER MANAGER)
@@ -392,11 +394,11 @@ namespace Shared.UnitOperations.Streams
 
         private void OnEquilibriumReady()
         {
-          
 
-            ThermalConductivity.SetValueFromStream(MaterialStream.ThermalConductivity,Name);
 
-            Viscosity.SetValueFromStream(MaterialStream.Viscosity,Name);
+            ThermalConductivity.SetValueFromStream(MaterialStream.ThermalConductivity, Name);
+
+            Viscosity.SetValueFromStream(MaterialStream.Viscosity, Name);
 
 
             MassCp.SetValueFromStream(MaterialStream.MassHeatCapacity, Name);
@@ -405,7 +407,7 @@ namespace Shared.UnitOperations.Streams
             MolarCp.SetValueFromStream(MaterialStream.MolarHeatCapacity, Name);
 
 
-           
+
 
             MassEnthalpy.SetValueFromStream(MaterialStream.MassEnthalpy, Name);
 
@@ -427,11 +429,11 @@ namespace Shared.UnitOperations.Streams
         }
         public List<ToolTipLegend> GetToolTipLegend() => new();
 
-        
+
 
         public void DetachConnection(string portName)
         {
-           
+
 
 
 
@@ -439,7 +441,7 @@ namespace Shared.UnitOperations.Streams
 
         public void AttachConnection(string portName, IFacade connectedFacade)
         {
-            
+
         }
     }
 }

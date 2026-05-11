@@ -12,16 +12,16 @@ using UnitSystem;
 
 namespace Shared.MatrixSolvers
 {
-   
+
     public class SolverMatrixManager
     {
         private readonly List<IEquipmentFacade> _equipments = new();
         private readonly List<IStreamFacade> _streams = new();
-        public ThermodynamicMethodFullDto? ThermoMethod { get; set; }
-
+        public ThermodynamicMethodFullDto? ThermoMethod => Configuration.ThermodynamicMethod;
+        public SolverConfiguration Configuration { get; private set; } = new();
         public void SetThermodynamicMethod(ThermodynamicMethodFullDto method)
         {
-            ThermoMethod = method;
+            Configuration.ThermodynamicMethod = method;
 
             foreach (var stream in _streams)
             {
@@ -117,7 +117,7 @@ namespace Shared.MatrixSolvers
 
 
 
-        public void ExecuteSampleValve()
+        void ExecuteSampleValve()
         {
             if (ThermoMethod != null)
             {
@@ -162,6 +162,10 @@ namespace Shared.MatrixSolvers
         }
         public void ExecuteSample()
         {
+
+        }
+        void ExecuteSample1()
+        {
             if (ThermoMethod != null)
             {
                 var stream1 = new StreamFacade();
@@ -201,7 +205,7 @@ namespace Shared.MatrixSolvers
                 stream1.MassFlow.SetValueFromUI(new MassFlow(10000, MassFlowUnits.Kg_hr));
                 pump1.Efficiency.SetValueFromUI(0.5);
                 pump1.DeltaPressure.SetValueFromUI(new PressureDrop(2, PressureDropUnits.Bar));
-
+                valve.DeltaPressure.SetValueFromUI(new PressureDrop(1, PressureDropUnits.Bar));
                 pump1.DeltaPressure.ClearFromUI();
                 stream2.Pressure.SetValueFromUI(new Pressure(5, PressureUnits.Bara));
                 stream1.VaporFraction.ClearFromUI();
@@ -220,7 +224,7 @@ namespace Shared.MatrixSolvers
 
 
         }
-        public void ExecuteSamplePump()
+        void ExecuteSamplePump()
         {
             if (ThermoMethod != null)
             {
@@ -237,7 +241,7 @@ namespace Shared.MatrixSolvers
                 pump1.AttachConnection("Inlet", stream1);
                 pump1.AttachConnection("Outlet", stream2);
 
-         
+
                 var streamComposition = stream1.StreamComposition.Value.Clone();
                 streamComposition.Components[0].MassFractionSolver.SetValueFromUI(10);
 
@@ -272,7 +276,7 @@ namespace Shared.MatrixSolvers
 
 
         }
-        public void ExecuteSample_Mixer2()
+        void ExecuteSample_Mixer2()
         {
             if (ThermoMethod == null) return;
 
@@ -323,7 +327,7 @@ namespace Shared.MatrixSolvers
             Console.WriteLine($"✅ Mixer - Mixed Pressure: {mixed.Pressure.Value?.ValueUnit} (esperado: 4 bara)");
             Console.WriteLine($"✅ Mixer - IsEquilibriumSolved: {mixed.IsEquilibriumSolved}");
         }
-        public void ExecuteSampleSplitter()
+        void ExecuteSampleSplitter()
         {
             if (ThermoMethod == null) return;
 
@@ -371,7 +375,7 @@ namespace Shared.MatrixSolvers
             Console.WriteLine($"✅ Splitter - ProductA Temperature: {prodA.Temperature.Value?.ValueUnit} (esperado: 350 K)");
             Console.WriteLine($"✅ Splitter - ProductB Pressure: {prodB.Pressure.Value?.ValueUnit} (esperado: 5 bara)");
         }
-        public void ExecuteSample_Splitter_1to4_MixedSpec()
+        void ExecuteSample_Splitter_1to4_MixedSpec()
         {
             if (ThermoMethod == null) return;
 
@@ -428,7 +432,7 @@ namespace Shared.MatrixSolvers
             Console.WriteLine($"✅ Σfⱼ: {splitter.SplitFractions.Values.Sum(f => f.SolverValue):F3} (debe ser 1.000)");
             Console.WriteLine($"✅ Conservación: {out1.MassFlow.SolverValue + out2.MassFlow.SolverValue + out3.MassFlow.SolverValue + out4.MassFlow.SolverValue:F0} ≈ {inlet.MassFlow.SolverValue:F0}");
         }
-        public void ExecuteSample_Splitter_5to1_CalcInlet()
+        void ExecuteSample_Splitter_5to1_CalcInlet()
         {
             if (ThermoMethod == null) return;
 
@@ -491,7 +495,7 @@ namespace Shared.MatrixSolvers
             Console.WriteLine($"✅ Σfⱼ: {splitter.SplitFractions.Values.Sum(f => f.SolverValue):F4} (debe ser 1.0000)");
             Console.WriteLine($"✅ T Inlet: {inlet.Temperature.Value?.ValueUnit} (igual a salidas: 360 K)");
         }
-        public void ExecuteSample_FlashTank2()
+        void ExecuteSample_FlashTank2()
         {
             if (ThermoMethod == null) return;
 
@@ -540,7 +544,7 @@ namespace Shared.MatrixSolvers
             Console.WriteLine($"✅ FlashTank - Vapor Fraction: {vapor.VaporFraction.Value.ToString("F3")}");
             Console.WriteLine($"✅ FlashTank - IsEquilibriumSolved: {vapor.IsEquilibriumSolved}");
         }
-        public void ExecuteSample_Vessel2()
+        void ExecuteSample_Vessel2()
         {
             if (ThermoMethod == null) return;
 
@@ -598,7 +602,7 @@ namespace Shared.MatrixSolvers
             Console.WriteLine($"✅ Vessel - Outlet2 Temperature: {outlet2.Temperature.Value?.ValueUnit} (debería ser igual a Outlet1)");
             Console.WriteLine($"✅ Vessel - All pressures equal: {outlet1.Pressure.Value?.ValueUnit} == {outlet2.Pressure.Value?.ValueUnit}");
         }
-        public void ExecuteSample_PlateExchanger2()
+        void ExecuteSample_PlateExchanger2()
         {
             if (ThermoMethod == null) return;
 
@@ -657,7 +661,7 @@ namespace Shared.MatrixSolvers
             Console.WriteLine($"✅ PlateHX - HotOut Pressure: {hotOut.Pressure.Value?.ValueUnit}");
             Console.WriteLine($"✅ PlateHX - ColdOut Pressure: {coldOut.Pressure.Value?.ValueUnit}");
         }
-        public void ExecuteSample_HeatExchanger2()
+        void ExecuteSample_HeatExchanger2()
         {
             if (ThermoMethod == null) return;
 
@@ -721,7 +725,7 @@ namespace Shared.MatrixSolvers
             Console.WriteLine($"✅ HX - ShellOut Pressure: {shellOut.Pressure.Value?.ValueUnit} (esperado: ~9.8 bara)");
             Console.WriteLine($"✅ HX - Duty Calculated: {hx.Duty.Value?.ValueUnit}");
         }
-        public void ExecuteSample_Reboiler2()
+        void ExecuteSample_Reboiler2()
         {
             if (ThermoMethod == null) return;
 
@@ -789,7 +793,7 @@ namespace Shared.MatrixSolvers
             Console.WriteLine($"✅ Reboiler - CondensateOut VaporFraction: {condensateOut.VaporFraction.Value.ToString("F3")} (esperado: 0)");
             Console.WriteLine($"✅ Reboiler - Duty: {reboiler.Duty.Value?.ValueUnit}");
         }
-        public void ExecuteSample_Column2()
+        void ExecuteSample_Column2()
         {
             if (ThermoMethod == null) return;
 
@@ -854,9 +858,70 @@ namespace Shared.MatrixSolvers
         }
     }
 
+    public class SolverConfiguration
+    {
+        // Método termodinámico
+        public ThermodynamicMethodFullDto? ThermodynamicMethod { get; set; }
 
+        // 🔥 Altura sobre nivel del mar (con tu sistema de unidades)
+        public NewNewVariableAmount<Length> Altitude { get;  set; }
 
+        // 🔥 Presión atmosférica calculada (con tu sistema de unidades)
+        public Pressure AtmosphericPressure { get; private set; } = new Pressure(101325, PressureUnits.Pascala);
 
+        // 🔥 Evento para notificar cambios a la UI
+        public event Action? ConfigurationChanged;
+
+        public SolverConfiguration()
+        {
+            // Inicializar Altitude con unidad por defecto (metros) y valor 0
+            Altitude = new NewNewVariableAmount<Length>(
+                new Length(0, LengthUnits.Meter),
+                LengthUnits.Meter,      // UnitForUI
+                LengthUnits.Meter,      // UnitForSolver (internamente trabajamos en metros)
+                (v, u) => new Length(v, u),
+                0  // InitValue
+            );
+
+            // Suscribirse a cambios en Altitude para recalcular presión
+            Altitude.ExecuteStreamCalculation += CalculateAtmosphericPressure;
+        }
+
+        /// <summary>
+        /// Calcula la presión atmosférica basada en la altura usando la fórmula barométrica
+        /// </summary>
+        public void CalculateAtmosphericPressure()
+        {
+            // Fórmula barométrica simplificada para la troposfera
+            const double P0 = 101325.0;      // Presión al nivel del mar (Pa)
+            const double L = 0.0065;          // Lapse rate (K/m)
+            const double T0 = 288.15;         // Temperatura estándar (K)
+
+            // Obtener altura en metros para el cálculo
+            double altitudeMeters = Altitude.Value.GetValue(LengthUnits.Meter);
+
+            // Validar rango (troposfera: 0-11000 m)
+            if (altitudeMeters < 0) altitudeMeters = 0;
+            if (altitudeMeters > 11000) altitudeMeters = 11000;
+
+            // Calcular presión en Pascal
+            double pressurePa = P0 * Math.Pow(1 - (L * altitudeMeters) / T0, 5.255);
+
+            // Actualizar la presión atmosférica
+            AtmosphericPressure.SetValue(pressurePa, PressureUnits.Pascala);
+
+            // Actualizar referencia global si existe
+            UnitManager.SetAtmosphericPressureReference(AtmosphericPressure);
+
+            // Notificar a la UI
+            ConfigurationChanged?.Invoke();
+        }
+
+        /// <summary>
+        /// Obtiene la presión atmosférica en diferentes unidades (para display)
+        /// </summary>
+     
+    }
 
 
 }

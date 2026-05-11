@@ -14,7 +14,7 @@
         <div class="grid-header header-corner"></div>
         
         <div class="grid-cell label fixed-col">Stream Name</div>
-        <div class="grid-cell label fixed-col">Thermodynamic Method</div>
+
         <div class="grid-cell label fixed-col">Vapor Fraction</div>
         <div class="grid-cell label fixed-col">Temperature</div>
         <div class="grid-cell label fixed-col">Pressure</div>
@@ -49,7 +49,7 @@
             @if (facade != null)
             {
                 <EquipmentBaseStreamFacade Facade="facade"
-                                           AvailableMethods="AvailableMethods"
+                                          
                                            OnStreamUpdated="HandleAnyStreamUpdated" />
             }
             else
@@ -65,7 +65,7 @@
 
 @code {
     [Parameter] public List<EquipmentPort> Ports { get; set; } = new();
-    [Parameter] public List<ThermodynamicMethodFullDto> AvailableMethods { get; set; } = new();
+
     [Parameter] public EventCallback OnEquipmentStreamsUpdated { get; set; }
 
     // 👇 NUEVO: Se ejecuta cada vez que CUALQUIER corriente cambia una propiedad
@@ -80,7 +80,7 @@
             await OnEquipmentStreamsUpdated.InvokeAsync();
         }
     }
-    private StreamSimulationFacade? GetFacadeForPort(EquipmentPort port)
+    private StreamFacade? GetFacadeForPort(EquipmentPort port)
     {
         if (!port.ConnectedElementId.HasValue) return null;
 
@@ -92,8 +92,8 @@
         if (pipe != null)
         {
             // Si la tubería toca una corriente directamente, retornamos su Facade
-            if (pipe.SourceElement?.Facade is StreamSimulationFacade sf) return sf;
-            if (pipe.TargetElement?.Facade is StreamSimulationFacade tf) return tf;
+            if (pipe.SourceElement?.Facade is StreamFacade sf) return sf;
+            if (pipe.TargetElement?.Facade is StreamFacade tf) return tf;
 
             // Si la tubería toca un OPC, guardamos el OPC para el Paso 3
             if (pipe.SourceElement is OffPageConnectorElement) connectedElement = pipe.SourceElement;
@@ -110,7 +110,7 @@
         if (connectedElement != null)
         {
             // Caso A: Es directamente una corriente (Misma área)
-            if (connectedElement.Facade is StreamSimulationFacade directFacade)
+            if (connectedElement.Facade is StreamFacade directFacade)
             {
                 return directFacade;
             }
@@ -134,7 +134,7 @@
                             var realStream = targetArea.Elements.FirstOrDefault(e => e.Id == realStreamId);
                         
                             // Retornamos el Facade de esa corriente remota
-                            if (realStream?.Facade is StreamSimulationFacade wormholeFacade)
+                            if (realStream?.Facade is StreamFacade wormholeFacade)
                             {
                                 return wormholeFacade;
                             }

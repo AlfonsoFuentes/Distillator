@@ -55,7 +55,7 @@
 
     protected override async Task OpenPropertiesDialogAsync()
     {
-        if (Element.Facade is StreamSimulationFacade streamFacade)
+        if (Element.Facade is StreamFacade streamFacade)
         {
             var parameters = new DialogParameters { ["Facade"] = streamFacade };
         

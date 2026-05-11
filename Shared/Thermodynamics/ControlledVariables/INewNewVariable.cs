@@ -5,6 +5,7 @@ namespace Shared.Thermodynamics.ControlledVariables
 {
     public interface INewNewVariable
     {
+        string Source { get; }
         double InitValue { get; }
         int Index { get; set; }
         double SolverValue { get; set; }
@@ -53,6 +54,7 @@ namespace Shared.Thermodynamics.ControlledVariables
     }
     public abstract class NewNewVariable<T> : INewNewVariable<T>
     {
+        public string Source { get; private set; } = "";
         public double InitValue { get; private set; }
         public int Index { get; set; }
         public T Value { get; set; } = default(T)!;
@@ -71,6 +73,8 @@ namespace Shared.Thermodynamics.ControlledVariables
         public Action? ExecuteEquipmentSolver { get; set; }
         public Action? ExecuteStreamCalculation { get; set; }
         public Action? SendToFacadeInside { get; set; }
+
+        bool IsCalculatingBySolver = false;
         protected NewNewVariable(T _value, double initValue = 0)
         {
             Value = _value;
@@ -85,6 +89,7 @@ namespace Shared.Thermodynamics.ControlledVariables
             ExecuteStreamCalculation?.Invoke();
             ExecuteEquipmentSolver?.Invoke();
             ExecuteGeneralSolver?.Invoke();
+            Source= "UI";
 
         }
         public void ClearFromUI()
@@ -93,6 +98,7 @@ namespace Shared.Thermodynamics.ControlledVariables
             ExecuteStreamCalculation?.Invoke();
             ExecuteEquipmentSolver?.Invoke();
             ExecuteGeneralSolver?.Invoke();
+            Source = "";
         }
         public void SetValueFromStream(T value, string _name)
         {
@@ -102,8 +108,9 @@ namespace Shared.Thermodynamics.ControlledVariables
             SendToFacadeInside?.Invoke();
 
             AddToDefinedList?.Invoke(this);
-            ExecuteEquipmentSolver?.Invoke();
-            //ExecuteGeneralSolver?.Invoke();
+            if (!IsCalculatingBySolver)
+                ExecuteEquipmentSolver?.Invoke();
+            Source = _name;
         }
         public void ClearFromStream()
         {
@@ -111,6 +118,7 @@ namespace Shared.Thermodynamics.ControlledVariables
             //ExecuteStreamCalculation?.Invoke();
             //ExecuteEquipmentSolver?.Invoke();
             //ExecuteGeneralSolver?.Invoke();
+            Source = "";
 
         }
 
@@ -120,9 +128,10 @@ namespace Shared.Thermodynamics.ControlledVariables
             IsDefinedByEquipmentSolver = true;
             SolverValue = GetSolverValue();
             SendToFacadeInside?.Invoke();
+            IsCalculatingBySolver = true;
             ExecuteStreamCalculation?.Invoke();
-
-
+            IsCalculatingBySolver = false;
+            Source = "Solver";
 
         }
 
@@ -131,6 +140,7 @@ namespace Shared.Thermodynamics.ControlledVariables
             IsDefinedByEquipmentSolver = false;
             ExecuteStreamCalculation?.Invoke();
             IsToDefineByEquipmentSolver = false;
+            Source = "";
         }
 
         public void SetValueFromGeneralSolver(double value)
@@ -139,7 +149,10 @@ namespace Shared.Thermodynamics.ControlledVariables
             Value = GetValue(value);
             SolverValue = GetSolverValue();
             SendToFacadeInside?.Invoke();
+            IsCalculatingBySolver = true;
             ExecuteStreamCalculation?.Invoke();
+            IsCalculatingBySolver = false;
+            Source = "Solver";
         }
 
         public void ClearFromGeneralSolver()
@@ -147,6 +160,7 @@ namespace Shared.Thermodynamics.ControlledVariables
             IsDefinedByGeneralSolver = false;
             ExecuteStreamCalculation?.Invoke();
             IsToDefineByGeneralSolver = false;
+            Source = "";
         }
 
         public abstract double GetSolverValue();

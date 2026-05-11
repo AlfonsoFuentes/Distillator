@@ -1,49 +1,50 @@
-﻿@using System.Net.Http
+﻿@using System.Globalization
+@using System.Net.Http
 @using System.Net.Http.Json
+@using Client
+@using Client.Layout
+@using Client.Layout.Shapes
+@using Client.Layout.Shapes.SVGDrawings
+@using Client.Pages.Components.Formulas
+@using Client.Pages.Helpers
+@using Client.Pages.UnitOperations.DialogBase
+@using Client.Pages.UnitOperations.MaterialStreams
+@using Client.Services.EquipmentManagers
+@using Client.Services.Helpers
+@using Client.Services.HttpServices
+@using Client.Services.LayoutServices
+@using Client.Services.Security
+@using Client.Templates
+@using Client.Templates.Units
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
 @using Microsoft.AspNetCore.Components.Forms
 @using Microsoft.AspNetCore.Components.Routing
 @using Microsoft.AspNetCore.Components.Web
 @using Microsoft.AspNetCore.Components.Web.Virtualization
 @using Microsoft.AspNetCore.Components.WebAssembly.Http
 @using Microsoft.JSInterop
-@using Client
-@using Client.Layout
 @using MudBlazor
-@using Microsoft.AspNetCore.Components.Authorization
-@using Client.Services.HttpServices
+@using Pages.UnitOperations.Pumps
 @using Shared.Identity
-@using Shared.Results
-@using Client.Services.Security
-@using Client.Templates
-@using Client.Pages.Components.Formulas
-@using Shared.PropertiesDtos.Components
-@using Microsoft.AspNetCore.Authorization
-@using Shared.WorkSpaceManagers
-@using UnitSystem
-@using System.Globalization
-@using Shared.PropertiesDtos.Enums
-@using Shared.PropertiesDtos.Methods
-@using Client.Services.LayoutServices
+@using Shared.MatrixSolvers
+@using Shared.ProcessFlowDiagram
+@using Shared.ProcessFlowDiagram.Columns
+@using Shared.ProcessFlowDiagram.ControlValves
+@using Shared.ProcessFlowDiagram.HeatExchangers
+@using Shared.ProcessFlowDiagram.Helpers
 @using Shared.ProcessFlowDiagram.Pumps
 @using Shared.ProcessFlowDiagram.Streams
-@using Shared.ProcessFlowDiagram
-@using Client.Services.EquipmentManagers
-@using Client.Layout.Shapes
-@using Shared.ProcessFlowDiagram.Columns
-@using Client.Pages.UnitOperations.MaterialStreams
-@using Shared.UnitOperations.Streams
-@using Shared.ProcessFlowDiagram.HeatExchangers
-@using Shared.Thermodynamics.ControlledVariables
-@using Shared.ProcessFlowDiagram.Helpers
-@using Shared.ProcessFlowDiagram.ControlValves
 @using Shared.ProcessFlowDiagram.Vessels
-@using Client.Services.Helpers
-@using Client.Pages.Helpers
-@using Pages.UnitOperations.Pumps
-@using Client.Layout.Shapes.SVGDrawings
-@using Client.Pages.UnitOperations.DialogBase
-@using Client.Templates.Units
+@using Shared.PropertiesDtos.Components
+@using Shared.PropertiesDtos.Enums
+@using Shared.PropertiesDtos.Methods
+@using Shared.Results
+@using Shared.Thermodynamics.ControlledVariables
 @using Shared.UnitOperations.Pumps
+@using Shared.UnitOperations.Streams
+@using Shared.WorkSpaceManagers
+@using UnitSystem
 
 
 @inject INamingService NamingService
@@ -59,3 +60,4 @@
 @inject IEquipmentFactory Factory
 @inject IJSRuntime JS
 @inject WorkspaceManager WM
+@inject SolverMatrixManager SolverManager

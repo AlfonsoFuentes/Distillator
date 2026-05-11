@@ -163,7 +163,7 @@ namespace Shared.UnitOperations.Pumps
         public NewNewVariableAmount<PressureDrop> DeltaPressure { get; set; }
         public NewNewVariableDouble Efficiency { get; set; }
 
-        public NewNewVariableAmount<Power> Power { get; private set; }
+        public NewNewVariableAmount<Power> Power { get;  set; }
         // =========================
         // 🔹 CONSTRUCTOR
         // =========================
@@ -222,7 +222,7 @@ namespace Shared.UnitOperations.Pumps
 
             Power.SetValueFromEquipmentSolver(power);
         }
-        private bool HasVolumetricSpecification => (Inlet?.VolumetricFlow?.IsDefined == true) || (Outlet?.VolumetricFlow?.IsDefined == true);
+  
         EquationSystem eqConc = new EquationSystem();
         EquationSystem eqMolarFlow = new EquationSystem();
         EquationSystem eqPressure = new EquationSystem();
@@ -273,14 +273,11 @@ namespace Shared.UnitOperations.Pumps
             eqMolarFlow.Clear();
 
             eqMolarFlow.AddVariables(GetMassBalanceVariables());
-            if (!HasVolumetricSpecification)
+            eqMolarFlow.AddEquation(new Equation
             {
-                eqMolarFlow.AddEquation(new Equation
-                {
-                    Function = x => x[Outlet.MolarFlow.Index] - x[Inlet.MolarFlow.Index],
-                    Type = EquationType.Model
-                });
-            }
+                Function = x => x[Outlet.MolarFlow.Index] - x[Inlet.MolarFlow.Index],
+                Type = EquationType.Model
+            });
 
             eqMolarFlow.SolveEquipmet();
 
@@ -300,14 +297,7 @@ namespace Shared.UnitOperations.Pumps
                 Function = x => x[Pout.Index] - (x[Pin.Index] + x[DeltaPressure.Index]),
                 Type = EquationType.Model
             });
-            if (HasVolumetricSpecification)
-            {
-                eq.AddEquation(new Equation
-                {
-                    Function = x => x[Outlet.MolarFlow.Index] - x[Inlet.MolarFlow.Index],
-                    Type = EquationType.Model
-                });
-            }
+           
             return eq;
         }
         private void OnPropagatePressure()
@@ -372,20 +362,12 @@ namespace Shared.UnitOperations.Pumps
             if (Inlet != null)
             {
                 yield return Inlet.Pressure;
-                if (HasVolumetricSpecification)
-                {
-                    yield return Inlet.MolarFlow;
-
-                }
+                
             }
             if (Outlet != null)
             {
                 yield return Outlet.Pressure;
-                if (HasVolumetricSpecification)
-                {
-                    yield return Outlet.MolarFlow;
-
-                }
+                
             }
         }
         IEnumerable<INewNewVariable> GetConcentrationVariables()
@@ -412,11 +394,8 @@ namespace Shared.UnitOperations.Pumps
         {
             if (Inlet != null)
             {
-                if (!HasVolumetricSpecification)
-                {
-                    yield return Inlet.MolarFlow;
-
-                }
+                yield return Inlet.MolarFlow;
+            
 
 
 
@@ -424,11 +403,7 @@ namespace Shared.UnitOperations.Pumps
             }
             if (Outlet != null)
             {
-                if (!HasVolumetricSpecification)
-                {
-                    yield return Outlet.MolarFlow;
-
-                }
+                yield return Outlet.MolarFlow;
 
             }
         }

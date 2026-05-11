@@ -27,7 +27,7 @@ namespace Shared.ProcessFlowDiagram.Vessels
 
             RefreshDynamicPorts();
 
-            Facade = new VesselSimulationFacade { Id = this.Id, Name = "V-101" };
+            Facade = new VesselSimulationFacade2 { Id = this.Id, Name = "V-101" };
         }
 
         /// <summary>

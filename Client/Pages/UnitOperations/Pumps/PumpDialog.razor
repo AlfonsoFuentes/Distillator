@@ -25,19 +25,19 @@
         </div>
     </MainSlot>
     <PropertiesSlot>
-        @if (Equipment.Facade is PumpSimulationFacade pumpFacade)
+        @if (Equipment.Facade is PumpSimulationFacade2 pumpFacade)
         {
 
-            <UnifiedVariableRow Label="Delta P"
+            <NewUnifiedVariableRow Label="Delta P"
                                 @bind-Variable="pumpFacade.DeltaPressure"
                                 Mode="VariableMode.Standard" />
 
-            <UnifiedDoubleRow Label="Adiabatic Eff (%)"
-                              @bind-Variable="pumpFacade.AdiabaticEfficiency"
+            <NewUnifiedDoubleRow Label="Adiabatic Eff (%)"
+                              @bind-Variable="pumpFacade.Efficiency"
                               Mode="VariableMode.Standard" MinValue="0" MaxValue="100" />
           
-            <UnifiedVariableRow Label="Duty (Power)" IsReadOnly="true"
-                                @bind-Variable="pumpFacade.PowerConsumed"
+            <NewUnifiedVariableRow Label="Duty (Power)" IsReadOnly="true"
+                                @bind-Variable="pumpFacade.Power"
                                 Mode="VariableMode.Standard" />
       
            

@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Components.Web;
-using Shared.FlowsheetSolvers;
+using Shared.MatrixSolvers;
 using Shared.ProcessFlowDiagram;
 using Shared.ProcessFlowDiagram.Pipes;
 using Shared.ProcessFlowDiagram.Streams;
@@ -31,7 +31,7 @@ namespace Client.Services.EquipmentManagers
         }
 
         private readonly IEquipmentFactory _factory;
-        private readonly PlantManager _plantManager;
+        private readonly SolverMatrixManager _plantManager;
 
         // ==============================================================================
         // ESTADO INTERNO (RECUPERADO DE TU BACKUP)
@@ -73,7 +73,7 @@ namespace Client.Services.EquipmentManagers
         public double DraftMouseLogicalX { get; private set; }
         public double DraftMouseLogicalY { get; private set; }
 
-        public WorkspaceManager(IEquipmentFactory factory, PlantManager plantManager)
+        public WorkspaceManager(IEquipmentFactory factory, SolverMatrixManager plantManager)
         {
             _factory = factory;
             _plantManager = plantManager;
@@ -141,8 +141,8 @@ namespace Client.Services.EquipmentManagers
                 Elements.Add(el);
                 if (el.Facade != null)
                 {
-                    if (el.Facade is StreamSimulationFacade s) _plantManager.AddStream(s);
-                    else _plantManager.AddEquipment(el.Facade);
+                    if (el.Facade is IStreamFacade s) _plantManager.RegisterStream(s);
+                    else if (el.Facade is IEquipmentFacade e) _plantManager.RegisterEquipment(e);
                 }
                 UpdateDiagramSize();
                 NotifyStateChanged();
@@ -413,9 +413,9 @@ namespace Client.Services.EquipmentManagers
                     stream.Facade.Name = name; // Que el cerebro también sepa cómo se llama
 
                     // 🚩 3. ¡LA MAGIA! Registramos la corriente en el Solver
-                    if (stream.Facade is StreamSimulationFacade s)
+                    if (stream.Facade is IStreamFacade s)
                     {
-                        _plantManager.AddStream(s);
+                        _plantManager.RegisterStream(s);
                     }
                 }
 

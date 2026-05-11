@@ -1,19 +1,19 @@
-<!DOCTYPE html>
+<!--<!DOCTYPE html>
 <html lang="en">
 
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Client</title>
-    <base href="/" />
-    <!--<link rel="preload" id="webassembly" />-->
-    <link rel="stylesheet" href="lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="css/app.css" />
-    <link rel="icon" type="image/png" href="favicon.png" />
-    <link href="Client.styles.css" rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" rel="stylesheet" />
-    <!-- Important: Increment the version parameter whenever you update MudBlazor to prevent caching issues -->
-    <link href="_content/MudBlazor/MudBlazor.min.css?v=1" rel="stylesheet" />
+    <base href="/" />-->
+<!--<link rel="preload" id="webassembly" />-->
+<!--<link rel="stylesheet" href="lib/bootstrap/dist/css/bootstrap.min.css" />
+<link rel="stylesheet" href="css/app.css" />
+<link rel="icon" type="image/png" href="favicon.png" />
+<link href="Client.styles.css" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" rel="stylesheet" />-->
+<!-- Important: Increment the version parameter whenever you update MudBlazor to prevent caching issues -->
+<!--<link href="_content/MudBlazor/MudBlazor.min.css?v=1" rel="stylesheet" />
     <script type="importmap"></script>
 </head>
 
@@ -30,13 +30,343 @@
         An unhandled error has occurred.
         <a href="." class="reload">Reload</a>
         <span class="dismiss">🗙</span>
-    </div>
-
-    <!--  <!--<script src="_framework/blazor.webassembly#[.{fingerprint}].js"></script>-->
-    <script src="_framework/blazor.webassembly.js"></script>
+    </div>-->
+<!--  <!--<script src="_framework/blazor.webassembly#[.{fingerprint}].js"></script>-->
+<!--<script src="_framework/blazor.webassembly.js"></script>
     <script src="_content/MudBlazor/MudBlazor.min.js?v=1"></script>
     <script src="canvas-interop.js"></script>
 </body>
 
 
+</html>-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ProcessSimulator</title>
+    <base href="/" />
+    <!--<link rel="preload" id="webassembly" />-->
+    <link rel="stylesheet" href="lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="css/app.css" />
+    <link rel="icon" type="image/png" href="favicon.png" />
+    <link href="Client.styles.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" rel="stylesheet" />
+    <!-- Important: Increment the version parameter whenever you update MudBlazor to prevent caching issues -->
+    <link href="_content/MudBlazor/MudBlazor.min.css?v=1" rel="stylesheet" />
+    <script type="importmap"></script>
+
+    <!-- PROCESS SIMULATOR SPLASH SCREEN STYLES -->
+    <style>
+        #app-splash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: var(--dist-gray-bg, #F4F5F7);
+            background-image: linear-gradient(var(--dist-grid-lines, #A8B2C1) 1px, transparent 1px), linear-gradient(90deg, var(--dist-grid-lines, #A8B2C1) 1px, transparent 1px);
+            background-size: 30px 30px;
+            background-position: center center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        }
+
+        /* Lienzo exacto para evitar desfasajes */
+        .pfd-canvas {
+            position: relative;
+            width: 380px;
+            height: 380px;
+            margin-bottom: 2rem;
+        }
+
+        /* --- TUBERÍAS (Capa Inferior: z-index 1) --- */
+        .pipe {
+            position: absolute;
+            background-color: var(--dist-grid-bg, #EAECEF);
+            border: 2px solid var(--dist-navy, #5D79AE);
+            border-left: none;
+            border-right: none;
+            z-index: 1;
+            height: 16px;
+            overflow: hidden;
+        }
+
+            /* Indicador de flujo animado dentro del tubo */
+            .pipe::after {
+                content: '';
+                position: absolute;
+                top: 4px;
+                left: 0;
+                width: 200%;
+                height: 4px;
+                background: repeating-linear-gradient(90deg, transparent, transparent 10px, #0EA5E9 10px, #0EA5E9 20px);
+                animation: flowForward 1.5s linear infinite;
+                opacity: 0.6;
+            }
+
+            .pipe.reverse::after {
+                animation: flowReverse 1.5s linear infinite;
+            }
+
+        /* Posiciones exactas de las tuberías para conectar los equipos */
+        .pipe-vapor-overhead {
+            left: 210px;
+            top: 80px;
+            width: 80px;
+        }
+
+        .pipe-reflux {
+            left: 210px;
+            top: 105px;
+            width: 80px;
+        }
+
+        .pipe-vapor-return {
+            left: 90px;
+            top: 270px;
+            width: 80px;
+        }
+
+        .pipe-liquid-bottom {
+            left: 90px;
+            top: 300px;
+            width: 80px;
+        }
+
+        /* --- EQUIPOS (Capa Superior: z-index 3) --- */
+
+        /* 1. Columna de Destilación */
+        .dist-column {
+            position: absolute;
+            left: 150px;
+            top: 40px;
+            width: 80px;
+            height: 300px;
+            background-color: var(--dist-grid-bg, #EAECEF);
+            border: 3px solid var(--dist-navy, #5D79AE);
+            border-radius: 40px 40px 20px 20px;
+            overflow: hidden;
+            z-index: 3;
+            box-shadow: 0 10px 20px rgba(93, 121, 174, 0.15);
+        }
+
+        .tray {
+            width: 100%;
+            height: 4px;
+            background-color: var(--dist-navy, #5D79AE);
+            margin-top: 35px;
+            opacity: 0.4;
+        }
+
+        .column-fluid {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            background-color: #0EA5E9;
+            opacity: 0.7;
+            animation: fluidLevel 3s ease-in-out infinite alternate;
+        }
+
+        /* 2. Condensador */
+        .condenser-unit {
+            position: absolute;
+            left: 270px;
+            top: 60px;
+            width: 100px;
+            height: 70px;
+            background-color: var(--dist-grid-bg, #EAECEF);
+            border: 3px solid var(--dist-navy, #5D79AE);
+            border-radius: 35px;
+            z-index: 3;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .cooling-coil {
+            width: 70%;
+            height: 20px;
+            border: 2px dashed #829ab1;
+            border-radius: 10px;
+            animation: coolingPulse 2s linear infinite;
+        }
+
+        /* 3. Rehervidor */
+        .reboiler-unit {
+            position: absolute;
+            left: 10px;
+            top: 250px;
+            width: 100px;
+            height: 80px;
+            background-color: var(--dist-grid-bg, #EAECEF);
+            border: 3px solid var(--dist-navy, #5D79AE);
+            border-radius: 10px 10px 40px 40px;
+            z-index: 3;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .tube-bundle {
+            position: absolute;
+            bottom: 20px;
+            left: 10px;
+            width: 60px;
+            height: 30px;
+            border: 2px solid var(--dist-text-muted, #5C6A7A);
+            border-radius: 15px;
+            opacity: 0.6;
+        }
+
+        .boil-bubble {
+            position: absolute;
+            background-color: #0EA5E9;
+            border-radius: 50%;
+            opacity: 0.8;
+            animation: boilUp 1.5s linear infinite;
+        }
+
+        /* --- TEXTOS UI --- */
+        .ui-title {
+            color: var(--dist-text-main, #202A36);
+            font-size: 1.8rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            margin-bottom: 0.5rem;
+        }
+
+        .ui-status {
+            color: var(--dist-text-muted, #5C6A7A);
+            font-size: 1rem;
+            font-weight: 500;
+            animation: statusPulse 2s ease-in-out infinite;
+        }
+
+        /* --- ANIMACIONES KEYFRAMES --- */
+        @keyframes fluidLevel {
+            0% {
+                height: 25%;
+            }
+
+            100% {
+                height: 55%;
+            }
+        }
+
+        @keyframes boilUp {
+            0% {
+                bottom: 10px;
+                transform: scale(0.5);
+                opacity: 0;
+            }
+
+            50% {
+                opacity: 0.8;
+            }
+
+            100% {
+                bottom: 70px;
+                transform: scale(1.2);
+                opacity: 0;
+            }
+        }
+
+        @keyframes coolingPulse {
+            0%, 100% {
+                border-color: #829ab1;
+            }
+
+            50% {
+                border-color: #0EA5E9;
+            }
+        }
+
+        @keyframes statusPulse {
+            0%, 100% {
+                opacity: 0.6;
+            }
+
+            50% {
+                opacity: 1;
+            }
+        }
+
+        @keyframes flowForward {
+            0% {
+                transform: translateX(0);
+            }
+
+            100% {
+                transform: translateX(-20px);
+            }
+        }
+
+        @keyframes flowReverse {
+            0% {
+                transform: translateX(-20px);
+            }
+
+            100% {
+                transform: translateX(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <!-- PANTALLA DE CARGA DEL SIMULADOR -->
+        <div id="app-splash-screen">
+            <div class="pfd-canvas">
+                <!-- 1. Tuberías (Capa inferior) -->
+                <!-- Vapor hacia el condensador -->
+                <div class="pipe pipe-vapor-overhead"></div>
+                <!-- Reflujo hacia la columna (Flujo inverso) -->
+                <div class="pipe reverse pipe-reflux"></div>
+                <!-- Líquido hacia el rehervidor -->
+                <div class="pipe pipe-liquid-bottom"></div>
+                <!-- Vapor de retorno a la columna (Flujo inverso) -->
+                <div class="pipe reverse pipe-vapor-return"></div>
+
+                <!-- 2. Equipos (Capa superior, tapan los bordes de los tubos) -->
+                <div class="reboiler-unit">
+                    <div class="tube-bundle"></div>
+                    <div class="boil-bubble" style="left: 30px; width: 12px; height: 12px; animation-duration: 1.2s;"></div>
+                    <div class="boil-bubble" style="left: 50px; width: 8px; height: 8px; animation-duration: 1.8s; animation-delay: 0.3s;"></div>
+                    <div class="boil-bubble" style="left: 70px; width: 14px; height: 14px; animation-duration: 1.5s; animation-delay: 0.6s;"></div>
+                </div>
+
+                <div class="dist-column">
+                    <div class="column-fluid"></div>
+                    <div class="tray"></div>
+                    <div class="tray"></div>
+                    <div class="tray"></div>
+                    <div class="tray"></div>
+                    <div class="tray"></div>
+                </div>
+
+                <div class="condenser-unit">
+                    <div class="cooling-coil"></div>
+                </div>
+            </div>
+
+            <div class="ui-title">ProcessSimulator</div>
+            <div class="ui-status">Initializing Thermodynamics Engine...</div>
+        </div>
+    </div>
+
+    <div id="blazor-error-ui">
+        An unhandled error has occurred.
+        <a href="." class="reload">Reload</a>
+        <span class="dismiss">🗙</span>
+    </div>
+
+    <!--<script src="_framework/blazor.webassembly#[.{fingerprint}].js"></script>-->
+    <script src="_framework/blazor.webassembly.js"></script>
+    <script src="_content/MudBlazor/MudBlazor.min.js?v=1"></script>
+    <script src="canvas-interop.js"></script>
+</body>
 </html>

@@ -30,10 +30,10 @@
                     @* 🚩 INYECCIÓN DE UI: Definimos el fragmento para cada puerto de salida *@
                     @* 🚩 INYECCIÓN DE UI ELEGANTE *@
                     <ItemContent Context="port">
-                        @if (Equipment.Facade is SplitterSimulationFacade splFacade && splFacade.SplitFractions.ContainsKey(port.Name))
+                        @if (Equipment.Facade is SplitterSimulationFacade2 splFacade && splFacade.SplitFractions.ContainsKey(port.Name))
                         {
                             <div class="fraction-input-box">
-                                <LabeledSimpleVariableRow Label="Split"
+                                <NewUnifiedDoubleRow Label="Split"
                                                           @bind-Variable="splFacade.SplitFractions[port.Name]"
                                                           MinValue="0"
                                                           MaxValue="100" />

@@ -172,9 +172,6 @@ namespace Shared.UnitOperations.ControlValves
         EquationSystem eqMolarFlow = new EquationSystem();
         EquationSystem eqPressure = new EquationSystem();
 
-        private bool HasVolumetricSpecification =>
-            (Inlet?.VolumetricFlow?.IsDefined == true) ||
-            (Outlet?.VolumetricFlow?.IsDefined == true);
 
         // 🔹 Propagación de Concentración
         private void OnPropagateConcentrations()
@@ -213,14 +210,11 @@ namespace Shared.UnitOperations.ControlValves
             eqMolarFlow.Clear();
             eqMolarFlow.AddVariables(GetMassBalanceVariables());
 
-            if (!HasVolumetricSpecification)
+            eqMolarFlow.AddEquation(new Equation
             {
-                eqMolarFlow.AddEquation(new Equation
-                {
-                    Function = x => x[Outlet.MolarFlow.Index] - x[Inlet.MolarFlow.Index],
-                    Type = EquationType.Model
-                });
-            }
+                Function = x => x[Outlet.MolarFlow.Index] - x[Inlet.MolarFlow.Index],
+                Type = EquationType.Model
+            });
             eqMolarFlow.SolveEquipmet();
         }
 
@@ -248,14 +242,7 @@ namespace Shared.UnitOperations.ControlValves
                 Type = EquationType.Model
             });
 
-            if (HasVolumetricSpecification)
-            {
-                eq.AddEquation(new Equation
-                {
-                    Function = x => x[Outlet.MolarFlow.Index] - x[Inlet.MolarFlow.Index],
-                    Type = EquationType.Model
-                });
-            }
+           
             return eq;
         }
 
@@ -271,23 +258,22 @@ namespace Shared.UnitOperations.ControlValves
             equationSystem.AddVariables(GetEnergyBalanceVariables());
 
             // Balance de flujo (solo si hay especificación volumétrica)
-            if (HasVolumetricSpecification)
-            {
-                equationSystem.AddEquation(new Equation
-                {
-                    Function = x => x[Outlet.MolarFlow.Index] - x[Inlet.MolarFlow.Index],
-                    Type = EquationType.Model
-                });
-            }
 
-            // 🔥 PRESIÓN: P_out = P_in - ΔP (para balance global también)
-            var Pin = Inlet.Pressure;
-            var Pout = Outlet.Pressure;
+            //eqMolarFlow.AddVariables(GetMassBalanceVariables());
+
             equationSystem.AddEquation(new Equation
             {
-                Function = x => x[Pout.Index] - (x[Pin.Index] - x[DeltaPressure.Index]),
+                Function = x => x[Outlet.MolarFlow.Index] - x[Inlet.MolarFlow.Index],
                 Type = EquationType.Model
             });
+            // 🔥 PRESIÓN: P_out = P_in - ΔP (para balance global también)
+            //var Pin = Inlet.Pressure;
+            //var Pout = Outlet.Pressure;
+            //equationSystem.AddEquation(new Equation
+            //{
+            //    Function = x => x[Pout.Index] - (x[Pin.Index] - x[DeltaPressure.Index]),
+            //    Type = EquationType.Model
+            //});
 
             // 🔥 ENERGÍA: H_out = H_in (Expansión isentálpica - Joule-Thomson)
             // NO hay trabajo ni calor en válvula ideal
@@ -312,12 +298,12 @@ namespace Shared.UnitOperations.ControlValves
             if (Inlet != null)
             {
                 yield return Inlet.Pressure;
-                if (HasVolumetricSpecification) yield return Inlet.MolarFlow;
+               
             }
             if (Outlet != null)
             {
                 yield return Outlet.Pressure;
-                if (HasVolumetricSpecification) yield return Outlet.MolarFlow;
+               
             }
         }
 
@@ -333,25 +319,25 @@ namespace Shared.UnitOperations.ControlValves
 
         IEnumerable<INewNewVariable> GetMassBalanceVariables()
         {
-            if (Inlet != null && !HasVolumetricSpecification)
+            if (Inlet != null)
                 yield return Inlet.MolarFlow;
-            if (Outlet != null && !HasVolumetricSpecification)
+            if (Outlet != null )
                 yield return Outlet.MolarFlow;
         }
 
         public IEnumerable<INewNewVariable> GetEnergyBalanceVariables()
         {
-            yield return DeltaPressure;
+      
             if (Inlet != null)
             {
-                if (HasVolumetricSpecification) yield return Inlet.MolarFlow;
-                yield return Inlet.Pressure;
+                yield return Inlet.MolarFlow;
+             
                 yield return Inlet.MolarEnthalpy;
             }
             if (Outlet != null)
             {
-                if (HasVolumetricSpecification) yield return Outlet.MolarFlow;
-                yield return Outlet.Pressure;
+                yield return Outlet.MolarFlow;
+          
                 yield return Outlet.MolarEnthalpy;
             }
         }

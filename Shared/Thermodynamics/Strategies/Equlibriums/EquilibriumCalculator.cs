@@ -1,6 +1,7 @@
 ﻿using Shared.Thermodynamics.ControlledVariables;
 using Shared.Thermodynamics.Phases;
 using Shared.UnitOperations.Streams;
+using UnitSystem;
 
 namespace Shared.Thermodynamics.Strategies.Equlibriums
 {
@@ -304,13 +305,12 @@ namespace Shared.Thermodynamics.Strategies.Equlibriums
             }
 
             _currentStrategy = CreateStrategy(
-                P: _facade.Pressure.IsDefined,
-                T: _facade.Temperature.IsDefined,
-                FV: !_facade.VaporFraction.IsDefined,
-                H: _facade.MolarEnthalpy.IsDefined,
+                P: _facade.Pressure,
+                T: _facade.Temperature,
+                FV: _facade.VaporFraction,
+                H: _facade.MolarEnthalpy,
 
-                Comp: _facade.StreamComposition.IsDefined,
-                FV_defined: _facade.VaporFraction.SolverValue);
+                Comp: _facade.StreamComposition);
 
             _materialStream.CurrentState = ThermodynamicState.Undefined;
             _currentStrategy?.Execute();
@@ -334,12 +334,13 @@ namespace Shared.Thermodynamics.Strategies.Equlibriums
         /// <param name="Comp">¿Composition está definido?</param>
         /// <param name="FV_defined">Valor actual de VaporFraction (usado solo si FV=true)</param>
         /// <returns>IEquilibriumStrategy o null si no hay modo válido</returns>
-        private IEquilibriumStrategy? CreateStrategy(bool P, bool T, bool FV, bool H, bool Comp, double FV_defined)
+        private IEquilibriumStrategy? CreateStrategy(NewNewVariableAmount<Pressure> P, NewNewVariableAmount<Temperature> T, NewNewVariableDouble FV, NewNewVariableAmount<MolarEnergy> H,
+           NewNewVariableComposition Comp)
         {
             // ─────────────────────────────────────────────────────────
             // 🔹 MODO PT: Se conocen P y T → se calcula VF
             // ─────────────────────────────────────────────────────────
-            if (P && T && Comp)
+            if (P.IsDefined && T.IsDefined && Comp.IsDefined)
             {
                 return new PTStrategy2(_facade);
             }
@@ -347,9 +348,9 @@ namespace Shared.Thermodynamics.Strategies.Equlibriums
             // ─────────────────────────────────────────────────────────
             // 🔹 MODO P-FV: Se conocen P y VF → se calcula T
             // ─────────────────────────────────────────────────────────
-            if (P && FV && Comp)
+            if (P.IsDefined && FV.IsDefined && Comp.IsDefined)
             {
-                return FV_defined switch
+                return FV.Value switch
                 {
                     <= 0 => new PFVLiquidStrategy2(_facade),    // Líquido subenfriado
                     >= 1 => new PFVVaporStrategy2(_facade),     // Vapor sobrecalentado
@@ -360,16 +361,16 @@ namespace Shared.Thermodynamics.Strategies.Equlibriums
             // ─────────────────────────────────────────────────────────
             // 🔹 MODO T-FV: Se conocen T y VF → se calcula P
             // ─────────────────────────────────────────────────────────
-            if (T && FV && Comp)
+            if (T.IsDefined && FV.IsDefined && Comp.IsDefined)
             {
-                return FV_defined switch
+                return FV.Value switch
                 {
                     <= 0 => new TFVLiquidStrategy2(_facade),    // Líquido subenfriado
                     >= 1 => new TFVVaporStrategy2(_facade),     // Vapor sobrecalentado
                     _ => new TFVTwoPhaseStrategy2(_facade)   // Bifásico (0 < VF < 1)
                 };
             }
-            if (P && H && Comp && !T)
+            if (P.IsDefined && H.IsDefined && Comp.IsDefined && !T.IsDefined)
             {
                 return new PHStrategy2(_facade);
             }

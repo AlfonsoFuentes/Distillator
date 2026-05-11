@@ -17,7 +17,7 @@
 
 
     @* 3. THERMODYNAMIC METHOD *@
-    <UnifiedListRow TItem="ThermodynamicMethodFullDto"
+  @*   <UnifiedListRow TItem="ThermodynamicMethodFullDto"
                     TValue="ThermodynamicMethodFullDto"
                     Label="Thermodynamic Method"
                     Variable="Facade.ThermodynamicMethod"
@@ -27,10 +27,10 @@
                     CustomComparer="(v1, v2) => v1.Id == v2.Id"
                     Mode="VariableMode.Compact"
                     OnItemSelected="HandleMethodSelection"
-                    OnCleared="HandleMethodClear" />
+                    OnCleared="HandleMethodClear" /> *@
 
 
-    <UnifiedDoubleRow Label="Vapor Fraction"
+    <NewUnifiedDoubleRow Label="Vapor Fraction"
                       @bind-Variable="Facade.VaporFraction"
                       Mode="VariableMode.Compact"
                       MinValue="0"
@@ -38,28 +38,28 @@
 
     @* 5. PROPIEDADES CON NUEVO COMPONENTE (2 celdas del componente + 1 placeholder manual) *@
 
-    <UnifiedVariableRow Label="Temperature" @bind-Variable="Facade.Temperature" Mode="VariableMode.Compact" />
+    <NewUnifiedVariableRow Label="Temperature" @bind-Variable="Facade.Temperature" Mode="VariableMode.Compact" />
 
-    <UnifiedVariableRow Label="Pressure" @bind-Variable="Facade.Pressure" Mode="VariableMode.Compact" />
-
-
-    <UnifiedVariableRow Label="Mass Flow" @bind-Variable="Facade.MassFlow" Mode="VariableMode.Compact" />
+    <NewUnifiedVariableRow Label="Pressure" @bind-Variable="Facade.Pressure" Mode="VariableMode.Compact" />
 
 
-    <UnifiedVariableRow Label="Molar Flow" @bind-Variable="Facade.MolarFlow" Mode="VariableMode.Compact" />
+    <NewUnifiedVariableRow Label="Mass Flow" @bind-Variable="Facade.MassFlow" Mode="VariableMode.Compact" />
 
 
-    <UnifiedVariableRow Label="Volumetric Flow" @bind-Variable="Facade.VolumetricFlow" Mode="VariableMode.Compact" />
+    <NewUnifiedVariableRow Label="Molar Flow" @bind-Variable="Facade.MolarFlow" Mode="VariableMode.Compact" />
 
 
-    <UnifiedVariableRow Label="Heat Flow" @bind-Variable="Facade.EnthalpyFlow" Mode="VariableMode.Compact" IsReadOnly="true" />
+    <NewUnifiedVariableRow Label="Volumetric Flow" @bind-Variable="Facade.VolumetricFlow" Mode="VariableMode.Compact" />
+
+
+    <NewUnifiedVariableRow Label="Heat Flow" @bind-Variable="Facade.EnthalpyFlow" Mode="VariableMode.Compact" IsReadOnly="true" />
 
 
 </div>
 
 @code {
-    [Parameter, EditorRequired] public StreamSimulationFacade Facade { get; set; } = default!;
-    [Parameter, EditorRequired] public List<ThermodynamicMethodFullDto> AvailableMethods { get; set; } = new();
+    [Parameter, EditorRequired] public StreamFacade Facade { get; set; } = default!;
+    // [Parameter, EditorRequired] public List<ThermodynamicMethodFullDto> AvailableMethods { get; set; } = new();
 
     private bool CheckDuplicateName(string newName)
     {
@@ -74,26 +74,26 @@
         Facade.Name = NamingService.GenerateNextName("S");
         StateHasChanged();
     }
-    private async Task HandleMethodSelection(ThermodynamicMethodFullDto selectedMethod)
-    {
-        if (Facade.ThermodynamicMethod == null) return;
+    // private async Task HandleMethodSelection(ThermodynamicMethodFullDto selectedMethod)
+    // {
+    //     if (Facade.ThermodynamicMethod == null) return;
 
-        // Llamamos al backend tal como usted lo hacía antes
-        var result = await HttpServices.PostAsync<GetMethodFullRequest, Result<ThermodynamicMethodFullDto>>(new GetMethodFullRequest(selectedMethod.Id));
+    //     // Llamamos al backend tal como usted lo hacía antes
+    //     var result = await HttpServices.PostAsync<GetMethodFullRequest, Result<ThermodynamicMethodFullDto>>(new GetMethodFullRequest(selectedMethod.Id));
 
-        if (result.Succeeded && result.Data != null)
-        {
-            Facade.ThermodynamicMethod.SetValue(result.Data, MethodSource.UserInterface);
-            StateHasChanged();
-        }
-    }
+    //     if (result.Succeeded && result.Data != null)
+    //     {
+    //         Facade.ThermodynamicMethod.SetValue(result.Data, MethodSource.UserInterface);
+    //         StateHasChanged();
+    //     }
+    // }
 
-    private async Task HandleMethodClear()
-    {
-        if (Facade.ThermodynamicMethod == null) return;
+    // private async Task HandleMethodClear()
+    // {
+    //     if (Facade.ThermodynamicMethod == null) return;
 
-        // Limpiamos o cambiamos el Source
-        Facade.ThermodynamicMethod.Source = MethodSource.None;
-        StateHasChanged();
-    }
+    //     // Limpiamos o cambiamos el Source
+    //     Facade.ThermodynamicMethod.Source = MethodSource.None;
+    //     StateHasChanged();
+    // }
 }

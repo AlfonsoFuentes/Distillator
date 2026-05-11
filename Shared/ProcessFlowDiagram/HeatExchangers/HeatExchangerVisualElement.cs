@@ -42,7 +42,7 @@ namespace Shared.ProcessFlowDiagram.HeatExchangers
             AddPort("VaporVent", PortType.Outlet, 130, 0, PortDirection.Top);
 
             // TODO: Crear luego la clase HeatExchangerSimulationFacade
-            Facade = new HeatExchangerSimulationFacade
+            Facade = new HeatExchangerSimulationFacade2
             {
                 Id = this.Id,
                 Name = "E-101"

@@ -1,6 +1,5 @@
 <Solution>
   <Project Path="Client/Client.csproj" />
-  <Project Path="Numerics/Numerics.csproj" Id="23f80b2b-eb93-477c-adab-3bd27e59dfe1" />
   <Project Path="Server/Server.csproj" />
   <Project Path="Shared/Shared.csproj" />
   <Project Path="UnitSystem/UnitSystem.csproj" />

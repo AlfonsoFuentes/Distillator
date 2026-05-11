@@ -138,3 +138,53 @@
         border-style: solid;
         border-color: transparent #E2E8F0 transparent transparent;
     }
+
+/* ==================== PALETTE - ESTADOS DESHABILITADOS ==================== */
+.palette-button.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+    .palette-button.disabled svg {
+        filter: grayscale(100%);
+    }
+
+    .palette-button.disabled:hover .port-tooltip-fixed {
+        background-color: #f59e0b !important; /* Amber para warning */
+        color: #1f2937 !important;
+    }
+
+.port-tooltip-fixed.warning {
+    background-color: #f59e0b !important;
+    color: #1f2937 !important;
+    font-weight: 500;
+}
+
+/* Banner de advertencia */
+.thermo-warning-banner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 8px 12px;
+    background-color: #fff7ed; /* Amber muy claro */
+    border: 1px solid #fcd34d;
+    border-radius: 6px;
+    margin-top: 12px;
+}
+
+    .thermo-warning-banner a {
+        color: #b45309 !important;
+        font-weight: 600;
+        text-decoration: none;
+    }
+
+        .thermo-warning-banner a:hover {
+            text-decoration: underline;
+        }
+
+/* Icono deshabilitado */
+.icon-disabled {
+    opacity: 0.6;
+}
