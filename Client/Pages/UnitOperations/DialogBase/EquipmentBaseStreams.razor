@@ -24,7 +24,8 @@
         <div class="grid-cell label fixed-col">Heat Flow</div>
         
         <div class="grid-cell label group-title fixed-col">Phase & Density</div>
-        <div class="grid-cell label fixed-col">Mass Density</div>
+        <div class="grid-cell label fixed-col">Molecular Weight</div>
+        <div class="grid-cell label fixed-col">Mass Density</div>       
         <div class="grid-cell label fixed-col">Molar Density</div>
         
         <div class="grid-cell label group-title fixed-col">Thermodynamics</div>
@@ -54,7 +55,7 @@
             }
             else
             {
-                @for (int i = 0; i < 21; i++)
+                @for (int i = 0; i < 20; i++)
                 {
                     <div class="empty-port-column"></div>
                 }
@@ -80,7 +81,7 @@
             await OnEquipmentStreamsUpdated.InvokeAsync();
         }
     }
-    private StreamFacade? GetFacadeForPort(EquipmentPort port)
+    private StreamFacade2? GetFacadeForPort(EquipmentPort port)
     {
         if (!port.ConnectedElementId.HasValue) return null;
 
@@ -92,8 +93,8 @@
         if (pipe != null)
         {
             // Si la tubería toca una corriente directamente, retornamos su Facade
-            if (pipe.SourceElement?.Facade is StreamFacade sf) return sf;
-            if (pipe.TargetElement?.Facade is StreamFacade tf) return tf;
+            if (pipe.SourceElement?.Facade is StreamFacade2 sf) return sf;
+            if (pipe.TargetElement?.Facade is StreamFacade2 tf) return tf;
 
             // Si la tubería toca un OPC, guardamos el OPC para el Paso 3
             if (pipe.SourceElement is OffPageConnectorElement) connectedElement = pipe.SourceElement;
@@ -110,7 +111,7 @@
         if (connectedElement != null)
         {
             // Caso A: Es directamente una corriente (Misma área)
-            if (connectedElement.Facade is StreamFacade directFacade)
+            if (connectedElement.Facade is StreamFacade2 directFacade)
             {
                 return directFacade;
             }
@@ -134,7 +135,7 @@
                             var realStream = targetArea.Elements.FirstOrDefault(e => e.Id == realStreamId);
                         
                             // Retornamos el Facade de esa corriente remota
-                            if (realStream?.Facade is StreamFacade wormholeFacade)
+                            if (realStream?.Facade is StreamFacade2 wormholeFacade)
                             {
                                 return wormholeFacade;
                             }

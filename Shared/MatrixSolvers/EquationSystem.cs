@@ -15,13 +15,25 @@ namespace Shared.MatrixSolvers
         private readonly Dictionary<int, Equation> _specEquations = new();
 
 
-        public void SolveEquipmet()
+        public void ClearEquipmentSolverDefinitions()
         {
-            var _VariablesBySolver = Variables.Where(x => x.IsDefinedByEquipmentSolver).ToList();
+            var _VariablesBySolver = _localVariables.Where(x => x.IsDefinedByEquipmentSolver).ToList();
             foreach (var v in _VariablesBySolver)
             {
                 v.ClearFromEquipmentSolver();
             }
+        }
+        public void ClearGeneralSolverDefinitions()
+        {
+            var _VariablesBySolver = _localVariables.Where(x => x.IsDefinedByGeneralSolver).ToList();
+            foreach (var v in _VariablesBySolver)
+            {
+                v.ClearFromGeneralSolver();
+            }
+        }
+        public void SolveEquipmet()
+        {
+            ClearEquipmentSolverDefinitions();
 
             int Index = 0;
             Variables.Clear();
@@ -31,7 +43,7 @@ namespace Shared.MatrixSolvers
             {
                 v.Index = Index++;
                 Variables.Add(v);
-                if (v.IsDefined)
+                if (v.IsDefined&&!v.IsDefinedByGeneralSolver)
                 {
                     SetSpecification(v);
 
@@ -62,11 +74,7 @@ namespace Shared.MatrixSolvers
 
         public void SolveGeneral()
         {
-            var _VariablesBySolver = Variables.Where(x => x.IsDefinedByGeneralSolver).ToList();
-            foreach (var v in _VariablesBySolver)
-            {
-                v.ClearFromGeneralSolver();
-            }
+          
 
             int Index = 0;
             Variables.Clear();

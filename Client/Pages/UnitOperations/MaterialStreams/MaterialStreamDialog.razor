@@ -1,4 +1,4 @@
-﻿
+﻿@implements IDisposable
 
 <MudDialog Gutters="false" ContentClass="pa-0">
     <DialogContent>
@@ -21,8 +21,7 @@
                 @if (activeTab == "Conditions")
                 {
                     <div class="tab-content active">
-                        <MaterialStreamMainData Facade="Facade"
-                                              />
+                        <MaterialStreamMainData Facade="Facade"/>
                     </div>
                 }
                 @if (activeTab == "Composition")
@@ -39,13 +38,9 @@
                 }
             </div>
 
-            <div class="status-bar @GetStatusClass()" title="@GetStatusTooltip()">
-                <span class="status-icon">@GetStatusIcon()</span>
-                <span class="status-text">@GetStatusText()</span>
-                @if (!string.IsNullOrEmpty(GetStatusSubtext()))
-                {
-                    <span class="status-subtext">• @GetStatusSubtext()</span>
-                }
+            @* 🟢 AGREGAR este bloque *@
+            <div class="status-bar" style="background-color: @Facade.StatusColor; color: #fff;">
+                <span class="status-text">@Facade.StatusText</span>
             </div>
         </div>
     </DialogContent>
@@ -56,35 +51,18 @@
     [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
 
     // 2. Tu parámetro del Facade que ya tenías
-    [Parameter] public StreamFacade Facade { get; set; } = default!;
+    [Parameter] public StreamFacade2 Facade { get; set; } = default!;
 
     private void Submit() => MudDialog.Close(DialogResult.Ok(true));
     private void Cancel() => MudDialog.Cancel();
 
-    // 👇 Origen actual del usuario (para validar ReadOnly)
-    [Parameter] public MethodSource CurrentSource { get; set; } = MethodSource.UserInterface;
-    
-    // 👇 Lista de métodos disponibles para el dropdown
-    // public List<ThermodynamicMethodFullDto> AvailableMethods { get; set; } = new();
-
+  
     // ─────────────────────────────────────────────────────────
     // 🔹 ESTADO LOCAL
     // ─────────────────────────────────────────────────────────
     private string activeTab = "Conditions";
 
-    protected override async Task OnInitializedAsync()
-    {
-        // 👇 Si AvailableMethods no se pasó como parámetro, cargar desde Facade/Backend
-        // if (AvailableMethods == null || AvailableMethods.Count == 0)
-        // {
-        //     var request = new GetAllCompleteMethods();
-        //     var result = await HttpServices.PostAsync<GetAllCompleteMethods, Result<List<ThermodynamicMethodFullDto>>>(request);
-        //     if (result.Succeeded)
-        //     {
-        //         AvailableMethods = result.Data;
-        //     }
-        // }
-    }
+   
 
     // 🔹 Handler que fuerza re-renderizado
     private void OnFacadeStateChanged()
@@ -105,65 +83,18 @@
         MudDialog.Cancel();
     }
 
-    // ─────────────────────────────────────────────────────────
-    // 🔹 HELPERS: Status bar dinámico
-    private string GetStatusClass()
+    // En el @code de MaterialStreamDialog.razor:
+
+    protected override void OnInitialized()
     {
-        return Facade?.State switch
-        {
-            StreamStateType.Created => "status-waiting",
-            StreamStateType.MethodDefined => "status-warning",
-            StreamStateType.EquilibriumCalculated => "status-success",
-            StreamStateType.StreamCalculated => "status-solved",
-            _ => "status-idle"
-        };
+        // Suscribirse al evento de cambio de estado
+        Facade.OnStateChanged += StateHasChanged;
     }
 
-    private string GetStatusText()
+    public void Dispose()
     {
-        return Facade?.State switch
-        {
-            StreamStateType.Created => "Ready",
-            StreamStateType.MethodDefined => "Underspecified",
-            StreamStateType.EquilibriumCalculated => "Equilibrium Solved",
-            StreamStateType.StreamCalculated => "Converged",
-            _ => "Idle"
-        };
+        // Limpiar suscripción para evitar memory leaks
+        Facade.OnStateChanged -= StateHasChanged;
     }
-
-    private string GetStatusSubtext()
-    {
-        return Facade?.State switch
-        {
-            StreamStateType.Created => "Define method and composition",
-            StreamStateType.MethodDefined => "Add constraints (P, T, or VF)",
-            StreamStateType.EquilibriumCalculated => "Flash calculation completed",
-            StreamStateType.StreamCalculated => "All properties calculated",
-            _ => ""
-        };
-    }
-
-    private string GetStatusTooltip()
-    {
-        return Facade?.State switch
-        {
-            StreamStateType.Created => "Stream created. Define thermodynamic method and composition to begin.",
-            StreamStateType.MethodDefined => "Method defined but system needs more constraints. Specify P, T, or vapor fraction.",
-            StreamStateType.EquilibriumCalculated => "Phase equilibrium calculated successfully. Check phase compositions and properties.",
-            StreamStateType.StreamCalculated => "All stream properties calculated successfully. System fully specified.",
-            _ => "No active calculation"
-        };
-    }
-
-    private string GetStatusIcon()
-    {
-        return Facade?.State switch
-        {
-            StreamStateType.Created => "⏳",
-            StreamStateType.MethodDefined => "⚠️",
-            StreamStateType.EquilibriumCalculated => "✅",
-            StreamStateType.StreamCalculated => "✓",
-            _ => "•"
-        };
-    }
+   
 }

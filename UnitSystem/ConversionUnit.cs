@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 #nullable disable
 namespace UnitSystem
 {
+    
     public class UnitLess : Amount
     {
         public UnitLess(UnitMeasure u) : base(0, u)

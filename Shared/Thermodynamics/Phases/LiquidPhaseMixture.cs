@@ -99,7 +99,8 @@ namespace Shared.Thermodynamics.Phases
             double mwMix = 0;
             foreach (var c in Components)
             {
-                hMixMolar += c.MolarFraction * c.PureComponentData.GetLiquidEnthalpy(c.Temperature).GetValue(MolarEnergyUnits.J_Kgmol);
+                double hComp = c.PureComponentData.GetLiquidEnthalpy(c.Temperature).GetValue(MolarEnergyUnits.J_Kgmol);
+                hMixMolar += c.MolarFraction * hComp;
                 mwMix += c.MolarFraction * c.PureComponentData.MolecularWeight;
             }
 

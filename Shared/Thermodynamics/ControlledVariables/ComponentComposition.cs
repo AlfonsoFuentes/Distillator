@@ -12,19 +12,7 @@ namespace Shared.Thermodynamics.ControlledVariables
         public string ComponentName { get; set; } = string.Empty;
         public double MolecularWeight { get; set; }  // Necesario para conversiones
 
-        // ─────────────────────────────────────────────────────────
-        // 🔹 TIPO DE ENTRADA
-        // ─────────────────────────────────────────────────────────
-
-
-        // ─────────────────────────────────────────────────────────
-        // 🔹 FRACCIONES
-        // ─────────────────────────────────────────────────────────
-        public double? MassFraction { get; set; }
-        public double? MolarFraction { get; set; }
-
-        // ─────────────────────────────────────────────────────────
-        // 🔹 FLUJOS
+      
         // ─────────────────────────────────────────────────────────
         public MassFlow? MassFlowValue { get; set; } = new MassFlow(0);
         public MolarFlow? MolarFlowValue { get; set; } = new MolarFlow(0);

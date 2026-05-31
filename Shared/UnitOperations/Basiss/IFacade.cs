@@ -1,8 +1,4 @@
 ﻿using Shared.ProcessFlowDiagram;
-using Shared.Thermodynamics.ControlledVariables;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Shared.UnitOperations.Basiss
 {
@@ -17,10 +13,7 @@ namespace Shared.UnitOperations.Basiss
         // Diccionario mágico para el Tooltip genérico
         List<ToolTipLegend> GetToolTipLegend();
 
-        void AttachConnection(string portName, IFacade connectedFacade);
 
-        // Desconecta lo que sea que esté en ese puerto
-        void DetachConnection(string portName);
         Action? OnExecuteSolver { get; set; }
    
 

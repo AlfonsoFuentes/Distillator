@@ -1,40 +1,40 @@
-﻿using Shared.Thermodynamics.Phases;
+﻿using Shared.SolverQwen.Stream;
+using Shared.SolverQwen.Variables;
+using Shared.Thermodynamics.Phases;
 using Shared.UnitOperations.Streams;
+using UnitSystem;
 
 namespace Shared.Thermodynamics.Strategies.Equlibriums
-{   // ✅ NUEVO ARCHIVO: IEquilibriumContext.cs
-    // ========================================================================
-    // ESTRATEGIA PT (T + P → calcular FV)
-    // ========================================================================
+{
     public class PTStrategy : IEquilibriumStrategy
     {
-        private readonly StreamSimulationFacade _facade;
-        private MaterialStream Stream => _facade.MaterialStream;
+        private readonly IFacadeStream _facade;
+        private IMaterialStream Stream => _facade.MaterialStream;
 
-        public PTStrategy(StreamSimulationFacade facade)
+        public PTStrategy(IFacadeStream facade)
         {
             _facade = facade;
         }
 
         public void Execute()
         {
-            
+
             Stream.PerformFlashPT();
 
-           
-            _facade.VaporFraction.SetValueCalculated(Stream.VaporFraction, _facade.Name);
 
-      
+            _facade.VaporFraction.SetValue(Stream.VaporFraction, VariableDataProcedence.StreamCalculated);
 
-            
+            _facade.MaterialStream.CalculateBulkProperties();
+            _facade.MassEnthalpy.SetValue(_facade.MaterialStream.MassEnthalpy, VariableDataProcedence.StreamCalculated);
+
         }
     }
-    public class PTStrategy2 : IEquilibriumStrategy
+    public class PTStrategy3 : IEquilibriumStrategy
     {
         private readonly IStreamFacade _facade;
         private IMaterialStream Stream => _facade.MaterialStream;
 
-        public PTStrategy2(IStreamFacade facade)
+        public PTStrategy3(IStreamFacade facade)
         {
             _facade = facade;
         }
@@ -42,13 +42,36 @@ namespace Shared.Thermodynamics.Strategies.Equlibriums
         public void Execute()
         {
 
-            Stream.PerformFlashPT();
+            //Stream.PerformFlashPT();
 
 
-            _facade.VaporFraction.SetValueFromStream(Stream.VaporFraction, _facade.Name);
+            //_facade.VaporFraction.SetValueFromStream(Stream.VaporFraction, _facade.Name);
 
-            _facade.MaterialStream.CalculateBulkProperties();
-            _facade.MolarEnthalpy.SetValueFromStream(_facade.MaterialStream.MolarEnthalpy, _facade.Name);
+            //_facade.MaterialStream.CalculateBulkProperties();
+            //_facade.MassEnthalpy.SetValueFromStream(_facade.MaterialStream.MassEnthalpy, _facade.Name);
+
+        }
+    }
+    public class PTStrategy2 : IEquilibriumStrategy
+    {
+        private readonly IStreamFacade2 _facade;
+        private IMaterialStream Stream => _facade.MaterialStream;
+
+        public PTStrategy2(IStreamFacade2 facade)
+        {
+            _facade = facade;
+        }
+
+        public void Execute()
+        {
+
+            //Stream.PerformFlashPT();
+
+
+            //_facade.VaporFraction.SetValueFromStream(Stream.VaporFraction, _facade.Name);
+
+            //_facade.MaterialStream.CalculateBulkProperties();
+            //_facade.MassEnthalpy.SetValueFromStream(_facade.MaterialStream.MassEnthalpy, _facade.Name);
 
         }
     }

@@ -1,11 +1,12 @@
 ﻿@page "/"
 @using Client.Layout.Diagrams
 @using Shared.MatrixSolvers
+@using Shared.SolverQwen
 @implements IDisposable
 @attribute [Authorize]
 
 <PageTitle>Distillator System - PFD Workspace</PageTitle>
-<button class="add-tab-btn" title="New Area" @onclick="RunSolver">Solver</button>
+
 @* 1. LA BARRA DE PESTAÑAS (SHELL) *@
 <div class="area-tabs-container">
     @foreach (var area in WM.Areas)
@@ -63,40 +64,57 @@
 
     protected override void OnInitialized()
     {
-    
+
 
 
     }
     protected override async Task OnInitializedAsync()
     {
         WM.OnNotifyUI += StateHasChanged;
-         await ExectueSample();
+        await LoadThermodynamicMethods();
+
     }
-    async Task ExectueSample()
+    private List<ThermodynamicMethodFullDto>? _methods;
+    private async Task LoadThermodynamicMethods()
     {
-        SolverMatrixManager manager = new();
+
         var request = new GetAllCompleteMethods();
-        var resultAll = await HttpServices.PostAsync<GetAllCompleteMethods, Result<List<ThermodynamicMethodFullDto>>>(request);
-        if (resultAll.Succeeded)
+        var result = await HttpServices.PostAsync<GetAllCompleteMethods, Result<List<ThermodynamicMethodFullDto>>>(request);
+
+        if (result.Succeeded && result.Data != null)
         {
-            var AvailableMethods = resultAll.Data;
+            _methods = result.Data;
 
-            var selectedMethod = AvailableMethods.FirstOrDefault(m => m.Name.Contains("Ethanol-Water (NRTL)"));
-            if (selectedMethod != null)
+            if (_methods.Any(x => x.Name.Contains("Ethanol-Water (NRTL)")))
             {
-                var result = await HttpServices.PostAsync<GetMethodFullRequest, Result<ThermodynamicMethodFullDto>>(new GetMethodFullRequest(selectedMethod.Id));
+                var method = _methods.First(x => x.Name.Contains("Ethanol-Water (NRTL)"));
+                await HandleSelection(method.Id);
 
-                if (result.Succeeded && result.Data != null)
-                {
-                    manager.SetThermodynamicMethod(result.Data);
-                    manager.ExecuteSample();
-
-                }
             }
 
         }
+    }
+    private async Task HandleSelection(Guid selectedId)
+    {
 
-       
+
+        ThermodynamicMethodFullDto Value = null!;
+        var result = await HttpServices.PostAsync<GetMethodFullRequest, Result<ThermodynamicMethodFullDto>>(new GetMethodFullRequest(selectedId));
+        if (result.Succeeded)
+        {
+            var selectedMethod = result.Data;
+
+            if (selectedMethod != null)
+            {
+                Value = selectedMethod;
+
+                StreamIntegrationTest manager = new StreamIntegrationTest();
+                manager.SetThermoMethod(Value);
+                manager.Run();
+
+            }
+        }
+ 
     }
 
     public void Dispose()

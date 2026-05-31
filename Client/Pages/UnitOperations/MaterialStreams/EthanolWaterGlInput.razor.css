@@ -176,3 +176,24 @@
 .entry-input input[type=number] {
     -moz-appearance: textfield;
 }
+/* En tu archivo CSS del componente */
+.gl-value-not-defined {
+    color: #94a3b8; /* Gris suave */
+    font-style: italic;
+    padding: 0.25rem 0.5rem;
+}
+
+.gl-value-readonly.calculated {
+    color: #64748b; /* Gris medio */
+    background: #f1f5f9;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+}
+
+.quick-entry-panel.state-editable input {
+    border: 1px solid #3b82f6; /* Azul para editable */
+}
+
+.quick-entry-panel.state-readonly {
+    opacity: 0.8;
+}

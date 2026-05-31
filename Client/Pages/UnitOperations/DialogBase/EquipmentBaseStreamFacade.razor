@@ -7,16 +7,7 @@
                     IsDuplicate="CheckDuplicateName"
                     OnGenerate="GenerateUniqueStreamName"
                     Mode="VariableMode.Compact" />
-    @* <UnifiedListRow TItem="ThermodynamicMethodFullDto"
-                    TValue="ThermodynamicMethodFullDto"
-                    Variable="Facade.ThermodynamicMethod"
-                    Items="AvailableMethods"
-                    TextSelector="m => m.Name"
-                    ValueSelector="m => m"
-                    CustomComparer="(v1, v2) => v1.Id == v2.Id"
-                    Mode="VariableMode.Compact"
-                    OnItemSelected="HandleMethodSelection"
-                    OnCleared="HandleMethodClear" /> *@
+
 
     <NewUnifiedDoubleRow @bind-Variable="Facade.VaporFraction" @bind-Variable:after="NotifyUpdate" Mode="VariableMode.Compact" MinValue="0" MaxValue="1" />
     @* ==========================================
@@ -34,6 +25,7 @@
 
     @* 👇 Placeholders para mantener alineación con los títulos de grupo del padre *@
     <div class="grid-cell value group-spacer"></div>
+    <NewUnifiedDoubleRow @bind-Variable="Facade.MolecularWeight" Mode="VariableMode.Compact" IsReadOnly="true" />
     <NewUnifiedVariableRow @bind-Variable="Facade.MassDensity" Mode="VariableMode.Compact" IsReadOnly="true" />
     <NewUnifiedVariableRow @bind-Variable="Facade.MolarDensity" Mode="VariableMode.Compact" IsReadOnly="true" />
 
@@ -51,7 +43,7 @@
 </div>
 
 @code {
-    [Parameter] public StreamFacade Facade { get; set; } = default!;
+    [Parameter] public StreamFacade2 Facade { get; set; } = default!;
     // [Parameter] public List<ThermodynamicMethodFullDto> AvailableMethods { get; set; } = new();
     // 👇 NUEVO: Evento para avisar hacia arriba
     [Parameter] public EventCallback OnStreamUpdated { get; set; }
@@ -64,30 +56,7 @@
             await OnStreamUpdated.InvokeAsync();
         }
     }
-    // private async Task HandleMethodSelection(ThermodynamicMethodFullDto selectedMethod)
-    // {
-    //     if (Facade.ThermodynamicMethod == null) return;
-
-    //     // Llamamos al backend tal como usted lo hacía antes
-    //     var result = await HttpServices.PostAsync<GetMethodFullRequest, Result<ThermodynamicMethodFullDto>>(new GetMethodFullRequest(selectedMethod.Id));
-
-    //     if (result.Succeeded && result.Data != null)
-    //     {
-    //         Facade.ThermodynamicMethod.SetValue(result.Data, MethodSource.UserInterface);
-    //         await NotifyUpdate();
-    //         StateHasChanged();
-    //     }
-    // }
-
-    // private async Task HandleMethodClear()
-    // {
-    //     if (Facade.ThermodynamicMethod == null) return;
-
-    //     // Limpiamos o cambiamos el Source
-    //     Facade.ThermodynamicMethod.Source = MethodSource.None;
-    //     await NotifyUpdate();
-    //     StateHasChanged();
-    // }
+    
     private bool CheckDuplicateName(string newName)
     {
         return WM?.Elements?.Any(e => e.Name.Equals(newName, StringComparison.OrdinalIgnoreCase) && e.Id != Facade?.Id) == true;

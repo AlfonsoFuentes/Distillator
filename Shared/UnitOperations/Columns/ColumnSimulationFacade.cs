@@ -13,151 +13,151 @@ namespace Shared.UnitOperations.Columns
 
     public enum ColumnStateType { Created, PartiallyConnected, ReadyToCalculate, Solved }
 
-    public class ColumnSimulationFacade : EquipmentFacade
-    {
-        // ==============================================================================
-        // 1. ESTADO Y VARIABLES DEL EQUIPO
-        // ==============================================================================
-        public ColumnStateType State { get; set; } = ColumnStateType.Created;
+    //public class ColumnSimulationFacade : EquipmentFacade
+    //{
+    //    // ==============================================================================
+    //    // 1. ESTADO Y VARIABLES DEL EQUIPO
+    //    // ==============================================================================
+    //    public ColumnStateType State { get; set; } = ColumnStateType.Created;
 
-        // --- Topología Estática (Condensador y Rehervidor) ---
-        public StreamSimulationFacade? OverheadStream { get; private set; }
-        public StreamSimulationFacade? BottomsStream { get; private set; }
-        public StreamSimulationFacade? RefluxStream { get; private set; }
-        public StreamSimulationFacade? ReboilerReturnStream { get; private set; }
+    //    // --- Topología Estática (Condensador y Rehervidor) ---
+    //    public StreamSimulationFacade? OverheadStream { get; private set; }
+    //    public StreamSimulationFacade? BottomsStream { get; private set; }
+    //    public StreamSimulationFacade? RefluxStream { get; private set; }
+    //    public StreamSimulationFacade? ReboilerReturnStream { get; private set; }
 
-        // --- Topología Dinámica (Alimentaciones y Extracciones Múltiples) ---
-        public Dictionary<string, StreamSimulationFacade> Feeds { get; } = new();
-        public Dictionary<string, StreamSimulationFacade> SideDraws { get; } = new();
+    //    // --- Topología Dinámica (Alimentaciones y Extracciones Múltiples) ---
+    //    public Dictionary<string, StreamSimulationFacade> Feeds { get; } = new();
+    //    public Dictionary<string, StreamSimulationFacade> SideDraws { get; } = new();
 
-        public ColumnSimulationFacade()
-        {
-            // Constructor vacío.
-        }
+    //    public ColumnSimulationFacade()
+    //    {
+    //        // Constructor vacío.
+    //    }
 
      
-        // ==============================================================================
-        // 2. INTERFAZ DE USUARIO Y ESTADO VISUAL
-        // ==============================================================================
-        public override string StatusText => State switch
-        {
-            ColumnStateType.Created => "Ready",
-            ColumnStateType.PartiallyConnected => "Underspecified",
-            ColumnStateType.ReadyToCalculate => "Ready to Solve",
-            ColumnStateType.Solved => "Converged",
-            _ => "Unknown"
-        };
+    //    // ==============================================================================
+    //    // 2. INTERFAZ DE USUARIO Y ESTADO VISUAL
+    //    // ==============================================================================
+    //    public override string StatusText => State switch
+    //    {
+    //        ColumnStateType.Created => "Ready",
+    //        ColumnStateType.PartiallyConnected => "Underspecified",
+    //        ColumnStateType.ReadyToCalculate => "Ready to Solve",
+    //        ColumnStateType.Solved => "Converged",
+    //        _ => "Unknown"
+    //    };
 
-        public override string StatusColor => State switch
-        {
-            ColumnStateType.Created => "#CBD5E0",               // Gris
-            ColumnStateType.PartiallyConnected => "#F6AD55",    // Naranja
-            ColumnStateType.ReadyToCalculate => "#63B3ED",      // Azul
-            ColumnStateType.Solved => "#34D399",                // Verde
-            _ => "#CBD5E0"
-        };
+    //    public override string StatusColor => State switch
+    //    {
+    //        ColumnStateType.Created => "#CBD5E0",               // Gris
+    //        ColumnStateType.PartiallyConnected => "#F6AD55",    // Naranja
+    //        ColumnStateType.ReadyToCalculate => "#63B3ED",      // Azul
+    //        ColumnStateType.Solved => "#34D399",                // Verde
+    //        _ => "#CBD5E0"
+    //    };
 
-        public override List<ToolTipLegend> GetToolTipLegend()
-        {
-            List<ToolTipLegend> result = new();
+    //    public override List<ToolTipLegend> GetToolTipLegend()
+    //    {
+    //        List<ToolTipLegend> result = new();
 
-            // Aquí en el futuro puedes agregar indicadores como "Reflux Ratio", "Number of Stages", etc.
-            result.Add(new ToolTipLegend("Feeds", Feeds.Count.ToString()));
-            result.Add(new ToolTipLegend("Side Draws", SideDraws.Count.ToString()));
+    //        // Aquí en el futuro puedes agregar indicadores como "Reflux Ratio", "Number of Stages", etc.
+    //        result.Add(new ToolTipLegend("Feeds", Feeds.Count.ToString()));
+    //        result.Add(new ToolTipLegend("Side Draws", SideDraws.Count.ToString()));
 
-            return result;
-        }
+    //        return result;
+    //    }
 
-        // ==============================================================================
-        // 3. TOPOLOGÍA Y CONEXIONES
-        // ==============================================================================
-        public override void AttachConnection(string portName, IFacade connectedFacade)
-        {
-            var stream = connectedFacade as StreamSimulationFacade;
-            if (stream == null) return;
+    //    // ==============================================================================
+    //    // 3. TOPOLOGÍA Y CONEXIONES
+    //    // ==============================================================================
+    //    public override void AttachConnection(string portName, IFacade connectedFacade)
+    //    {
+    //        var stream = connectedFacade as StreamSimulationFacade;
+    //        if (stream == null) return;
 
-            // Puertos Estáticos
-            if (portName == "Overhead") OverheadStream = stream;
-            else if (portName == "Bottoms") BottomsStream = stream;
-            else if (portName == "Reflux") RefluxStream = stream;
-            else if (portName == "ReboilerReturn") ReboilerReturnStream = stream;
+    //        // Puertos Estáticos
+    //        if (portName == "Overhead") OverheadStream = stream;
+    //        else if (portName == "Bottoms") BottomsStream = stream;
+    //        else if (portName == "Reflux") RefluxStream = stream;
+    //        else if (portName == "ReboilerReturn") ReboilerReturnStream = stream;
 
-            // Puertos Dinámicos
-            else if (portName.StartsWith("Feed"))
-            {
-                Feeds[portName] = stream;
-            }
-            else if (portName.StartsWith("SideDraw"))
-            {
-                SideDraws[portName] = stream;
-            }
-        }
+    //        // Puertos Dinámicos
+    //        else if (portName.StartsWith("Feed"))
+    //        {
+    //            Feeds[portName] = stream;
+    //        }
+    //        else if (portName.StartsWith("SideDraw"))
+    //        {
+    //            SideDraws[portName] = stream;
+    //        }
+    //    }
 
-        public override void DetachConnection(string portName)
-        {
-            // Puertos Estáticos
-            if (portName == "Overhead") OverheadStream = null;
-            else if (portName == "Bottoms") BottomsStream = null;
-            else if (portName == "Reflux") RefluxStream = null;
-            else if (portName == "ReboilerReturn") ReboilerReturnStream = null;
+    //    public override void DetachConnection(string portName)
+    //    {
+    //        // Puertos Estáticos
+    //        if (portName == "Overhead") OverheadStream = null;
+    //        else if (portName == "Bottoms") BottomsStream = null;
+    //        else if (portName == "Reflux") RefluxStream = null;
+    //        else if (portName == "ReboilerReturn") ReboilerReturnStream = null;
 
-            // Puertos Dinámicos
-            else if (portName.StartsWith("Feed") && Feeds.ContainsKey(portName))
-            {
-                Feeds.Remove(portName);
-            }
-            else if (portName.StartsWith("SideDraw") && SideDraws.ContainsKey(portName))
-            {
-                SideDraws.Remove(portName);
-            }
-        }
+    //        // Puertos Dinámicos
+    //        else if (portName.StartsWith("Feed") && Feeds.ContainsKey(portName))
+    //        {
+    //            Feeds.Remove(portName);
+    //        }
+    //        else if (portName.StartsWith("SideDraw") && SideDraws.ContainsKey(portName))
+    //        {
+    //            SideDraws.Remove(portName);
+    //        }
+    //    }
 
-        // ==============================================================================
-        // 4. MOTOR DE CÁLCULO (PLACEHOLDER)
-        // ==============================================================================
-        protected override void CalculatedEquipment()
-        {
-            // TODO: Implementar el cálculo riguroso (Matrices tridiagonales, balances MESH, perfiles de T y P)
-            // Por ahora se mantiene vacío esperando la lógica histórica del ingeniero.
+    //    // ==============================================================================
+    //    // 4. MOTOR DE CÁLCULO (PLACEHOLDER)
+    //    // ==============================================================================
+    //    protected override void CalculatedEquipment()
+    //    {
+    //        // TODO: Implementar el cálculo riguroso (Matrices tridiagonales, balances MESH, perfiles de T y P)
+    //        // Por ahora se mantiene vacío esperando la lógica histórica del ingeniero.
 
-            State = ColumnStateType.ReadyToCalculate;
-        }
+    //        State = ColumnStateType.ReadyToCalculate;
+    //    }
 
-        public override void BuildEquations(EquationSystem eqs)
-        {
+    //    public override void BuildEquations(EquationSystem eqs)
+    //    {
            
-        }
+    //    }
 
-        public override IEnumerable<INewVariable> GetSolverVariables()
-        {
-            return null!;
-        }
-    }
+    //    public override IEnumerable<INewVariable> GetSolverVariables()
+    //    {
+    //        return null!;
+    //    }
+    //}
     public class ColumnSimulationFacade2 : EquipmentFacade2
     {
         public ColumnStateType State { get; set; } = ColumnStateType.Created;
 
         // 🔗 Conexiones estáticas
-        public IStreamFacade? OverheadVapor { get; private set; }  // Vapor que sale por topo
-        public IStreamFacade? Reflux { get; private set; }          // Líquido que retorna como reflujo
-        public IStreamFacade? BottomsLiquid { get; private set; }   // Líquido que sale por fondo
-        public IStreamFacade? ReboilerReturn { get; private set; }  // Vapor que retorna desde reboiler
+        public IStreamFacade2? OverheadVapor { get; private set; }  // Vapor que sale por topo
+        public IStreamFacade2? Reflux { get; private set; }          // Líquido que retorna como reflujo
+        public IStreamFacade2? BottomsLiquid { get; private set; }   // Líquido que sale por fondo
+        public IStreamFacade2? ReboilerReturn { get; private set; }  // Vapor que retorna desde reboiler
 
         // 🔗 Conexiones dinámicas
-        public Dictionary<string, IStreamFacade> Feeds { get; } = new();
-        public Dictionary<string, IStreamFacade> SideDraws { get; } = new();
+        public Dictionary<string, IStreamFacade2> Feeds { get; } = new();
+        public Dictionary<string, IStreamFacade2> SideDraws { get; } = new();
 
         // 🔹 Variables operativas (para especificar grados de libertad)
-        public INewVariable<double> RefluxRatio { get; set; }      // R = L/D
-        public INewVariable<double> BoilupRatio { get; set; }      // V/B
+        //public INewVariable<double> RefluxRatio { get; set; }      // R = L/D
+        //public INewVariable<double> BoilupRatio { get; set; }      // V/B
 
         public ColumnSimulationFacade2()
         {
-            RefluxRatio = new NewControlledVariableDouble();
-            RefluxRatio.OnExecuteSolver += ExecuteSolver;
+            //RefluxRatio = new NewControlledVariableDouble();
+            //RefluxRatio.OnExecuteSolver += ExecuteSolver;
 
-            BoilupRatio = new NewControlledVariableDouble();
-            BoilupRatio.OnExecuteSolver += ExecuteSolver;
+            //BoilupRatio = new NewControlledVariableDouble();
+            //BoilupRatio.OnExecuteSolver += ExecuteSolver;
         }
 
         public override string StatusText => State switch
@@ -181,12 +181,12 @@ namespace Shared.UnitOperations.Columns
         public override List<ToolTipLegend> GetToolTipLegend()
         {
             var result = new List<ToolTipLegend>();
-            if (RefluxRatio.IsEspecified) result.Add(new("R", $"{RefluxRatio.SolverValue:F2}"));
-            if (BoilupRatio.IsEspecified) result.Add(new("V/B", $"{BoilupRatio.SolverValue:F2}"));
+            //if (RefluxRatio.IsEspecified) result.Add(new("R", $"{RefluxRatio.SolverValue:F2}"));
+            //if (BoilupRatio.IsEspecified) result.Add(new("V/B", $"{BoilupRatio.SolverValue:F2}"));
             return result;
         }
 
-        public override void AttachConnection(string portName, IStreamFacade connectedFacade)
+        public override void AttachConnection(string portName, IStreamFacade2 connectedFacade)
         {
             if (portName == "OverheadVapor") OverheadVapor = connectedFacade;
             else if (portName == "Reflux") Reflux = connectedFacade;

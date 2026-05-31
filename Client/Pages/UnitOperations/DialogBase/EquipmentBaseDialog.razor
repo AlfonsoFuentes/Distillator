@@ -46,7 +46,7 @@
                 else if (activeTab == "Streams")
                 {
                     <EquipmentBaseStreams Ports="_Ports"
-                                          AvailableMethods="AvailableMethods"
+                                         
                                           OnEquipmentStreamsUpdated="HandleEquipmentUpdate" />
                 }
                 else if (activeTab == "Composition")
@@ -72,7 +72,7 @@
     [Parameter] public RenderFragment? PropertiesSlot { get; set; }
     [Parameter] public RenderFragment? DesignSlot { get; set; }
     
-    public List<ThermodynamicMethodFullDto> AvailableMethods { get; set; } = new();
+   
     private string activeTab = "Main";
 
     List<EquipmentPort> _Ports => Equipment.Ports;
@@ -82,15 +82,7 @@
     
     protected override async Task OnInitializedAsync()
     {
-        if (AvailableMethods == null || AvailableMethods.Count == 0)
-        {
-            var request = new GetAllCompleteMethods();
-            var result = await HttpServices.PostAsync<GetAllCompleteMethods, Result<List<ThermodynamicMethodFullDto>>>(request);
-            if (result.Succeeded)
-            {
-                AvailableMethods = result.Data;
-            }
-        }
+       
     }
     private async Task HandleEquipmentUpdate()
     {

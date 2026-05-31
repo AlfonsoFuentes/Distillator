@@ -12,84 +12,84 @@ namespace Shared.UnitOperations.Vessels
   
     public enum FlashTankStateType { Created, PartiallyConnected, ReadyToCalculate, Solved }
 
-    public class FlashTankSimulationFacade : EquipmentFacade
-    {
-        public FlashTankStateType State { get; set; } = FlashTankStateType.Created;
+    //public class FlashTankSimulationFacade : EquipmentFacade
+    //{
+    //    public FlashTankStateType State { get; set; } = FlashTankStateType.Created;
 
-        // --- Topología Estática ---
-        public StreamSimulationFacade? VaporStream { get; private set; }
-        public StreamSimulationFacade? Liquid1Stream { get; private set; }
-        public StreamSimulationFacade? Liquid2Stream { get; private set; }
+    //    // --- Topología Estática ---
+    //    public StreamSimulationFacade? VaporStream { get; private set; }
+    //    public StreamSimulationFacade? Liquid1Stream { get; private set; }
+    //    public StreamSimulationFacade? Liquid2Stream { get; private set; }
 
-        // --- Topología Dinámica ---
-        public Dictionary<string, StreamSimulationFacade> Feeds { get; } = new();
-        public Dictionary<string, StreamSimulationFacade> ExtraProducts { get; } = new();
+    //    // --- Topología Dinámica ---
+    //    public Dictionary<string, StreamSimulationFacade> Feeds { get; } = new();
+    //    public Dictionary<string, StreamSimulationFacade> ExtraProducts { get; } = new();
 
-        public override string StatusColor => State switch
-        {
-            FlashTankStateType.Created => "#CBD5E0",
-            FlashTankStateType.PartiallyConnected => "#F6AD55",
-            FlashTankStateType.ReadyToCalculate => "#63B3ED",
-            FlashTankStateType.Solved => "#34D399",
-            _ => "#CBD5E0"
-        };
+    //    public override string StatusColor => State switch
+    //    {
+    //        FlashTankStateType.Created => "#CBD5E0",
+    //        FlashTankStateType.PartiallyConnected => "#F6AD55",
+    //        FlashTankStateType.ReadyToCalculate => "#63B3ED",
+    //        FlashTankStateType.Solved => "#34D399",
+    //        _ => "#CBD5E0"
+    //    };
 
-        public override string StatusText => State switch
-        {
-            FlashTankStateType.Created => "Ready",
-            FlashTankStateType.PartiallyConnected => "Underspecified",
-            FlashTankStateType.ReadyToCalculate => "Ready to Solve",
-            FlashTankStateType.Solved => "Converged",
-            _ => "Unknown"
-        };
+    //    public override string StatusText => State switch
+    //    {
+    //        FlashTankStateType.Created => "Ready",
+    //        FlashTankStateType.PartiallyConnected => "Underspecified",
+    //        FlashTankStateType.ReadyToCalculate => "Ready to Solve",
+    //        FlashTankStateType.Solved => "Converged",
+    //        _ => "Unknown"
+    //    };
 
-        public override List<ToolTipLegend> GetToolTipLegend()
-        {
-            return new List<ToolTipLegend>(); // Se llenará cuando tengamos cálculos termodinámicos
-        }
+    //    public override List<ToolTipLegend> GetToolTipLegend()
+    //    {
+    //        return new List<ToolTipLegend>(); // Se llenará cuando tengamos cálculos termodinámicos
+    //    }
 
-        public override void AttachConnection(string portName, IFacade connectedFacade)
-        {
-            var stream = connectedFacade as StreamSimulationFacade;
-            if (stream == null) return;
+    //    public override void AttachConnection(string portName, IFacade connectedFacade)
+    //    {
+    //        var stream = connectedFacade as StreamSimulationFacade;
+    //        if (stream == null) return;
 
-            if (portName == "Vapor") VaporStream = stream;
-            else if (portName == "Liquid_1") Liquid1Stream = stream;
-            else if (portName == "Liquid_2") Liquid2Stream = stream;
-            else if (portName.StartsWith("Feed") || portName.StartsWith("ExtraFeed")) Feeds[portName] = stream;
-            else if (portName.StartsWith("ExtraProduct")) ExtraProducts[portName] = stream;
-        }
+    //        if (portName == "Vapor") VaporStream = stream;
+    //        else if (portName == "Liquid_1") Liquid1Stream = stream;
+    //        else if (portName == "Liquid_2") Liquid2Stream = stream;
+    //        else if (portName.StartsWith("Feed") || portName.StartsWith("ExtraFeed")) Feeds[portName] = stream;
+    //        else if (portName.StartsWith("ExtraProduct")) ExtraProducts[portName] = stream;
+    //    }
 
-        public override void DetachConnection(string portName)
-        {
-            if (portName == "Vapor") VaporStream = null;
-            else if (portName == "Liquid_1") Liquid1Stream = null;
-            else if (portName == "Liquid_2") Liquid2Stream = null;
-            else if (Feeds.ContainsKey(portName)) Feeds.Remove(portName);
-            else if (ExtraProducts.ContainsKey(portName)) ExtraProducts.Remove(portName);
-        }
+    //    public override void DetachConnection(string portName)
+    //    {
+    //        if (portName == "Vapor") VaporStream = null;
+    //        else if (portName == "Liquid_1") Liquid1Stream = null;
+    //        else if (portName == "Liquid_2") Liquid2Stream = null;
+    //        else if (Feeds.ContainsKey(portName)) Feeds.Remove(portName);
+    //        else if (ExtraProducts.ContainsKey(portName)) ExtraProducts.Remove(portName);
+    //    }
 
-        protected override void CalculatedEquipment()
-        {
-            // Placeholder para el cálculo Flash Isentálpico o Isotérmico
-            State = FlashTankStateType.ReadyToCalculate;
-        }
-        public override void BuildEquations(EquationSystem eqs)
-        {
+    //    protected override void CalculatedEquipment()
+    //    {
+    //        // Placeholder para el cálculo Flash Isentálpico o Isotérmico
+    //        State = FlashTankStateType.ReadyToCalculate;
+    //    }
+    //    public override void BuildEquations(EquationSystem eqs)
+    //    {
 
-        }
+    //    }
 
-        public override IEnumerable<INewVariable> GetSolverVariables()
-        {
-            return null!;
-        }
-    }
+    //    public override IEnumerable<INewVariable> GetSolverVariables()
+    //    {
+    //        return null!;
+    //    }
+    //}
     public class FlashTankSimulationFacade2 : EquipmentFacade2
     {
         public FlashTankStateType State { get; set; } = FlashTankStateType.Created;
-        public IStreamFacade? VaporStream { get; private set; }
-        public IStreamFacade? LiquidStream { get; private set; }
-        public Dictionary<string, IStreamFacade> Feeds { get; } = new();
+        public IStreamFacade2? VaporStream { get; private set; }
+        public IStreamFacade2? LiquidStream { get; private set; }
+        public Dictionary<string, IStreamFacade2> Feeds { get; } = new();
 
         public override string StatusText => State switch
         {
@@ -111,7 +111,7 @@ namespace Shared.UnitOperations.Vessels
 
         public override List<ToolTipLegend> GetToolTipLegend() => new();
 
-        public override void AttachConnection(string portName, IStreamFacade connectedFacade)
+        public override void AttachConnection(string portName, IStreamFacade2 connectedFacade)
         {
             if (portName == "Vapor") VaporStream = connectedFacade;
             else if (portName == "Liquid") LiquidStream = connectedFacade;

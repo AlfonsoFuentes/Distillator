@@ -69,8 +69,24 @@
         }
     </div>
 </div>
+@* 🔹 Panel °GL - Parámetros ajustados *@
+@* PANEL °GL - Parámetros corregidos *@
+@if (Variable.Value.IsEthanolWaterMixture())
+{
+    @* 🔥 Definir ethanol en el scope del Razor *@
+    var ethanol = Variable.Value.Components
+        .FirstOrDefault(c => c.ComponentName.Equals("Ethanol", StringComparison.OrdinalIgnoreCase));
 
-@* PANEL °GL - Solo para mezcla Etanol/Agua *@
+    <div class="gl-input-container">
+        <EthanolWaterGlInput GLValue="@GetGlValue()"
+                             GlValueChanged="OnGlValueChanged"
+                             IsComponentReadOnly="@(Variable.Source == "Solver")"
+                             IsGlInputReadOnly="@(Variable.Value.InputType == ComponentInputType.MolarFraction)"
+                             IsMassFractionDefined="@(Variable.IsDefined && ethanol?.MassFractionSolver.IsDefined == true)"
+                             SourceId="@(Variable.Source == "Solver" ? Variable.Source : null)" />
+    </div>
+}
+@* PANEL °GL - Solo para mezcla Etanol/Agua 
 @if (Variable.Value.IsEthanolWaterMixture())
 {
     <div class="gl-input-container">
@@ -82,7 +98,7 @@
                              SourceId="@(Variable.Source == "Solver" ? Variable.Source : null)" />
     </div>
 }
-
+*@
 @code {
     [Parameter] public NewNewVariableComposition Variable { get; set; } = default!;
     [Parameter] public EventCallback<NewNewVariableComposition> VariableChanged { get; set; }
@@ -161,7 +177,7 @@
     {
         bool isEditingThis = _editingComponent == comp && ((isMass && _isEditingMass) || (!isMass && _isEditingMolar));
         if (isEditingThis && _tempInputValue.HasValue)
-            return _tempInputValue.Value.ToString(CultureInfo.InvariantCulture);
+            return _tempInputValue.Value.ToString("F1",CultureInfo.InvariantCulture);
 
         var val = isMass ? comp.MassFractionSolver.Value : comp.MolarFractionSolver.Value;
 
@@ -195,7 +211,7 @@
     private async Task HandleKeyDown(KeyboardEventArgs e, ComponentComposition comp, bool isMass)
     {
         if (e.Key == "Enter") await CommitValue(comp, isMass);
-        else if (e.Key == "Delete" || e.Key == "Backspace") await ClearCell(comp, isMass);
+        else if (e.Key == "Delete" || e.Key == "Backspace") await ClearCell();
     }
 
     private async Task HandleBlur(ComponentComposition comp, bool isMass)
@@ -206,53 +222,50 @@
         }
         else
         {
-            await ClearCell(comp, isMass);
+            await ClearCell();
         }
     }
-
     private async Task CommitValue(ComponentComposition comp, bool isMass)
     {
         if (!_tempInputValue.HasValue) return;
 
-        // 🔥 NUEVO: Usar SetValueFromUI en los solvers de componente
+        // 1. Definir el valor ingresado en el componente
         if (isMass)
-        {
             comp.MassFractionSolver.SetValueFromUI(_tempInputValue.Value);
-            // La fracción molar se calculará automáticamente vía eventos
-        }
         else
-        {
             comp.MolarFractionSolver.SetValueFromUI(_tempInputValue.Value);
-            // La fracción másica se calculará automáticamente vía eventos
+
+        // 2. Actualizar InputType en la composición
+        Variable.Value!.InputType = isMass
+            ? ComponentInputType.MassFraction
+            : ComponentInputType.MolarFraction;
+
+        // 3. 🔥 VALIDACIÓN CRÍTICA: ¿La suma de TODOS los componentes da ~100%?
+        var sum = Variable.Value.Components
+            .Sum(c => isMass ? c.MassFractionSolver.Value : c.MolarFractionSolver.Value);
+
+        // 4. SI suma ≈ 100% → disparar cálculo centralizado
+        if (sum >= 99 && sum <= 101)
+        {
+            // 🔥 Este llamado dispara CalculateMassMolarFractions() vía override
+            Variable.SetValueFromUI(Variable.Value);
         }
-
-        // 🔥 NUEVO: Actualizar InputType en la composición padre
-        Variable.Value!.InputType = isMass ? ComponentInputType.MassFraction : ComponentInputType.MolarFraction;
-
-        // 🔥 NUEVO: Disparar conversión si es necesario (los eventos ya lo hacen, pero por seguridad)
-        if (isMass) Variable.Value.CalculateMolarFractionsFromMass();
-        else Variable.Value.CalculateMassFractionsFromMolar();
-
-        // 🔥 NUEVO: Marcar la composición como definida por UI
-        Variable.SetValueFromUI(Variable.Value);
+        // Si NO suma 100% → NO calcular, esperar a que el usuario complete
 
         ResetEditingState();
         if (VariableChanged.HasDelegate) await VariableChanged.InvokeAsync(Variable);
     }
+   
 
-    private async Task ClearCell(ComponentComposition comp, bool isMass)
+    private async Task ClearCell()
     {
         // 🔥 NUEVO: Usar ClearFromUI en los solvers de componente
-        comp.MassFractionSolver.ClearFromUI();
-        comp.MolarFractionSolver.ClearFromUI();
-
-        if (Variable.Value!.Components.All(c => !c.MassFractionSolver.IsDefined && !c.MolarFractionSolver.IsDefined))
-            Variable.Value.InputType = ComponentInputType.None;
+        Variable.ClearFromUI();
 
         ResetEditingState();
 
         // 🔥 NUEVO: ClearFromUI en lugar de ClearValue
-        Variable.ClearFromUI();
+
         if (VariableChanged.HasDelegate) await VariableChanged.InvokeAsync(Variable);
     }
 
@@ -276,7 +289,7 @@
         if (water != null) { components.Remove(water); components.Add(water); }
         return components;
     }
-
+    // 🔹 Reemplaza tu método GetGlValue() por este:
     private double? GetGlValue()
     {
         if (!Variable.Value!.IsEthanolWaterMixture())
@@ -285,17 +298,25 @@
         var ethanol = Variable.Value.Components
                     .FirstOrDefault(c => c.ComponentName.Equals("Ethanol", StringComparison.OrdinalIgnoreCase));
 
-        if (ethanol == null || !ethanol.MassFractionSolver.IsDefined)
+        if (ethanol == null) return null;
+
+        // 🔥 Solo calcular si está definido y es por másica (no por molar)
+        if (!ethanol.MassFractionSolver.IsDefined || Variable.Value.InputType == ComponentInputType.MolarFraction)
             return null;
 
-        return GetGLEtanol(ethanol.MassFractionSolver.Value);
+        double massFraction = ethanol.MassFractionSolver.Value;
+        if (massFraction <= 0 || massFraction > 100) return null;
+
+        return GetGLEtanol(massFraction);
     }
+   
 
     private async Task OnGlValueChanged(double? glValue)
     {
         if (!glValue.HasValue)
         {
-            ClearComposition();
+            await ClearCell();
+            StateHasChanged();
             return;
         }
 
@@ -315,8 +336,8 @@
             Variable.Value.InputType = ComponentInputType.MassFraction;
 
             var sum = ethanol.MassFractionSolver.Value + water.MassFractionSolver.Value;
-            if (Math.Abs(sum - 100) < 0.01)
-                Variable.Value.CalculateMolarFractionsFromMass();
+            // if (Math.Abs(sum - 100) < 0.01)
+            //     Variable.Value.CalculateMolarFractionsFromMass();
 
             // 🔥 NUEVO: SetValueFromUI en la composición padre
             Variable.SetValueFromUI(Variable.Value);
@@ -328,25 +349,18 @@
         }
     }
 
-    private void ClearComposition()
-    {
-        foreach (var comp in Variable.Value!.Components)
-        {
-            // 🔥 NUEVO: ClearFromUI en cada componente
-            comp.MassFractionSolver.ClearFromUI();
-            comp.MolarFractionSolver.ClearFromUI();
-        }
+    // private void ClearComposition()
+    // {
 
-        Variable.Value.InputType = ComponentInputType.None;
+      
+    //     // 🔥 NUEVO: ClearFromUI en la composición padre
+    //     Variable.ClearFromUI();
 
-        // 🔥 NUEVO: ClearFromUI en la composición padre
-        Variable.ClearFromUI();
+    //     if (VariableChanged.HasDelegate)
+    //         VariableChanged.InvokeAsync(Variable);
 
-        if (VariableChanged.HasDelegate)
-            VariableChanged.InvokeAsync(Variable);
-
-        StateHasChanged();
-    }
+    //     StateHasChanged();
+    // }
 
     private double CalcularMasicoDesdeGL(double GL)
     {
@@ -366,6 +380,6 @@
             if (Math.Abs(pm - masico) < 1e-4) break;
             if (pm > masico) sup = GL; else inf = GL;
         }
-        return GL;
+        return Math.Round(GL, 2);
     }
 }

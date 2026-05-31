@@ -16,137 +16,137 @@ namespace Shared.UnitOperations.Helpers
 
 
 
-    public class SplitterSimulationFacade : EquipmentFacade
-    {
-        // ==============================================================================
-        // 1. ESTADO Y VARIABLES DEL EQUIPO
-        // ==============================================================================
-        public SplitterStateType State { get; set; } = SplitterStateType.Created;
+    //public class SplitterSimulationFacade : EquipmentFacade
+    //{
+    //    // ==============================================================================
+    //    // 1. ESTADO Y VARIABLES DEL EQUIPO
+    //    // ==============================================================================
+    //    public SplitterStateType State { get; set; } = SplitterStateType.Created;
 
-        // Topología
-        public StreamSimulationFacade? InletStream { get; private set; }
-        public Dictionary<string, StreamSimulationFacade> OutletStreams { get; } = new();
+    //    // Topología
+    //    public StreamSimulationFacade? InletStream { get; private set; }
+    //    public Dictionary<string, StreamSimulationFacade> OutletStreams { get; } = new();
 
-        // Fracciones de separación (Diccionario para soportar N salidas dinámicamente)
-        public Dictionary<string, ControlledVariable<double>> SplitFractions { get; set; } = new();
+    //    // Fracciones de separación (Diccionario para soportar N salidas dinámicamente)
+    //    public Dictionary<string, ControlledVariable<double>> SplitFractions { get; set; } = new();
 
-        public SplitterSimulationFacade()
-        {
-            // Constructor vacío.
-        }
+    //    public SplitterSimulationFacade()
+    //    {
+    //        // Constructor vacío.
+    //    }
 
        
 
-        // ==============================================================================
-        // 2. INTERFAZ DE USUARIO Y ESTADO VISUAL
-        // ==============================================================================
-        public override string StatusText => State switch
-        {
-            SplitterStateType.Created => "Ready",
-            SplitterStateType.PartiallyConnected => "Underspecified",
-            SplitterStateType.ReadyToCalculate => "Ready to Solve",
-            SplitterStateType.Solved => "Converged",
-            _ => "Unknown"
-        };
+    //    // ==============================================================================
+    //    // 2. INTERFAZ DE USUARIO Y ESTADO VISUAL
+    //    // ==============================================================================
+    //    public override string StatusText => State switch
+    //    {
+    //        SplitterStateType.Created => "Ready",
+    //        SplitterStateType.PartiallyConnected => "Underspecified",
+    //        SplitterStateType.ReadyToCalculate => "Ready to Solve",
+    //        SplitterStateType.Solved => "Converged",
+    //        _ => "Unknown"
+    //    };
 
-        public override string StatusColor => State switch
-        {
-            SplitterStateType.Created => "#CBD5E0",               // Gris
-            SplitterStateType.PartiallyConnected => "#F6AD55",    // Naranja
-            SplitterStateType.ReadyToCalculate => "#63B3ED",      // Azul
-            SplitterStateType.Solved => "#34D399",                // Verde
-            _ => "#CBD5E0"
-        };
+    //    public override string StatusColor => State switch
+    //    {
+    //        SplitterStateType.Created => "#CBD5E0",               // Gris
+    //        SplitterStateType.PartiallyConnected => "#F6AD55",    // Naranja
+    //        SplitterStateType.ReadyToCalculate => "#63B3ED",      // Azul
+    //        SplitterStateType.Solved => "#34D399",                // Verde
+    //        _ => "#CBD5E0"
+    //    };
 
-        public override List<ToolTipLegend> GetToolTipLegend()
-        {
-            List<ToolTipLegend> result = new();
-            foreach (var kvp in SplitFractions)
-            {
-                if (kvp.Value.IsDefined)
-                    result.Add(new ToolTipLegend($"Frac {kvp.Key}", $"{kvp.Value.Value}%"));
-                else
-                    result.Add(new ToolTipLegend($"Frac {kvp.Key}", "<Not Defined>"));
-            }
-            return result;
-        }
+    //    public override List<ToolTipLegend> GetToolTipLegend()
+    //    {
+    //        List<ToolTipLegend> result = new();
+    //        foreach (var kvp in SplitFractions)
+    //        {
+    //            if (kvp.Value.IsDefined)
+    //                result.Add(new ToolTipLegend($"Frac {kvp.Key}", $"{kvp.Value.Value}%"));
+    //            else
+    //                result.Add(new ToolTipLegend($"Frac {kvp.Key}", "<Not Defined>"));
+    //        }
+    //        return result;
+    //    }
 
-        // ==============================================================================
-        // 3. TOPOLOGÍA Y CONEXIONES (Soporta N salidas)
-        // ==============================================================================
-        public override void AttachConnection(string portName, IFacade connectedFacade)
-        {
-            if (portName == "Inlet")
-            {
-                InletStream = connectedFacade as StreamSimulationFacade;
-            }
-            else if (portName.StartsWith("Outlet"))
-            {
-                OutletStreams[portName] = (StreamSimulationFacade)connectedFacade;
+    //    // ==============================================================================
+    //    // 3. TOPOLOGÍA Y CONEXIONES (Soporta N salidas)
+    //    // ==============================================================================
+    //    public override void AttachConnection(string portName, IFacade connectedFacade)
+    //    {
+    //        if (portName == "Inlet")
+    //        {
+    //            InletStream = connectedFacade as StreamSimulationFacade;
+    //        }
+    //        else if (portName.StartsWith("Outlet"))
+    //        {
+    //            OutletStreams[portName] = (StreamSimulationFacade)connectedFacade;
 
-                if (!SplitFractions.ContainsKey(portName))
-                {
-                    // 🚩 NACEN VACÍAS: Sin valor por defecto para permitir grados de libertad
+    //            if (!SplitFractions.ContainsKey(portName))
+    //            {
+    //                // 🚩 NACEN VACÍAS: Sin valor por defecto para permitir grados de libertad
                    
                    
-                }
-            }
-        }
+    //            }
+    //        }
+    //    }
 
-        public override void DetachConnection(string portName)
-        {
-            if (portName == "Inlet")
-            {
-                InletStream = null;
-            }
-            else if (OutletStreams.ContainsKey(portName))
-            {
-                OutletStreams.Remove(portName);
-            }
-        }
+    //    public override void DetachConnection(string portName)
+    //    {
+    //        if (portName == "Inlet")
+    //        {
+    //            InletStream = null;
+    //        }
+    //        else if (OutletStreams.ContainsKey(portName))
+    //        {
+    //            OutletStreams.Remove(portName);
+    //        }
+    //    }
 
-        public void SyncFractionsWithPorts(List<string> outletPortNames)
-        {
-            foreach (var name in outletPortNames)
-            {
-                if (!SplitFractions.ContainsKey(name))
-                {
-                    // 🚩 NACEN VACÍAS
+    //    public void SyncFractionsWithPorts(List<string> outletPortNames)
+    //    {
+    //        foreach (var name in outletPortNames)
+    //        {
+    //            if (!SplitFractions.ContainsKey(name))
+    //            {
+    //                // 🚩 NACEN VACÍAS
                     
-                }
-            }
+    //            }
+    //        }
 
-            var toRemove = SplitFractions.Keys.Except(outletPortNames).ToList();
-            foreach (var key in toRemove)
-            {
-                SplitFractions.Remove(key);
-            }
-        }
+    //        var toRemove = SplitFractions.Keys.Except(outletPortNames).ToList();
+    //        foreach (var key in toRemove)
+    //        {
+    //            SplitFractions.Remove(key);
+    //        }
+    //    }
 
-        // ==============================================================================
-        // 4. MOTOR DE CÁLCULO
-        // ==============================================================================
-        protected override void CalculatedEquipment()
-        {
+    //    // ==============================================================================
+    //    // 4. MOTOR DE CÁLCULO
+    //    // ==============================================================================
+    //    protected override void CalculatedEquipment()
+    //    {
            
-        }
-        public override void BuildEquations(EquationSystem eqs)
-        {
+    //    }
+    //    public override void BuildEquations(EquationSystem eqs)
+    //    {
 
-        }
+    //    }
 
-        public override IEnumerable<INewVariable> GetSolverVariables()
-        {
-            return null!;
-        }
-        // 🌊 PISCINA INTENSIVA Y TERMODINÁMICA
+    //    public override IEnumerable<INewVariable> GetSolverVariables()
+    //    {
+    //        return null!;
+    //    }
+    //    // 🌊 PISCINA INTENSIVA Y TERMODINÁMICA
 
-    }
+    //}
     public class SplitterSimulationFacade2 : EquipmentFacade2
     {
         public SplitterStateType State { get; set; } = SplitterStateType.Created;
-        public IStreamFacade? InletStream { get; private set; }
-        public Dictionary<string, IStreamFacade> OutletStreams { get; } = new();
+        public IStreamFacade2? InletStream { get; private set; }
+        public Dictionary<string, IStreamFacade2> OutletStreams { get; } = new();
         public Dictionary<string, NewNewVariableDouble> SplitFractions { get; } = new();
 
         // =========================
@@ -393,7 +393,7 @@ namespace Shared.UnitOperations.Helpers
         // 🔹 CONEXIONES (Dinámicas para N outlets)
         // =========================
 
-        public override void AttachConnection(string portName, IStreamFacade connectedFacade)
+        public override void AttachConnection(string portName, IStreamFacade2 connectedFacade)
         {
             if (portName == "Inlet")
             {

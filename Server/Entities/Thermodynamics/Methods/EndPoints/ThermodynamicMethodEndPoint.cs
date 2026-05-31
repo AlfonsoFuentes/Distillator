@@ -185,9 +185,38 @@ public class ThermodynamicMethodEndPoint : IEndPoint
         }).RequireAuthorization(new AuthorizeAttribute { Roles = "Developer" });
 
         // ==========================================
-        // 4. EDIT
+        // 4. EDIT (CORREGIDO)
         // ==========================================
         group.MapPost("/EditThermodynamicMethod", async ([FromBody] EditThermodynamicMethod request, ApplicationDbContext context, IWebHostEnvironment env) =>
+        {
+            // 1. Cargar entidad con tracking (NO AsNoTracking)
+            var entity = await context.ThermodynamicMethods
+                .Include(m => m.MethodComponents)
+                .Include(m => m.BinaryParameters)
+                .FirstOrDefaultAsync(m => m.Id == request.Id);
+
+            if (entity == null) return Results.Ok(Result.Fail("Method not found"));
+
+            // 2. Actualizar propiedades escalares (solo si cambiaron)
+            if (entity.Name != request.Name) entity.Name = request.Name;
+            if (entity.Description != request.Description) entity.Description = request.Description;
+            if (entity.VaporModel != request.VaporModel) entity.VaporModel = request.VaporModel;
+            if (entity.LiquidModel != request.LiquidModel) entity.LiquidModel = request.LiquidModel;
+
+            // 3. Sincronizar colecciones con lógica inteligente (NO Clear/Add ciego)
+            await SyncMethodComponentsAsync(entity, request.Components, context);
+            await SyncBinaryParametersAsync(entity, request.BinaryParameters, context);
+
+            // 4. Guardar cambios (EF Core genera SQL solo para lo que realmente cambió)
+            // 🔥 NO usar .Update(entity) porque ya estamos trackeando
+            await context.SaveChangesAsync();
+
+            // 5. Sync a CSV para backup
+            await DatabaseSeeder.SyncMethodsToCsv(context, env.ContentRootPath);
+
+            return Results.Ok(Result.Success());
+        }).RequireAuthorization(new AuthorizeAttribute { Roles = "Developer" });
+        group.MapPost("/EditThermodynamicMethod2", async ([FromBody] EditThermodynamicMethod request, ApplicationDbContext context, IWebHostEnvironment env) =>
         {
             var entity = await context.ThermodynamicMethods
                 .Include(m => m.MethodComponents)
@@ -350,5 +379,124 @@ public class ThermodynamicMethodEndPoint : IEndPoint
         Tmin = new Temperature(e.Tmin.Value, e.Tmin.UnitName),
         Tmax = new Temperature(e.Tmax.Value, e.Tmax.UnitName)
     };
+
+    // ==========================================
+    // HELPER: Sync MethodComponents para EDIT
+    // ==========================================
+    private static async Task SyncMethodComponentsAsync(
+        ThermodynamicMethod entity,
+        List<MethodComponentDto> dtoComponents,
+        ApplicationDbContext context)
+    {
+        // Cargar IDs existentes para comparación
+        var existingDict = entity.MethodComponents
+            .ToDictionary(mc => mc.ComponentId, mc => mc);
+
+        var dtoDict = dtoComponents
+            .ToDictionary(c => c.ComponentId, c => c);
+
+        // 🔹 REMOVER: Componentes que están en BD pero NO en el DTO
+        foreach (var kvp in existingDict)
+        {
+            if (!dtoDict.ContainsKey(kvp.Key))
+            {
+                entity.MethodComponents.Remove(kvp.Value);
+                context.MethodComponents.Remove(kvp.Value); // ← CRÍTICO: remover del contexto global
+            }
+        }
+
+        // 🔹 AGREGAR/ACTUALIZAR: Componentes del DTO
+        foreach (var dto in dtoComponents)
+        {
+            if (existingDict.TryGetValue(dto.ComponentId, out var existing))
+            {
+                // Actualizar solo si MatrixIndex cambió
+                if (existing.MatrixIndex != dto.MatrixIndex)
+                {
+                    existing.MatrixIndex = dto.MatrixIndex;
+                }
+            }
+            else
+            {
+                // Agregar nuevo componente
+                var component = await context.ChemicalComponents.FindAsync(dto.ComponentId);
+                if (component != null)
+                {
+                    entity.MethodComponents.Add(new MethodComponent
+                    {
+                        MethodId = entity.Id,
+                        ComponentId = component.Id,
+                        Component = component,
+                        MatrixIndex = dto.MatrixIndex
+                    });
+                }
+            }
+        }
+    }
+
+    // ==========================================
+    // HELPER: Sync BinaryParameters para EDIT
+    // ==========================================
+    private static async Task SyncBinaryParametersAsync(
+        ThermodynamicMethod entity,
+        List<BinaryInteractionParameterDto> dtoParams,
+        ApplicationDbContext context)
+    {
+        // Clave compuesta para identificar parámetros únicos
+        var existingList = entity.BinaryParameters.ToList();
+
+        // 🔹 REMOVER: Parámetros que ya no están en el DTO
+        foreach (var existing in existingList)
+        {
+            var existsInDto = dtoParams.Any(p =>
+                p.ComponentI_Id == existing.ComponentI_Id &&
+                p.ComponentJ_Id == existing.ComponentJ_Id &&
+                p.ParameterType == existing.ParameterType);
+
+            if (!existsInDto)
+            {
+                entity.BinaryParameters.Remove(existing);
+                context.BinaryInteractionParameters.Remove(existing); // ← CRÍTICO
+            }
+        }
+
+        // 🔹 AGREGAR/ACTUALIZAR: Parámetros del DTO
+        foreach (var dto in dtoParams)
+        {
+            var existing = existingList.FirstOrDefault(p =>
+                p.ComponentI_Id == dto.ComponentI_Id &&
+                p.ComponentJ_Id == dto.ComponentJ_Id &&
+                p.ParameterType == dto.ParameterType);
+
+            if (existing != null)
+            {
+                // Actualizar solo si el valor cambió (tolerancia para floats)
+                if (Math.Abs(existing.Value - dto.Value) > 0.0001)
+                {
+                    existing.Value = dto.Value;
+                }
+            }
+            else
+            {
+                // Agregar nuevo parámetro
+                var compI = await context.ChemicalComponents.FindAsync(dto.ComponentI_Id);
+                var compJ = await context.ChemicalComponents.FindAsync(dto.ComponentJ_Id);
+
+                if (compI != null && compJ != null)
+                {
+                    entity.BinaryParameters.Add(new BinaryInteractionParameter
+                    {
+                        MethodId = entity.Id,
+                        ComponentI_Id = compI.Id,
+                        ComponentI = compI,
+                        ComponentJ_Id = compJ.Id,
+                        ComponentJ = compJ,
+                        ParameterType = dto.ParameterType,
+                        Value = dto.Value
+                    });
+                }
+            }
+        }
+    }
 
 }

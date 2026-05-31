@@ -5,107 +5,142 @@ using Shared.UnitOperations.Streams;
 
 namespace Shared.UnitOperations.Basiss
 {
-    public abstract class EquipmentFacade : IFacade
+
+    // ───────────────────────────────────────────────────────────────
+    // 🔹 CLASE BASE: EquipmentFacade2 (con método virtual para nuevo solver)
+    // ───────────────────────────────────────────────────────────────
+    public abstract class EquipmentFacade2 : IEquipmentFacade2  // ← Sin ISolverEquationsProvider
     {
-        private List<IControlledVariable> _calculatedVariables = new();
-        protected void AddCalculatedVariable(IControlledVariable controlledVariable)
-        {
-            if (controlledVariable != null && !_calculatedVariables.Contains(controlledVariable))
-            {
-                _calculatedVariables.Add(controlledVariable);
-            }
-        }
-
-        public void ResetCalculatedVariable()
-        {
-            foreach (var controlledVariable in _calculatedVariables)
-            {
-                // 🚩 Ahora la variable se limpia a sí misma y avisa a su dueño (S-2)
-                // (Asegúrate de que IControlledVariable tenga la firma del método)
-                controlledVariable.RevertCalculatedValue();
-            }
-
-            _calculatedVariables.Clear();
-
-        }
-        public void Calculate()
-        {
-            ResetCalculatedVariable();
-            CalculatedEquipment();
-        }
-        protected virtual void CalculatedEquipment()
-        {
-
-        }
-
-
+        public Action? OnExecuteSolver { get; set; }
         public Guid Id { get; set; } = Guid.NewGuid();
         public string Name { get; set; } = string.Empty;
 
         public abstract string StatusText { get; }
-
         public abstract string StatusColor { get; }
-
         public abstract List<ToolTipLegend> GetToolTipLegend();
-        public abstract void AttachConnection(string portName, IFacade connectedFacade);
 
+        public abstract void AttachConnection(string portName, IStreamFacade2 connectedFacade);
         public abstract void DetachConnection(string portName);
 
-        public Action? OnExecuteSolver { get; set; }
+        // ═══════════════════════════════════════════════════════════
+        // 🔹 MÉTODOS PARA SOLVER VIEJO (se mantienen)
+        // ═══════════════════════════════════════════════════════════
+        public virtual EquationSystem GetEquationSystem() => new EquationSystem();
+        public virtual EquationSystem GetEquationConcentration() => new EquationSystem();
+        public virtual EquationSystem GetEquationPressure() => new EquationSystem();
 
-        public abstract void BuildEquations(EquationSystem eqs);
-
-        public abstract IEnumerable<INewVariable> GetSolverVariables();
-
-    }
-    public abstract class EquipmentFacade2 : IEquipmentFacade
-    {
-        public bool HasCalculatedVariables => _calculatedVariables.Count > 0;
-        private List<INewVariable> _calculatedVariables = new();
-        protected void AddCalculatedVariable(INewVariable controlledVariable)
-        {
-            if (controlledVariable != null && !_calculatedVariables.Contains(controlledVariable))
-            {
-                _calculatedVariables.Add(controlledVariable);
-            }
-        }
-        public Action? OnExecuteSolver { get; set; }
 
         protected void ExecuteSolver()
         {
             OnExecuteSolver?.Invoke();
         }
+        // ═══════════════════════════════════════════════════════════
+        // 🔹 HELPER: Limpieza de valores propagados
+        // ═══════════════════════════════════════════════════════════
+        protected void ClearPropagatedValues(IStreamFacade2 stream)
+        {
+            if (stream == null) return;
+
+            // Solo limpiar si fue definido por EquipmentSolver (respetar UI/Stream)
+            if (stream.MassFlow?.IsDefinedByEquipmentSolver == true)
+                stream.MassFlow.ClearFromEquipmentSolver();
+            if (stream.MassEnthalpy?.IsDefinedByEquipmentSolver == true)
+                stream.MassEnthalpy.ClearFromEquipmentSolver();
+            if (stream.Pressure?.IsDefinedByEquipmentSolver == true)
+                stream.Pressure.ClearFromEquipmentSolver();
+            if (stream.StreamComposition?.IsDefinedByEquipmentSolver == true)
+                stream.StreamComposition.ClearFromEquipmentSolver();
+        }
+    }
+
+    public abstract class EquipmentFacade : IEquipmentFacade
+    {
+        // ═══════════════════════════════════════════════════════════
+        // 🔹 IDENTIDAD
+        // ═══════════════════════════════════════════════════════════
         public Guid Id { get; set; } = Guid.NewGuid();
         public string Name { get; set; } = string.Empty;
 
+        // ═══════════════════════════════════════════════════════════
+        // 🔹 EVENTOS
+        // ═══════════════════════════════════════════════════════════
+        public Action? OnExecuteSolver { get; set; }
+
+        // ═══════════════════════════════════════════════════════════
+        // 🔹 UI/STATUS (abstracciones)
+        // ═══════════════════════════════════════════════════════════
         public abstract string StatusText { get; }
-
         public abstract string StatusColor { get; }
-
         public abstract List<ToolTipLegend> GetToolTipLegend();
-        public abstract void AttachConnection(string portName, IStreamFacade connectedFacade);
 
+        // ═══════════════════════════════════════════════════════════
+        // 🔹 CONEXIONES (abstracciones multi-puerto)
+        // ═══════════════════════════════════════════════════════════
+        public abstract void AttachConnection(string portName, IStreamFacade connectedFacade);
         public abstract void DetachConnection(string portName);
 
+        /// <summary>
+        /// Por defecto: sin puertos. Cada equipo sobrescribe para definir sus puertos.
+        /// </summary>
+        public virtual IEnumerable<string> GetPortNames() => Enumerable.Empty<string>();
 
-        public virtual EquationSystem GetEquationSystem()
+        /// <summary>
+        /// Por defecto: null. Cada equipo sobrescribe para retornar streams por puerto.
+        /// </summary>
+        public virtual IStreamFacade? GetConnectedStream(string portName) => null;
+
+        // ═══════════════════════════════════════════════════════════
+        // 🔹 VARIABLES CONTROLADAS (OCP: virtual para extender)
+        // ═══════════════════════════════════════════════════════════
+        /// <summary>
+        /// Por defecto: sin variables controladas. Cada equipo sobrescribe según necesite.
+        /// </summary>
+        public virtual IEnumerable<IVariable> GetControlledVariables() => Enumerable.Empty<IVariable>();
+
+        // ═══════════════════════════════════════════════════════════
+        // 🔹 ECUACIONES PARA SOLVER REACTIVO (OCP: virtual para extender)
+        // ═══════════════════════════════════════════════════════════
+        public virtual List<GlobalEquation> GetReactiveEquations(List<IVariable> allVariables)
         {
-
-            return new EquationSystem();
+            return new List<GlobalEquation>();
         }
-        public virtual EquationSystem GetEquationConcentration()
+
+        // ═══════════════════════════════════════════════════════════
+        // 🔹 PROTEGIDO: Ejecutar solver
+        // ═══════════════════════════════════════════════════════════
+        protected void ExecuteSolver() => OnExecuteSolver?.Invoke();
+
+        // ═══════════════════════════════════════════════════════════
+        // 🔹 PROTEGIDO: Limpieza condicional
+        // ═══════════════════════════════════════════════════════════
+        protected void ClearCalculatedValues(IStreamFacade stream)
         {
-            return new EquationSystem();
+            if (stream == null) return;
+            ClearIfNotUI(stream.Pressure);
+            ClearIfNotUI(stream.Temperature);
+            ClearIfNotUI(stream.MassFlow);
+            ClearIfNotUI(stream.MassEnthalpy);
+            ClearIfNotUI(stream.StreamComposition);
         }
-        public virtual EquationSystem GetEquationPressure()
+
+        private void ClearIfNotUI(IVariable variable)
         {
-            return new EquationSystem();
+            if (variable != null && !variable.IsDefinedByUI)
+                variable.ClearFromStream();
         }
 
-        public void AttachConnection(string portName, IFacade connectedFacade)
+        // ═══════════════════════════════════════════════════════════
+        // 🔹 PROTEGIDO: Helper para obtener valor de variable
+        // ═══════════════════════════════════════════════════════════
+        protected double GetVarValue(List<IVariable> vars, IVariable target)
         {
-
+            if (target == null) return 0;
+            var found = vars?.FirstOrDefault(v => v == target)
+                     ?? vars?.FirstOrDefault(v => v?.Index == target.Index);
+            return found?.GetEffectiveSolverValue() ?? target.GetSolverValue();
         }
-
     }
+
+
+
 }

@@ -1,18 +1,20 @@
-﻿using Shared.Thermodynamics.Phases;
+﻿using Shared.SolverQwen.Stream;
+using Shared.SolverQwen.Variables;
+using Shared.Thermodynamics.Phases;
 using Shared.UnitOperations.Streams;
 using UnitSystem;
 
 namespace Shared.Thermodynamics.Strategies.Equlibriums
-{   // ✅ NUEVO ARCHIVO: IEquilibriumContext.cs
+{
     public class PFVVaporStrategy : IEquilibriumStrategy
     {
-        private readonly StreamSimulationFacade _facade;
-        private MaterialStream Stream => _facade.MaterialStream;
+        private readonly IFacadeStream _facade;
+        private IMaterialStream Stream => _facade.MaterialStream;
 
         // Tolerancias locales
-    
 
-        public PFVVaporStrategy(StreamSimulationFacade facade)
+
+        public PFVVaporStrategy(IFacadeStream facade)
         {
             _facade = facade;
         }
@@ -21,23 +23,22 @@ namespace Shared.Thermodynamics.Strategies.Equlibriums
         {
 
 
-            double tBubble = Stream.SolveSaturationTemperature();
+            Stream.SolveSaturationTemperature();
 
+          
             // ✅ 4. Actualizar UI con resultado calculado
-            var temperature = _facade.Temperature.Value;
-            temperature!.SetValue(tBubble, TemperatureUnits.Kelvin);
-            // ✅ 4. Actualizar UI con resultado calculado
-            _facade.Temperature.SetValueCalculated(temperature, _facade.Name);
-            
+            _facade.Temperature.SetValue(Stream.Temperature, VariableDataProcedence.StreamCalculated);
+            _facade.MaterialStream.CalculateBulkProperties();
+            _facade.MassEnthalpy.SetValue(_facade.MaterialStream.MassEnthalpy, VariableDataProcedence.StreamCalculated);
 
         }
 
-       
 
-       
-        
+
+
+
     }
-    public class PFVVaporStrategy2 : IEquilibriumStrategy
+    public class PFVVaporStrategy3 : IEquilibriumStrategy
     {
         private readonly IStreamFacade _facade;
         private IMaterialStream Stream => _facade.MaterialStream;
@@ -45,7 +46,7 @@ namespace Shared.Thermodynamics.Strategies.Equlibriums
         // Tolerancias locales
 
 
-        public PFVVaporStrategy2(IStreamFacade facade)
+        public PFVVaporStrategy3(IStreamFacade facade)
         {
             _facade = facade;
         }
@@ -54,15 +55,49 @@ namespace Shared.Thermodynamics.Strategies.Equlibriums
         {
 
 
-            double tBubble = Stream.SolveSaturationTemperature();
+            //double tBubble = Stream.SolveSaturationTemperature();
 
-            // ✅ 4. Actualizar UI con resultado calculado
-            var temperature = _facade.Temperature.Value;
-            temperature!.SetValue(tBubble, TemperatureUnits.Kelvin);
-            // ✅ 4. Actualizar UI con resultado calculado
-            _facade.Temperature.SetValueFromStream(temperature, _facade.Name);
-            _facade.MaterialStream.CalculateBulkProperties();
-            _facade.MolarEnthalpy.SetValueFromStream(_facade.MaterialStream.MolarEnthalpy, _facade.Name);
+            //// ✅ 4. Actualizar UI con resultado calculado
+            //var temperature = _facade.Temperature.Value;
+            //temperature!.SetValue(tBubble, TemperatureUnits.Kelvin);
+            //// ✅ 4. Actualizar UI con resultado calculado
+            //_facade.Temperature.SetValueFromStream(temperature, _facade.Name);
+            //_facade.MaterialStream.CalculateBulkProperties();
+            //_facade.MassEnthalpy.SetValueFromStream(_facade.MaterialStream.MassEnthalpy, _facade.Name);
+
+        }
+
+
+
+
+
+    }
+    public class PFVVaporStrategy2 : IEquilibriumStrategy
+    {
+        private readonly IStreamFacade2 _facade;
+        private IMaterialStream Stream => _facade.MaterialStream;
+
+        // Tolerancias locales
+
+
+        public PFVVaporStrategy2(IStreamFacade2 facade)
+        {
+            _facade = facade;
+        }
+
+        public void Execute()
+        {
+
+
+            //double tBubble = Stream.SolveSaturationTemperature();
+
+            //// ✅ 4. Actualizar UI con resultado calculado
+            //var temperature = _facade.Temperature.Value;
+            //temperature!.SetValue(tBubble, TemperatureUnits.Kelvin);
+            //// ✅ 4. Actualizar UI con resultado calculado
+            //_facade.Temperature.SetValueFromStream(temperature, _facade.Name);
+            //_facade.MaterialStream.CalculateBulkProperties();
+            //_facade.MassEnthalpy.SetValueFromStream(_facade.MaterialStream.MassEnthalpy, _facade.Name);
 
         }
 

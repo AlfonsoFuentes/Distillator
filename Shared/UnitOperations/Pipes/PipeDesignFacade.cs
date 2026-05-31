@@ -2,13 +2,14 @@
 using Shared.ProcessFlowDiagram;
 using Shared.Thermodynamics.ControlledVariables;
 using Shared.UnitOperations.Basiss;
+using Shared.UnitOperations.Streams;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace Shared.UnitOperations.Pipes
 {
-    public class PipeDesignFacade : EquipmentFacade
+    public class PipeDesignFacade : EquipmentFacade2
     {
 
 
@@ -23,7 +24,7 @@ namespace Shared.UnitOperations.Pipes
 
         }
 
-        public override void AttachConnection(string portName, IFacade connectedFacade)
+        public override void AttachConnection(string portName, IStreamFacade2 connectedFacade)
         {
 
         }
@@ -33,18 +34,6 @@ namespace Shared.UnitOperations.Pipes
         }
 
 
-        protected override void CalculatedEquipment()
-        {
-
-        }
-        public override void BuildEquations(EquationSystem eqs)
-        {
-
-        }
-
-        public override IEnumerable<INewVariable> GetSolverVariables()
-        {
-            return null!;
-        }
+       
     }
 }

@@ -1,57 +1,80 @@
-﻿using Shared.UnitOperations.Streams;
-using UnitSystem;
+﻿using Shared.SolverQwen.Stream;
+using Shared.SolverQwen.Variables;
+using Shared.UnitOperations.Streams;
 
 namespace Shared.Thermodynamics.Strategies.Equlibriums
-{   // ✅ NUEVO ARCHIVO: IEquilibriumContext.cs
+{
     public class PHStrategy : IEquilibriumStrategy
     {
-        private readonly StreamSimulationFacade _facade;
-        public PHStrategy(StreamSimulationFacade facade) => _facade = facade;
+        private readonly IFacadeStream _facade;
+        public PHStrategy(IFacadeStream facade) => _facade = facade;
 
         public void Execute()
         {
-            var pres = _facade.Pressure.Value!;
-            var enth = _facade.MolarEnthalpy.Value!; // Asume que inyectaste la entalpía objetivo aquí
+          
 
             // 1. Ejecutar Flash Riguroso
-            _facade.MaterialStream.PerformFlashPH(pres, enth);
+            _facade.MaterialStream.PerformFlashPH();
 
-            // 2. Extraer T y VF calculados
-            var temp = _facade.Temperature.Value ?? new Temperature(0, TemperatureUnits.Kelvin);
-            temp.SetValue(_facade.MaterialStream.Temperature.GetValue(TemperatureUnits.Kelvin), TemperatureUnits.Kelvin);
-
-            double calculatedVF = _facade.MaterialStream.VaporFraction;
+           
 
             // 3. Registrar en Facade
-            _facade.Temperature.SetValueCalculated(temp, _facade.Name);
-            _facade.VaporFraction.SetValueCalculated(calculatedVF, _facade.Name);
+            _facade.Temperature.SetValue(_facade.MaterialStream.Temperature, VariableDataProcedence.StreamCalculated);
 
+            _facade.VaporFraction.SetValue(_facade.MaterialStream.VaporFraction, VariableDataProcedence.StreamCalculated);
+            _facade.MaterialStream.CalculateBulkProperties();
+
+        }
+    }
+    public class PHStrategy3 : IEquilibriumStrategy
+    {
+        private readonly IStreamFacade _facade;
+        public PHStrategy3(IStreamFacade facade) => _facade = facade;
+
+        public void Execute()
+        {
+            //var pres = _facade.Pressure.Value!;
+            //var massen = _facade.MassEnthalpy.Value;
+
+            //// 1. Ejecutar Flash Riguroso
+            //_facade.MaterialStream.PerformFlashPH(pres, massen);
+
+            //// 2. Extraer T y VF calculados
+
+
+            //double calculatedVF = _facade.MaterialStream.VaporFraction;
+
+            //// 3. Registrar en Facade
+            //_facade.Temperature.SetValueFromStream(_facade.MaterialStream.Temperature, _facade.Name);
+
+            //_facade.VaporFraction.SetValueFromStream(calculatedVF, _facade.Name);
+            //_facade.MaterialStream.CalculateBulkProperties();
 
         }
     }
     public class PHStrategy2 : IEquilibriumStrategy
     {
-        private readonly IStreamFacade _facade;
-        public PHStrategy2(IStreamFacade facade) => _facade = facade;
+        private readonly IStreamFacade2 _facade;
+        public PHStrategy2(IStreamFacade2 facade) => _facade = facade;
 
         public void Execute()
         {
-            var pres = _facade.Pressure.Value!;
-            var enth = _facade.MolarEnthalpy.Value!; // Asume que inyectaste la entalpía objetivo aquí
+            //var pres = _facade.Pressure.Value!;
+            //var massen = _facade.MassEnthalpy.Value;
+         
+            //// 1. Ejecutar Flash Riguroso
+            //_facade.MaterialStream.PerformFlashPH(pres, massen);
 
-            // 1. Ejecutar Flash Riguroso
-            _facade.MaterialStream.PerformFlashPH(pres, enth);
-
-            // 2. Extraer T y VF calculados
+            //// 2. Extraer T y VF calculados
 
 
-            double calculatedVF = _facade.MaterialStream.VaporFraction;
+            //double calculatedVF = _facade.MaterialStream.VaporFraction;
 
-            // 3. Registrar en Facade
-            _facade.Temperature.SetValueFromStream(_facade.MaterialStream.Temperature, _facade.Name);
+            //// 3. Registrar en Facade
+            //_facade.Temperature.SetValueFromStream(_facade.MaterialStream.Temperature, _facade.Name);
 
-            _facade.VaporFraction.SetValueFromStream(calculatedVF, _facade.Name);
-            _facade.MaterialStream.CalculateBulkProperties();
+            //_facade.VaporFraction.SetValueFromStream(calculatedVF, _facade.Name);
+            //_facade.MaterialStream.CalculateBulkProperties();
 
         }
     }

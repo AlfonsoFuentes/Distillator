@@ -82,8 +82,11 @@ namespace Shared.Thermodynamics.Phases
                     if (i == j) { tau[i, j] = 0; G[i, j] = 1; }
                     else
                     {
-                        tau[i, j] = matrices[0][i, j] + (matrices[1][i, j] / tempK);
-                        G[i, j] = Math.Exp(-matrices[2][i, j] * tau[i, j]);
+                        double m0 = matrices[0][i, j];
+                        double m1 = matrices[1][i, j];
+                        double m2 = matrices[2][i, j];
+                        tau[i, j] = m0 + (m1 / tempK);
+                        G[i, j] = Math.Exp(-m2 * tau[i, j]);
                     }
                 }
 

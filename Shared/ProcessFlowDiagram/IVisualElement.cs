@@ -1,4 +1,5 @@
 ﻿using Shared.UnitOperations.Basiss;
+using Shared.UnitOperations.Streams;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -245,8 +246,6 @@ namespace Shared.ProcessFlowDiagram
 
             return isCompatible;
         }
-
-
         public bool Connect(string myPortName, IVisualElement targetElement, string targetPortName)
         {
             if (!CanConnect(myPortName, targetElement, targetPortName)) return false;
@@ -258,26 +257,66 @@ namespace Shared.ProcessFlowDiagram
             myPort.ConnectedElementId = targetElement.Id;
             targetPort.ConnectedElementId = this.Id;
 
-            // 2. Avisamos a los "Cerebros" (Facades) para que crucen la termodinámica
-            this.Facade?.AttachConnection(myPortName, targetElement.Facade!);
-            targetElement.Facade?.AttachConnection(targetPortName, this.Facade!);
+            // 🔥 2. NUEVA LÓGICA: Solo equipos llaman AttachConnection hacia corrientes
+            if (this.Facade is IEquipmentFacade2 myEquipment && targetElement.Facade is IStreamFacade2 targetStream)
+            {
+                myEquipment.AttachConnection(myPortName, targetStream);
+            }
+            else if (targetElement.Facade is IEquipmentFacade2 targetEquipment && this.Facade is IStreamFacade2 myStream)
+            {
+                targetEquipment.AttachConnection(targetPortName, myStream);
+            }
+            // Si ninguno es equipo, no hacer nada (CanConnect ya garantiza que uno es equipo y otro stream)
 
             return true;
         }
 
+        //public bool Connect(string myPortName, IVisualElement targetElement, string targetPortName)
+        //{
+        //    if (!CanConnect(myPortName, targetElement, targetPortName)) return false;
+
+        //    var myPort = Ports.First(p => p.Name == myPortName);
+        //    var targetPort = targetElement.Ports.First(p => p.Name == targetPortName);
+
+        //    // 1. Bloqueamos los puertos visualmente cruzando los IDs
+        //    myPort.ConnectedElementId = targetElement.Id;
+        //    targetPort.ConnectedElementId = this.Id;
+
+        //    // 2. Avisamos a los "Cerebros" (Facades) para que crucen la termodinámica
+        //    this.Facade?.AttachConnection(myPortName, targetElement.Facade!);
+        //    targetElement.Facade?.AttachConnection(targetPortName, this.Facade!);
+
+        //    return true;
+        //}
         public void Disconnect(string myPortName)
         {
             var myPort = Ports.FirstOrDefault(p => p.Name == myPortName);
             if (myPort == null || myPort.ConnectedElementId == null) return;
 
-            // Avisamos al cerebro que soltamos el tubo
-            this.Facade?.DetachConnection(myPortName);
+            // 🔥 NUEVA LÓGICA: Solo equipos implementan DetachConnection
+            if (this.Facade is IEquipmentFacade2 equipment)
+            {
+                equipment.DetachConnection(myPortName);
+            }
 
             // Liberamos el puerto en la UI
             myPort.ConnectedElementId = null;
 
-            // Nota: El lienzo también deberá llamar al Disconnect del otro equipo para que queden libres ambos
+            // Nota: El lienzo también deberá llamar al Disconnect del otro elemento
         }
+        //public void Disconnect(string myPortName)
+        //{
+        //    var myPort = Ports.FirstOrDefault(p => p.Name == myPortName);
+        //    if (myPort == null || myPort.ConnectedElementId == null) return;
+
+        //    // Avisamos al cerebro que soltamos el tubo
+        //    this.Facade?.DetachConnection(myPortName);
+
+        //    // Liberamos el puerto en la UI
+        //    myPort.ConnectedElementId = null;
+
+        //    // Nota: El lienzo también deberá llamar al Disconnect del otro equipo para que queden libres ambos
+        //}
         public void ToggleFlipHorizontal() { if (AllowFlipHorizontal) IsFlippedHorizontal = !IsFlippedHorizontal; }
         public void ToggleFlipVertical() { if (AllowFlipVertical) IsFlippedVertical = !IsFlippedVertical; }
         public void Rotate90()

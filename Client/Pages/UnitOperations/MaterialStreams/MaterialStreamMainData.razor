@@ -16,18 +16,7 @@
 
 
 
-    @* 3. THERMODYNAMIC METHOD *@
-  @*   <UnifiedListRow TItem="ThermodynamicMethodFullDto"
-                    TValue="ThermodynamicMethodFullDto"
-                    Label="Thermodynamic Method"
-                    Variable="Facade.ThermodynamicMethod"
-                    Items="AvailableMethods"
-                    TextSelector="m => m.Name"
-                    ValueSelector="m => m"
-                    CustomComparer="(v1, v2) => v1.Id == v2.Id"
-                    Mode="VariableMode.Compact"
-                    OnItemSelected="HandleMethodSelection"
-                    OnCleared="HandleMethodClear" /> *@
+
 
 
     <NewUnifiedDoubleRow Label="Vapor Fraction"
@@ -58,7 +47,7 @@
 </div>
 
 @code {
-    [Parameter, EditorRequired] public StreamFacade Facade { get; set; } = default!;
+    [Parameter, EditorRequired] public StreamFacade2 Facade { get; set; } = default!;
     // [Parameter, EditorRequired] public List<ThermodynamicMethodFullDto> AvailableMethods { get; set; } = new();
 
     private bool CheckDuplicateName(string newName)
@@ -74,26 +63,5 @@
         Facade.Name = NamingService.GenerateNextName("S");
         StateHasChanged();
     }
-    // private async Task HandleMethodSelection(ThermodynamicMethodFullDto selectedMethod)
-    // {
-    //     if (Facade.ThermodynamicMethod == null) return;
-
-    //     // Llamamos al backend tal como usted lo hacía antes
-    //     var result = await HttpServices.PostAsync<GetMethodFullRequest, Result<ThermodynamicMethodFullDto>>(new GetMethodFullRequest(selectedMethod.Id));
-
-    //     if (result.Succeeded && result.Data != null)
-    //     {
-    //         Facade.ThermodynamicMethod.SetValue(result.Data, MethodSource.UserInterface);
-    //         StateHasChanged();
-    //     }
-    // }
-
-    // private async Task HandleMethodClear()
-    // {
-    //     if (Facade.ThermodynamicMethod == null) return;
-
-    //     // Limpiamos o cambiamos el Source
-    //     Facade.ThermodynamicMethod.Source = MethodSource.None;
-    //     StateHasChanged();
-    // }
+  
 }

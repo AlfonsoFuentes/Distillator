@@ -31,62 +31,60 @@ namespace Shared.Thermodynamics.Solvers
         /// <param name="x1">Límite inferior inicial</param>
         /// <param name="x2">Límite superior inicial</param>
         /// <returns>Resultado con valor convergido, estado de convergencia e iteraciones</returns>
-        public static SecantResult Solve(Func<double, double> func, double x1, double x2, double guess)
+        public static SecantResult Solve(Func<double, double> func, double guess)
         {
-            double p1 = x1;
-            double p2 = (guess > 0 && guess >= x1 && guess <= x2) ? guess : x2;
+            // 🔹 1. EL "ARRANQUE" (Reemplaza tu bloque 'else' y elimina x1/x2)
+            double p1 = guess;
+            double sumaAnterior = func(p1);
+
+            // Fabricamos el p2 basándonos en el guess (nunca en cero)
+            // Usamos Math.Max por si acaso el guess que llega es 0.0
+            double perturbation = ThermodynamicConstants.SecantInitialPerturbation;
+            if (guess > 0) perturbation = guess * 0.01; // Perturbación del 1% es más estable
+
+            double p2 = guess + perturbation;
+
             double sumaActual = 0.0;
-            double sumaAnterior = 0.0;
-            bool formula = false;
             int iter = 0;
             bool converged = false;
 
+            // 🔹 2. EL MOTOR (Sin el 'if (formula)', puro cálculo directo)
             do
             {
                 iter++;
                 sumaActual = func(p2);
 
-                if (formula)
+                // ✅ Verificar convergencia
+                if (Math.Abs(sumaActual) < ThermodynamicConstants.MinPositiveValue)
                 {
-                    // ✅ Verificar convergencia
-                    if (Math.Abs(sumaActual) < ThermodynamicConstants.MinPositiveValue)
-                    {
-                        converged = true;
-                        break;
-                    }
+                    converged = true;
+                    break;
+                }
 
-                    // ✅ Método de la Secante: p_new = p2 - m * sumaActual
-                    double denominator = sumaActual - sumaAnterior;
-                    if (Math.Abs(denominator) > ThermodynamicConstants.ValueChangeEpsilon)
-                    {
-                        double m = (p2 - p1) / denominator;
-                        double b = p2 - m * sumaActual;
+                // ✅ Método de la Secante
+                double denominator = sumaActual - sumaAnterior;
 
-                        p1 = p2;
-                        sumaAnterior = sumaActual;
-                        p2 = b;
+                if (Math.Abs(denominator) > ThermodynamicConstants.ValueChangeEpsilon)
+                {
+                    double m = (p2 - p1) / denominator;
+                    double pNew = p2 - m * sumaActual;
 
-                        // Si la presión se vuelve negativa, reiniciar con límite inferior
-                        if (p2 < 0)
-                        {
-                            p2 = x1;
-                            formula = false;
-                        }
-                    }
-                    else
+                    p1 = p2;
+                    sumaAnterior = sumaActual;
+                    p2 = pNew;
+
+                    // Si la presión se vuelve negativa, frenamos el desplome
+                    if (p2 <= 0)
                     {
-                        // Evitar división por cero
-                        p2 = x1;
-                        formula = false;
+                        // En lugar de mandarlo a 0 (que daña la termodinámica), 
+                        // lo frenamos en un valor pequeño positivo
+                        p2 = guess * 0.1;
                     }
                 }
                 else
                 {
-                    // ✅ Primera iteración: preparar para secante
-                    p1 = p2;
-                    sumaAnterior = sumaActual;
-                    p2 = x2 - ThermodynamicConstants.SecantInitialPerturbation;  // Pequeña perturbación inicial
-                    formula = true;
+                    // Evitar división por cero si la curva se aplanó
+                    break;
                 }
 
                 // ✅ Límite de iteraciones

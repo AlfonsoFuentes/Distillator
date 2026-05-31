@@ -13,86 +13,86 @@ namespace Shared.UnitOperations.HeatExchangers
 
     public enum PlateExchangerStateType { Created, PartiallyConnected, ReadyToCalculate, Solved }
 
-    public class PlateExchangerSimulationFacade : EquipmentFacade
-    {
-        public PlateExchangerStateType State { get; set; } = PlateExchangerStateType.Created;
+    //public class PlateExchangerSimulationFacade : EquipmentFacade
+    //{
+    //    public PlateExchangerStateType State { get; set; } = PlateExchangerStateType.Created;
 
-        // --- Lado Caliente (Hot Side) ---
-        public StreamSimulationFacade? HotInStream { get; private set; }
-        public StreamSimulationFacade? HotOutStream { get; private set; }
+    //    // --- Lado Caliente (Hot Side) ---
+    //    public StreamSimulationFacade? HotInStream { get; private set; }
+    //    public StreamSimulationFacade? HotOutStream { get; private set; }
 
-        // --- Lado Frío (Cold Side) ---
-        public StreamSimulationFacade? ColdInStream { get; private set; }
-        public StreamSimulationFacade? ColdOutStream { get; private set; }
+    //    // --- Lado Frío (Cold Side) ---
+    //    public StreamSimulationFacade? ColdInStream { get; private set; }
+    //    public StreamSimulationFacade? ColdOutStream { get; private set; }
 
-        public override string StatusColor => State switch
-        {
-            PlateExchangerStateType.Created => "#CBD5E0",
-            PlateExchangerStateType.PartiallyConnected => "#F6AD55",
-            PlateExchangerStateType.ReadyToCalculate => "#63B3ED",
-            PlateExchangerStateType.Solved => "#34D399",
-            _ => "#CBD5E0"
-        };
+    //    public override string StatusColor => State switch
+    //    {
+    //        PlateExchangerStateType.Created => "#CBD5E0",
+    //        PlateExchangerStateType.PartiallyConnected => "#F6AD55",
+    //        PlateExchangerStateType.ReadyToCalculate => "#63B3ED",
+    //        PlateExchangerStateType.Solved => "#34D399",
+    //        _ => "#CBD5E0"
+    //    };
 
-        public override string StatusText => State switch
-        {
-            PlateExchangerStateType.Created => "Ready",
-            PlateExchangerStateType.PartiallyConnected => "Underspecified",
-            PlateExchangerStateType.ReadyToCalculate => "Ready to Solve",
-            PlateExchangerStateType.Solved => "Converged",
-            _ => "Unknown"
-        };
+    //    public override string StatusText => State switch
+    //    {
+    //        PlateExchangerStateType.Created => "Ready",
+    //        PlateExchangerStateType.PartiallyConnected => "Underspecified",
+    //        PlateExchangerStateType.ReadyToCalculate => "Ready to Solve",
+    //        PlateExchangerStateType.Solved => "Converged",
+    //        _ => "Unknown"
+    //    };
 
-        public override List<ToolTipLegend> GetToolTipLegend()
-        {
-            return new List<ToolTipLegend>();
-        }
+    //    public override List<ToolTipLegend> GetToolTipLegend()
+    //    {
+    //        return new List<ToolTipLegend>();
+    //    }
 
-        public override void AttachConnection(string portName, IFacade connectedFacade)
-        {
-            var stream = connectedFacade as StreamSimulationFacade;
-            if (stream == null) return;
+    //    public override void AttachConnection(string portName, IFacade connectedFacade)
+    //    {
+    //        var stream = connectedFacade as StreamSimulationFacade;
+    //        if (stream == null) return;
 
-            if (portName == "HotIn") HotInStream = stream;
-            else if (portName == "HotOut") HotOutStream = stream;
-            else if (portName == "ColdIn") ColdInStream = stream;
-            else if (portName == "ColdOut") ColdOutStream = stream;
+    //        if (portName == "HotIn") HotInStream = stream;
+    //        else if (portName == "HotOut") HotOutStream = stream;
+    //        else if (portName == "ColdIn") ColdInStream = stream;
+    //        else if (portName == "ColdOut") ColdOutStream = stream;
 
            
-        }
+    //    }
 
-        public override void DetachConnection(string portName)
-        {
-            if (portName == "HotIn") HotInStream = null;
-            else if (portName == "HotOut") HotOutStream = null;
-            else if (portName == "ColdIn") ColdInStream = null;
-            else if (portName == "ColdOut") ColdOutStream = null;
+    //    public override void DetachConnection(string portName)
+    //    {
+    //        if (portName == "HotIn") HotInStream = null;
+    //        else if (portName == "HotOut") HotOutStream = null;
+    //        else if (portName == "ColdIn") ColdInStream = null;
+    //        else if (portName == "ColdOut") ColdOutStream = null;
 
     
-        }
+    //    }
 
-        protected override void CalculatedEquipment()
-        {
-            // Placeholder para balance térmico
-            State = PlateExchangerStateType.ReadyToCalculate;
-        }
-        public override void BuildEquations(EquationSystem eqs)
-        {
+    //    protected override void CalculatedEquipment()
+    //    {
+    //        // Placeholder para balance térmico
+    //        State = PlateExchangerStateType.ReadyToCalculate;
+    //    }
+    //    public override void BuildEquations(EquationSystem eqs)
+    //    {
 
-        }
+    //    }
 
-        public override IEnumerable<INewVariable> GetSolverVariables()
-        {
-            return null!;
-        }
-    }
+    //    public override IEnumerable<INewVariable> GetSolverVariables()
+    //    {
+    //        return null!;
+    //    }
+    //}
     public class PlateExchangerSimulationFacade2 : EquipmentFacade2
     {
         public PlateExchangerStateType State { get; set; } = PlateExchangerStateType.Created;
-        public IStreamFacade? HotIn { get; private set; }
-        public IStreamFacade? HotOut { get; private set; }
-        public IStreamFacade? ColdIn { get; private set; }
-        public IStreamFacade? ColdOut { get; private set; }
+        public IStreamFacade2? HotIn { get; private set; }
+        public IStreamFacade2? HotOut { get; private set; }
+        public IStreamFacade2? ColdIn { get; private set; }
+        public IStreamFacade2? ColdOut { get; private set; }
 
         public override string StatusText => State switch
         {
@@ -114,7 +114,7 @@ namespace Shared.UnitOperations.HeatExchangers
 
         public override List<ToolTipLegend> GetToolTipLegend() => new();
 
-        public override void AttachConnection(string portName, IStreamFacade connectedFacade)
+        public override void AttachConnection(string portName, IStreamFacade2 connectedFacade)
         {
             if (portName == "HotIn") HotIn = connectedFacade;
             else if (portName == "HotOut") HotOut = connectedFacade;

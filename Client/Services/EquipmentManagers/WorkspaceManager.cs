@@ -31,7 +31,7 @@ namespace Client.Services.EquipmentManagers
         }
 
         private readonly IEquipmentFactory _factory;
-        private readonly SolverMatrixManager _plantManager;
+        private readonly SolverMatrixManager2 _plantManager;
 
         // ==============================================================================
         // ESTADO INTERNO (RECUPERADO DE TU BACKUP)
@@ -73,7 +73,7 @@ namespace Client.Services.EquipmentManagers
         public double DraftMouseLogicalX { get; private set; }
         public double DraftMouseLogicalY { get; private set; }
 
-        public WorkspaceManager(IEquipmentFactory factory, SolverMatrixManager plantManager)
+        public WorkspaceManager(IEquipmentFactory factory, SolverMatrixManager2 plantManager)
         {
             _factory = factory;
             _plantManager = plantManager;
@@ -141,8 +141,8 @@ namespace Client.Services.EquipmentManagers
                 Elements.Add(el);
                 if (el.Facade != null)
                 {
-                    if (el.Facade is IStreamFacade s) _plantManager.RegisterStream(s);
-                    else if (el.Facade is IEquipmentFacade e) _plantManager.RegisterEquipment(e);
+                    if (el.Facade is IStreamFacade2 s) _plantManager.RegisterStream(s);
+                    else if (el.Facade is IEquipmentFacade2 e) _plantManager.RegisterEquipment(e);
                 }
                 UpdateDiagramSize();
                 NotifyStateChanged();
@@ -237,6 +237,7 @@ namespace Client.Services.EquipmentManagers
         }
 
         public void CancelConnectionDraft() { CurrentDraftPipe = null; NotifyStateChanged(); }
+       
         public void CompleteConnection(IVisualElement target, string targetPortName)
         {
             if (CurrentDraftPipe == null || CurrentDraftPipe.SourceElement == null) return;
@@ -254,33 +255,21 @@ namespace Client.Services.EquipmentManagers
 
             Pipes.Add(CurrentDraftPipe);
 
-            if (CurrentDraftPipe.SourceElement.Facade != null && target.Facade != null)
+            // 🔥 NUEVA LÓGICA: Solo equipos llaman AttachConnection
+            if (CurrentDraftPipe.SourceElement.Facade is IEquipmentFacade2 sourceEquipment && target.Facade is IStreamFacade2 targetStream)
             {
-                // 1. Se dan la mano en absoluto silencio
-                CurrentDraftPipe.SourceElement.Facade.AttachConnection(CurrentDraftPipe.SourcePortName, target.Facade);
-                target.Facade.AttachConnection(targetPortName, CurrentDraftPipe.SourceElement.Facade);
-
-                // 2. 🛡️ Búsqueda del "Escudo" (La Corriente)
-                IFacade triggerFacade = target.Facade; // Target por defecto
-
-                if (CurrentDraftPipe.SourceElement.Facade is StreamSimulationFacade)
-                {
-                    triggerFacade = CurrentDraftPipe.SourceElement.Facade;
-                }
-                else if (target.Facade is StreamSimulationFacade)
-                {
-                    triggerFacade = target.Facade;
-                }
-
-                // 3. 📢 ¡Disparo único al Solver protegiendo a la corriente!
-
+                sourceEquipment.AttachConnection(CurrentDraftPipe.SourcePortName, targetStream);
             }
+            else if (target.Facade is IEquipmentFacade2 targetEquipment && CurrentDraftPipe.SourceElement.Facade is IStreamFacade2 sourceStream)
+            {
+                targetEquipment.AttachConnection(targetPortName, sourceStream);
+            }
+            // CanConnect ya garantiza que uno es equipo y otro stream, así que uno de los dos if se ejecutará
 
             CurrentDraftPipe = null;
             SetConnectionMode(false);
             NotifyStateChanged();
         }
-   
 
         public bool IsValidTarget(IVisualElement target, string targetPortName)
         {
@@ -346,11 +335,13 @@ namespace Client.Services.EquipmentManagers
             rOpc.Ports.First(p => p.Name == "Transfer").ConnectedElementId = remStream.Id;
 
             // 2. Conectar los Cerebros Termodinámicos DIRECTAMENTE
-            // ¡Esto es lo que lee el Diálogo de Propiedades para mostrar "S-101"!
-            if (localEquip.Facade != null && remStream.Facade != null)
+            if (localEquip.Facade is IEquipmentFacade2 localEquipment && remStream.Facade is IStreamFacade2 remoteStream)
             {
-                localEquip.Facade.AttachConnection(localPortName, remStream.Facade);
-                remStream.Facade.AttachConnection(remPortName, localEquip.Facade);
+                localEquipment.AttachConnection(localPortName, remoteStream);
+            }
+            else if (remStream.Facade is IEquipmentFacade2 remoteEquipment && localEquip.Facade is IStreamFacade2 localStream)
+            {
+                remoteEquipment.AttachConnection(remPortName, localStream);
             }
 
             // =========================================================
@@ -413,7 +404,7 @@ namespace Client.Services.EquipmentManagers
                     stream.Facade.Name = name; // Que el cerebro también sepa cómo se llama
 
                     // 🚩 3. ¡LA MAGIA! Registramos la corriente en el Solver
-                    if (stream.Facade is IStreamFacade s)
+                    if (stream.Facade is IStreamFacade2 s)
                     {
                         _plantManager.RegisterStream(s);
                     }

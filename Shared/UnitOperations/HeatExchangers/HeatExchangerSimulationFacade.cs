@@ -14,114 +14,114 @@ namespace Shared.UnitOperations.HeatExchangers
 
     public enum HeatExchangerStateType { Created, PartiallyConnected, ReadyToCalculate, Solved }
 
-    public class HeatExchangerSimulationFacade : EquipmentFacade
-    {
-        public HeatExchangerStateType State { get; set; } = HeatExchangerStateType.Created;
+    //public class HeatExchangerSimulationFacade : EquipmentFacade
+    //{
+    //    public HeatExchangerStateType State { get; set; } = HeatExchangerStateType.Created;
 
-        // --- Lado de los Tubos ---
-        public StreamSimulationFacade? TubeInStream { get; private set; }
-        public StreamSimulationFacade? TubeOutStream { get; private set; }
+    //    // --- Lado de los Tubos ---
+    //    public StreamSimulationFacade? TubeInStream { get; private set; }
+    //    public StreamSimulationFacade? TubeOutStream { get; private set; }
 
-        // --- Lado de la Coraza (Shell) ---
-        public StreamSimulationFacade? ShellInStream { get; private set; }
-        public StreamSimulationFacade? CondensateOutStream { get; private set; }
-        public StreamSimulationFacade? VaporVentStream { get; private set; }
+    //    // --- Lado de la Coraza (Shell) ---
+    //    public StreamSimulationFacade? ShellInStream { get; private set; }
+    //    public StreamSimulationFacade? CondensateOutStream { get; private set; }
+    //    public StreamSimulationFacade? VaporVentStream { get; private set; }
 
-        public override string StatusColor => State switch
-        {
-            HeatExchangerStateType.Created => "#CBD5E0",
-            HeatExchangerStateType.PartiallyConnected => "#F6AD55",
-            HeatExchangerStateType.ReadyToCalculate => "#63B3ED",
-            HeatExchangerStateType.Solved => "#34D399",
-            _ => "#CBD5E0"
-        };
+    //    public override string StatusColor => State switch
+    //    {
+    //        HeatExchangerStateType.Created => "#CBD5E0",
+    //        HeatExchangerStateType.PartiallyConnected => "#F6AD55",
+    //        HeatExchangerStateType.ReadyToCalculate => "#63B3ED",
+    //        HeatExchangerStateType.Solved => "#34D399",
+    //        _ => "#CBD5E0"
+    //    };
 
-        public override string StatusText => State switch
-        {
-            HeatExchangerStateType.Created => "Ready",
-            HeatExchangerStateType.PartiallyConnected => "Underspecified",
-            HeatExchangerStateType.ReadyToCalculate => "Ready to Solve",
-            HeatExchangerStateType.Solved => "Converged",
-            _ => "Unknown"
-        };
+    //    public override string StatusText => State switch
+    //    {
+    //        HeatExchangerStateType.Created => "Ready",
+    //        HeatExchangerStateType.PartiallyConnected => "Underspecified",
+    //        HeatExchangerStateType.ReadyToCalculate => "Ready to Solve",
+    //        HeatExchangerStateType.Solved => "Converged",
+    //        _ => "Unknown"
+    //    };
 
-        public override List<ToolTipLegend> GetToolTipLegend()
-        {
-            return new List<ToolTipLegend>(); // Se llenará con el Duty (Heat Load) o el UxA luego
-        }
+    //    public override List<ToolTipLegend> GetToolTipLegend()
+    //    {
+    //        return new List<ToolTipLegend>(); // Se llenará con el Duty (Heat Load) o el UxA luego
+    //    }
 
-        public override void AttachConnection(string portName, IFacade connectedFacade)
-        {
-            var stream = connectedFacade as StreamSimulationFacade;
-            if (stream == null) return;
+    //    public override void AttachConnection(string portName, IFacade connectedFacade)
+    //    {
+    //        var stream = connectedFacade as StreamSimulationFacade;
+    //        if (stream == null) return;
 
-            if (portName == "TubeIn") TubeInStream = stream;
-            else if (portName == "TubeOut") TubeOutStream = stream;
-            else if (portName == "ShellIn") ShellInStream = stream;
-            else if (portName == "CondensateOut") CondensateOutStream = stream;
-            else if (portName == "VaporVent") VaporVentStream = stream;
+    //        if (portName == "TubeIn") TubeInStream = stream;
+    //        else if (portName == "TubeOut") TubeOutStream = stream;
+    //        else if (portName == "ShellIn") ShellInStream = stream;
+    //        else if (portName == "CondensateOut") CondensateOutStream = stream;
+    //        else if (portName == "VaporVent") VaporVentStream = stream;
 
          
-        }
+    //    }
 
-        public override void DetachConnection(string portName)
-        {
-            if (portName == "TubeIn") TubeInStream = null;
-            else if (portName == "TubeOut") TubeOutStream = null;
-            else if (portName == "ShellIn") ShellInStream = null;
-            else if (portName == "CondensateOut") CondensateOutStream = null;
-            else if (portName == "VaporVent") VaporVentStream = null;
+    //    public override void DetachConnection(string portName)
+    //    {
+    //        if (portName == "TubeIn") TubeInStream = null;
+    //        else if (portName == "TubeOut") TubeOutStream = null;
+    //        else if (portName == "ShellIn") ShellInStream = null;
+    //        else if (portName == "CondensateOut") CondensateOutStream = null;
+    //        else if (portName == "VaporVent") VaporVentStream = null;
 
      
-        }
+    //    }
 
-        protected override void CalculatedEquipment()
-        {
-            // Placeholder para balance de energía, LMTD, o método NTU
-            State = HeatExchangerStateType.ReadyToCalculate;
-        }
-        public override void BuildEquations(EquationSystem eqs)
-        {
+    //    protected override void CalculatedEquipment()
+    //    {
+    //        // Placeholder para balance de energía, LMTD, o método NTU
+    //        State = HeatExchangerStateType.ReadyToCalculate;
+    //    }
+    //    public override void BuildEquations(EquationSystem eqs)
+    //    {
 
-        }
+    //    }
 
-        public override IEnumerable<INewVariable> GetSolverVariables()
-        {
-            return null!;
-        }
-    }
+    //    public override IEnumerable<INewVariable> GetSolverVariables()
+    //    {
+    //        return null!;
+    //    }
+    //}
     public class HeatExchangerSimulationFacade2 : EquipmentFacade2
     {
         public HeatExchangerStateType State { get; set; } = HeatExchangerStateType.Created;
 
         // 🔗 Conexiones: Tubos (Tube) y Coraza (Shell)
-        public IStreamFacade? TubeIn { get; private set; }
-        public IStreamFacade? TubeOut { get; private set; }
-        public IStreamFacade? ShellIn { get; private set; }
-        public IStreamFacade? ShellOut { get; private set; }
+        public IStreamFacade2? TubeIn { get; private set; }
+        public IStreamFacade2? TubeOut { get; private set; }
+        public IStreamFacade2? ShellIn { get; private set; }
+        public IStreamFacade2? ShellOut { get; private set; }
 
         // 🔹 Variables operativas (pueden ser especificadas o calculadas)
-        public INewVariableAmount<EnergyFlow> Duty { get; set; }  // Q > 0: Shell calienta Tube
-        public INewVariableAmount<PressureDrop> DeltaP_Tube { get; set; }
-        public INewVariableAmount<PressureDrop> DeltaP_Shell { get; set; }
+        //public INewVariableAmount<EnergyFlow> Duty { get; set; }  // Q > 0: Shell calienta Tube
+        //public INewVariableAmount<PressureDrop> DeltaP_Tube { get; set; }
+        //public INewVariableAmount<PressureDrop> DeltaP_Shell { get; set; }
 
         public HeatExchangerSimulationFacade2()
         {
-            Duty = new NewControlledVariableAmount<EnergyFlow>(
-                new EnergyFlow(), EnergyFlowUnits.Kcal_hr, EnergyFlowUnits.Kcal_hr,
-                (v, u) => new EnergyFlow(v, u));
-            Duty.OnExecuteSolver += ExecuteSolver;
-            Duty.OnGoToLocalCalculation += CalculateHeatTransferParams;
+            //Duty = new NewControlledVariableAmount<EnergyFlow>(
+            //    new EnergyFlow(), EnergyFlowUnits.Kcal_hr, EnergyFlowUnits.Kcal_hr,
+            //    (v, u) => new EnergyFlow(v, u));
+            //Duty.OnExecuteSolver += ExecuteSolver;
+            //Duty.OnGoToLocalCalculation += CalculateHeatTransferParams;
 
-            DeltaP_Tube = new NewControlledVariableAmount<PressureDrop>(
-                new PressureDrop(), PressureDropUnits.Bar, PressureDropUnits.Pascal,
-                (v, u) => new PressureDrop(v, u));
-            DeltaP_Tube.OnExecuteSolver += ExecuteSolver;
+            //DeltaP_Tube = new NewControlledVariableAmount<PressureDrop>(
+            //    new PressureDrop(), PressureDropUnits.Bar, PressureDropUnits.Pascal,
+            //    (v, u) => new PressureDrop(v, u));
+            //DeltaP_Tube.OnExecuteSolver += ExecuteSolver;
 
-            DeltaP_Shell = new NewControlledVariableAmount<PressureDrop>(
-                new PressureDrop(), PressureDropUnits.Bar, PressureDropUnits.Pascal,
-                (v, u) => new PressureDrop(v, u));
-            DeltaP_Shell.OnExecuteSolver += ExecuteSolver;
+            //DeltaP_Shell = new NewControlledVariableAmount<PressureDrop>(
+            //    new PressureDrop(), PressureDropUnits.Bar, PressureDropUnits.Pascal,
+            //    (v, u) => new PressureDrop(v, u));
+            //DeltaP_Shell.OnExecuteSolver += ExecuteSolver;
         }
 
         public override string StatusText => State switch
@@ -145,11 +145,11 @@ namespace Shared.UnitOperations.HeatExchangers
         public override List<ToolTipLegend> GetToolTipLegend()
         {
             var result = new List<ToolTipLegend>();
-            if (Duty.IsEspecified) result.Add(new("Duty", Duty.Value?.ToString() ?? string.Empty));
+            //if (Duty.IsEspecified) result.Add(new("Duty", Duty.Value?.ToString() ?? string.Empty));
             return result;
         }
 
-        public override void AttachConnection(string portName, IStreamFacade connectedFacade)
+        public override void AttachConnection(string portName, IStreamFacade2 connectedFacade)
         {
             if (portName == "TubeIn") TubeIn = connectedFacade;
             else if (portName == "TubeOut") TubeOut = connectedFacade;
@@ -275,7 +275,7 @@ namespace Shared.UnitOperations.HeatExchangers
                 double MW = TubeIn.MaterialStream?.MolecularWeight ?? 18.0;
                 double Q_tube = (TubeOut.MolarEnthalpy.SolverValue - TubeIn.MolarEnthalpy.SolverValue) *
                                TubeIn.MolarFlow.SolverValue * MW;
-                Duty.SetValueFromSolver(Q_tube);
+                //Duty.SetValueFromSolver(Q_tube);
             }
         }
 

@@ -65,8 +65,110 @@ public static class ThermodynamicMethodSeeder
 
         await File.WriteAllTextAsync(path, sb.ToString(), Encoding.UTF8);
     }
-
     private static async Task LoadFromCsvAsync(ApplicationDbContext context, string path)
+    {
+        var lines = await File.ReadAllLinesAsync(path);
+        if (lines.Length <= 1) return;
+
+        var ci = CultureInfo.InvariantCulture;
+        var componentsDict = await context.ChemicalComponents.ToDictionaryAsync(c => c.Name);
+
+        // Agrupar filas por MethodName
+        var rowsByMethod = lines.Skip(1)
+            .Select(l => l.Split(';'))
+            .Where(r => r.Length == 8)
+            .GroupBy(r => r[0]);
+
+        var metodosToInsert = new List<ThermodynamicMethod>();
+
+        foreach (var group in rowsByMethod)
+        {
+            var firstRow = group.First();
+
+            try
+            {
+                var method = new ThermodynamicMethod
+                {
+                    Name = firstRow[0],
+                    Description = firstRow[1],
+                    VaporModel = Enum.Parse<VaporPhaseModel>(firstRow[2], ignoreCase: true),
+                    LiquidModel = Enum.Parse<LiquidPhaseModel>(firstRow[3], ignoreCase: true),
+                    MethodComponents = new List<MethodComponent>(),
+                    BinaryParameters = new List<BinaryInteractionParameter>()
+                };
+
+                // 🔥 PASO 1: Extraer componentes PUROS (líneas donde r[6] está vacío)
+                // Preservar el orden de aparición para MatrixIndex correcto
+                var componentLines = group
+                    .Where(r => string.IsNullOrWhiteSpace(r[6]))  // ← Solo líneas de componentes
+                    .Select(r => r[4])  // ← ComponentI (Columna 5)
+                    .Where(n => !string.IsNullOrWhiteSpace(n))
+                    .Distinct()  // ← Ahora sí, porque ya filtramos por tipo de línea
+                    .ToList();
+
+                // Crear MethodComponents con MatrixIndex basado en el orden de aparición
+                for (int i = 0; i < componentLines.Count; i++)
+                {
+                    var compName = componentLines[i];
+                    if (componentsDict.TryGetValue(compName, out var comp))
+                    {
+                        method.MethodComponents.Add(new MethodComponent
+                        {
+                            ComponentId = comp.Id,
+                            Component = comp,
+                            MatrixIndex = i  // ← Orden preservado del CSV
+                        });
+                    }
+                }
+
+                // 🔥 PASO 2: Extraer parámetros binarios (líneas donde r[6] NO está vacío)
+                foreach (var r in group)
+                {
+                    var compI_Name = r[4];
+                    var compJ_Name = r[5];
+                    var paramTypeStr = r[6];
+                    var valueStr = r[7];
+
+                    // ← Solo procesar si ParameterType tiene valor
+                    if (!string.IsNullOrWhiteSpace(paramTypeStr))
+                    {
+                        if (componentsDict.TryGetValue(compI_Name, out var compI) &&
+                            componentsDict.TryGetValue(compJ_Name, out var compJ) &&
+                            Enum.TryParse<BinaryParameterType>(paramTypeStr, ignoreCase: true, out var paramType) &&
+                            double.TryParse(valueStr, NumberStyles.Any, ci, out var value))
+                        {
+                            method.BinaryParameters.Add(new BinaryInteractionParameter
+                            {
+                                ComponentI_Id = compI.Id,
+                                ComponentI = compI,
+                                ComponentJ_Id = compJ.Id,
+                                ComponentJ = compJ,
+                                ParameterType = paramType,
+                                Value = value
+                            });
+                        }
+                    }
+                }
+
+                // Solo agregar si tiene al menos un componente o parámetro
+                if (method.MethodComponents.Any() || method.BinaryParameters.Any())
+                {
+                    metodosToInsert.Add(method);
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[CSV Load Error] Method: {firstRow[0]}, Error: {ex.Message}");
+            }
+        }
+
+        if (metodosToInsert.Any())
+        {
+            await context.ThermodynamicMethods.AddRangeAsync(metodosToInsert);
+            await context.SaveChangesAsync();
+        }
+    }
+    private static async Task LoadFromCsvAsync2(ApplicationDbContext context, string path)
     {
         var lines = await File.ReadAllLinesAsync(path);
         if (lines.Length <= 1) return; // Solo tiene header o está vacío

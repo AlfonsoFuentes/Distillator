@@ -1,44 +1,66 @@
-﻿using Shared.UnitOperations.Streams;
+﻿using Shared.SolverQwen.Stream;
+using Shared.SolverQwen.Variables;
+using Shared.UnitOperations.Streams;
 using UnitSystem;
 
 namespace Shared.Thermodynamics.Strategies.Equlibriums
-{   // ✅ NUEVO ARCHIVO: IEquilibriumContext.cs
-    // --- ESTRATEGIA P-VF PARA ZONA BIFÁSICA (0 < VF < 1) ---
+{
     public class PFVTwoPhaseStrategy : IEquilibriumStrategy
     {
-        private readonly StreamSimulationFacade _facade;
-        public PFVTwoPhaseStrategy(StreamSimulationFacade facade) => _facade = facade;
+        private readonly IFacadeStream _facade;
+        public PFVTwoPhaseStrategy(IFacadeStream facade) => _facade = facade;
 
         public void Execute()
         {
-            double targetVF = _facade.VaporFraction.Value;
+           
             // Buscamos la T que genera ese VF a la Presión actual
-            double tFound = _facade.MaterialStream.SolveFlashPVF(_facade.MaterialStream.Pressure, targetVF);
+            _facade.MaterialStream.SolveFlashPVF();
 
-            var temp = _facade.Temperature.Value!;
-            temp.SetValue(tFound, TemperatureUnits.Kelvin);
+           
 
-            _facade.Temperature.SetValueCalculated(temp, _facade.Name);
-         
+            _facade.Temperature.SetValue(_facade.MaterialStream.Temperature, VariableDataProcedence.StreamCalculated);
+            _facade.MaterialStream.CalculateBulkProperties();
+            _facade.MassEnthalpy.SetValue(_facade.MaterialStream.MassEnthalpy, VariableDataProcedence.StreamCalculated);
+
+        }
+    }
+    public class PFVTwoPhaseStrategy3 : IEquilibriumStrategy
+    {
+        private readonly IStreamFacade _facade;
+        public PFVTwoPhaseStrategy3(IStreamFacade facade) => _facade = facade;
+
+        public void Execute()
+        {
+            //double targetVF = _facade.VaporFraction.Value;
+            //// Buscamos la T que genera ese VF a la Presión actual
+            //double tFound = _facade.MaterialStream.SolveFlashPVF(_facade.Pressure.Value, targetVF);
+
+            //var temp = _facade.Temperature.Value!;
+            //temp.SetValue(tFound, TemperatureUnits.Kelvin);
+
+            //_facade.Temperature.SetValueFromStream(temp, _facade.Name);
+            //_facade.MaterialStream.CalculateBulkProperties();
+            //_facade.MassEnthalpy.SetValueFromStream(_facade.MaterialStream.MassEnthalpy, _facade.Name);
+
         }
     }
     public class PFVTwoPhaseStrategy2 : IEquilibriumStrategy
     {
-        private readonly IStreamFacade _facade;
-        public PFVTwoPhaseStrategy2(IStreamFacade facade) => _facade = facade;
+        private readonly IStreamFacade2 _facade;
+        public PFVTwoPhaseStrategy2(IStreamFacade2 facade) => _facade = facade;
 
         public void Execute()
         {
-            double targetVF = _facade.VaporFraction.Value;
-            // Buscamos la T que genera ese VF a la Presión actual
-            double tFound = _facade.MaterialStream.SolveFlashPVF(_facade.Pressure.Value, targetVF);
+            //double targetVF = _facade.VaporFraction.Value;
+            //// Buscamos la T que genera ese VF a la Presión actual
+            //double tFound = _facade.MaterialStream.SolveFlashPVF(_facade.Pressure.Value, targetVF);
 
-            var temp = _facade.Temperature.Value!;
-            temp.SetValue(tFound, TemperatureUnits.Kelvin);
+            //var temp = _facade.Temperature.Value!;
+            //temp.SetValue(tFound, TemperatureUnits.Kelvin);
 
-            _facade.Temperature.SetValueFromStream(temp, _facade.Name);
-            _facade.MaterialStream.CalculateBulkProperties();
-            _facade.MolarEnthalpy.SetValueFromStream(_facade.MaterialStream.MolarEnthalpy, _facade.Name);
+            //_facade.Temperature.SetValueFromStream(temp, _facade.Name);
+            //_facade.MaterialStream.CalculateBulkProperties();
+            //_facade.MassEnthalpy.SetValueFromStream(_facade.MaterialStream.MassEnthalpy, _facade.Name);
 
         }
     }

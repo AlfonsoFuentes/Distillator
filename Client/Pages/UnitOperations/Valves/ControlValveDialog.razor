@@ -28,13 +28,9 @@
     <PropertiesSlot>
         @if (Equipment.Facade is ControlValveSimulationFacade2 cvFacade)
         {
-            <div class="property-row">
-                <NewUnifiedVariableRow Label="Delta P" @bind-Variable="cvFacade.DeltaPressure" />
-            </div>
+            <NewUnifiedVariableRow Label="Delta P" @bind-Variable="cvFacade.DeltaPressure" />
 
-            <div class="property-row">
-                <NewUnifiedDoubleRow Label="Valve Cv" @bind-Variable="cvFacade.Cv" MinValue="0" MaxValue="10000" />
-            </div>
+            <NewUnifiedDoubleRow Label="Valve Cv" @bind-Variable="cvFacade.Cv" MinValue="0" MaxValue="10000" IsReadOnly="true" />
         }
     </PropertiesSlot>
 

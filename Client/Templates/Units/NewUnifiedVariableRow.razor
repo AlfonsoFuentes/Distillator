@@ -17,7 +17,7 @@
                 }
                 else
                 {
-                    @* 🔥 NUEVO: Tooltip basado en Variable.Source == "Solver" *@
+                    @* 🔥 Tooltip basado en Variable.Source == "Solver" *@
                     <div class="readonly-wrapper @(Variable?.Source == "Solver" ? "has-tooltip" : "")"
                          @onclick="EnterEditMode">
                         <span class="value-text">@GetDisplayValue()</span>
@@ -30,17 +30,34 @@
                 }
             </div>
 
+            @* 🔥 UNIDAD: Custom dropdown (igual que Compact mode) *@
             <div class="grid-cell unit-cell">
-                <select class="std-select" @onchange="e => SelectUnitByName(e.Value?.ToString())">
-                    @* 🔥 NUEVO: Iterar sobre UnitsList del Amount (si existe) *@
-                    @if (Variable?.Value?.UnitsList != null)
+                @* 🔥 CAMBIO 1: Eliminado "&& !IsEffectivelyReadOnly" para que siempre aparezca si hay UnitsList *@
+                @if (Variable?.Value?.UnitsList?.Count > 1)
+                {
+                    <div class="unit-dropdown-trigger" @onclick:stopPropagation @onclick="() => _showUnitSelector = !_showUnitSelector">
+                        <span class="unit-symbol">@Variable?.GetDisplayUnit()</span>
+                        <span class="chevron-icon">▾</span>
+                    </div>
+
+                    @if (_showUnitSelector)
                     {
-                        @foreach (var unit in Variable.Value.UnitsList)
-                        {
-                            <option value="@unit.Name" selected="@(unit.Name == Variable.GetDisplayUnit())">@unit.Symbol</option>
-                        }
+                        <div class="unit-popup unit-popup-standard" @onmouseleave="() => _showUnitSelector = false">
+                            @foreach (var unit in Variable!.Value.UnitsList)
+                            {
+                                <div class="unit-item @(unit.Name == Variable.GetDisplayUnit() ? "selected" : "")"
+                                     @onclick="() => SelectUnit(unit)">
+                                    @unit.Symbol
+                                </div>
+                            }
+                        </div>
                     }
-                </select>
+                }
+                else
+                {
+                    @* Solo muestra la unidad si no hay opciones o es readonly *@
+                    <span class="unit-symbol-static">@Variable?.GetDisplayUnit()</span>
+                }
             </div>
         </div>
     }
@@ -68,7 +85,8 @@
                 {
                     <div class="compact-display-text">
                         <span class="value-text">@GetDisplayValue()</span>
-                        @if (Variable?.IsDefined == true)
+                        @* 🔥 CAMBIO CLAVE: Mostrar unidad SIEMPRE que haya UnitsList (no solo cuando IsDefined) *@
+                        @if (Variable?.Value?.UnitsList?.Count > 0)
                         {
                             <span class="unit-label-inline">@Variable.GetDisplayUnit()</span>
                         }
@@ -81,6 +99,7 @@
                 }
             </div>
 
+            @* 🔥 CAMBIO 1: Eliminado "&& !IsEffectivelyReadOnly" para que siempre aparezca si hay UnitsList *@
             @if (Variable?.Value?.UnitsList?.Count > 1)
             {
                 <div class="unit-dropdown-trigger" @onclick:stopPropagation @onclick="() => _showUnitSelector = !_showUnitSelector">
@@ -106,11 +125,4 @@
 
 @code {
     [Parameter] public VariableMode Mode { get; set; } = VariableMode.Standard;
-
-    private async Task SelectUnitByName(string? name)
-    {
-        // Buscar unidad por nombre en la lista disponible
-        var unit = Variable?.Value?.UnitsList?.FirstOrDefault(u => u.Name == name);
-        if (unit != null) await SelectUnit(unit);
-    }
 }

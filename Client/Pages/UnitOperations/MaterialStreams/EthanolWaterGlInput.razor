@@ -1,253 +1,152 @@
 ﻿@using System.Globalization
 
 <div class="@PanelCssClass" title="@GetTooltipText()">
-
     <div class="entry-label">
         <span>°GL</span>
     </div>
-    
+
     <div class="entry-input">
-        @if (IsComponentReadOnly)
+        @* 🔹 ESTADO READONLY (sistema o calculado) *@
+        @if (IsReadOnly)
         {
-            <!-- 🔹 READONLY por sistema: siempre muestra valor formateado -->
-            <span class="gl-value-readonly" title="@GetReadonlyTooltip()">
+            <span class="gl-value-readonly @(IsCalculated ? "calculated" : "")" title="@GetTooltipText()">
                 @GetReadonlyDisplayValue()
                 @if (!string.IsNullOrWhiteSpace(SourceId))
                 {
-                    <span class="auto-badge" title="Value derived from Ethanol Mass Fraction">⚙ Auto</span>
+                    <span class="auto-badge" title="Calculated by: @SourceId"></span>
                 }
             </span>
         }
-        else if (!IsMassFractionDefined)
-        {
-            <!-- 🔹 EDITABLE pero sin definir: input con placeholder dinámico -->
-            <input type="number"
-                   step="0.1"
-                   min="0"
-                   max="100"
-                   value="@GetInputValue()"
-                   placeholder="@GetPlaceholder()"
-                   class="@(ShowPlaceholderStyle() ? "has-placeholder" : "")"
-                   @onfocus="HandleFocus"
-                   @oninput="HandleInput"
-                   @onkeydown="HandleKeyDown"
-                   @onblur="HandleBlur" />
-        }
-        else if (IsGlInputReadOnly)
-        {
-            <!-- 🔹 EDITABLE pero calculado por MolarFraction: readonly visual -->
-            <span class="gl-value-readonly calculated" title="@GetReadonlyTooltip()">
-                @GetDisplayValue()
-                <span class="auto-badge" title="Value derived from Ethanol Molar Fraction">⚙ Auto</span>
-            </span>
-        }
+        @* 🔹 ESTADO EDITABLE *@
         else
         {
-            <!-- 🔹 EDITABLE y definido: input normal -->
             <input type="number"
                    step="0.1"
                    min="0"
                    max="100"
                    value="@GetInputValue()"
-                   placeholder="@GetPlaceholder()"
+                   placeholder="@Placeholder"
+                   class="@(HasPlaceholder ? "has-placeholder" : "")"
                    @onfocus="HandleFocus"
                    @oninput="HandleInput"
                    @onkeydown="HandleKeyDown"
                    @onblur="HandleBlur" />
         }
     </div>
-    
+
     <span class="entry-info">@GetInfoText()</span>
 </div>
 
 @code {
-    // ─────────────────────────────────────────────────────────
-    // 🔹 PARÁMETROS (CORREGIDO: double? para soportar "limpiar")
-    // ─────────────────────────────────────────────────────────
     [Parameter] public double? GLValue { get; set; }
     [Parameter] public EventCallback<double?> GlValueChanged { get; set; } = default!;
-    [Parameter] public bool IsComponentReadOnly { get; set; } = false;
-    [Parameter] public bool IsGlInputReadOnly { get; set; } = false;
-    [Parameter] public bool IsMassFractionDefined { get; set; } = false;
+    [Parameter] public bool IsComponentReadOnly { get; set; }
+    [Parameter] public bool IsGlInputReadOnly { get; set; }
+    [Parameter] public bool IsMassFractionDefined { get; set; }
     [Parameter] public string? SourceId { get; set; }
 
-    // ─────────────────────────────────────────────────────────
-    // 🔹 ESTADO TEMPORAL
-    // ─────────────────────────────────────────────────────────
     private double? _tempValue;
     private bool _isEditing;
     private bool _hasUserTyped;
     private string? _rawInput;
 
-    // ─────────────────────────────────────────────────────────
-    // 🔹 PROPIEDADES COMPUTADAS
-    // ─────────────────────────────────────────────────────────
-    
-    private string PanelCssClass => $"quick-entry-panel {(IsComponentReadOnly ? "state-readonly" : "state-editable")}";
+    private string PanelCssClass => $"quick-entry-panel {(IsReadOnly ? "state-readonly" : "state-editable")}";
+    private bool IsReadOnly => IsComponentReadOnly || IsGlInputReadOnly;
+    private bool IsCalculated => IsReadOnly && !IsComponentReadOnly;
+    private const string Placeholder = "<Not defined>";
+    private bool HasPlaceholder => !IsMassFractionDefined && !_hasUserTyped;
 
-    // ─────────────────────────────────────────────────────────
-    // 🔹 HELPERS VISUALES
-    // ─────────────────────────────────────────────────────────
-    
-    private string? GetTooltipText()
-    {
-        if (!string.IsNullOrWhiteSpace(SourceId))
-            return $"Calculated by: {SourceId}";
-        return null;
-    }
-
-    private string? GetReadonlyTooltip()
-    {
-        if (!string.IsNullOrWhiteSpace(SourceId))
-            return $"Calculated by: {SourceId}";
-        return null;
-    }
+    private string? GetTooltipText() =>
+            !string.IsNullOrWhiteSpace(SourceId) ? $"Calculated by: {SourceId}" : null;
 
     private string GetInfoText()
     {
-        if (!IsMassFractionDefined && !IsComponentReadOnly)
-            return "Click to define via °GL";
-        
-        if (IsGlInputReadOnly)
-            return "Auto-calculated (input via Molar %)";
-        
-        return IsComponentReadOnly
-            ? "Auto-calculated from Mass Fraction"
-            : "Set °GL to define Mass Fraction of Ethanol";
+        if (IsReadOnly)
+            return IsComponentReadOnly
+                ? "Auto-calculated from Mass Fraction"
+                : "Auto-calculated (input via Molar %)";
+
+        return IsMassFractionDefined
+                    ? "Set °GL to define Mass Fraction of Ethanol"
+                    : "Click to define via °GL";
     }
 
-    private string GetPlaceholder() => "<Not defined>";
-
-    private bool ShowPlaceholderStyle() => !IsMassFractionDefined && !_hasUserTyped;
-
-    // 🔹 Valor para modo readonly (SIEMPRE formateado)
     private string GetReadonlyDisplayValue()
     {
-        if (!IsMassFractionDefined || !GLValue.HasValue)
-            return "<Not defined>";
-        
+        if (!GLValue.HasValue) return Placeholder;
         return FormatValue(GLValue.Value);
     }
 
-    // 🔹 Formato inteligente: ≥0.01 → 2 decimales, <0.01 → decimales necesarios
-    private string FormatValue(double val)
-    {
-        if (val == 0)
-            return "0.00";
-        else if (Math.Abs(val) >= 0.01)
-            return val.ToString("F2", CultureInfo.InvariantCulture);
-        else
-            return val.ToString("F6", CultureInfo.InvariantCulture).TrimEnd('0').TrimEnd('.');
-    }
-
-    // 🔹 Valor para display (formateado, usado en readonly visual)
-    private string GetDisplayValue() => IsMassFractionDefined && GLValue.HasValue ? FormatValue(GLValue.Value) : "";
-
-    // 🔹 CLAVE: Valor para input editable - SIN formato durante edición
     private string GetInputValue()
     {
-        // 👇 Durante edición: mostrar exactamente lo que el usuario escribió (sin formato)
-        if (_isEditing && _rawInput != null)
-            return _rawInput;
-        
-        // 👇 Fuera de edición: mostrar valor formateado si existe
-        return IsMassFractionDefined && GLValue.HasValue ? FormatValue(GLValue.Value) : "";
+        if (_isEditing && _rawInput != null) return _rawInput;
+        return GLValue.HasValue ? FormatValue(GLValue.Value) : "";
     }
 
-    // ─────────────────────────────────────────────────────────
-    // 🔹 HANDLERS (Placeholder dinámico + edición sin formato + nullable)
-    // ─────────────────────────────────────────────────────────
-    
+    private string FormatValue(double val)
+    {
+        if (Math.Abs(val) < 1e-9) return "0.00";
+        val = Math.Round(val, 2);
+        return val.ToString("F2", CultureInfo.InvariantCulture);
+    }
+
+    private bool CanEdit() => !IsReadOnly;
+
     private void HandleFocus(FocusEventArgs e)
     {
-        if (IsComponentReadOnly || IsGlInputReadOnly) return;
-        
+        if (!CanEdit()) return;
         _isEditing = true;
-        // Al enfocar, si hay valor, cargarlo como raw para edición limpia
-        if (IsMassFractionDefined && GLValue.HasValue)
-        {
-            _rawInput = GLValue.Value.ToString(CultureInfo.InvariantCulture);
-        }
+        if (GLValue.HasValue) _rawInput = GLValue.Value.ToString("F1", System.Globalization.CultureInfo.InvariantCulture);
         StateHasChanged();
     }
-    
+
     private void HandleInput(ChangeEventArgs e)
     {
-        if (IsComponentReadOnly || IsGlInputReadOnly) return;
-        
+        if (!CanEdit()) return;
         _hasUserTyped = true;
         _rawInput = e.Value?.ToString();
-        
-        // Parsear para uso interno (pero no actualizar display)
-        if (double.TryParse(_rawInput, NumberStyles.Any, CultureInfo.InvariantCulture, out var value))
-        {
-            _tempValue = value;
-        }
-        else
-        {
-            _tempValue = null;
-        }
+        _tempValue = double.TryParse(_rawInput, NumberStyles.Any, CultureInfo.InvariantCulture, out var v) ? v : null;
     }
 
     private async Task HandleKeyDown(KeyboardEventArgs e)
     {
-        if (IsComponentReadOnly || IsGlInputReadOnly) return;
-        
+        if (!CanEdit()) return;
         if (e.Key == "Enter" && _tempValue.HasValue)
-        {
             await CommitValue(_tempValue.Value);
-        }
-        else if (e.Key == "Delete" || e.Key == "Backspace")
-        {
-            // 👇 CLAVE: Delete/Backspace → limpiar (notificar null)
+        else if (e.Key is "Delete" or "Backspace")
             await ClearValue();
-        }
     }
 
     private async Task HandleBlur()
     {
-        if (IsComponentReadOnly || IsGlInputReadOnly) return;
-        
-        // Si salió sin escribir y no estaba definido, restaurar placeholder
+        if (!CanEdit()) return;
         if ((!IsMassFractionDefined || !GLValue.HasValue) && !_hasUserTyped)
         {
-            _isEditing = false;
-            _rawInput = null;
-            _tempValue = null;
-            StateHasChanged();
+            ResetEditingState();
             return;
         }
-        
-        // Si hay valor temporal, confirmar
         if (_tempValue.HasValue)
-        {
             await CommitValue(_tempValue.Value);
-        }
-        // Si no editó pero hay valor definido, mantenerlo
         else if (IsMassFractionDefined && GLValue.HasValue)
-        {
             await CommitValue(GLValue.Value);
-        }
     }
 
     private async Task CommitValue(double value)
     {
         if (GlValueChanged.HasDelegate)
             await GlValueChanged.InvokeAsync(value);
-        
-        // 👇 Resetear estado de edición
-        _tempValue = null;
-        _rawInput = null;
-        _isEditing = false;
-        _hasUserTyped = false;
+        ResetEditingState();
     }
 
-    // 🔹 CLAVE: ClearValue notifica NULL para indicar "limpiar composición"
     private async Task ClearValue()
     {
         if (GlValueChanged.HasDelegate)
-            await GlValueChanged.InvokeAsync(null);  // 👈 null = "desdefinir"
-        
+            await GlValueChanged.InvokeAsync(null);
+        ResetEditingState();
+    }
+
+    private void ResetEditingState()
+    {
         _tempValue = null;
         _rawInput = null;
         _isEditing = false;

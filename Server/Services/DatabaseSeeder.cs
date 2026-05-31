@@ -136,7 +136,7 @@ namespace Server.Services
             row.Add(corr.C7.ToString(ci));
             row.Add(corr.Tmin.Value.ToString(ci)); row.Add(corr.Tmax.Value.ToString(ci));
         }
-        public static async Task SyncMethodsToCsv(ApplicationDbContext context, string rootPath)
+        public static async Task SyncMethodsToCsv2(ApplicationDbContext context, string rootPath)
         {
             var directory = Path.Combine(rootPath, "SeedData");
             if (!Directory.Exists(directory)) Directory.CreateDirectory(directory);
@@ -185,6 +185,55 @@ namespace Server.Services
                 }
                 // Escenario C: Método vacío (Edge case de seguridad)
                 else
+                {
+                    sb.AppendLine($"{baseInfo};;;;0");
+                }
+            }
+
+            await File.WriteAllTextAsync(filePath, sb.ToString(), Encoding.UTF8);
+        }
+        public static async Task SyncMethodsToCsv(ApplicationDbContext context, string rootPath)
+        {
+            var directory = Path.Combine(rootPath, "SeedData");
+            if (!Directory.Exists(directory)) Directory.CreateDirectory(directory);
+            var filePath = Path.Combine(directory, "MasterThermodynamicMethods.csv");
+
+            var metodos = await context.ThermodynamicMethods
+                .Include(m => m.MethodComponents).ThenInclude(mc => mc.Component)
+                .Include(m => m.BinaryParameters).ThenInclude(bp => bp.ComponentI)
+                .Include(m => m.BinaryParameters).ThenInclude(bp => bp.ComponentJ)
+                .AsNoTracking()
+                .ToListAsync();
+
+            var sb = new StringBuilder();
+            var ci = CultureInfo.InvariantCulture;
+
+            // Header (MISMO formato para compatibilidad)
+            sb.AppendLine("MethodName;Description;VaporModel;LiquidModel;ComponentI;ComponentJ;ParameterType;Value");
+
+            foreach (var m in metodos)
+            {
+                var baseInfo = $"{m.Name ?? string.Empty};{m.Description ?? string.Empty};{m.VaporModel};{m.LiquidModel}";
+
+                // 🔥 PASO 1: Escribir TODOS los componentes del método (ordenados por MatrixIndex)
+                foreach (var mc in m.MethodComponents.OrderBy(x => x.MatrixIndex))
+                {
+                    var compName = mc.Component?.Name ?? string.Empty;
+                    // Formato: ComponentJ y ParameterType vacíos indican "esto es un componente, no un parámetro"
+                    sb.AppendLine($"{baseInfo};{compName};;;");
+                }
+
+                // 🔥 PASO 2: Escribir parámetros binarios (si existen)
+                foreach (var bp in m.BinaryParameters)
+                {
+                    var compIName = bp.ComponentI?.Name ?? string.Empty;
+                    var compJName = bp.ComponentJ?.Name ?? string.Empty;
+                    var valStr = bp.Value.ToString(ci);
+                    sb.AppendLine($"{baseInfo};{compIName};{compJName};{bp.ParameterType};{valStr}");
+                }
+
+                // Edge case: método completamente vacío
+                if (!m.MethodComponents.Any() && !m.BinaryParameters.Any())
                 {
                     sb.AppendLine($"{baseInfo};;;;0");
                 }

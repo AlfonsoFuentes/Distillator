@@ -26,8 +26,9 @@ namespace Shared.Thermodynamics.PureComponents.Liquido.Others
                 + _coeffs.C2 / tempK
                 + _coeffs.C3 * Math.Log(tempK)
                 + _coeffs.C4 * Math.Pow(tempK, _coeffs.C5);
+            double rresul = Math.Exp(lnVisc);
 
-            return new Viscosity(Math.Exp(lnVisc), ViscosityUnits.Pa_s);
+            return new Viscosity(rresul, ViscosityUnits.Pa_s);
         }
     }
 

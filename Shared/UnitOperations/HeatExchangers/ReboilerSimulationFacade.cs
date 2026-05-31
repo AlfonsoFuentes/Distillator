@@ -14,110 +14,110 @@ namespace Shared.UnitOperations.HeatExchangers
 
     public enum ReboilerStateType { Created, PartiallyConnected, ReadyToCalculate, Solved }
 
-    public class ReboilerSimulationFacade : EquipmentFacade
-    {
-        public ReboilerStateType State { get; set; } = ReboilerStateType.Created;
+    //public class ReboilerSimulationFacade : EquipmentFacade
+    //{
+    //    public ReboilerStateType State { get; set; } = ReboilerStateType.Created;
 
-        // --- Lado de los Tubos (Líquido de fondo de la torre) ---
-        public StreamSimulationFacade? TubeInStream { get; private set; }
-        public StreamSimulationFacade? TubeOutStream { get; private set; }
+    //    // --- Lado de los Tubos (Líquido de fondo de la torre) ---
+    //    public StreamSimulationFacade? TubeInStream { get; private set; }
+    //    public StreamSimulationFacade? TubeOutStream { get; private set; }
 
-        // --- Lado de la Coraza (Vapor de calentamiento) ---
-        public StreamSimulationFacade? ShellInStream { get; private set; }
-        public StreamSimulationFacade? CondensateOutStream { get; private set; }
+    //    // --- Lado de la Coraza (Vapor de calentamiento) ---
+    //    public StreamSimulationFacade? ShellInStream { get; private set; }
+    //    public StreamSimulationFacade? CondensateOutStream { get; private set; }
 
-        public override string StatusColor => State switch
-        {
-            ReboilerStateType.Created => "#CBD5E0",
-            ReboilerStateType.PartiallyConnected => "#F6AD55",
-            ReboilerStateType.ReadyToCalculate => "#63B3ED",
-            ReboilerStateType.Solved => "#34D399",
-            _ => "#CBD5E0"
-        };
+    //    public override string StatusColor => State switch
+    //    {
+    //        ReboilerStateType.Created => "#CBD5E0",
+    //        ReboilerStateType.PartiallyConnected => "#F6AD55",
+    //        ReboilerStateType.ReadyToCalculate => "#63B3ED",
+    //        ReboilerStateType.Solved => "#34D399",
+    //        _ => "#CBD5E0"
+    //    };
 
-        public override string StatusText => State switch
-        {
-            ReboilerStateType.Created => "Ready",
-            ReboilerStateType.PartiallyConnected => "Underspecified",
-            ReboilerStateType.ReadyToCalculate => "Ready to Solve",
-            ReboilerStateType.Solved => "Converged",
-            _ => "Unknown"
-        };
+    //    public override string StatusText => State switch
+    //    {
+    //        ReboilerStateType.Created => "Ready",
+    //        ReboilerStateType.PartiallyConnected => "Underspecified",
+    //        ReboilerStateType.ReadyToCalculate => "Ready to Solve",
+    //        ReboilerStateType.Solved => "Converged",
+    //        _ => "Unknown"
+    //    };
 
-        public override List<ToolTipLegend> GetToolTipLegend()
-        {
-            return new List<ToolTipLegend>(); // Se llenará con el Heat Duty cuando se calcule
-        }
+    //    public override List<ToolTipLegend> GetToolTipLegend()
+    //    {
+    //        return new List<ToolTipLegend>(); // Se llenará con el Heat Duty cuando se calcule
+    //    }
 
-        public override void AttachConnection(string portName, IFacade connectedFacade)
-        {
-            var stream = connectedFacade as StreamSimulationFacade;
-            if (stream == null) return;
+    //    public override void AttachConnection(string portName, IFacade connectedFacade)
+    //    {
+    //        var stream = connectedFacade as StreamSimulationFacade;
+    //        if (stream == null) return;
 
-            if (portName == "TubeIn") TubeInStream = stream;
-            else if (portName == "TubeOut") TubeOutStream = stream;
-            else if (portName == "ShellIn") ShellInStream = stream;
-            else if (portName == "CondensateOut") CondensateOutStream = stream;
+    //        if (portName == "TubeIn") TubeInStream = stream;
+    //        else if (portName == "TubeOut") TubeOutStream = stream;
+    //        else if (portName == "ShellIn") ShellInStream = stream;
+    //        else if (portName == "CondensateOut") CondensateOutStream = stream;
 
            
-        }
+    //    }
 
-        public override void DetachConnection(string portName)
-        {
-            if (portName == "TubeIn") TubeInStream = null;
-            else if (portName == "TubeOut") TubeOutStream = null;
-            else if (portName == "ShellIn") ShellInStream = null;
-            else if (portName == "CondensateOut") CondensateOutStream = null;
+    //    public override void DetachConnection(string portName)
+    //    {
+    //        if (portName == "TubeIn") TubeInStream = null;
+    //        else if (portName == "TubeOut") TubeOutStream = null;
+    //        else if (portName == "ShellIn") ShellInStream = null;
+    //        else if (portName == "CondensateOut") CondensateOutStream = null;
 
        
-        }
+    //    }
 
-        protected override void CalculatedEquipment()
-        {
-            // Placeholder para balance térmico del fondo de la columna
-            State = ReboilerStateType.ReadyToCalculate;
-        }
-        public override void BuildEquations(EquationSystem eqs)
-        {
+    //    protected override void CalculatedEquipment()
+    //    {
+    //        // Placeholder para balance térmico del fondo de la columna
+    //        State = ReboilerStateType.ReadyToCalculate;
+    //    }
+    //    public override void BuildEquations(EquationSystem eqs)
+    //    {
 
-        }
+    //    }
 
-        public override IEnumerable<INewVariable> GetSolverVariables()
-        {
-            return null!;
-        }
-    }
+    //    public override IEnumerable<INewVariable> GetSolverVariables()
+    //    {
+    //        return null!;
+    //    }
+    //}
     public class ReboilerSimulationFacade2 : EquipmentFacade2
     {
         public ReboilerStateType State { get; set; } = ReboilerStateType.Created;
 
         // 🔗 Conexiones: Tubos (proceso) y Coraza (servicio)
-        public IStreamFacade? TubeIn { get; private set; }    // Líquido de fondo de columna
-        public IStreamFacade? TubeOut { get; private set; }   // Vapor que retorna a columna
-        public IStreamFacade? ShellIn { get; private set; }   // Vapor de calentamiento (ej: steam)
-        public IStreamFacade? ShellOut { get; private set; }  // Condensado
+        public IStreamFacade2? TubeIn { get; private set; }    // Líquido de fondo de columna
+        public IStreamFacade2? TubeOut { get; private set; }   // Vapor que retorna a columna
+        public IStreamFacade2? ShellIn { get; private set; }   // Vapor de calentamiento (ej: steam)
+        public IStreamFacade2? ShellOut { get; private set; }  // Condensado
 
         // 🔹 Variables operativas
-        public INewVariableAmount<EnergyFlow> Duty { get; set; }
-        public INewVariableAmount<PressureDrop> DeltaP_Tube { get; set; }
-        public INewVariableAmount<PressureDrop> DeltaP_Shell { get; set; }
+        //public INewVariableAmount<EnergyFlow> Duty { get; set; }
+        //public INewVariableAmount<PressureDrop> DeltaP_Tube { get; set; }
+        //public INewVariableAmount<PressureDrop> DeltaP_Shell { get; set; }
 
         public ReboilerSimulationFacade2()
         {
-            Duty = new NewControlledVariableAmount<EnergyFlow>(
-                new EnergyFlow(), EnergyFlowUnits.Kcal_hr, EnergyFlowUnits.Kcal_hr,
-                (v, u) => new EnergyFlow(v, u));
-            Duty.OnExecuteSolver += ExecuteSolver;
+            //Duty = new NewControlledVariableAmount<EnergyFlow>(
+            //    new EnergyFlow(), EnergyFlowUnits.Kcal_hr, EnergyFlowUnits.Kcal_hr,
+            //    (v, u) => new EnergyFlow(v, u));
+            //Duty.OnExecuteSolver += ExecuteSolver;
 
-            DeltaP_Tube = new NewControlledVariableAmount<PressureDrop>(
-                new PressureDrop(), PressureDropUnits.Bar, PressureDropUnits.Pascal,
-                (v, u) => new PressureDrop(v, u));
-            DeltaP_Tube.OnExecuteSolver += ExecuteSolver;
+            //DeltaP_Tube = new NewControlledVariableAmount<PressureDrop>(
+            //    new PressureDrop(), PressureDropUnits.Bar, PressureDropUnits.Pascal,
+            //    (v, u) => new PressureDrop(v, u));
+            //DeltaP_Tube.OnExecuteSolver += ExecuteSolver;
 
-            DeltaP_Shell = new NewControlledVariableAmount<PressureDrop>(
-                new PressureDrop(), PressureDropUnits.Bar, PressureDropUnits.Pascal,
-                (v, u) => new PressureDrop(v, u));
-            DeltaP_Shell.OnExecuteSolver += ExecuteSolver;
+            //DeltaP_Shell = new NewControlledVariableAmount<PressureDrop>(
+            //    new PressureDrop(), PressureDropUnits.Bar, PressureDropUnits.Pascal,
+            //    (v, u) => new PressureDrop(v, u));
+            //DeltaP_Shell.OnExecuteSolver += ExecuteSolver;
         }
 
         public override string StatusText => State switch
@@ -141,11 +141,11 @@ namespace Shared.UnitOperations.HeatExchangers
         public override List<ToolTipLegend> GetToolTipLegend()
         {
             var result = new List<ToolTipLegend>();
-            if (Duty.IsEspecified) result.Add(new("Duty", Duty.Value?.ToString() ?? string.Empty));
+            //if (Duty.IsEspecified) result.Add(new("Duty", Duty.Value?.ToString() ?? string.Empty));
             return result;
         }
 
-        public override void AttachConnection(string portName, IStreamFacade connectedFacade)
+        public override void AttachConnection(string portName, IStreamFacade2 connectedFacade)
         {
             if (portName == "TubeIn") TubeIn = connectedFacade;
             else if (portName == "TubeOut") TubeOut = connectedFacade;

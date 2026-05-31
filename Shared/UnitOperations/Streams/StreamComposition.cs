@@ -32,6 +32,8 @@ namespace Shared.UnitOperations.Streams
                 comp.MolarFractionSolver.ExecuteStreamCalculation -= UpdateMassFractions;
                 comp.MolarFractionSolver.ExecuteStreamCalculation += UpdateMassFractions;
 
+
+
                 comp.MolarFlowSolver.AddToDefinedList -= AddLocalCalculatedVariable;
                 comp.MolarFlowSolver.AddToDefinedList += AddLocalCalculatedVariable;
 
@@ -41,7 +43,7 @@ namespace Shared.UnitOperations.Streams
         }
 
         internal NewNewVariableComposition? ParentVariable { get; set; }
-
+        internal VariableComposition? NewParentVariable { get; set; }
         /// <summary>
         /// Calcula fracciones másicas a partir de fracciones molares y actualiza el estado del ParentVariable.
         /// Se dispara cuando MolarFractionSolver es actualizado por cálculo local o solver.
@@ -53,6 +55,11 @@ namespace Shared.UnitOperations.Streams
             if (Components.Any(c => !c.MolarFractionSolver.IsDefined))
             {
                 ParentVariable?.ClearFromStream();
+                foreach (var comp in Components)
+                {
+                    comp.MassFractionSolver.ClearFromStream();
+                    comp.MolarFlowSolver.ClearFromStream();
+                }
                 return;
             }
 
@@ -72,7 +79,10 @@ namespace Shared.UnitOperations.Streams
             foreach (var component in Components)
             {
                 double wi = (component.MolarFractionSolver.Value * component.MolecularWeight) / sum * 100;
-                component.MassFractionSolver.SetValueFromStream(wi, "");
+                if (!component.MassFractionSolver.IsDefinedByUI)
+                {
+                    component.MassFractionSolver.SetValueFromStream(wi, "");
+                }
             }
 
             // 🔹 6. 🔥 MARCAR PADRE CON LÓGICA MIXTA: No exigir que todos tengan la misma fuente
@@ -145,10 +155,7 @@ namespace Shared.UnitOperations.Streams
             }
         }
 
-        public void SetInputType(ComponentInputType inputType)
-        {
-            InputType = inputType;
-        }
+       
 
         public StreamComposition Clone()
         {
@@ -169,7 +176,7 @@ namespace Shared.UnitOperations.Streams
             return clonedComposition;
         }
 
-        public void CalculateMolarFractionsFromMass()
+        void CalculateMolarFractionsFromMass()
         {
             if (Components.Any(c => !c.MassFractionSolver.IsDefined))
                 return;
@@ -187,7 +194,7 @@ namespace Shared.UnitOperations.Streams
             }
         }
 
-        public void CalculateMassFractionsFromMolar()
+        void CalculateMassFractionsFromMolar()
         {
             if (Components.Any(c => !c.MolarFractionSolver.IsDefined))
                 return;
@@ -211,240 +218,70 @@ namespace Shared.UnitOperations.Streams
             var names = Components.Select(c => c.ComponentName.ToLower()).OrderBy(n => n).ToList();
             return names.Contains("ethanol") && names.Contains("water");
         }
-    }
-    public class StreamComposition2
-    {
-        public ComponentInputType InputType { get; set; } = ComponentInputType.None;
-        public List<ComponentComposition> Components { get; set; } = new();
-
-        public Action<INewNewVariable>? OnAddLocalCalculatedVariable { get; set; }
-
-        void AddLocalCalculatedVariable(INewNewVariable variable)
+        public void CalculateMassMolarFractions()
         {
-            OnAddLocalCalculatedVariable?.Invoke(variable);
-        }
-        public StreamComposition2()
-        {
+            // 🔹 Validación de seguridad
+            if (Components == null || Components.Count == 0) return;
+            if (InputType == ComponentInputType.None) return;
+
+            // 🔹 CASO A: Entrada por Fracción Másica → Calcular Fracción Molar
+            if (InputType == ComponentInputType.MassFraction)
+            {
+                // Validar que TODOS los componentes tengan fracción másica definida
+                if (Components.Any(c => !c.MassFractionSolver.IsDefined)) return;
+
+                // Validar que la suma esté cerca de 100%
+                var massSum = Components.Sum(c => c.MassFractionSolver.Value);
+                if (massSum < 99 || massSum > 101) return;
+
+                // Calcular denominador para conversión: Σ(z_i/MW_i)
+                var sum = Components.Sum(c => c.MassFractionSolver.Value / c.MolecularWeight);
+                if (sum <= 0) return;
+
+                // Calcular y marcar fracciones molares como definidas por UI
+                foreach (var comp in Components)
+                {
+                    double zi = (comp.MassFractionSolver.Value / comp.MolecularWeight) / sum * 100;
+                    // 🔥 CLAVE: SetValueFromUI para marcar como "definido por UI" (no por Stream)
+                    comp.MolarFractionSolver.SetValueFromUINotEvents(zi);
+                }
+            }
+            // 🔹 CASO B: Entrada por Fracción Molar → Calcular Fracción Másica
+            else if (InputType == ComponentInputType.MolarFraction)
+            {
+                // Validar que TODOS los componentes tengan fracción molar definida
+                if (Components.Any(c => !c.MolarFractionSolver.IsDefined)) return;
+
+                // Validar que la suma esté cerca de 100%
+                var moleSum = Components.Sum(c => c.MolarFractionSolver.Value);
+                if (moleSum < 99 || moleSum > 101) return;
+
+                // Calcular denominador para conversión: Σ(z_i*MW_i)
+                var sum = Components.Sum(c => c.MolarFractionSolver.Value * c.MolecularWeight);
+                if (sum <= 0) return;
+
+                // Calcular y marcar fracciones másicas como definidas por UI
+                foreach (var comp in Components)
+                {
+                    double wi = (comp.MolarFractionSolver.Value * comp.MolecularWeight) / sum * 100;
+                    comp.MassFractionSolver.SetValueFromUINotEvents(wi);
+                }
+            }
         }
 
-        public StreamComposition2(List<ComponentComposition> components)
-        {
-            Components = components;
-
-        }
-        // ✅ REEMPLAZAR AttachEvents() por esto:
-        public void AttachEvents()
+        /// <summary>
+        /// 🔥 MÉTODO DE LIMPIEZA: Limpia ambas fracciones cuando se desdefine la composición
+        /// </summary>
+        public void ClearMassMolarFractions()
         {
             foreach (var comp in Components)
             {
-                comp.MolarFlowSolver.ExecuteStreamCalculation -= UpdateFractionsFromFlows;
-                comp.MolarFlowSolver.ExecuteStreamCalculation += UpdateFractionsFromFlows;
-
-                comp.MolarFractionSolver.ExecuteStreamCalculation -= UpdateMassFractions;
-                comp.MolarFractionSolver.ExecuteStreamCalculation += UpdateMassFractions;
-
-                comp.MolarFlowSolver.AddToDefinedList -= AddLocalCalculatedVariable;
-                comp.MolarFlowSolver.AddToDefinedList += AddLocalCalculatedVariable;
-
-                comp.MolarFractionSolver.AddToDefinedList -= AddLocalCalculatedVariable;
-                comp.MolarFractionSolver.AddToDefinedList += AddLocalCalculatedVariable;
+                // Limpiar ambas fracciones (independientemente de cuál fue la entrada)
+                comp.MassFractionSolver.ClearFromUINoEvents();
+                comp.MolarFractionSolver.ClearFromUINoEvents();
             }
-        }
-
-        internal NewNewVariableComposition? ParentVariable { get; set; }
-        /// <summary>
-        /// Calcula fracciones másicas a partir de fracciones molares y actualiza el estado del ParentVariable.
-        /// Se dispara cuando MolarFractionSolver es actualizado por cálculo local o solver.
-        /// </summary>
-        public void UpdateMassFractions()
-        {
-            // 🔹 1. Validar que todos tengan MolarFraction disponible (fuente para calcular masa)
-            if (Components.Any(c => !c.MolarFractionSolver.IsDefinedByEquipmentSolver))
-            {
-                ParentVariable?.ClearFromEquipmentSolver();
-                return;
-            }
-            if (Components.Any(c => !c.MolarFractionSolver.IsDefinedByGeneralSolver))
-            {
-                ParentVariable?.ClearFromGeneralSolver();
-                return;
-            }
-
-            // 🔹 2. Calcular suma de fracciones molares para normalización
-            var moleSum = Components.Sum(c => c.MolarFractionSolver.Value);
-
-            // 🔹 3. Solo calcular si la suma está cerca de 100% (tolerancia 1%)
-            if (moleSum < 99 || moleSum > 101)
-                return;
-
-            // 🔹 4. Calcular suma de (z_i * MW_i) para conversión a base másica
-            var sum = Components.Sum(c => c.MolarFractionSolver.Value * c.MolecularWeight);
-            if (sum <= 0)
-                return;
-
-            // 🔹 5. Calcular fracciones másicas: w_i = (z_i * MW_i) / sum * 100
-            foreach (var component in Components)
-            {
-                double wi = (component.MolarFractionSolver.Value * component.MolecularWeight) / sum * 100;
-
-                // 🔥 Actualizar con origen "cálculo local" para propagación correcta
-                component.MassFractionSolver.SetValueFromStream(wi, "");
-            }
-
-            // 🔹 6. Verificar si la composición completa está especificada por solver
-            // Usamos MolarFractionSolver como fuente de verdad (ya que las másicas son derivadas)
-            if (Components.Count > 0)
-            {
-                bool allMolarSpecifiedBySolver = Components.All(c => c.MolarFractionSolver.IsDefinedByGeneralSolver || c.MolarFractionSolver.IsDefinedByEquipmentSolver);
-
-                if (allMolarSpecifiedBySolver)
-                {
-                    // ✅ Composición completa resuelta → marcar como especificada por solver
-                    ParentVariable?.SetValueFromGeneralSolver(0); // valor dummy
-                }
-                else
-                {
-                    // ❌ Al menos una fracción molar no fue especificada por solver → desmarcar
-                    ParentVariable?.ClearFromGeneralSolver();
-                }
-            }
-        }
-
-        public void UpdateFractionsFromFlows()
-        {
-            double total = Components.Sum(c => c.MolarFlowSolver.SolverValue);
-
-            if (total <= 0) return;
-
-            foreach (var comp in Components)
-            {
-                double zi = comp.MolarFlowSolver.SolverValue / total;
-
-                if (double.IsNaN(zi) || double.IsInfinity(zi))
-                    continue;
-
-                comp.MolarFractionSolver.SetValueFromStream(zi * 100, "");
-            }
-
-            CalculateMassFractionsFromMolar();
-
-            // 🔥 NUEVO: Verificar si TODOS los componentes fueron actualizados por el solver
-            if (Components.Count > 0)
-            {
-                bool allSpecified = Components.All(c => c.MolarFlowSolver.IsDefinedByGeneralSolver || c.MolarFlowSolver.IsDefinedByEquipmentSolver);
-
-                if (allSpecified)
-                {
-                    // ✅ Todos listos → marcar composición como especificada por solver
-                    ParentVariable?.SetValueFromGeneralSolver(0); // valor dummy
-                }
-                else
-                {
-                    // ❌ Al menos uno fue limpiado → desmarcar composición
-                    ParentVariable?.ClearFromGeneralSolver();
-                }
-            }
-        }
-
-        // 🔥 IMPORTANTE: Reiniciar contador cuando se cargue nueva composición
-        public void SetInputType(ComponentInputType inputType)
-        {
-            InputType = inputType;
-
-        }
-
-
-        public StreamComposition2 Clone()
-        {
-            // 1. Creamos una nueva instancia del contenedor
-            var clonedComposition = new StreamComposition2
-            {
-                InputType = this.InputType // Respetamos si el usuario metió masa o moles
-            };
-
-            // 2. Iteramos sobre los componentes y CLONAMOS CADA UNO individualmente
-            foreach (var comp in this.Components)
-            {
-                // Aquí es donde se llama al método Clone() de ComponentComposition que ya arreglaste
-                clonedComposition.Components.Add(comp.Clone());
-            }
-
-            return clonedComposition;
-        }
-
-        public void CalculateMolarFractionsFromMass()
-        {
-            // 1. Validar que todos tengan MassFraction
-            if (Components.Any(c => !c.MassFractionSolver.IsDefined))
-                return;
-
-            // 2. 👇 CLAVE: Calcular suma de fracciones másicas
-            var massSum = Components.Sum(c => c.MassFractionSolver.Value);
-
-            // 3. 👇 Solo calcular si la suma está cerca de 1.0 (tolerancia 1%)
-            if (massSum < 99 || massSum > 101)
-                return;  // 👇 NO calcular si suma ≠ 1.0
-
-            // 4. Calcular suma de (w_i / MW_i) para normalización molar
-            var sum = Components.Sum(c => c.MassFractionSolver.Value / c.MolecularWeight);
-
-            if (sum <= 0)
-                return;
-
-            // 5. Calcular z_i = (w_i / MW_i) / sum
-            foreach (var component in Components)
-            {
-                component.MolarFractionSolver.SetValueFromStream((component.MassFractionSolver.Value / component.MolecularWeight) / sum * 100, "");
-            }
-        }
-
-        // ─────────────────────────────────────────────────────────
-        // 🔹 CONVERSIÓN: Molar → Mass (CORREGIDO)
-        // ─────────────────────────────────────────────────────────
-        public void CalculateMassFractionsFromMolar()
-        {
-            // 1. Validar que todos tengan MolarFraction
-            if (Components.Any(c => !c.MolarFractionSolver.IsDefined))
-                return;
-
-            // 2. 👇 CLAVE: Calcular suma de fracciones molares
-            var moleSum = Components.Sum(c => c.MolarFractionSolver.Value);
-
-            // 3. 👇 Solo calcular si la suma está cerca de 1.0 (tolerancia 1%)
-            if (moleSum < 99 || moleSum > 101)
-                return;  // 👇 NO calcular si suma ≠ 1.0
-
-            // 4. Calcular suma de (z_i * MW_i) para normalización másica
-            var sum = Components.Sum(c => c.MolarFractionSolver.Value * c.MolecularWeight);
-
-            if (sum <= 0)
-                return;
-
-            // 5. Calcular w_i = (z_i * MW_i) / sum
-            foreach (var component in Components)
-            {
-                component.MassFractionSolver.SetValueFromStream((component.MolarFractionSolver.Value * component.MolecularWeight) / sum * 100, "");
-            }
-        }
-
-        // ─────────────────────────────────────────────────────────
-        // 🔹 VALIDACIÓN: Suma de fracciones ≈ 1.0
-        // ─────────────────────────────────────────────────────────
-
-
-        /// <summary>
-        /// Normaliza las fracciones para que sumen exactamente 1.0
-        /// </summary>
-
-        public bool IsEthanolWaterMixture()
-        {
-            if (Components?.Count != 2) return false;
-
-            var names = Components.Select(c => c.ComponentName.ToLower()).OrderBy(n => n).ToList();
-            return names.Contains("ethanol") && names.Contains("water");
-            // O por ComponentId si es más confiable:
-            // return Components.Any(c => c.ComponentId == EthanolGuid) && 
-            //        Components.Any(c => c.ComponentId == WaterGuid);
+            InputType = ComponentInputType.None;
         }
     }
+    
 }

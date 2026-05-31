@@ -5,9 +5,10 @@
     // ========================================================================
     public enum EquilibriumMode
     {
-        None = 0,
-        PT = 1,
-        P_FV = 2,
-        T_FV = 3
+        None = 0,      // Sin modo definido
+        PT = 1,        // P + T definidos → calcular VF
+        PFV = 2,       // P + VF definidos → calcular T
+        TFV = 3,       // T + VF definidos → calcular P
+        PH = 4         // P + H definidos → calcular T
     }
 }

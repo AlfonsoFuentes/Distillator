@@ -168,3 +168,31 @@
     ::-webkit-scrollbar-thumb:hover {
         background: #a1a1a1;
     }
+/* ==================== °GL - ESTILOS CORREGIDOS ==================== */
+
+/* °GL calculado: mismo estilo que celdas calculadas del grid (gris oscuro) */
+.gl-value-readonly.calculated {
+    color: #2a2f3a !important; /* ← Gris oscuro, no azul */
+    font-weight: 600;
+    cursor: help;
+    user-select: none;
+    background-color: transparent;
+}
+
+/* °GL editable: azul como inputs editables */
+.ethanol-water-gl-input:not(.state-readonly) input {
+    color: #4674a6 !important;
+    font-weight: 500;
+}
+
+/* °GL no definido: gris claro italic */
+.gl-value-not-defined {
+    color: #999999 !important;
+    font-style: italic;
+    cursor: pointer;
+    padding: 0 10px;
+}
+
+    .gl-value-not-defined:hover {
+        color: #4674a6 !important;
+    }

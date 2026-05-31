@@ -7,7 +7,7 @@
 
         @* 👇 GRUPO 1: Phase & Density *@
         <div class="grid-cell label group-title">Phase & Density</div>
-
+        <NewUnifiedDoubleRow Label="Molecular Weight" @bind-Variable="Facade.MolecularWeight" Mode="VariableMode.Compact" IsReadOnly="true" />
         <NewUnifiedVariableRow Label="Mass Density" @bind-Variable="Facade.MassDensity" Mode="VariableMode.Compact" IsReadOnly="true" />
         <NewUnifiedVariableRow Label="Molar Density" @bind-Variable="Facade.MolarDensity" Mode="VariableMode.Compact" IsReadOnly="true" />
 
@@ -35,5 +35,5 @@
 </div>
 
 @code {
-    [Parameter, EditorRequired] public StreamFacade Facade { get; set; } = default!;
+    [Parameter, EditorRequired] public StreamFacade2 Facade { get; set; } = default!;
 }

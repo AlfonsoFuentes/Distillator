@@ -1,61 +1,93 @@
-﻿using Shared.Thermodynamics.Phases;
+﻿using Shared.SolverQwen.Stream;
+using Shared.SolverQwen.Variables;
+using Shared.Thermodynamics.Phases;
 using Shared.UnitOperations.Streams;
 using UnitSystem;
 
 namespace Shared.Thermodynamics.Strategies.Equlibriums
-{   // ✅ NUEVO ARCHIVO: IEquilibriumContext.cs
+{
     public class TFVVaporStrategy : IEquilibriumStrategy
     {
-        private readonly StreamSimulationFacade _facade;
-        private MaterialStream Stream => _facade.MaterialStream;
+        private readonly IFacadeStream _facade;
+        private IMaterialStream Stream => _facade.MaterialStream;
 
-     
 
-        public TFVVaporStrategy(StreamSimulationFacade facade)
+
+        public TFVVaporStrategy(IFacadeStream   facade)
         {
             _facade = facade;
         }
 
         public void Execute()
         {
-            double pBubble = Stream.SolveSaturationPressure();
+            Stream.SolveSaturationPressure();
 
-            var pressure = _facade.Pressure.Value;
-            pressure!.SetValue(pBubble, PressureUnits.KiloPascala);
+        
             // ✅ 4. Actualizar UI con resultado calculado
-            _facade.Pressure.SetValueCalculated(pressure, _facade.Name);
-         
+            _facade.Pressure.SetValue(Stream.Pressure, VariableDataProcedence.StreamCalculated);
 
+            _facade.MaterialStream.CalculateBulkProperties();
+            _facade.MassEnthalpy.SetValue(_facade.MaterialStream.MassEnthalpy, VariableDataProcedence.StreamCalculated);
         }
 
-      
 
-       
+
+
 
     }
-    public class TFVVaporStrategy2 : IEquilibriumStrategy
+    public class TFVVaporStrategy3 : IEquilibriumStrategy
     {
         private readonly IStreamFacade _facade;
         private IMaterialStream Stream => _facade.MaterialStream;
 
 
 
-        public TFVVaporStrategy2(IStreamFacade facade)
+        public TFVVaporStrategy3(IStreamFacade facade)
         {
             _facade = facade;
         }
 
         public void Execute()
         {
-            double pBubble = Stream.SolveSaturationPressure();
+            //double pBubble = Stream.SolveSaturationPressure();
 
-            var pressure = _facade.Pressure.Value;
-            pressure!.SetValue(pBubble, PressureUnits.KiloPascala);
-            // ✅ 4. Actualizar UI con resultado calculado
-            _facade.Pressure.SetValueFromStream(pressure, _facade.Name);
+            //var pressure = _facade.Pressure.Value;
+            //pressure!.SetValue(pBubble, PressureUnits.KiloPascala);
+            //// ✅ 4. Actualizar UI con resultado calculado
+            //_facade.Pressure.SetValueFromStream(pressure, _facade.Name);
 
-            _facade.MaterialStream.CalculateBulkProperties();
-            _facade.MolarEnthalpy.SetValueFromStream(_facade.MaterialStream.MolarEnthalpy, _facade.Name);
+            //_facade.MaterialStream.CalculateBulkProperties();
+            //_facade.MassEnthalpy.SetValueFromStream(_facade.MaterialStream.MassEnthalpy, _facade.Name);
+        }
+
+
+
+
+
+    }
+    public class TFVVaporStrategy2 : IEquilibriumStrategy
+    {
+        private readonly IStreamFacade2 _facade;
+        private IMaterialStream Stream => _facade.MaterialStream;
+
+
+
+        public TFVVaporStrategy2(IStreamFacade2 facade)
+        {
+            _facade = facade;
+        }
+
+        public void Execute()
+        {
+            //double pBubble = Stream.SolveSaturationPressure();
+
+            //var pressure = _facade.Pressure.Value;
+            //pressure!.SetValue(pBubble, PressureUnits.KiloPascala);
+            //// ✅ 4. Actualizar UI con resultado calculado
+            //_facade.Pressure.SetValueFromStream(pressure, _facade.Name);
+
+            //_facade.MaterialStream.CalculateBulkProperties();
+            //_facade.MassEnthalpy.SetValueFromStream(_facade.MaterialStream.MassEnthalpy, _facade.Name);
         }
 
 
