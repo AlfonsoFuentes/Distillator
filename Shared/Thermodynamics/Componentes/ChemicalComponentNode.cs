@@ -45,7 +45,7 @@ namespace Shared.Thermodynamics.Componentes
             // MethodCoefficients?.Clear();
         }
         public double MassFraction { get; set; } // w_i
-        public double MolarFraction { get; set; } // z_i, x_i, y_i
+        public double MolarFraction { get; set; } // w_i
 
     }
 }

@@ -14,7 +14,31 @@ namespace Shared.Thermodynamics.Phases
         protected override IReadOnlyList<ChemicalComponentNode> ComponentsForPropagation => Components;
 
         public LiquidPhaseMixture(string name = "Liquid Phase") => Name = name;
+        void CalculateMassFractions() // (Corregido un pelín el nombre 😉)
+        {
+            // 1. Calculamos la masa total de la mezcla (MW Promedio)
+            double totalMass = 0.0;
+            foreach (var component in Components)
+            {
+                totalMass += component.MolarFraction * component.PureComponentData.MolecularWeight;
+            }
 
+            // 2. Prevenimos división por cero si la fase está vacía
+            if (totalMass > 0)
+            {
+                foreach (var component in Components)
+                {
+                    // 3. Normalizamos y asignamos
+                    double massFraction = (component.MolarFraction * component.PureComponentData.MolecularWeight) / totalMass;
+                    component.MassFraction = massFraction; // ¡Ahora sí te dejará hacerlo!
+                }
+            }
+            else
+            {
+                // Si no hay masa, reseteamos a cero por seguridad
+                foreach (var component in Components) component.MassFraction = 0.0;
+            }
+        }
         public override void SetComponentsProperties(ThermodynamicMethodFullDto method)
         {
             Components.Clear();
@@ -31,7 +55,7 @@ namespace Shared.Thermodynamics.Phases
         {
             if (Components.Count == 0) return;
             foreach (var comp in Components) comp.CalculatePureProperties(temperature, pressure);
-
+            CalculateMassFractions();
             // ✅ Delegación al Calculator
             ActivityCoefficientCalculator.Calculate(ThermoMethod.LiquidModel, Components, ActivityMatrices, temperature);
 

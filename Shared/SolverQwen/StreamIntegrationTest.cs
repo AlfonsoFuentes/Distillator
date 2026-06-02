@@ -115,7 +115,7 @@ namespace Shared.SolverQwen
         }
 
 
-        public void Run()
+        public void RunStreamIntegrationTest()
         {
             if (ThermoMethod == null)
             {
@@ -135,10 +135,10 @@ namespace Shared.SolverQwen
             Console.WriteLine("🔹 PASO 1: Definiendo inputs desde UI...");
 
             // Pressure: 1 bar g = 1 bar + 1.01325 bar (atm) = ~2.01325 bar a
-            var pressureGauge = new Pressure(1, PressureUnits.Atmospherea);
+            var pressureGauge = new Pressure(25, PressureUnits.Psig);
 
 
-           _facade.Pressure.SetValue(pressureGauge, VariableDataProcedence.UserInput);
+            _facade.Pressure.SetValue(pressureGauge, VariableDataProcedence.UserInput);
             Console.WriteLine($"   • Pressure = {pressureGauge.GetValue(PressureUnits.Bara):F3} bara (Owner: UI)");
 
             // MassFlow: 10000 kg/hr
@@ -147,9 +147,9 @@ namespace Shared.SolverQwen
             Console.WriteLine($"   • MassFlow = {massFlow.GetValue(MassFlowUnits.Kg_hr):F0} kg/hr (Owner: UI)");
 
             // VaporFraction: 100% (vapor saturado)
-            var newTemperature = new Temperature(88, TemperatureUnits.DegreeCelcius);
-            _facade.Temperature.SetValue(newTemperature, VariableDataProcedence.UserInput);
-            //_facade.VaporFraction.SetValue(new Percentage(50, PercentageUnits.Percentage), VariableDataProcedence.UserInput);
+            var newTemperature = new Temperature(420, TemperatureUnits.Kelvin);
+            //_facade.Temperature.SetValue(newTemperature, VariableDataProcedence.UserInput);
+            _facade.VaporFraction.SetValue(new Percentage(100, PercentageUnits.Percentage), VariableDataProcedence.UserInput);
 
             //Console.WriteLine($"   • VaporFraction = {vaporFraction.GetValue(PercentageUnits.Percentage):F0}% (Owner: UI)");
 
@@ -158,10 +158,10 @@ namespace Shared.SolverQwen
             var components = _facade.Composition.Components.ToList();
             if (components.Count >= 2)
             {
-                components[0].MolarFraction.SetValue(new Percentage(20, PercentageUnits.Percentage), VariableDataProcedence.UserInput);
-                components[1].MolarFraction.SetValue(new Percentage(80, PercentageUnits.Percentage), VariableDataProcedence.UserInput);
-                Console.WriteLine($"     - {components[0].Name}: 80% mol");
-                Console.WriteLine($"     - {components[1].Name}: 20% mol");
+                components[0].MolarFraction.SetValue(new Percentage(10, PercentageUnits.Percentage), VariableDataProcedence.UserInput);
+                components[1].MolarFraction.SetValue(new Percentage(90, PercentageUnits.Percentage), VariableDataProcedence.UserInput);
+                Console.WriteLine($"     - {components[0].Name}: 10% mol");
+                Console.WriteLine($"     - {components[1].Name}: 90% mol");
             }
 
 
@@ -174,8 +174,8 @@ namespace Shared.SolverQwen
 
             // ─────────────────────────────────────────────────────────
             // 🔹 PASO 3: Ejecutar cálculo de flujos
-
-            _facade.Temperature.Clear(VariableDataProcedence.UserInput);
+            //_facade.Temperature.Clear(VariableDataProcedence.UserInput);
+            _facade.VaporFraction.Clear(VariableDataProcedence.UserInput);
             var sw = System.Diagnostics.Stopwatch.StartNew();
 
 
@@ -744,7 +744,7 @@ namespace Shared.SolverQwen
 
             Console.WriteLine("\n✅ EJEMPLO 3 FINALIZADO - Sistema con splitter validado");
         }
-        public void RunHex()
+        public void Run()
         {
             if (ThermoMethod == null)
             {
@@ -767,122 +767,166 @@ namespace Shared.SolverQwen
             var coldInlet = new FacadeStream { Name = "Cold_In" };
             var coldOutlet = new FacadeStream { Name = "Cold_Out" };
 
-            var allStreams = new List<FacadeStream> { hotInlet, hotOutlet, coldInlet, coldOutlet };
-            foreach (var s in allStreams) s.SetThermodynamicMethod(ThermoMethod);
+
 
             // Instanciar el Intercambiador
             var hex = new HeatExchangerEquipment("E-100");
             hex.ConnectHotSide(hotInlet, hotOutlet);
             hex.ConnectColdSide(coldInlet, coldOutlet);
 
+            var valve = new ValveEquipment("V-101");
+            var drum = new SeparatorDrumEquipment("D-100");
             // Instanciar el Orquestador
             var orchestrator = new SimulationOrchestrator();
             orchestrator.AddEquipment(hex);
+            orchestrator.AddEquipment(valve);
+            orchestrator.AddEquipment(drum);
+            var valveOutlet = new FacadeStream { Name = "Valve_Out" };
+            valve.AddInlet(hotOutlet);
+            valve.AddOutlet(valveOutlet);
+
+            var drumOutletVapor = new FacadeStream { Name = "Drum_Out1" };
+            var drumOutletLiquid = new FacadeStream { Name = "Drum_Out2" };
+            drum.ConnectVaporOutlet(drumOutletVapor);
+            drum.ConnectLiquidOutlet(drumOutletLiquid);
+
+            drum.AddFeed(valveOutlet);
+
+            var allStreams = new List<FacadeStream> { hotInlet, hotOutlet, coldInlet, coldOutlet, valveOutlet, drumOutletVapor, drumOutletLiquid };
+            foreach (var s in allStreams) s.SetThermodynamicMethod(ThermoMethod);
+
 
             Console.WriteLine("✅ Topología construida: E-100 (HotIn->HotOut | ColdIn->ColdOut)");
             Console.WriteLine("Presiona Enter para comenzar a inyectar datos...");
 
-
-            // ─────────────────────────────────────────────────────────
-            // 2. INYECCIÓN PASO A PASO (Con simulación e impresión)
-            // ─────────────────────────────────────────────────────────
-
-            // --- PASO A: Especificar el Fluido Caliente (Completo) ---
-            Console.WriteLine("\n🔹 PASO A: Especificando fluido caliente de entrada (Hot_In)...");
+            LogSeparator("inicio Paso 1");
 
             hotInlet.Pressure.SetValue(new Pressure(2.5, PressureUnits.Bara), VariableDataProcedence.UserInput);
-            orchestrator.RunSimulation();
-            AllPrinter(allStreams, "PASO A: Especificando fluido caliente de entrada (Hot_In)...");
 
-            hotInlet.Temperature.SetValue(new Temperature(200, TemperatureUnits.DegreeCelcius), VariableDataProcedence.UserInput);
             orchestrator.RunSimulation();
-            AllPrinter(allStreams, "PASO A: Especificando fluido caliente de entrada (Hot_In)...");
+            AllPrinter(allStreams, "fin PASO 1");
 
+
+            LogSeparator("inicio Paso 2");
+            hotInlet.VaporFraction.SetValue(new Percentage(100, PercentageUnits.Percentage), VariableDataProcedence.UserInput);
+            orchestrator.RunSimulation();
+            AllPrinter(allStreams, "fin PASO 2");
+
+
+            LogSeparator("inicio Paso 3");
             hotInlet.MassFlow.SetValue(new MassFlow(5000, MassFlowUnits.Kg_hr), VariableDataProcedence.UserInput);
             orchestrator.RunSimulation();
-            AllPrinter(allStreams, "PASO A: Especificando fluido caliente de entrada (Hot_In)...");
+            AllPrinter(allStreams, "fin PASO 3");
 
+
+            LogSeparator("inicio Paso 4");
             // Composición: Mezcla binaria
             var hotComps = hotInlet.Composition.Components;
             if (hotComps.Count >= 2)
             {
-                hotComps[0].MassFraction.SetValue(new Percentage(60, PercentageUnits.Percentage), VariableDataProcedence.UserInput);
-                hotComps[1].MassFraction.SetValue(new Percentage(40, PercentageUnits.Percentage), VariableDataProcedence.UserInput);
+                hotComps[0].MassFraction.SetValue(new Percentage(90, PercentageUnits.Percentage), VariableDataProcedence.UserInput);
+                hotComps[1].MassFraction.SetValue(new Percentage(10, PercentageUnits.Percentage), VariableDataProcedence.UserInput);
             }
 
             // Disparamos simulación
             orchestrator.RunSimulation();
-            AllPrinter(allStreams, "ESTADO TRAS PASO A: Fluido Caliente Definido");
-            // Qué debería pasar: La Fase 2 empuja la masa y concentración a Hot_Out. La presión se propaga si deltaP=0. 
-            // Entalpía y Temp no pasan porque la Fase 3 del HEX lo impide (el calor cambia).
+            AllPrinter(allStreams, "fin PASO 4");
 
 
-
-            // --- PASO B: Especificar Hidráulica del Intercambiador ---
-            Console.WriteLine("\n🔹 PASO B: Definiendo caídas de presión en E-100 (DeltaP)...");
-
+            LogSeparator("inicio Paso 5");
             hex.DeltaPHot.SetValue(new PressureDrop(0.5, PressureDropUnits.Bar), VariableDataProcedence.UserInput);
             orchestrator.RunSimulation();
-            AllPrinter(allStreams, "ESTADO TRAS PASO B: Caídas de Presión Definidas");
+            AllPrinter(allStreams, "fin PASO 5");
 
-            hex.DeltaPCold.SetValue(new PressureDrop(0.2, PressureDropUnits.Bar), VariableDataProcedence.UserInput);
 
+            LogSeparator("inicio Paso 6");
+            hotOutlet.VaporFraction.SetValue(new Percentage(0, PercentageUnits.Percentage), VariableDataProcedence.UserInput);
             orchestrator.RunSimulation();
-            AllPrinter(allStreams, "ESTADO TRAS PASO B: Caídas de Presión Definidas");
-            // Qué debería pasar: Hot_Out ahora tendrá 9.5 bara. Cold_Out no tendrá presión aún (falta Cold_In).
+            AllPrinter(allStreams, "fin PASO 6");
 
 
 
-            // --- PASO C: Especificar el Fluido Frío (Entrada parcial) ---
-            Console.WriteLine("\n🔹 PASO C: Definiendo presión y temperatura del agua de enfriamiento (Cold_In)...");
-
-            coldInlet.Pressure.SetValue(new Pressure(3, PressureUnits.Bara), VariableDataProcedence.UserInput);
+            LogSeparator("inicio Paso 7");
+            valve.DeltaP.SetValue(new PressureDrop(5, PressureDropUnits.psi), VariableDataProcedence.UserInput);
             orchestrator.RunSimulation();
-            AllPrinter(allStreams, "ESTADO TRAS PASO C: Cold_In definido (Falta Flujo o Calor)");
-
-            coldInlet.Temperature.SetValue(new Temperature(25, TemperatureUnits.DegreeCelcius), VariableDataProcedence.UserInput);
-            orchestrator.RunSimulation();
-            AllPrinter(allStreams, "ESTADO TRAS PASO C: Cold_In definido (Falta Flujo o Calor)");
+            AllPrinter(allStreams, "fin PASO 7 - SISTEMA COMPLETO");
 
 
-            // Composición: Suponemos agua pura (o el componente que tengas de índice 0)
-            var coldComps = coldInlet.Composition.Components;
-            coldComps[0].MassFraction.SetValue(new Percentage(0, PercentageUnits.Percentage), VariableDataProcedence.UserInput);
-            coldComps[1].MassFraction.SetValue(new Percentage(100, PercentageUnits.Percentage), VariableDataProcedence.UserInput);
-
-
-            orchestrator.RunSimulation();
-            AllPrinter(allStreams, "ESTADO TRAS PASO C: Cold_In definido (Falta Flujo o Calor)");
-            // Qué debería pasar: Cold_In calcula su entalpía de entrada. Cold_Out recibe la presión (2.8 bara).
-            // Aún no hay convergencia global porque el sistema está subespecificado (Falta Q o el flujo de agua).
-
-
-
-            // --- PASO D: Cerrar los Grados de Libertad (Fijar T de salida caliente) ---
-            Console.WriteLine("\n🔹 PASO D: Fijando Temperatura de salida deseada para Hot_Out...");
-            // Esto es un diseño conceptual: Forzamos la salida caliente a 60°C. 
-            // El simulador deberá calcular el Calor (Q) necesario Y el flujo de agua fría (Cold_In MassFlow) que lo logre.
-
-            hotOutlet.Temperature.SetValue(new Temperature(60, TemperatureUnits.DegreeCelcius), VariableDataProcedence.UserInput);
-            orchestrator.RunSimulation();
-            AllPrinter(allStreams, "ESTADO TRAS PASO D: Hot_Out definido (Falta Flujo o Calor)");
-            // Para no tener grados de libertad infinitos, limitamos la temperatura de salida del agua a 45°C
-            coldOutlet.Temperature.SetValue(new Temperature(45, TemperatureUnits.DegreeCelcius), VariableDataProcedence.UserInput);
-
-            orchestrator.RunSimulation();
-            AllPrinter(allStreams, "ESTADO FINAL: Convergencia Total del Intercambiador");
-            Console.WriteLine($"\n💡 RESULTADO DEL SOLVER PARA E-100:");
-            Console.WriteLine($"Calor Transferido (Q): {hex.Q.ToUiString("F0")}");
-         
-
-            // Qué debería pasar: 
-            // 1. Hot_Out calcula su entalpía final (a 60°C y 9.5 bara).
-            // 2. La matriz (Fase 3) despeja el calor exacto Q que se robó del lado caliente.
-            // 3. Con ese Q y las entalpías frías definidas (25°C y 45°C), la matriz despeja el MassFlow exacto que debe tener Cold_In.
 
             Console.WriteLine("\n✅ TEST COMPLETO FINALIZADO.");
         }
+        public void RunValveDrum()
+        {
+            if (ThermoMethod == null)
+            {
+                Console.WriteLine("❌ ERROR: Debes llamar a SetThermoMethod() antes de Run().");
+                return;
+            }
+            var valve = new ValveEquipment("V-101");
+            var drum = new SeparatorDrumEquipment("D-100");
+            // Instanciar el Orquestador
+            var orchestrator = new SimulationOrchestrator();
+            orchestrator.AddEquipment(valve);
 
+            var drumOutletVapor = new FacadeStream { Name = "Drum_Out1" };
+            var drumOutletLiquid = new FacadeStream { Name = "Drum_Out2" };
+            drum.ConnectVaporOutlet(drumOutletVapor);
+            drum.ConnectLiquidOutlet(drumOutletLiquid);
+            orchestrator.AddEquipment(drum);
+            var feed = new FacadeStream { Name = "Feed" };
+            valve.AddInlet(feed);
+            var valveOutlet = new FacadeStream { Name = "Valve_Out" };
+            valve.AddOutlet(valveOutlet);
+            drum.AddFeed(valveOutlet);
+            var allStreams = new List<FacadeStream> { feed, drumOutletVapor, drumOutletLiquid, valveOutlet };
+            foreach (var s in allStreams) s.SetThermodynamicMethod(ThermoMethod);
+
+            Console.WriteLine("🚀 INICIO: TEST DE DRUM (PASO A PASO)");
+
+            LogSeparator("inicio Paso 1");
+            feed.Pressure.SetValue(new Pressure(2, PressureUnits.Bara), VariableDataProcedence.UserInput);
+            orchestrator.RunSimulation();
+
+            AllPrinter(allStreams, "fin PASO 1");
+            LogSeparator("inicio Paso 2");
+            feed.VaporFraction.SetValue(new Percentage(10, PercentageUnits.Percentage), VariableDataProcedence.UserInput);
+            orchestrator.RunSimulation();
+            AllPrinter(allStreams, "fin PASO 2");
+
+            LogSeparator("inicio Paso 3");
+
+            var hotComps = feed.Composition.Components;
+            if (hotComps.Count >= 2)
+            {
+                hotComps[0].MassFraction.SetValue(new Percentage(90, PercentageUnits.Percentage), VariableDataProcedence.UserInput);
+                hotComps[1].MassFraction.SetValue(new Percentage(10, PercentageUnits.Percentage), VariableDataProcedence.UserInput);
+            }
+
+            // Disparamos simulación
+            orchestrator.RunSimulation();
+            AllPrinter(allStreams, "fin PASO 3");
+
+            LogSeparator("inicio Paso 4");
+            feed.MassFlow.SetValue(new MassFlow(10000, MassFlowUnits.Kg_hr), VariableDataProcedence.UserInput);
+            orchestrator.RunSimulation();
+            AllPrinter(allStreams, "fin PASO 4 - DRUM COMPLETO");
+
+            LogSeparator("inicio Paso 5");
+            valve.DeltaP.SetValue(new PressureDrop(5, PressureDropUnits.psi), VariableDataProcedence.UserInput);
+            orchestrator.RunSimulation();
+            AllPrinter(allStreams, "fin PASO 5 - DRUM + VALVE COMPLETO");
+
+            Console.WriteLine("\n✅ TEST DE DRUM COMPLETO FINALIZADO.");
+
+
+        }
+        private void LogSeparator(string stepName)
+        {
+            Console.WriteLine("\n\n\n\n\n");
+            Console.WriteLine("████████████████████████████████████████████████████████████████");
+            Console.WriteLine($"███████████████████   INICIO {stepName.ToUpper()}   ████████████████████");
+            Console.WriteLine("████████████████████████████████████████████████████████████████\n");
+        }
         /// </summary>
         void AllPrinter(List<FacadeStream> streams, string stepLabel)
         {
@@ -1077,7 +1121,7 @@ namespace Shared.SolverQwen
             // 4. VERIFICACIÓN DE RESULTADOS
             // ─────────────────────────────────────────────────────────
             Console.WriteLine($"\n💡 RESULTADOS DEL EQUIPO E-100:");
-            Console.WriteLine($"Calor Transferido (Q_Cold): {hex.Q.ToUiString("F0")}");
+            Console.WriteLine($"Calor Transferido (Q_Cold): {hex.QHot.ToUiString("F0")}");
 
 
             Console.WriteLine($"\n🌡️ VERIFICACIÓN FÍSICA EN CORRIENTE Hot_Out:");
@@ -1384,7 +1428,7 @@ namespace Shared.SolverQwen
 
             Console.WriteLine("✅ Topología: E-200 (Condensador) → VLV-200 → V-200 (Tambor)");
             Console.WriteLine("Presiona Enter para comenzar inyección de datos...\n");
-            
+
 
 
             // ─────────────────────────────────────────────────────────
@@ -1488,7 +1532,7 @@ namespace Shared.SolverQwen
             Console.WriteLine($"\n💡 RESULTADOS FINALES:");
             Console.WriteLine($"─────────────────────────────────────");
             Console.WriteLine($"Condensador E-200:");
-            Console.WriteLine($"  • Q_transferido = {condenser.Q.ToUiString("F0")}");
+            Console.WriteLine($"  • Q_transferido = {condenser.QHot.ToUiString("F0")}");
             Console.WriteLine($"  • Cond_Hot_Out: T={condenserHotOut.Temperature.ToUiString("F1")}, VF={condenserHotOut.VaporFraction.ToUiString("F1")}");
 
             Console.WriteLine($"\nVálvula VLV-200:");

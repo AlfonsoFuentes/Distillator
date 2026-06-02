@@ -119,7 +119,7 @@ namespace Shared.SolverQwen.Simlations
     /// - Mejora performance ~2× en Phase 3 para estrategias costosas (flash termodinámico)
     /// - Cero impacto en Phase 1/2 (comportamiento original intacto)
     /// </summary>
-    public class OrchestratorSystemAdapter : ISimulationSystem
+    public class OrchestratorSystemAdapter3 : ISimulationSystem
     {
         private readonly List<ISolverPhaseStrategy> _strategies;
         private readonly List<ISolverPhaseStrategy> _activeStrategies;
@@ -129,7 +129,7 @@ namespace Shared.SolverQwen.Simlations
         // 🔹 NUEVO: Cache de residuales para Phase 3 (evita evaluación duplicada)
         private readonly Dictionary<ISolverPhaseStrategy, double[]> _strategyCache;
 
-        public OrchestratorSystemAdapter(List<ISolverPhaseStrategy> strategies, VariableDataProcedence currentPhase)
+        public OrchestratorSystemAdapter3(List<ISolverPhaseStrategy> strategies, VariableDataProcedence currentPhase)
         {
             _strategies = strategies ?? new List<ISolverPhaseStrategy>();
             _currentPhase = currentPhase;
@@ -356,6 +356,219 @@ namespace Shared.SolverQwen.Simlations
         /// Niveles de protección por fase (mayor número = más protegido).
         /// Phase 1 > Phase 2 > Phase 3 en términos de "no sobrescribir".
         /// </summary>
+        private static int GetProtectionLevel(VariableDataProcedence phase) => phase switch
+        {
+            VariableDataProcedence.Phase1_LocalPropagation => 3,
+            VariableDataProcedence.Phase2_EasyEquipmentNet => 2,
+            VariableDataProcedence.Phase3_ThermoAdjustment => 1,
+            _ => 0
+        };
+    }
+
+
+
+    public class OrchestratorSystemAdapter : ISimulationSystem
+    {
+        private readonly List<ISolverPhaseStrategy> _strategies;
+        private readonly List<ISolverPhaseStrategy> _activeStrategies;
+        private readonly VariableDataProcedence _currentPhase;
+        private readonly List<IProcessVariable> _cachedCouplingVariables;
+
+        // 🔹 CACHE: Avoids duplicated evaluations in Phase 3
+        private readonly Dictionary<ISolverPhaseStrategy, double[]> _strategyCache;
+
+        public OrchestratorSystemAdapter(List<ISolverPhaseStrategy> strategies, VariableDataProcedence currentPhase)
+        {
+            _strategies = strategies ?? new List<ISolverPhaseStrategy>();
+            _currentPhase = currentPhase;
+            _strategyCache = new Dictionary<ISolverPhaseStrategy, double[]>();
+
+            // ─────────────────────────────────────────────────────────
+            // 🔹 PHASE 3: Smart Filtering + Residual Cache
+            // ─────────────────────────────────────────────────────────
+            if (currentPhase == VariableDataProcedence.Phase3_ThermoAdjustment)
+            {
+                // 1. Identify ACTIVE strategies and cache residuals
+                _activeStrategies = _strategies
+                    .Where(s =>
+                    {
+                        try
+                        {
+                            var residuals = s.GetResiduals();
+                            _strategyCache[s] = residuals;
+                            return residuals != null && residuals.Length > 0;
+                        }
+                        catch
+                        {
+                            return false; // Safety fallback
+                        }
+                    })
+                    .ToList();
+
+                // 2. Build coupling variables ONLY for active strategies
+                _cachedCouplingVariables = _activeStrategies
+                    .SelectMany(s => s.GetCouplingVariables())
+                    .Distinct()
+                    .Where(v => IsVariableAdjustable(v, _currentPhase)) // <-- USING PUBLIC STATIC METHOD
+                    .ToList();
+
+#if DEBUG
+                Console.WriteLine($"\n=========================================================");
+                Console.WriteLine($"[Adapter-Build] 🛠️ CONSTRUYENDO SISTEMA - {_currentPhase}");
+                Console.WriteLine($"=========================================================");
+
+                int totalEquations = 0;
+                int activeStrategyCount = 0;
+                int inactiveStrategyCount = 0;
+
+                foreach (var strat in _strategies)
+                {
+                    double[] residuals;
+                    bool isActive;
+
+                    try
+                    {
+                        if (_strategyCache.TryGetValue(strat, out var cached))
+                        {
+                            residuals = cached;
+                        }
+                        else
+                        {
+                            residuals = strat.GetResiduals();
+                            _strategyCache[strat] = residuals;
+                        }
+                        isActive = residuals != null && residuals.Length > 0;
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"   ❌ [ERROR] Falló evaluación inicial de {strat.Name}: {ex.Message}");
+                        residuals = Array.Empty<double>();
+                        isActive = false;
+                    }
+
+                    if (isActive)
+                    {
+                        activeStrategyCount++;
+                        totalEquations += residuals?.Length ?? 0;
+                        Console.WriteLine($"\n  🔹 {strat.Name} [✅ ACTIVA]");
+                        Console.WriteLine($"     📐 Ecuaciones aportadas: {residuals?.Length ?? 0}");
+                        Console.WriteLine($"     🔗 Análisis de Variables:");
+
+                        foreach (var v in strat.GetCouplingVariables())
+                        {
+                            PrintVariableDebug(v, _currentPhase);
+                        }
+                    }
+                    else
+                    {
+                        inactiveStrategyCount++;
+                        Console.WriteLine($"\n  🔹 {strat.Name} [⚪ INACTIVA / SIN SPECS]");
+                    }
+                }
+
+                Console.WriteLine($"\n  📊 RESUMEN MATRICIAL FASE 3:");
+                Console.WriteLine($"     Estrategias: Activas {activeStrategyCount} | Inactivas {inactiveStrategyCount} | Total {_strategies.Count}");
+                Console.WriteLine($"     Ecuaciones (Filas)   : {totalEquations}");
+                Console.WriteLine($"     Incógnitas (Columnas): {_cachedCouplingVariables.Count}");
+
+                if (totalEquations == 0 && _cachedCouplingVariables.Count == 0)
+                    Console.WriteLine($"     ℹ️ BALANCE: Sistema Vacío (No hay simulación requerida)");
+                else if (totalEquations == _cachedCouplingVariables.Count)
+                    Console.WriteLine($"     ⚖️ BALANCE: PERFECTO (Sistema Cuadrado)");
+                else
+                    Console.WriteLine($"     ❌ BALANCE: DESFASADO (Δ = {Math.Abs(totalEquations - _cachedCouplingVariables.Count)} grados de libertad)");
+
+                Console.WriteLine($"=========================================================\n");
+#endif
+            }
+            // ─────────────────────────────────────────────────────────
+            // 🔹 PHASE 1 & 2: Local & Network Propagation
+            // ─────────────────────────────────────────────────────────
+            else
+            {
+                _activeStrategies = new List<ISolverPhaseStrategy>(_strategies);
+                _cachedCouplingVariables = _strategies
+                    .SelectMany(s => s.GetCouplingVariables())
+                    .Distinct()
+                    .Where(v => IsVariableAdjustable(v, _currentPhase))
+                    .ToList();
+
+#if DEBUG
+                Console.WriteLine($"\n[Adapter-Build] 🛠️ SISTEMA {_currentPhase} | Estrategias: {_activeStrategies.Count} | Incógnitas Totales: {_cachedCouplingVariables.Count}");
+                foreach (var strat in _activeStrategies)
+                {
+                    var eqs = strat.GetResiduals()?.Length ?? 0;
+                    Console.WriteLine($"   🔹 {strat.Name} -> Aporta {eqs} ecuaciones.");
+                    foreach (var v in strat.GetCouplingVariables())
+                    {
+                        PrintVariableDebug(v, _currentPhase);
+                    }
+                }
+#endif
+            }
+        }
+
+#if DEBUG
+        private void PrintVariableDebug(IProcessVariable v, VariableDataProcedence currentPhase)
+        {
+            if (v == null) return;
+
+            bool isAdjustable = IsVariableAdjustable(v, currentPhase);
+            string statusTag = isAdjustable ? "🟢 INCÓGNITA" : "🧱 MURO/BOUNDARY";
+            string valueStr = v.IsDefined ? v.ToUiString() : "[No Definida]";
+
+            Console.WriteLine($"        -> {statusTag,-16} | Proc: {v.DataProcedence,-25} | {v.Name,-30} = {valueStr}");
+
+            if (!isAdjustable && v.IsDefined)
+            {
+                Console.WriteLine($"           [Graph Tearing] ⚡ {v.Name} corta la red aquí y aísla el equipo.");
+            }
+        }
+#endif
+
+        public double[] GetResiduals()
+        {
+            var targetStrategies = _currentPhase == VariableDataProcedence.Phase3_ThermoAdjustment
+                ? _activeStrategies
+                : _strategies;
+
+            return targetStrategies.SelectMany(s =>
+            {
+                try { return s.GetResiduals() ?? Array.Empty<double>(); }
+                catch { return Array.Empty<double>(); }
+            }).ToArray();
+        }
+
+        public double[] GetResiduals2()
+        {
+            var targetStrategies = _currentPhase == VariableDataProcedence.Phase3_ThermoAdjustment
+                ? _activeStrategies
+                : _strategies;
+
+            return targetStrategies.SelectMany(s =>
+            {
+                if (_currentPhase == VariableDataProcedence.Phase3_ThermoAdjustment &&
+                    _strategyCache.TryGetValue(s, out var cached))
+                {
+                    return cached ?? Array.Empty<double>();
+                }
+                try { return s.GetResiduals() ?? Array.Empty<double>(); }
+                catch { return Array.Empty<double>(); }
+            }).ToArray();
+        }
+
+        public List<IProcessVariable> CouplingVariables => _cachedCouplingVariables;
+
+        // ✅ MAGIA: Método público estático para que el BFS del Orquestador lo use
+        public static bool IsVariableAdjustable(IProcessVariable variable, VariableDataProcedence currentPhase)
+        {
+            if (variable == null) return false;
+            if (variable.IsSpecToSolver) return false;
+            if (!variable.IsDefined || variable.DataProcedence == currentPhase) return true;
+
+            return GetProtectionLevel(variable.DataProcedence) >= GetProtectionLevel(currentPhase);
+        }
+
         private static int GetProtectionLevel(VariableDataProcedence phase) => phase switch
         {
             VariableDataProcedence.Phase1_LocalPropagation => 3,

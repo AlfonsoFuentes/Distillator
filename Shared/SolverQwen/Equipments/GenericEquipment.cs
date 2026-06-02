@@ -13,18 +13,14 @@ namespace Shared.SolverQwen.Equipments
         MassEnergyBalance     // Balance global (Fase 3, equipos "muro")
     }
 
-    // 2️⃣ Reemplaza TU interface ISolverPhaseStrategy por esta versión exacta:
     public interface ISolverPhaseStrategy
     {
-        StrategyType Type { get; }                          // ✅ NUEVO: Identifica qué resuelve
+        StrategyType Type { get; }
         double[] GetResiduals();
         IEnumerable<IProcessVariable> GetCouplingVariables();
         VariableDataProcedence Procedence { get; }
-
         string Name { get; }
     }
-
-
 
     public interface IEquipment
     {
@@ -32,45 +28,38 @@ namespace Shared.SolverQwen.Equipments
         List<FacadeStream> Inlets { get; }
         List<FacadeStream> Outlets { get; }
 
-        // El Orquestador solo ve esto. No le importa cómo se fabricaron.
         IEnumerable<ISolverPhaseStrategy> GetStrategies();
     }
 
-    // ---------------------------------------------------------
-    // 2. LA CLASE BASE ABSTRACTA (El "Factory Method" y "Template")
-    // ---------------------------------------------------------
     public abstract class EquipmentBase : IEquipment
     {
         public string Name { get; }
         public List<FacadeStream> Inlets { get; } = new();
         public List<FacadeStream> Outlets { get; } = new();
 
-
-
         protected EquipmentBase(string name)
         {
             Name = name ?? throw new ArgumentNullException(nameof(name));
-
         }
 
         public void AddInlet(FacadeStream stream) => Inlets.Add(stream);
         public void AddOutlet(FacadeStream stream) => Outlets.Add(stream);
 
-        /// <summary>
-        /// PATRÓN TEMPLATE METHOD: Define el esqueleto de la fábrica.
-        /// Garantiza la estructura de las estrategias para el Orquestador.
-        /// </summary>
         public IEnumerable<ISolverPhaseStrategy> GetStrategies()
         {
             var strategies = new List<ISolverPhaseStrategy>();
+
+#if DEBUG
+            Console.WriteLine($"\n  [EquipmentBase] 🏭 Inyectando estrategias para: {Name}...");
+#endif
 
             // 1. FASE 1
             var phase1Strategies = CreatePhase1Strategies();
             if (phase1Strategies != null)
                 strategies.AddRange(phase1Strategies);
 
-            // 2. FASE 2 (AHORA RETORNA MÚLTIPLES ESTRATEGIAS)
-            var phase2Strategies = CreatePhase2Strategies();  // ← CAMBIADO
+            // 2. FASE 2
+            var phase2Strategies = CreatePhase2Strategies();
             if (phase2Strategies != null)
                 strategies.AddRange(phase2Strategies);
 
@@ -79,25 +68,22 @@ namespace Shared.SolverQwen.Equipments
             if (phase3Strategy != null)
                 strategies.AddRange(phase3Strategy);
 
+#if DEBUG
+            Console.WriteLine($"  [EquipmentBase] ✅ {Name} inyectó un total de {strategies.Count} estrategias al Orquestador.");
+#endif
+
             return strategies;
         }
 
-        // Obliga a cada equipo particular a definir su lista de ecuaciones locales (Fase 1)
         protected abstract IEnumerable<ISolverPhaseStrategy> CreatePhase1Strategies();
-
-        // ✅ CAMBIADO: Ahora retorna MÚLTIPLES estrategias de Fase 2
         protected abstract IEnumerable<ISolverPhaseStrategy> CreatePhase2Strategies();
 
-        // Balance global (Fase 3)
-       
-        protected virtual  IEnumerable<ISolverPhaseStrategy> CreatePhase3Strategies()
+        protected virtual IEnumerable<ISolverPhaseStrategy> CreatePhase3Strategies()
         {
             return new ISolverPhaseStrategy[] { new GeneralMassEnergyBalancePhase3Strategy(this) };
         }
-
-
-
     }
+
     public class GeneralMassEnergyBalancePhase3Strategy : ISolverPhaseStrategy
     {
         private readonly EquipmentBase _equipment;
@@ -111,23 +97,24 @@ namespace Shared.SolverQwen.Equipments
             _equipment = equipment ?? throw new ArgumentNullException(nameof(equipment));
         }
 
-        /// <summary>
-        /// Residuos de Fase 3:
-        /// 1. Balance de Masa GLOBAL: Σṁ_in - Σṁ_out = 0
-        /// 2. Balance de Energía GLOBAL: Σ(ṁ·h)_in - Σ(ṁ·h)_out = 0
-        /// </summary>
         public double[] GetResiduals()
         {
             var residuals = new List<double>();
 
             // ─────────────────────────────────────────────────────────
-            // 1. BALANCE DE MASA GLOBAL (flujo másico total, no por componente)
+            // 1. BALANCE DE MASA GLOBAL
             // ─────────────────────────────────────────────────────────
             if (_equipment.Inlets.Any() && _equipment.Outlets.Any())
             {
                 double massFlowIn = _equipment.Inlets.Sum(s => s.MassFlow.GetSolverValue());
                 double massFlowOut = _equipment.Outlets.Sum(s => s.MassFlow.GetSolverValue());
-                residuals.Add(massFlowIn - massFlowOut);  // Σṁ_in - Σṁ_out = 0
+                double massRes = massFlowIn - massFlowOut;
+
+#if DEBUG
+                if (double.IsNaN(massRes) || double.IsInfinity(massRes))
+                    Console.WriteLine($"  [Phase3-🚨] FATAL: Balance de MASA en {Name} retornó NaN/Infinity!");
+#endif
+                residuals.Add(massRes);
             }
 
             // ─────────────────────────────────────────────────────────
@@ -141,42 +128,40 @@ namespace Shared.SolverQwen.Equipments
                 double energyOut = _equipment.Outlets.Sum(s =>
                     s.MassFlow.GetSolverValue() * s.MassEnthalpy.GetSolverValue());
 
-                residuals.Add(energyIn - energyOut);  // Σ(ṁ·h)_in - Σ(ṁ·h)_out = 0
+                double energyRes = energyIn - energyOut;
+
+#if DEBUG
+                if (double.IsNaN(energyRes) || double.IsInfinity(energyRes))
+                    Console.WriteLine($"  [Phase3-🚨] FATAL: Balance de ENERGÍA en {Name} retornó NaN/Infinity!");
+#endif
+                residuals.Add(energyRes);
             }
 
             return residuals.ToArray();
         }
 
-        /// <summary>
-        /// Variables de acoplamiento: flujo másico total y entalpía de cada corriente.
-        /// </summary>
         public IEnumerable<IProcessVariable> GetCouplingVariables()
         {
             foreach (var inlet in _equipment.Inlets)
             {
-                yield return inlet.MassFlow;      // ← Flujo másico TOTAL de la corriente
-                yield return inlet.MassEnthalpy;  // ← Entalpía másica
+                yield return inlet.MassFlow;
+                yield return inlet.MassEnthalpy;
             }
 
             foreach (var outlet in _equipment.Outlets)
             {
-                yield return outlet.MassFlow;     // ← Flujo másico TOTAL de la corriente
-                yield return outlet.MassEnthalpy; // ← Entalpía másica
+                yield return outlet.MassFlow;
+                yield return outlet.MassEnthalpy;
             }
         }
     }
-    // ============================================================================
-    // ESTRATEGIA DE FASE 3 REDUCIDA: SOLO BALANCE DE MASA (Evita matriz singular)
-    // ============================================================================
+
     public class GlobalMassBalancePhase3Strategy : ISolverPhaseStrategy
     {
         private readonly EquipmentBase _equipment;
 
         public string Name => $"{_equipment.Name} - Phase3_GlobalMassOnly";
-
-        // Mantenemos este Type para que el Orquestador lo recolecte en RunGlobalPhase
         public StrategyType Type => StrategyType.MassEnergyBalance;
-
         public VariableDataProcedence Procedence => VariableDataProcedence.Phase3_ThermoAdjustment;
 
         public GlobalMassBalancePhase3Strategy(EquipmentBase equipment)
@@ -189,20 +174,21 @@ namespace Shared.SolverQwen.Equipments
             if (!_equipment.Inlets.Any() || !_equipment.Outlets.Any())
                 return new double[0];
 
-            // ─────────────────────────────────────────────────────────
-            // BALANCE DE MASA GLOBAL (flujo másico total)
-            // ─────────────────────────────────────────────────────────
             double massFlowIn = _equipment.Inlets.Sum(s => s.MassFlow.GetSolverValue());
             double massFlowOut = _equipment.Outlets.Sum(s => s.MassFlow.GetSolverValue());
 
-            // 🚨 SOLO UNA ECUACIÓN: Balance de masa. Cero energía.
-            return new double[] { massFlowIn - massFlowOut };
+            double res = massFlowIn - massFlowOut;
+
+#if DEBUG
+            if (double.IsNaN(res) || double.IsInfinity(res))
+                Console.WriteLine($"  [Phase3-🚨] FATAL: Balance de MASA (GlobalMassOnly) en {Name} retornó NaN/Infinity!");
+#endif
+
+            return new double[] { res };
         }
 
         public IEnumerable<IProcessVariable> GetCouplingVariables()
         {
-            // 🚨 SOLO EXPORTAMOS LOS FLUJOS MÁSICOS. 
-            // El Jacobiano no verá las entalpías para estos equipos.
             foreach (var inlet in _equipment.Inlets)
                 yield return inlet.MassFlow;
 

@@ -1,4 +1,6 @@
-﻿using UnitSystem;
+﻿using Shared.PropertiesDtos.Methods;
+using Shared.SolverQwen.Variables;
+using UnitSystem;
 
 namespace Shared.SolverQwen.Stream
 {
@@ -18,6 +20,112 @@ namespace Shared.SolverQwen.Stream
             c.MolarFlow.HasChanged);
 
         public CompositionOrchestrator(IReadOnlyList<ComponentFacade> components)
+        {
+            _components = components ?? throw new ArgumentNullException(nameof(components));
+        }
+
+        public void CompositionChanged()
+        {
+            OnCompositionChanged?.Invoke();
+        }
+
+        public bool ValidateMassFractions(out string error)
+        {
+            error = null!;
+            if (!_components.Any()) { error = "No components"; return false; }
+
+            double sum = _components.Where(c => c.MassFraction.IsDefined)
+                                    .Sum(c => c.MassFraction.Value.GetValue(PercentageUnits.Percentage) / 100.0);
+
+            if (sum == 0)
+            {
+                error = "No mass fractions defined";
+                return false;
+            }
+
+            if (Math.Abs(sum - 1.0) > 1e-6)
+            {
+                error = $"Mass fractions sum {sum * 100:F2}% (expected 100%)";
+#if DEBUG
+                Console.WriteLine($"  [CompOrch] ❌ ERROR DE COMPOSICIÓN: {error}");
+#endif
+                return false;
+            }
+            return true;
+        }
+
+        public bool ValidateMoleFractions(out string error)
+        {
+            error = null!;
+            if (!_components.Any()) { error = "No components"; return false; }
+
+            double sum = _components.Where(c => c.MolarFraction.IsDefined)
+                                    .Sum(c => c.MolarFraction.Value.GetValue(PercentageUnits.Percentage) / 100.0);
+
+            if (sum == 0)
+            {
+                error = "No mole fractions defined";
+                return false;
+            }
+
+            if (Math.Abs(sum - 1.0) > 1e-6)
+            {
+                error = $"Mole fractions sum {sum * 100:F2}% (expected 100%)";
+#if DEBUG
+                Console.WriteLine($"  [CompOrch] ❌ ERROR DE COMPOSICIÓN: {error}");
+#endif
+                return false;
+            }
+            return true;
+        }
+
+        public bool IsValid
+        {
+            get
+            {
+                if (!_components.Any()) return false;
+
+                bool allMolarDefined = _components.All(c => c.MolarFraction.IsDefined);
+                bool allMassDefined = _components.All(c => c.MassFraction.IsDefined);
+
+                if (!allMolarDefined && !allMassDefined) return false;
+
+                if (allMassDefined && !ValidateMassFractions(out _)) return false;
+                if (allMolarDefined && !ValidateMoleFractions(out _)) return false;
+
+                return true;
+            }
+        }
+
+        public void ClearComposition()
+        {
+            foreach (var item in _components)
+            {
+                item.MolarFraction.ResetProcedence();
+                item.MassFraction.ResetProcedence();
+                item.MolarFlow.ResetProcedence();
+                item.MassFlow.ResetProcedence();
+            }
+        }
+    }
+
+    
+    public class CompositionOrchestrator2
+    {
+        private readonly IReadOnlyList<ComponentFacade> _components;
+
+        public List<ComponentFacade> Components => _components.ToList();
+
+        public event Action OnCompositionChanged = null!;
+
+        // ✅ Detección de Estado Efímero Dinámico
+        public bool HasChanged => _components.Any(c =>
+            c.MassFraction.HasChanged ||
+            c.MolarFraction.HasChanged ||
+            c.MassFlow.HasChanged ||
+            c.MolarFlow.HasChanged);
+
+        public CompositionOrchestrator2(IReadOnlyList<ComponentFacade> components)
         {
             _components = components ?? throw new ArgumentNullException(nameof(components));
         }

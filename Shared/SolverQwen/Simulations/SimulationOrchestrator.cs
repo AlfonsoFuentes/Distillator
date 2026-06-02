@@ -428,7 +428,7 @@ namespace Shared.SolverQwen.Simlations
     /// - Phase 2: Redes acopladas (BFS por variables compartidas)
     /// - Phase 3: Ajuste termodinámico (por ramal, estrategias independientes)
     /// </summary>
-    public class SimulationOrchestrator
+    public class SimulationOrchestrator3
     {
         private readonly List<IEquipment> _equipments = new();
         private readonly NewtonRaphsonSolver _globalSolver = new();
@@ -898,6 +898,677 @@ namespace Shared.SolverQwen.Simlations
             swTotal.Stop();
             Console.WriteLine($"[Phase3-Ramal] {type}_{phase}: {swTotal.ElapsedMilliseconds} ms | estrategias:{allStrategies.Count} | ramales:{subsystems.Count}");
 
+            return subsystems;
+        }
+    }
+
+    public class SimulationOrchestrator
+    {
+        private readonly List<IEquipment> _equipments = new();
+        private readonly NewtonRaphsonSolver _globalSolver = new();
+
+        public void AddEquipment(IEquipment equipment)
+        {
+            if (!_equipments.Contains(equipment))
+                _equipments.Add(equipment);
+        }
+
+        /// <summary>
+        /// Contenedor ligero para manejar las estrategias dentro de la Cola Dinámica.
+        /// </summary>
+        private class PipelineTask
+        {
+            public List<ISolverPhaseStrategy> Subsystem { get; set; } = new();
+            public VariableDataProcedence Procedence { get; set; }
+            public StrategyType Type { get; set; }
+            public string Name { get; set; } = string.Empty;
+        }
+
+        /// <summary>
+        /// Resultado de ejecución de una fase.
+        /// </summary>
+        private class PhaseResult
+        {
+            public string PhaseName { get; set; } = string.Empty;
+            public bool Converged { get; set; }
+            public int PendingTasks { get; set; }
+            public int Iterations { get; set; }
+            public long ElapsedMs { get; set; }
+            public long LoopTimeMs { get; set; }
+            public long SolverTimeMs { get; set; }
+            public int SolverCalls { get; set; }
+            public bool LastMovement { get; set; }
+        }
+
+        /// <summary>
+        /// Ejecuta la simulación unificada orquestando las fases en orden.
+        /// </summary>
+        public void RunSimulation()
+        {
+            var swTotal = Stopwatch.StartNew();
+#if DEBUG
+            Console.WriteLine("\n=========================================================");
+            Console.WriteLine($"[Orch-Main] 🚀 INICIANDO RunSimulation ORQUESTADOR GLOBAL");
+            Console.WriteLine("=========================================================");
+#endif
+
+            // ─────────────────────────────────────────────────────────
+            // FASE 1: Limpieza y Propagación Local
+            // ─────────────────────────────────────────────────────────
+            var phase1Result = RunPhase1WithPropagation();
+
+            // ─────────────────────────────────────────────────────────
+            // FASE 2: Propagación de Redes (Presión, Masa, Composición, Entalpía)
+            // ─────────────────────────────────────────────────────────
+            var phase2Result = RunPhase2Propagation();
+
+            // ─────────────────────────────────────────────────────────
+            // FASE 3: Ajuste Termodinámico Global (Balances de Masa/Energía)
+            // ─────────────────────────────────────────────────────────
+            var phase3Result = RunPhase3ThermoAdjustment();
+
+            // ─────────────────────────────────────────────────────────
+            // REPORTE FINAL CONSOLIDADO
+            // ─────────────────────────────────────────────────────────
+            swTotal.Stop();
+            PrintFinalReport(phase1Result, phase2Result, phase3Result, swTotal.ElapsedMilliseconds);
+        }
+
+        /// <summary>
+        /// Ejecuta Fase 1: Reset de estado + propagación local.
+        /// </summary>
+        private PhaseResult RunPhase1WithPropagation()
+        {
+            var sw = Stopwatch.StartNew();
+
+#if DEBUG
+            Console.WriteLine($"\n[Orch-Phase1] >>> INICIANDO FASE 1: Reset y Propagación Local");
+#endif
+
+            ResetSimulationState();
+            RunPhase1LocalPropagation();
+
+            sw.Stop();
+
+#if DEBUG
+            Console.WriteLine($"[Orch-Phase1] <<< COMPLETADA en {sw.ElapsedMilliseconds} ms");
+#endif
+
+            return new PhaseResult
+            {
+                PhaseName = "Phase1",
+                ElapsedMs = sw.ElapsedMilliseconds,
+                Converged = true,
+                PendingTasks = 0
+            };
+        }
+        /// <summary>
+        /// Ejecuta Fase 2: Propagación de Redes de forma ESCALONADA (Staggered Convergence).
+        /// El grafo se reconstruye dinámicamente para aprovechar los flashes termodinámicos.
+        /// </summary>
+        private PhaseResult RunPhase2Propagation()
+        {
+#if DEBUG
+            Console.WriteLine($"\n[Orch-Phase2] >>> INICIANDO FASE 2: Propagación de Redes Escalonada (BFS Dinámico)");
+#endif
+            var swLoop = Stopwatch.StartNew();
+            int iter = 0;
+            int maxIterations = 10;
+            bool globalMovement = true;
+
+            long totalSolverTime = 0;
+            int totalSolverCalls = 0;
+
+            var types = new[] {
+         StrategyType.Concentration,
+        StrategyType.Pressure,
+        StrategyType.MassBalance,
+        StrategyType.Enthalpy
+    };
+            int pendingTasks = 0; // 🔹 Reiniciar en cada iteración global
+            // 🔹 PASO 1: Construir TODAS las tareas UNA SOLA VEZ
+            var allTasksByType = new Dictionary<StrategyType, List<PipelineTask>>();
+            foreach (var type in types)
+            {
+                allTasksByType[type] = BuildTasks(type, VariableDataProcedence.Phase2_EasyEquipmentNet);
+            }
+
+            // 🔹 PASO 2: Ejecutar y eliminar progresivamente
+            while (globalMovement && iter < maxIterations)
+            {
+                globalMovement = false;
+
+                pendingTasks = 0; // 🔹 Reiniciar en cada iteración global
+                foreach (var type in types)
+                {
+                    var tasks = allTasksByType[type];
+
+                    // 🔹 Iterar hacia atrás para remover de forma segura y eficiente
+                    for (int i = tasks.Count - 1; i >= 0; i--)
+                    {
+                        var task = tasks[i];
+
+                        var swTask = Stopwatch.StartNew();
+                        var isConverged = ExecuteAndCheckTask(task);
+                        swTask.Stop();
+
+                        totalSolverTime += swTask.ElapsedMilliseconds;
+                        totalSolverCalls++;
+
+                        if (isConverged)
+                        {
+                            tasks.RemoveAt(i); // ✅ Saca de la bolsa
+                            globalMovement = true;
+                        }
+                        else
+                        {
+
+                            pendingTasks++; // ✅ Solo cuenta las que NO convergieron
+                        }
+                    }
+                }
+
+                if (!globalMovement)
+                {
+                    break; // ✅ Si no hubo movimiento y no quedan tareas pendientes, detenemos el bucle
+                }
+                iter++;
+            }
+
+            swLoop.Stop();
+            bool converged = pendingTasks == 0;
+
+#if DEBUG
+            Console.WriteLine($"\n[Orch-Phase2] <<< COMPLETADA | Iters Globales: {iter} | Tiempos: {swLoop.ElapsedMilliseconds} ms | Convergió: {converged}");
+#endif
+
+            return new PhaseResult
+            {
+                PhaseName = "Phase2",
+                Converged = converged,
+                PendingTasks = pendingTasks, // 🔹 Ahora refleja el valor correcto
+                Iterations = iter,
+                LoopTimeMs = swLoop.ElapsedMilliseconds,
+                SolverTimeMs = totalSolverTime, // 🔹 Acumulado correctamente
+                SolverCalls = totalSolverCalls, // 🔹 Acumulado correctamente
+                LastMovement = globalMovement
+            };
+        }
+
+
+        /// <summary>
+        /// Ejecuta Fase 3: Ajuste termodinámico global.
+        /// Usa estrategia "por ramal": cada estrategia es su propio subsistema.
+        /// </summary>
+        private PhaseResult RunPhase3ThermoAdjustment()
+        {
+#if DEBUG
+            Console.WriteLine($"\n[Orch-Phase3] >>> INICIANDO FASE 3: Ajuste Termodinámico Global");
+#endif
+
+            var phase3Tasks = new List<PipelineTask>();
+            var swBuild = Stopwatch.StartNew();
+
+            phase3Tasks.AddRange(BuildTasks(StrategyType.MassEnergyBalance, VariableDataProcedence.Phase3_ThermoAdjustment));
+
+            swBuild.Stop();
+
+#if DEBUG
+            Console.WriteLine($"[Orch-Phase3] Construcción de Tareas finalizada: {swBuild.ElapsedMilliseconds} ms | {phase3Tasks.Count} tareas encoladas");
+#endif
+
+            var loopResult = ExecutePhaseLoop(
+                tasks: phase3Tasks,
+                phaseName: "Phase3",
+                maxIterations: 30,
+                logPrefix: "[Orch-Phase3]"
+            );
+
+#if DEBUG
+            Console.WriteLine($"\n[Orch-Phase3] <<< COMPLETADA | Iters: {loopResult.Iterations} | Tiempo: {loopResult.LoopTimeMs} ms | Convergió: {loopResult.Converged}");
+#endif
+
+            return loopResult;
+        }
+
+        /// <summary>
+        /// Ejecuta el bucle de convergencia genérico para una fase dada.
+        /// </summary>
+        private PhaseResult ExecutePhaseLoop(
+            List<PipelineTask> tasks,
+            string phaseName,
+            int maxIterations,
+            string logPrefix)
+        {
+            if (tasks.Count == 0)
+            {
+#if DEBUG
+                Console.WriteLine($"{logPrefix} ℹ️ Sin tareas para resolver. Omitiendo bucle.");
+#endif
+                return new PhaseResult { PhaseName = phaseName, Converged = true, PendingTasks = 0 };
+            }
+
+            var swLoop = Stopwatch.StartNew();
+            int iter = 0;
+            long totalSolverTime = 0;
+            int totalSolverCalls = 0;
+            bool anyMovementInLastIter = false;
+
+            while (tasks.Count > 0 && iter < maxIterations)
+            {
+                var swIterStart = Stopwatch.StartNew();
+                bool anyMovementInThisIter = false;
+                int tasksProcessed = 0;
+
+#if DEBUG
+                Console.WriteLine($"\n  {logPrefix} --- INICIO ITERACIÓN {iter} --- | Tareas Pendientes: {tasks.Count}");
+#endif
+
+                for (int i = 0; i < tasks.Count;)
+                {
+                    var task = tasks[i];
+                    var swTask = Stopwatch.StartNew();
+
+                    var isConverged = ExecuteAndCheckTask(task);
+
+                    swTask.Stop();
+                    totalSolverTime += swTask.ElapsedMilliseconds;
+                    totalSolverCalls++;
+                    tasksProcessed++;
+
+
+
+                    if (isConverged)  // ✅ CORRECTO: Si resolvió, sale de la bolsa
+                    {
+#if DEBUG
+                        Console.WriteLine($"    ✅ [TASK OK] {task.Name} (Removida de la cola)");
+#endif
+                        tasks.RemoveAt(i);
+                    }
+                    else
+                    {
+#if DEBUG
+                        Console.WriteLine($"    🔄 [TASK PENDIENTE] {task.Name} | Convergió: {isConverged} ");
+#endif
+                        i++;
+                    }
+                }
+
+                swIterStart.Stop();
+                anyMovementInLastIter = anyMovementInThisIter;
+
+#if DEBUG
+                Console.WriteLine($"  {logPrefix} --- FIN ITERACIÓN {iter} --- | Procesadas: {tasksProcessed} | Restantes: {tasks.Count} | Estado: {(anyMovementInThisIter ? "MOVIMIENTO DETECTADO ⚡" : "ESTABLE 🛑")} | Tiempo Iter: {swIterStart.ElapsedMilliseconds} ms");
+#endif
+
+                if (!anyMovementInThisIter && tasks.Count > 0)
+                {
+#if DEBUG
+                    Console.WriteLine($"  ⚠️ {logPrefix} Bucle detenido prematuramente (Iter {iter}). No hubo movimiento numérico pero quedan tareas pendientes. Posible falta de grados de libertad.");
+#endif
+                    break;
+                }
+
+                iter++;
+            }
+            swLoop.Stop();
+
+            return new PhaseResult
+            {
+                PhaseName = phaseName,
+                Converged = tasks.Count == 0,
+                PendingTasks = tasks.Count,
+                Iterations = iter,
+                LoopTimeMs = swLoop.ElapsedMilliseconds,
+                SolverTimeMs = totalSolverTime,
+                SolverCalls = totalSolverCalls,
+                LastMovement = anyMovementInLastIter
+            };
+        }
+
+        /// <summary>
+        /// Imprime el reporte final consolidado de todas las fases.
+        /// </summary>
+        private void PrintFinalReport(PhaseResult phase1, PhaseResult phase2, PhaseResult phase3, long totalMs)
+        {
+#if DEBUG
+            Console.WriteLine($"\n=========================================================");
+            Console.WriteLine($"[Orch-Report] 📊 REPORTE DE CONVERGENCIA GLOBAL");
+            Console.WriteLine($"=========================================================");
+            Console.WriteLine($"   ⏳ Tiempo Total Orquestador : {totalMs} ms");
+            Console.WriteLine($"   🟢 Fase 1 (Local)            : {phase1.ElapsedMs} ms | {(phase1.Converged ? "✅ OK" : "❌ FAIL")}");
+            Console.WriteLine($"   🔵 Fase 2 (Redes)            : {phase2.LoopTimeMs} ms | Iters: {phase2.Iterations} | {(phase2.Converged ? "✅ OK" : "❌ FAIL")}");
+            Console.WriteLine($"   🟣 Fase 3 (Thermo)           : {phase3.LoopTimeMs} ms | Iters: {phase3.Iterations} | {(phase3.Converged ? "✅ OK" : "❌ FAIL")}");
+
+            if (phase1.Converged && phase2.Converged && phase3.Converged)
+                Console.WriteLine($"\n   🏆 RESULTADO: CONVERGENCIA TOTAL ALCANZADA");
+            else if (!phase2.Converged && !phase3.Converged)
+                Console.WriteLine($"\n   🚨 RESULTADO: FALLO CRÍTICO. Tareas huérfanas en F2 ({phase2.PendingTasks}) y F3 ({phase3.PendingTasks}).");
+            else if (!phase2.Converged)
+                Console.WriteLine($"\n   ⚠️ RESULTADO: CONVERGENCIA PARCIAL. Fallo en Fase 2 ({phase2.PendingTasks} tareas pendientes).");
+            else
+                Console.WriteLine($"\n   ⚠️ RESULTADO: CONVERGENCIA PARCIAL. Fallo en Fase 3 ({phase3.PendingTasks} tareas pendientes).");
+            Console.WriteLine($"=========================================================\n");
+#endif
+        }
+
+        /// <summary>
+        /// Evalúa una tarea y retorna si convergió y si causó movimiento en los números.
+        /// </summary>
+        private bool ExecuteAndCheckTask(PipelineTask task)
+        {
+            var sw = Stopwatch.StartNew();
+
+            var activeVars = task.Subsystem.SelectMany(s => s.GetCouplingVariables()).Distinct().ToList();
+            var oldValues = activeVars.Select(v => v.GetSolverValue()).ToArray();
+
+            var swAdapter = Stopwatch.StartNew();
+            var systemWrapper = new OrchestratorSystemAdapter(task.Subsystem, task.Procedence);
+            swAdapter.Stop();
+
+            if (!systemWrapper.CouplingVariables.Any())
+            {
+#if DEBUG
+                Console.WriteLine($"      [{task.Name}] ⏭️ Ignorado (Sin variables de acoplamiento ajustables)");
+#endif
+                sw.Stop();
+                return false;
+            }
+
+#if DEBUG
+            Console.WriteLine($"      [{task.Name}] ⚙️ Ejecutando Solver... (Ecuaciones: {systemWrapper.GetResiduals().Length}, Incógnitas: {systemWrapper.CouplingVariables.Count})");
+#endif
+
+            var swSolve = Stopwatch.StartNew();
+            var result = _globalSolver.Solve(systemWrapper, task.Procedence);
+            swSolve.Stop();
+
+            if (!result.Converged)
+            {
+#if DEBUG
+                Console.WriteLine($"      [{task.Name}] ❌ Solver NO convergió (Error Final: {result.FinalError:E4})");
+#endif
+                sw.Stop();
+                return false;
+            }
+
+            return true;
+        }
+
+        private List<PipelineTask> BuildTasks(StrategyType type, VariableDataProcedence procedence)
+        {
+            var sw = Stopwatch.StartNew();
+
+            // 👇 MODIFICADO: Ahora TODAS las fases usan el buscador de grafos inteligente.
+            var subsystems = BuildSubsystemsByType(type, procedence);
+
+            sw.Stop();
+
+            var result = subsystems.Select(sub => new PipelineTask
+            {
+                Subsystem = sub,
+                Procedence = procedence,
+                Type = type,
+                Name = $"{type}_{procedence}"
+            }).ToList();
+
+            return result;
+        }
+        private List<PipelineTask> BuildTasks2(StrategyType type, VariableDataProcedence procedence)
+        {
+            var sw = Stopwatch.StartNew();
+
+            var subsystems = procedence == VariableDataProcedence.Phase3_ThermoAdjustment
+                ? BuildPhase3SubsystemsByRamal(type, procedence)
+                : BuildSubsystemsByType(type, procedence);
+
+            sw.Stop();
+
+            var result = subsystems.Select(sub => new PipelineTask
+            {
+                Subsystem = sub,
+                Procedence = procedence,
+                Type = type,
+                Name = $"{type}_{procedence}"
+            }).ToList();
+
+#if DEBUG
+            Console.WriteLine($"  [Builder] {type} ({procedence}) generó {result.Count} tareas en {sw.ElapsedMilliseconds} ms");
+#endif
+            return result;
+        }
+
+        /// <summary>
+        /// Reset de estado: limpia variables no especificadas por UI.
+        /// </summary>
+        private void ResetSimulationState()
+        {
+            var sw = Stopwatch.StartNew();
+
+            var allVariables = _equipments
+                .SelectMany(e => e.GetStrategies())
+                .SelectMany(s => s.GetCouplingVariables())
+                .Distinct()
+                .ToList();
+
+#if DEBUG
+            int resetCount = 0;
+#endif
+
+            foreach (var variable in allVariables)
+            {
+                if (variable.DataProcedence != VariableDataProcedence.UserInput &&
+                    variable.DataProcedence != VariableDataProcedence.StreamCalculated)
+                {
+                    variable.ResetProcedence();
+#if DEBUG
+                    resetCount++;
+#endif
+                }
+            }
+            sw.Stop();
+#if DEBUG
+            Console.WriteLine($"  [ResetState] {resetCount} variables reiniciadas en {sw.ElapsedMilliseconds} ms");
+#endif
+        }
+
+        /// <summary>
+        /// Ejecuta propagación local (Phase 1) para cada equipo.
+        /// </summary>
+        private void RunPhase1LocalPropagation()
+        {
+            var swTotal = Stopwatch.StartNew();
+            int strategiesProcessed = 0;
+
+            foreach (var eq in _equipments)
+            {
+                var phase1Strategies = eq.GetStrategies()
+                    .Where(s => s.Procedence == VariableDataProcedence.Phase1_LocalPropagation)
+                    .ToList();
+
+                foreach (var strategy in phase1Strategies)
+                {
+                    var localAdapter = new OrchestratorSystemAdapter(
+                        new List<ISolverPhaseStrategy> { strategy },
+                        strategy.Procedence
+                    );
+
+                    if (localAdapter.CouplingVariables.Any())
+                    {
+                        var localSolver = new NewtonRaphsonSolver { MaxIterations = 10 };
+                        var res = localSolver.Solve(localAdapter, strategy.Procedence, _alpha: 1.0);
+                        strategiesProcessed++;
+#if DEBUG
+                        Console.WriteLine($"  [Phase1-Local] Eq: {eq.Name} | Strat: {strategy.Name} | Convergió: {res.Converged}");
+#endif
+                    }
+                }
+            }
+            swTotal.Stop();
+#if DEBUG
+            Console.WriteLine($"  [Phase1-Local] {strategiesProcessed} estrategias locales procesadas en {swTotal.ElapsedMilliseconds} ms");
+#endif
+        }
+
+        private List<List<ISolverPhaseStrategy>> BuildSubsystemsByType2(StrategyType type, VariableDataProcedence phase)
+        {
+            var subsystems = new List<List<ISolverPhaseStrategy>>();
+            var allStrategies = _equipments
+                .SelectMany(e => e.GetStrategies())
+                .Where(s => s.Type == type && s.Procedence == phase)
+                .ToList();
+
+            var visited = new HashSet<ISolverPhaseStrategy>();
+
+            foreach (var startStrategy in allStrategies)
+            {
+                if (visited.Contains(startStrategy)) continue;
+
+                var subsystem = new List<ISolverPhaseStrategy>();
+                var queue = new Queue<ISolverPhaseStrategy>();
+
+                visited.Add(startStrategy);
+                subsystem.Add(startStrategy);
+                queue.Enqueue(startStrategy);
+
+                while (queue.Count > 0)
+                {
+                    var current = queue.Dequeue();
+
+                    // Obtenemos solo las INCÓGNITAS de la estrategia actual
+                    var currentUnknowns = current.GetCouplingVariables()
+                        .Where(v => OrchestratorSystemAdapter.IsVariableAdjustable(v, phase))
+                        .ToHashSet();
+
+                    foreach (var candidate in allStrategies)
+                    {
+                        if (visited.Contains(candidate)) continue;
+
+                        var candidateUnknowns = candidate.GetCouplingVariables()
+                            .Where(v => OrchestratorSystemAdapter.IsVariableAdjustable(v, phase))
+                            .ToHashSet();
+
+                        // ⚡ CLAVE: Solo unimos si comparten variables que SON INCÓGNITAS
+                        var sharedUnknowns = currentUnknowns.Intersect(candidateUnknowns).ToList();
+
+                        if (sharedUnknowns.Any())
+                        {
+                            visited.Add(candidate);
+                            subsystem.Add(candidate);
+                            queue.Enqueue(candidate);
+                        }
+                        else
+                        {
+                            // DEBUG: Esto confirma que el Muro está haciendo su trabajo
+                            var allShared = current.GetCouplingVariables().Intersect(candidate.GetCouplingVariables());
+#if DEBUG
+                            foreach (var v in allShared)
+                                Console.WriteLine($"  [Graph Tearing ⚡] {current.Name} y {candidate.Name} NO se fusionan. Comparten '{v.Name}' pero es un MURO.");
+#endif
+                        }
+                    }
+                }
+                subsystems.Add(subsystem);
+            }
+            return subsystems;
+        }
+        private List<List<ISolverPhaseStrategy>> BuildSubsystemsByType(StrategyType type, VariableDataProcedence phase)
+        {
+            var swTotal = Stopwatch.StartNew();
+            var subsystems = new List<List<ISolverPhaseStrategy>>();
+
+            var allStrategies = _equipments
+                .SelectMany(e => e.GetStrategies())
+                .Where(s => s.Type == type && s.Procedence == phase)
+                .ToList();
+
+            var visitedStrategies = new HashSet<ISolverPhaseStrategy>();
+            int bfsIterations = 0;
+
+            foreach (var startStrategy in allStrategies)
+            {
+                if (visitedStrategies.Contains(startStrategy)) continue;
+
+                var currentSubsystem = new List<ISolverPhaseStrategy>();
+                var queue = new Queue<ISolverPhaseStrategy>();
+
+                visitedStrategies.Add(startStrategy);
+                currentSubsystem.Add(startStrategy);
+                queue.Enqueue(startStrategy);
+
+                while (queue.Count > 0)
+                {
+                    bfsIterations++;
+                    var currentStrategy = queue.Dequeue();
+
+                    // 1. Extraemos todas las variables de la estrategia
+                    var currentVars = currentStrategy.GetCouplingVariables().ToList();
+
+                    // 2. Filtramos SOLO LAS INCÓGNITAS (Ojos del Graph Tearing)
+                    var currentUnknowns = currentVars
+                        .Where(v => OrchestratorSystemAdapter.IsVariableAdjustable(v, phase))
+                        .ToHashSet();
+
+                    foreach (var candidate in allStrategies)
+                    {
+                        if (visitedStrategies.Contains(candidate)) continue;
+
+                        var candidateVars = candidate.GetCouplingVariables().ToList();
+
+                        var candidateUnknowns = candidateVars
+                            .Where(v => OrchestratorSystemAdapter.IsVariableAdjustable(v, phase))
+                            .ToHashSet();
+
+                        // 3. Verificamos si comparten alguna VERDADERA INCÓGNITA
+                        var sharedUnknowns = currentUnknowns.Intersect(candidateUnknowns).ToList();
+
+                        if (sharedUnknowns.Any())
+                        {
+                            // Si comparten incógnitas, pertenecen a la misma matriz
+                            visitedStrategies.Add(candidate);
+                            currentSubsystem.Add(candidate);
+                            queue.Enqueue(candidate);
+                        }
+                        else
+                        {
+                            // 4. Si no comparten incógnitas, veamos si compartían un Muro
+                            var sharedTotalVars = currentVars.Intersect(candidateVars).ToList();
+                            if (sharedTotalVars.Any())
+                            {
+#if DEBUG
+                                // Para evitar null referencies si hay variables sin nombre instanciadas
+                                var varNames = sharedTotalVars.Select(v => string.IsNullOrEmpty(v.Name) ? "[VarSinNombre]" : v.Name);
+                                Console.WriteLine($"  [Graph Tearing ⚡] BFS cortó el grafo entre {currentStrategy.Name} y {candidate.Name}. Comparten ({string.Join(", ", varNames)}), pero son MUROS FIJOS.");
+#endif
+                            }
+                        }
+                    }
+                }
+                subsystems.Add(currentSubsystem);
+            }
+            swTotal.Stop();
+            return subsystems;
+        }
+
+
+        /// <summary>
+        /// Construye subsistemas para Phase 3 usando estrategia "por ramal".
+        /// Cada estrategia es su propio subsistema (resolución independiente).
+        /// </summary>
+        private List<List<ISolverPhaseStrategy>> BuildPhase3SubsystemsByRamal(StrategyType type, VariableDataProcedence phase)
+        {
+            var swTotal = Stopwatch.StartNew();
+
+            var allStrategies = _equipments
+                .SelectMany(e => e.GetStrategies())
+                .Where(s => s.Type == type && s.Procedence == phase)
+                .ToList();
+
+            var subsystems = allStrategies
+                .Select(s => new List<ISolverPhaseStrategy> { s })
+                .ToList();
+
+            swTotal.Stop();
             return subsystems;
         }
     }

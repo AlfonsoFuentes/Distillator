@@ -36,7 +36,7 @@ namespace Shared.Thermodynamics.Solvers
         // ========================================================================
         public static ScalarSolverResult Solve(
              Func<double, double> func, double x0, double x_norm = 1.0, double f_norm = 1.0,
-             double tolAdim = DefaultAdimTolerance, int maxIter = DefaultMaxIterations,double adimperturbation = DefaultAdimPerturbation, string debugTag = "Newton")
+             double tolAdim = DefaultAdimTolerance, int maxIter = DefaultMaxIterations, double adimperturbation = DefaultAdimPerturbation, string debugTag = "Newton")
         {
 #if DEBUG
             var sw = System.Diagnostics.Stopwatch.StartNew();
@@ -44,6 +44,7 @@ namespace Shared.Thermodynamics.Solvers
 #endif
             double xAdim = x0 / x_norm;
 
+            double UseLinearSolve = tolAdim * 10;
             for (int iter = 0; iter < maxIter; iter++)
             {
                 // --- 📍 PUNTO A: La Base ---
@@ -83,7 +84,7 @@ namespace Shared.Thermodynamics.Solvers
                 // 🚀 ACELERADOR: El Evaluador de 3 Puntos (IQI) propuesto por la Ingeniera
                 var predictor = PredictRootLinear(xPlusHAdim, fPlusAdim, xNewtonAdim, fNewtonAdim);
 
-                if (predictor.IsValid)
+                if (predictor.IsValid && Math.Abs(fNewtonAdim) > UseLinearSolve)
                 {
 #if DEBUG
                     Console.WriteLine($"      🎯 [Iter {iter + 1}] IQI Activo: NR sugirió X={xNewtonAdim:F4}. Evaluador 3-puntos nos catapultó a X={predictor.PredictedX:F4}");
@@ -179,13 +180,13 @@ namespace Shared.Thermodynamics.Solvers
         private static (bool Success, double BestXAdim, double BestFAdimAbs, double BestFReal) PerformLineSearch(
             Func<double, double> func, double xAdim, double dxAdim, double xNorm, double fNorm, double currentFAdim, double currentFReal)
         {
-//            if (Math.Abs(dxAdim) < 1e-7)
-//            {
-//#if DEBUG
-//                Console.WriteLine($"      🛑 [LineSearch] Abortado: Salto propuesto (dx={dxAdim:E4}) es ruido numérico.");
-//#endif
-//                return (false, xAdim, Math.Abs(currentFAdim), currentFReal);
-//            }
+            //            if (Math.Abs(dxAdim) < 1e-7)
+            //            {
+            //#if DEBUG
+            //                Console.WriteLine($"      🛑 [LineSearch] Abortado: Salto propuesto (dx={dxAdim:E4}) es ruido numérico.");
+            //#endif
+            //                return (false, xAdim, Math.Abs(currentFAdim), currentFReal);
+            //            }
 
             double alpha = 1.0;
             double f0 = Math.Abs(currentFAdim);
@@ -230,6 +231,6 @@ namespace Shared.Thermodynamics.Solvers
 #endif
             return new ScalarSolverResult(converged, iter, xReal, fReal);
         }
-       
+
     }
 }

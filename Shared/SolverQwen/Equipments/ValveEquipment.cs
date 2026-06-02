@@ -6,12 +6,10 @@ namespace Shared.SolverQwen.Equipments
     public class ValveEquipment : EquipmentBase
     {
         public ProcessVariable<PressureDrop> DeltaP { get; }
-    
 
         public ValveEquipment(string name) : base(name)
         {
             DeltaP = new ProcessVariable<PressureDrop>(new PressureDrop(0, PressureDropUnits.Pascal), PressureDropUnits.Bar, 100000);
-      
         }
 
         protected override IEnumerable<ISolverPhaseStrategy> CreatePhase1Strategies()
@@ -28,17 +26,13 @@ namespace Shared.SolverQwen.Equipments
             yield return new ValveEnthalpyPhase2Strategy(this);
             yield return new ValveMassBalancePhase2Strategy(this);
         }
+
         protected override IEnumerable<ISolverPhaseStrategy> CreatePhase3Strategies()
         {
-            yield   return new GlobalMassBalancePhase3Strategy(this);
+            yield return new GlobalMassBalancePhase3Strategy(this);
         }
     }
 
-    // ... (estrategias ValvePressurePhase1Strategy, ValvePressurePhase2Strategy, 
-    // ValveConcentrationPhase2Strategy, ValveEnthalpyPhase2Strategy, ValveMassBalancePhase2Strategy)
-
-    // ============================================================================
-    // VÁLVULA - FASE 1: PRESIÓN (P_out = P_in - ΔP) - LOCAL
     // ============================================================================
     public class ValvePressurePhase1Strategy : ISolverPhaseStrategy
     {
@@ -55,16 +49,25 @@ namespace Shared.SolverQwen.Equipments
         public double[] GetResiduals()
         {
             if (!_equipment.Inlets.Any() || !_equipment.Outlets.Any()) return new double[0];
+
             double pIn = _equipment.Inlets.First().Pressure.GetSolverValue();
             double pOut = _equipment.Outlets.First().Pressure.GetSolverValue();
             double deltaP = _equipment.DeltaP.GetSolverValue();
-            return new double[] { pIn - deltaP - pOut };  // Válvula: caída de presión
+
+            double residual = pIn - deltaP - pOut;
+
+#if DEBUG
+            if (double.IsNaN(residual) || double.IsInfinity(residual))
+                Console.WriteLine($"  [{Name} 🚨] FATAL: Residual de Presión es NaN/Inf! pIn:{pIn:F2}, pOut:{pOut:F2}, deltaP:{deltaP:F2}");
+#endif
+
+            return new double[] { residual };  // Válvula: caída de presión
         }
 
         public IEnumerable<IProcessVariable> GetCouplingVariables()
         {
             yield return _equipment.DeltaP;
-        
+
             if (_equipment.Inlets.Any()) yield return _equipment.Inlets.First().Pressure;
             if (_equipment.Outlets.Any()) yield return _equipment.Outlets.First().Pressure;
         }
@@ -85,8 +88,30 @@ namespace Shared.SolverQwen.Equipments
             _equipment = equipment ?? throw new ArgumentNullException(nameof(equipment));
         }
 
-        public double[] GetResiduals() => new ValvePressurePhase1Strategy(_equipment).GetResiduals();
-        public IEnumerable<IProcessVariable> GetCouplingVariables() => new ValvePressurePhase1Strategy(_equipment).GetCouplingVariables();
+        public double[] GetResiduals()
+        {
+            if (!_equipment.Inlets.Any() || !_equipment.Outlets.Any()) return new double[0];
+
+            double pIn = _equipment.Inlets.First().Pressure.GetSolverValue();
+            double pOut = _equipment.Outlets.First().Pressure.GetSolverValue();
+            double deltaP = _equipment.DeltaP.GetSolverValue();
+
+            double residual = pIn - deltaP - pOut;
+
+#if DEBUG
+            if (double.IsNaN(residual) || double.IsInfinity(residual))
+                Console.WriteLine($"  [{Name} 🚨] FATAL: Residual de Presión es NaN/Inf! pIn:{pIn:F2}, pOut:{pOut:F2}, deltaP:{deltaP:F2}");
+#endif
+
+            return new double[] { residual };  // Válvula: caída de presión
+        }
+        public IEnumerable<IProcessVariable> GetCouplingVariables()
+        {
+            yield return _equipment.DeltaP;
+
+            if (_equipment.Inlets.Any()) yield return _equipment.Inlets.First().Pressure;
+            if (_equipment.Outlets.Any()) yield return _equipment.Outlets.First().Pressure;
+        }
     }
 
     // ============================================================================
@@ -112,9 +137,15 @@ namespace Shared.SolverQwen.Equipments
             var residuals = new List<double>();
             var inComps = inlet.Composition.Components;
             var outComps = outlet.Composition.Components;
+
             for (int i = 0; i < inComps.Count && i < outComps.Count; i++)
             {
-                residuals.Add(inComps[i].MassFraction.GetSolverValue() - outComps[i].MassFraction.GetSolverValue());
+                double res = inComps[i].MassFraction.GetSolverValue() - outComps[i].MassFraction.GetSolverValue();
+#if DEBUG
+                if (double.IsNaN(res) || double.IsInfinity(res))
+                    Console.WriteLine($"  [{Name} 🚨] FATAL: Residual de Concentración es NaN/Inf para componente índice {i}!");
+#endif
+                residuals.Add(res);
             }
             return residuals.ToArray();
         }
@@ -146,9 +177,18 @@ namespace Shared.SolverQwen.Equipments
         public double[] GetResiduals()
         {
             if (!_equipment.Inlets.Any() || !_equipment.Outlets.Any()) return new double[0];
+
             double hIn = _equipment.Inlets.First().MassEnthalpy.GetSolverValue();
             double hOut = _equipment.Outlets.First().MassEnthalpy.GetSolverValue();
-            return new double[] { hIn - hOut };
+
+            double residual = hIn - hOut;
+
+#if DEBUG
+            if (double.IsNaN(residual) || double.IsInfinity(residual))
+                Console.WriteLine($"  [{Name} 🚨] FATAL: Residual de Entalpía es NaN/Inf! hIn:{hIn:F2}, hOut:{hOut:F2}");
+#endif
+
+            return new double[] { residual };
         }
 
         public IEnumerable<IProcessVariable> GetCouplingVariables()
@@ -176,9 +216,18 @@ namespace Shared.SolverQwen.Equipments
         public double[] GetResiduals()
         {
             if (!_equipment.Inlets.Any() || !_equipment.Outlets.Any()) return new double[0];
+
             double mIn = _equipment.Inlets.First().MassFlow.GetSolverValue();
             double mOut = _equipment.Outlets.First().MassFlow.GetSolverValue();
-            return new double[] { mIn - mOut };
+
+            double residual = mIn - mOut;
+
+#if DEBUG
+            if (double.IsNaN(residual) || double.IsInfinity(residual))
+                Console.WriteLine($"  [{Name} 🚨] FATAL: Residual de Masa es NaN/Inf! mIn:{mIn:F2}, mOut:{mOut:F2}");
+#endif
+
+            return new double[] { residual };
         }
 
         public IEnumerable<IProcessVariable> GetCouplingVariables()

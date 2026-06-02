@@ -18,14 +18,18 @@ namespace Shared.SolverQwen.Equipments
         // ── VARIABLES DE EQUIPO ──
         public ProcessVariable<PressureDrop> DeltaPHot { get; }
         public ProcessVariable<PressureDrop> DeltaPCold { get; }
-        public ProcessVariable<EnergyFlow> Q { get; }
+
+        // ✅ LA MAGIA: Calores separados para permitir resolución aislada reactiva
+        public ProcessVariable<EnergyFlow> QHot { get; }
+        public ProcessVariable<EnergyFlow> QCold { get; }
 
         public HeatExchangerEquipment(string name) : base(name)
         {
-            // Inicializar variables
             DeltaPHot = new ProcessVariable<PressureDrop>(new PressureDrop(0, PressureDropUnits.Pascal), PressureDropUnits.Bar, 100000);
             DeltaPCold = new ProcessVariable<PressureDrop>(new PressureDrop(0, PressureDropUnits.Pascal), PressureDropUnits.Bar, 100000);
-            Q = new ProcessVariable<EnergyFlow>(new EnergyFlow(0, EnergyFlowUnits.J_sg), EnergyFlowUnits.Kcal_hr, 3000);
+
+            QHot = new ProcessVariable<EnergyFlow>(new EnergyFlow(0, EnergyFlowUnits.J_sg), EnergyFlowUnits.Kcal_hr, 3000);
+            QCold = new ProcessVariable<EnergyFlow>(new EnergyFlow(0, EnergyFlowUnits.J_sg), EnergyFlowUnits.Kcal_hr, 3000);
         }
 
         // ── CONEXIONES ──
@@ -33,7 +37,7 @@ namespace Shared.SolverQwen.Equipments
         {
             HotInlet = inlet;
             HotOutlet = outlet;
-            base.AddInlet(inlet);   // Alimenta al Orquestador (BFS)
+            base.AddInlet(inlet);
             base.AddOutlet(outlet);
         }
 
@@ -54,7 +58,7 @@ namespace Shared.SolverQwen.Equipments
 
         protected override IEnumerable<ISolverPhaseStrategy> CreatePhase2Strategies()
         {
-            // ✅ Presión, Concentración y Masa
+            // Presión, Concentración y Masa
             yield return new HexHotPressurePhase2Strategy(this);
             yield return new HexColdPressurePhase2Strategy(this);
             yield return new HexHotConcentrationPhase2Strategy(this);
@@ -62,20 +66,19 @@ namespace Shared.SolverQwen.Equipments
             yield return new HexHotMassPhase2Strategy(this);
             yield return new HexColdMassPhase2Strategy(this);
 
-            // ✅ TU IDEA: Balances de Energía Aislados (Calculan QHot o QCold si el ramal está definido)
+            // ✅ Balances de Energía Aislados
             yield return new HexHotEnergyPhase2Strategy(this);
             yield return new HexColdEnergyPhase2Strategy(this);
+
+            // ✅ EL PUENTE TERMODINÁMICO: Acopla los dos ramales
+            yield return new HexHeatCouplingPhase2Strategy(this);
         }
 
-        protected override IEnumerable<ISolverPhaseStrategy> CreatePhase3Strategies()  // ← Cambiar a IEnumerable
+        protected override IEnumerable<ISolverPhaseStrategy> CreatePhase3Strategies()
         {
-            // 🔹 Dos estrategias independientes, una por lado
-            // Cada una se activa solo si su lado tiene specs suficientes
             yield return new HexHotMassEnergyPhase3Strategy(this);
             yield return new HexColdMassEnergyPhase3Strategy(this);
-
-            // 🔹 NO hay estrategia de "acople": Q es la misma variable compartida
-            // Si ambos lados convergen, Q tendrá el mismo valor por definición
+            yield return new HexHeatCouplingPhase3Strategy(this); // Aseguramos que el puente exista si entra a Fase 3
         }
     }
 
@@ -279,11 +282,53 @@ namespace Shared.SolverQwen.Equipments
 
 
     // ============================================================================
-    // FASE 3: ESTRATEGIA ACOPLADA (Masa y Energía)
+    // ✅ EL PUENTE: ESTRATEGIAS DE ACOPLE TÉRMICO (Fase 2 y 3)
     // ============================================================================
+    public class HexHeatCouplingPhase2Strategy : ISolverPhaseStrategy
+    {
+        private readonly HeatExchangerEquipment _eq;
+        public StrategyType Type => StrategyType.Enthalpy;
+        public VariableDataProcedence Procedence => VariableDataProcedence.Phase2_EasyEquipmentNet;
+        public string Name => $"{_eq.Name} - Phase2_HeatCoupling";
+
+        public HexHeatCouplingPhase2Strategy(HeatExchangerEquipment eq) { _eq = eq ?? throw new ArgumentNullException(nameof(eq)); }
+
+        public double[] GetResiduals()
+        {
+            // El puente asume conservación de energía perfecta: Q_ganado + Q_perdido = 0
+            return new double[] { _eq.QHot.GetSolverValue() + _eq.QCold.GetSolverValue() };
+        }
+
+        public IEnumerable<IProcessVariable> GetCouplingVariables()
+        {
+            yield return _eq.QHot;
+            yield return _eq.QCold;
+        }
+    }
+
+    public class HexHeatCouplingPhase3Strategy : ISolverPhaseStrategy
+    {
+        private readonly HeatExchangerEquipment _eq;
+        public StrategyType Type => StrategyType.MassEnergyBalance;
+        public VariableDataProcedence Procedence => VariableDataProcedence.Phase3_ThermoAdjustment;
+        public string Name => $"{_eq.Name} - Phase3_HeatCoupling";
+
+        public HexHeatCouplingPhase3Strategy(HeatExchangerEquipment eq) { _eq = eq ?? throw new ArgumentNullException(nameof(eq)); }
+
+        public double[] GetResiduals()
+        {
+            return new double[] { _eq.QHot.GetSolverValue() + _eq.QCold.GetSolverValue() };
+        }
+
+        public IEnumerable<IProcessVariable> GetCouplingVariables()
+        {
+            yield return _eq.QHot;
+            yield return _eq.QCold;
+        }
+    }
 
     // ============================================================================
-    // FASE 2: ENERGÍA AISLADA (Tu idea brillante para la UI)
+    // FASE 2: ENERGÍA AISLADA 
     // ============================================================================
     public class HexHotEnergyPhase2Strategy : ISolverPhaseStrategy
     {
@@ -302,20 +347,23 @@ namespace Shared.SolverQwen.Equipments
             double mOut = _eq.HotOutlet.MassFlow.GetSolverValue();
             double hIn = _eq.HotInlet.MassEnthalpy.GetSolverValue();
             double hOut = _eq.HotOutlet.MassEnthalpy.GetSolverValue();
-            double q = _eq.Q.GetSolverValue();
+            double qHot = _eq.QHot.GetSolverValue();
 
-            // Asumimos Q positivo cuando el fluido se enfría
-            return new double[] { (mIn * hIn) - (mOut * hOut) - q };
+            // 1ra Ley: (m*h)_in - (m*h)_out + Q = 0
+            double residual = (mIn * hIn) - (mOut * hOut) + qHot;
+
+#if DEBUG
+            if (double.IsNaN(residual) || double.IsInfinity(residual))
+                Console.WriteLine($"  [{Name} 🚨] FATAL: Residual es NaN/Inf! mIn:{mIn:F2}, mOut:{mOut:F2}, hIn:{hIn:F2}, hOut:{hOut:F2}, QHot:{qHot:F2}");
+#endif
+            return new double[] { residual };
         }
 
         public IEnumerable<IProcessVariable> GetCouplingVariables()
         {
-            // Solo exponemos Q y las Entalpías. 
-            // ¡La Masa la borramos de aquí para que el solver no intente modificarla!
-            yield return _eq.Q;
-
-            if (_eq.HotInlet != null) { yield return _eq.HotInlet.MassEnthalpy; }
-            if (_eq.HotOutlet != null) { yield return _eq.HotOutlet.MassEnthalpy; }
+            yield return _eq.QHot;
+            if (_eq.HotInlet != null) yield return _eq.HotInlet.MassEnthalpy;
+            if (_eq.HotOutlet != null) yield return _eq.HotOutlet.MassEnthalpy;
         }
     }
 
@@ -336,22 +384,28 @@ namespace Shared.SolverQwen.Equipments
             double mOut = _eq.ColdOutlet.MassFlow.GetSolverValue();
             double hIn = _eq.ColdInlet.MassEnthalpy.GetSolverValue();
             double hOut = _eq.ColdOutlet.MassEnthalpy.GetSolverValue();
-            double q = _eq.Q.GetSolverValue();
+            double qCold = _eq.QCold.GetSolverValue();
 
-            // Asumimos Q positivo cuando el fluido se calienta
-            return new double[] { (mIn * hIn) - (mOut * hOut) + q };
+            // 1ra Ley: (m*h)_in - (m*h)_out + Q = 0
+            double residual = (mIn * hIn) - (mOut * hOut) + qCold;
+
+#if DEBUG
+            if (double.IsNaN(residual) || double.IsInfinity(residual))
+                Console.WriteLine($"  [{Name} 🚨] FATAL: Residual es NaN/Inf! mIn:{mIn:F2}, mOut:{mOut:F2}, hIn:{hIn:F2}, hOut:{hOut:F2}, QCold:{qCold:F2}");
+#endif
+            return new double[] { residual };
         }
 
         public IEnumerable<IProcessVariable> GetCouplingVariables()
         {
-            yield return _eq.Q;
-            if (_eq.ColdInlet != null) {  yield return _eq.ColdInlet.MassEnthalpy; }
-            if (_eq.ColdOutlet != null) {  yield return _eq.ColdOutlet.MassEnthalpy; }
+            yield return _eq.QCold;
+            if (_eq.ColdInlet != null) yield return _eq.ColdInlet.MassEnthalpy;
+            if (_eq.ColdOutlet != null) yield return _eq.ColdOutlet.MassEnthalpy;
         }
     }
 
     // ============================================================================
-    // FASE 3: ESTRATEGIA ACOPLADA (El pegamento termodinámico)
+    // FASE 3: ESTRATEGIA ACOPLADA (Masa y Energía independientes por lado)
     // ============================================================================
     public class HexHotMassEnergyPhase3Strategy : ISolverPhaseStrategy
     {
@@ -367,42 +421,37 @@ namespace Shared.SolverQwen.Equipments
 
         public double[] GetResiduals()
         {
-            // 🔹 Validar que el lado caliente está completo y tiene specs mínimos
             if (_eq.HotInlet == null || _eq.HotOutlet == null) return Array.Empty<double>();
-          
 
             double mIn = _eq.HotInlet.MassFlow.GetSolverValue();
             double mOut = _eq.HotOutlet.MassFlow.GetSolverValue();
             double hIn = _eq.HotInlet.MassEnthalpy.GetSolverValue();
             double hOut = _eq.HotOutlet.MassEnthalpy.GetSolverValue();
-            double q = _eq.Q.GetSolverValue();  // Variable compartida
+            double qHot = _eq.QHot.GetSolverValue();
 
-            // Balance de masa y energía (Hot pierde calor: -Q)
-            return new double[]
-            {
-                mIn - mOut,                      // Eq 1: Conservación de masa
-                (mIn * hIn) - (mOut * hOut) - q  // Eq 2: Conservación de energía
-            };
+            double resMass = mIn - mOut;
+            double resEnergy = (mIn * hIn) - (mOut * hOut) + qHot;
+
+#if DEBUG
+            if (double.IsNaN(resEnergy) || double.IsInfinity(resEnergy))
+                Console.WriteLine($"  [{Name} 🚨] FATAL: Residual de Energía es NaN/Inf! mIn:{mIn:F2}, mOut:{mOut:F2}, hIn:{hIn:F2}, hOut:{hOut:F2}, QHot:{qHot:F2}");
+#endif
+
+            return new double[] { resMass, resEnergy };
         }
 
         public IEnumerable<IProcessVariable> GetCouplingVariables()
         {
-            // 🔹 Solo exponer variables si el lado está activo
-           if(_eq.HotInlet == null || _eq.HotOutlet == null) yield break;
+            if (_eq.HotInlet == null || _eq.HotOutlet == null) yield break;
 
-            yield return _eq.Q;  // Variable de acople compartida
+            yield return _eq.QHot;
             yield return _eq.HotInlet.MassFlow;
             yield return _eq.HotOutlet.MassFlow;
             yield return _eq.HotInlet.MassEnthalpy;
             yield return _eq.HotOutlet.MassEnthalpy;
         }
-
-        /// <summary>
-        /// Determina si el lado caliente tiene specs suficientes para resolver.
-        /// Necesitamos: flujo/entalpía de entrada (Phase 2) + al menos 1 spec de salida o Q.
-        /// </summary>
-       
     }
+
     public class HexColdMassEnergyPhase3Strategy : ISolverPhaseStrategy
     {
         private readonly HeatExchangerEquipment _eq;
@@ -418,34 +467,34 @@ namespace Shared.SolverQwen.Equipments
         public double[] GetResiduals()
         {
             if (_eq.ColdInlet == null || _eq.ColdOutlet == null) return Array.Empty<double>();
-           
 
             double mIn = _eq.ColdInlet.MassFlow.GetSolverValue();
             double mOut = _eq.ColdOutlet.MassFlow.GetSolverValue();
             double hIn = _eq.ColdInlet.MassEnthalpy.GetSolverValue();
             double hOut = _eq.ColdOutlet.MassEnthalpy.GetSolverValue();
-            double q = _eq.Q.GetSolverValue();  // Misma variable compartida
+            double qCold = _eq.QCold.GetSolverValue();
 
-            // Balance de masa y energía (Cold gana calor: +Q)
-            return new double[]
-            {
-                mIn - mOut,                      // Eq 1: Conservación de masa
-                (mIn * hIn) - (mOut * hOut) + q  // Eq 2: Conservación de energía
-            };
+            double resMass = mIn - mOut;
+            double resEnergy = (mIn * hIn) - (mOut * hOut) + qCold;
+
+#if DEBUG
+            if (double.IsNaN(resEnergy) || double.IsInfinity(resEnergy))
+                Console.WriteLine($"  [{Name} 🚨] FATAL: Residual de Energía es NaN/Inf! mIn:{mIn:F2}, mOut:{mOut:F2}, hIn:{hIn:F2}, hOut:{hOut:F2}, QCold:{qCold:F2}");
+#endif
+
+            return new double[] { resMass, resEnergy };
         }
 
         public IEnumerable<IProcessVariable> GetCouplingVariables()
         {
-           if(_eq.ColdInlet == null || _eq.ColdOutlet == null) yield break;
+            if (_eq.ColdInlet == null || _eq.ColdOutlet == null) yield break;
 
-            yield return _eq.Q;  // Misma variable compartida
+            yield return _eq.QCold;
             yield return _eq.ColdInlet.MassFlow;
             yield return _eq.ColdOutlet.MassFlow;
             yield return _eq.ColdInlet.MassEnthalpy;
             yield return _eq.ColdOutlet.MassEnthalpy;
         }
-
-       
     }
 
 }

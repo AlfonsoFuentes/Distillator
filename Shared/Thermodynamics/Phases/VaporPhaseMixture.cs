@@ -16,6 +16,31 @@ namespace Shared.Thermodynamics.Phases
         public EosParameters EosParams { get; private set; } = new();
         public double CompressibilityFactor { get; private set; } = 1.0;
 
+        void CalculateMassFractions() // (Corregido un pelín el nombre 😉)
+        {
+            // 1. Calculamos la masa total de la mezcla (MW Promedio)
+            double totalMass = 0.0;
+            foreach (var component in Components)
+            {
+                totalMass += component.MolarFraction * component.PureComponentData.MolecularWeight;
+            }
+
+            // 2. Prevenimos división por cero si la fase está vacía
+            if (totalMass > 0)
+            {
+                foreach (var component in Components)
+                {
+                    // 3. Normalizamos y asignamos
+                    double massFraction = (component.MolarFraction * component.PureComponentData.MolecularWeight) / totalMass;
+                    component.MassFraction = massFraction; // ¡Ahora sí te dejará hacerlo!
+                }
+            }
+            else
+            {
+                // Si no hay masa, reseteamos a cero por seguridad
+                foreach (var component in Components) component.MassFraction = 0.0;
+            }
+        }
         protected override IReadOnlyList<ChemicalComponentNode> ComponentsForPropagation => Components;
 
         public VaporPhaseMixture(string name = "Vapor Phase") => Name = name;
@@ -45,7 +70,7 @@ namespace Shared.Thermodynamics.Phases
             if (Components.Count == 0) return;
             Temperature = temperature;
             Pressure = pressure;
-
+            CalculateMassFractions();
             // 1. Pure Properties
             foreach (var comp in Components) comp.CalculateEquilibrium(temperature, pressure);
 
