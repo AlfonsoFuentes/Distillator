@@ -39,11 +39,11 @@ namespace Shared.ProcessFlowDiagram.HeatExchangers
             // 4. Salida de condensado (Abajo, lado derecho)
             AddPort("CondensateOut", PortType.Outlet, 60, 120, PortDirection.Right);
 
-            Facade = new ReboilerSimulationFacade2
-            {
-                Id = this.Id,
-                Name = "E-102"
-            };
+            //Facade = new ReboilerSimulationFacade2
+            //{
+            //    Id = this.Id,
+            //    Name = "E-102"
+            //};
         }
     }
 }

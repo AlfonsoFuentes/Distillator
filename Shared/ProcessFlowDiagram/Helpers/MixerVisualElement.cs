@@ -29,11 +29,11 @@ namespace Shared.ProcessFlowDiagram.Helpers
 
             RefreshDynamicPorts();
 
-            Facade = new MixerSimulationFacade2
-            {
-                Id = this.Id,
-                Name = "MIX-101"
-            };
+            //Facade = new MixerSimulationFacade2
+            //{
+            //    Id = this.Id,
+            //    Name = "MIX-101"
+            //};
         }
 
         // ==============================================================================

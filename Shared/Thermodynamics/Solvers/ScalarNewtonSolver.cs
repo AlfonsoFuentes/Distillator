@@ -56,7 +56,7 @@ namespace Shared.Thermodynamics.Solvers
                     return LogSuccess(debugTag, true, iter + 1, xReal, fReal, sw);
 
                 // --- 📍 PUNTO B: La Derivada ---
-                double hAdim = adimperturbation * Math.Max(1.0, Math.Abs(xAdim));
+                double hAdim = adimperturbation;
                 double xPlusHAdim = xAdim + hAdim;
                 double fPlusReal = func(xPlusHAdim * x_norm);
                 double fPlusAdim = fPlusReal / f_norm;
@@ -74,6 +74,9 @@ namespace Shared.Thermodynamics.Solvers
                 // --- 📍 PUNTO C: El Salto Normalito de Newton ---
                 double dxAdim = -fAdim / dfDx;
                 double xNewtonAdim = xAdim + dxAdim;
+                if (Math.Abs(xNewtonAdim - xAdim) > 50)
+                {
+                }
                 double fNewtonReal = func(xNewtonAdim * x_norm);
                 double fNewtonAdim = fNewtonReal / f_norm;
 

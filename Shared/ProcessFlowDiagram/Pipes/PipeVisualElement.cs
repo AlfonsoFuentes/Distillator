@@ -49,20 +49,20 @@ namespace Shared.ProcessFlowDiagram.Pipes
         public override bool AllowFlipHorizontal => false;
         public override bool AllowFlipVertical => false;
         public override bool IsResizable => false; // Los equipos P&ID rara vez cambian de tamaño
-        private PipeDesignFacade? PipeFacade => Facade as PipeDesignFacade;
+        //private PipeDesignFacade? PipeFacade => Facade as PipeDesignFacade;
 
         // 3. IDENTIDAD
         public override string Label
         {
             get
             {
-                if (PipeFacade == null) return "Undefined Pipe";
+                //if (PipeFacade == null) return "Undefined Pipe";
                 // Usamos las propiedades exactas del Facade
                 return $"";
             }
             set
             {
-                if (PipeFacade != null) PipeFacade.Name = value;
+                //if (PipeFacade != null) PipeFacade.Name = value;
             }
         }
 
@@ -74,7 +74,7 @@ namespace Shared.ProcessFlowDiagram.Pipes
             Width = 0;
             Height = 0;
             // Importante: Instanciar el facade correcto
-            Facade = new PipeDesignFacade { Name = "PIPE-000" };
+            //Facade = new PipeDesignFacade { Name = "PIPE-000" };
         }
     }
 }

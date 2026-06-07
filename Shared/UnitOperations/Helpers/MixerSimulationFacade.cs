@@ -310,128 +310,128 @@ namespace Shared.UnitOperations.Helpers
     //        return null!;
     //    }
     //}
-    public class MixerSimulationFacade2 : EquipmentFacade2
-    {
-        public MixerStateType State { get; set; } = MixerStateType.Created;
-        public Dictionary<string, IStreamFacade2> InletStreams { get; } = new();
-        public IStreamFacade2? OutletStream { get; private set; }
+    //public class MixerSimulationFacade2 : EquipmentFacade2
+    //{
+    //    public MixerStateType State { get; set; } = MixerStateType.Created;
+    //    public Dictionary<string, IStreamFacade2> InletStreams { get; } = new();
+    //    public IStreamFacade2? OutletStream { get; private set; }
 
-        public override string StatusText => State switch
-        {
-            MixerStateType.Created => "Ready",
-            MixerStateType.PartiallyConnected => "Underspecified",
-            MixerStateType.ReadyToCalculate => "Ready to Solve",
-            MixerStateType.Solved => "Converged",
-            _ => "Unknown"
-        };
+    //    public override string StatusText => State switch
+    //    {
+    //        MixerStateType.Created => "Ready",
+    //        MixerStateType.PartiallyConnected => "Underspecified",
+    //        MixerStateType.ReadyToCalculate => "Ready to Solve",
+    //        MixerStateType.Solved => "Converged",
+    //        _ => "Unknown"
+    //    };
 
-        public override string StatusColor => State switch
-        {
-            MixerStateType.Created => "#CBD5E0",
-            MixerStateType.PartiallyConnected => "#F6AD55",
-            MixerStateType.ReadyToCalculate => "#63B3ED",
-            MixerStateType.Solved => "#34D399",
-            _ => "#CBD5E0"
-        };
+    //    public override string StatusColor => State switch
+    //    {
+    //        MixerStateType.Created => "#CBD5E0",
+    //        MixerStateType.PartiallyConnected => "#F6AD55",
+    //        MixerStateType.ReadyToCalculate => "#63B3ED",
+    //        MixerStateType.Solved => "#34D399",
+    //        _ => "#CBD5E0"
+    //    };
 
-        public override List<ToolTipLegend> GetToolTipLegend()
-        {
-            var result = new List<ToolTipLegend>();
-            if (OutletStream?.MassFlow?.IsDefined == true)
-                result.Add(new("Total Flow", OutletStream.MassFlow.Value?.ToString() ?? string.Empty));
-            return result;
-        }
+    //    public override List<ToolTipLegend> GetToolTipLegend()
+    //    {
+    //        var result = new List<ToolTipLegend>();
+    //        if (OutletStream?.MassFlow?.IsDefined == true)
+    //            result.Add(new("Total Flow", OutletStream.MassFlow.Value?.ToString() ?? string.Empty));
+    //        return result;
+    //    }
 
-        public override void AttachConnection(string portName, IStreamFacade2 connectedFacade)
-        {
-            if (portName.StartsWith("Inlet")) InletStreams[portName] = connectedFacade;
-            else if (portName == "Outlet") OutletStream = connectedFacade;
-        }
+    //    public override void AttachConnection(string portName, IStreamFacade2 connectedFacade)
+    //    {
+    //        if (portName.StartsWith("Inlet")) InletStreams[portName] = connectedFacade;
+    //        else if (portName == "Outlet") OutletStream = connectedFacade;
+    //    }
 
-        public override void DetachConnection(string portName)
-        {
-            if (portName.StartsWith("Inlet")) InletStreams.Remove(portName);
-            else if (portName == "Outlet") OutletStream = null;
-        }
+    //    public override void DetachConnection(string portName)
+    //    {
+    //        if (portName.StartsWith("Inlet")) InletStreams.Remove(portName);
+    //        else if (portName == "Outlet") OutletStream = null;
+    //    }
 
-        //public override void BuildEquations(EquationSystem eqs)
-        //{
-        //    if (OutletStream == null || InletStreams.Count == 0) return;
+    //    //public override void BuildEquations(EquationSystem eqs)
+    //    //{
+    //    //    if (OutletStream == null || InletStreams.Count == 0) return;
 
-        //    // 🔥 Balance por componente (sin redundancia)
-        //    if (OutletStream.StreamComposition?.Value?.Components.Count > 0)
-        //    {
-        //        foreach (var inlet in InletStreams.Values.Where(s => s.StreamComposition?.Value != null))
-        //        {
-        //            var compsIn = inlet.StreamComposition.Value.Components;
-        //            var compsOut = OutletStream.StreamComposition.Value.Components;
-        //            for (int i = 0; i < compsIn.Count && i < compsOut.Count; i++)
-        //            {
-        //                eqs.AddEquation(
-        //                    x => x[compsOut[i].MolarFlowSolver.Index] - x[compsIn[i].MolarFlowSolver.Index],
-        //                    EquationType.Model,
-        //                    $"Mixer component balance {compsIn[i].ComponentName}"
-        //                );
-        //            }
-        //        }
-        //    }
+    //    //    // 🔥 Balance por componente (sin redundancia)
+    //    //    if (OutletStream.StreamComposition?.Value?.Components.Count > 0)
+    //    //    {
+    //    //        foreach (var inlet in InletStreams.Values.Where(s => s.StreamComposition?.Value != null))
+    //    //        {
+    //    //            var compsIn = inlet.StreamComposition.Value.Components;
+    //    //            var compsOut = OutletStream.StreamComposition.Value.Components;
+    //    //            for (int i = 0; i < compsIn.Count && i < compsOut.Count; i++)
+    //    //            {
+    //    //                eqs.AddEquation(
+    //    //                    x => x[compsOut[i].MolarFlowSolver.Index] - x[compsIn[i].MolarFlowSolver.Index],
+    //    //                    EquationType.Model,
+    //    //                    $"Mixer component balance {compsIn[i].ComponentName}"
+    //    //                );
+    //    //            }
+    //    //        }
+    //    //    }
 
-        //    // 🔥 Balance de energía: H_out = Σ(mᵢ·Hᵢ) / Σmᵢ (ponderado por flujo másico)
-        //    var Hout = OutletStream.MolarEnthalpy;
-        //    eqs.AddEquation(
-        //        x =>
-        //        {
-        //            double totalMass = 0, totalEnergy = 0;
-        //            foreach (var inlet in InletStreams.Values)
-        //            {
-        //                if (inlet.MassFlow?.IsEspecified == true && inlet.MolarEnthalpy?.IsEspecified == true)
-        //                {
-        //                    double m = inlet.MassFlow.SolverValue;
-        //                    double h = x[inlet.MolarEnthalpy.Index];
-        //                    totalMass += m;
-        //                    totalEnergy += m * h;
-        //                }
-        //            }
-        //            return totalMass > 0 ? x[Hout.Index] - (totalEnergy / totalMass) : 0;
-        //        },
-        //        EquationType.Model,
-        //        "Mixer energy balance"
-        //    );
+    //    //    // 🔥 Balance de energía: H_out = Σ(mᵢ·Hᵢ) / Σmᵢ (ponderado por flujo másico)
+    //    //    var Hout = OutletStream.MolarEnthalpy;
+    //    //    eqs.AddEquation(
+    //    //        x =>
+    //    //        {
+    //    //            double totalMass = 0, totalEnergy = 0;
+    //    //            foreach (var inlet in InletStreams.Values)
+    //    //            {
+    //    //                if (inlet.MassFlow?.IsEspecified == true && inlet.MolarEnthalpy?.IsEspecified == true)
+    //    //                {
+    //    //                    double m = inlet.MassFlow.SolverValue;
+    //    //                    double h = x[inlet.MolarEnthalpy.Index];
+    //    //                    totalMass += m;
+    //    //                    totalEnergy += m * h;
+    //    //                }
+    //    //            }
+    //    //            return totalMass > 0 ? x[Hout.Index] - (totalEnergy / totalMass) : 0;
+    //    //        },
+    //    //        EquationType.Model,
+    //    //        "Mixer energy balance"
+    //    //    );
 
-        //    // 🔥 Presión de salida = mínima presión de entrada definida
-        //    var Pout = OutletStream.Pressure;
-        //    eqs.AddEquation(
-        //        x =>
-        //        {
-        //            var definedP = InletStreams.Values
-        //                .Where(s => s.Pressure?.IsEspecified == true)
-        //                .Select(s => x[s.Pressure.Index])
-        //                .DefaultIfEmpty(1e5); // fallback 1 bar
-        //            return x[Pout.Index] - definedP.Min();
-        //        },
-        //        EquationType.Model,
-        //        "Mixer pressure balance"
-        //    );
-        //}
+    //    //    // 🔥 Presión de salida = mínima presión de entrada definida
+    //    //    var Pout = OutletStream.Pressure;
+    //    //    eqs.AddEquation(
+    //    //        x =>
+    //    //        {
+    //    //            var definedP = InletStreams.Values
+    //    //                .Where(s => s.Pressure?.IsEspecified == true)
+    //    //                .Select(s => x[s.Pressure.Index])
+    //    //                .DefaultIfEmpty(1e5); // fallback 1 bar
+    //    //            return x[Pout.Index] - definedP.Min();
+    //    //        },
+    //    //        EquationType.Model,
+    //    //        "Mixer pressure balance"
+    //    //    );
+    //    //}
 
-        //public override IEnumerable<INewVariable> GetSolverVariables()
-        //{
-        //    if (OutletStream != null)
-        //    {
-        //        yield return OutletStream.Pressure;
-        //        yield return OutletStream.MolarEnthalpy;
-        //        if (OutletStream.StreamComposition?.Value?.Components != null)
-        //            foreach (var c in OutletStream.StreamComposition.Value.Components)
-        //                yield return c.MolarFlowSolver;
-        //    }
-        //    foreach (var inlet in InletStreams.Values)
-        //    {
-        //        yield return inlet.Pressure;
-        //        yield return inlet.MolarEnthalpy;
-        //        if (inlet.StreamComposition?.Value?.Components != null)
-        //            foreach (var c in inlet.StreamComposition.Value.Components)
-        //                yield return c.MolarFlowSolver;
-        //    }
-        //}
-    }
+    //    //public override IEnumerable<INewVariable> GetSolverVariables()
+    //    //{
+    //    //    if (OutletStream != null)
+    //    //    {
+    //    //        yield return OutletStream.Pressure;
+    //    //        yield return OutletStream.MolarEnthalpy;
+    //    //        if (OutletStream.StreamComposition?.Value?.Components != null)
+    //    //            foreach (var c in OutletStream.StreamComposition.Value.Components)
+    //    //                yield return c.MolarFlowSolver;
+    //    //    }
+    //    //    foreach (var inlet in InletStreams.Values)
+    //    //    {
+    //    //        yield return inlet.Pressure;
+    //    //        yield return inlet.MolarEnthalpy;
+    //    //        if (inlet.StreamComposition?.Value?.Components != null)
+    //    //            foreach (var c in inlet.StreamComposition.Value.Components)
+    //    //                yield return c.MolarFlowSolver;
+    //    //    }
+    //    //}
+    //}
 }

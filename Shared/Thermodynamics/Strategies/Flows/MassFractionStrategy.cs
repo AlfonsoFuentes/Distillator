@@ -37,7 +37,7 @@ namespace Shared.Thermodynamics.Strategies.Flows
 
                 comp.MolarFraction.SetValue(
                     new Percentage(molarFracc * 100, PercentageUnits.Percentage),
-                    VariableDataProcedence.StreamCalculated);
+                    SolverConsecutive.VariableDefinedBy.StreamCalculated);
             }
 
            

@@ -29,81 +29,81 @@ namespace Shared.Thermodynamics.Strategies.Equlibriums
 
            
             // ✅ 4. Actualizar UI con resultado calculado
-            _facade.Pressure.SetValue(_facade.MaterialStream.Pressure, VariableDataProcedence.StreamCalculated);
+            _facade.Pressure.SetValue(_facade.MaterialStream.Pressure, SolverConsecutive.VariableDefinedBy.StreamCalculated);
             _facade.MaterialStream.CalculateBulkProperties();
-            _facade.MassEnthalpy.SetValue(_facade.MaterialStream.MassEnthalpy, VariableDataProcedence.StreamCalculated);
+            _facade.MassEnthalpy.SetValue(_facade.MaterialStream.MassEnthalpy, SolverConsecutive.VariableDefinedBy.StreamCalculated);
         }
 
 
 
 
     }
-    public class TFVLiquidStrategy3 : IEquilibriumStrategy
-    {
-        private readonly IStreamFacade _facade;
-        private IMaterialStream Stream => _facade.MaterialStream;
+    //public class TFVLiquidStrategy3 : IEquilibriumStrategy
+    //{
+    //    private readonly IStreamFacade _facade;
+    //    private IMaterialStream Stream => _facade.MaterialStream;
 
 
 
-        public TFVLiquidStrategy3(IStreamFacade facade)
-        {
-            _facade = facade;
-        }
+    //    public TFVLiquidStrategy3(IStreamFacade facade)
+    //    {
+    //        _facade = facade;
+    //    }
 
-        public void Execute()
-        {
-
-
-
-
-            // ✅ 3. Resolver P_bubble: encontrar P donde Σ(K_i · z_i) = 1
-            //double pBubble = Stream.SolveSaturationPressure();
-
-            //var pressure = _facade.Pressure.Value;
-            //pressure!.SetValue(pBubble, PressureUnits.KiloPascala);
-            //// ✅ 4. Actualizar UI con resultado calculado
-            //_facade.Pressure.SetValueFromStream(pressure, _facade.Name);
-            //_facade.MaterialStream.CalculateBulkProperties();
-            //_facade.MassEnthalpy.SetValueFromStream(_facade.MaterialStream.MassEnthalpy, _facade.Name);
-        }
+    //    public void Execute()
+    //    {
 
 
 
 
-    }
-    public class TFVLiquidStrategy2 : IEquilibriumStrategy
-    {
-        private readonly IStreamFacade2 _facade;
-        private IMaterialStream Stream => _facade.MaterialStream;
+    //        // ✅ 3. Resolver P_bubble: encontrar P donde Σ(K_i · z_i) = 1
+    //        //double pBubble = Stream.SolveSaturationPressure();
 
-
-
-        public TFVLiquidStrategy2(IStreamFacade2 facade)
-        {
-            _facade = facade;
-        }
-
-        public void Execute()
-        {
+    //        //var pressure = _facade.Pressure.Value;
+    //        //pressure!.SetValue(pBubble, PressureUnits.KiloPascala);
+    //        //// ✅ 4. Actualizar UI con resultado calculado
+    //        //_facade.Pressure.SetValueFromStream(pressure, _facade.Name);
+    //        //_facade.MaterialStream.CalculateBulkProperties();
+    //        //_facade.MassEnthalpy.SetValueFromStream(_facade.MaterialStream.MassEnthalpy, _facade.Name);
+    //    }
 
 
 
 
-            // ✅ 3. Resolver P_bubble: encontrar P donde Σ(K_i · z_i) = 1
-            //double pBubble = Stream.SolveSaturationPressure();
-
-            //var pressure = _facade.Pressure.Value;
-            //pressure!.SetValue(pBubble, PressureUnits.KiloPascala);
-            //// ✅ 4. Actualizar UI con resultado calculado
-            //_facade.Pressure.SetValueFromStream(pressure, _facade.Name);
-            //_facade.MaterialStream.CalculateBulkProperties();
-            //_facade.MassEnthalpy.SetValueFromStream(_facade.MaterialStream.MassEnthalpy, _facade.Name);
-        }
+    //}
+    ////public class TFVLiquidStrategy2 : IEquilibriumStrategy
+    //{
+    //    private readonly IStreamFacade2 _facade;
+    //    private IMaterialStream Stream => _facade.MaterialStream;
 
 
 
+    //    public TFVLiquidStrategy2(IStreamFacade2 facade)
+    //    {
+    //        _facade = facade;
+    //    }
 
-    }
+    //    public void Execute()
+    //    {
+
+
+
+
+    //        // ✅ 3. Resolver P_bubble: encontrar P donde Σ(K_i · z_i) = 1
+    //        //double pBubble = Stream.SolveSaturationPressure();
+
+    //        //var pressure = _facade.Pressure.Value;
+    //        //pressure!.SetValue(pBubble, PressureUnits.KiloPascala);
+    //        //// ✅ 4. Actualizar UI con resultado calculado
+    //        //_facade.Pressure.SetValueFromStream(pressure, _facade.Name);
+    //        //_facade.MaterialStream.CalculateBulkProperties();
+    //        //_facade.MassEnthalpy.SetValueFromStream(_facade.MaterialStream.MassEnthalpy, _facade.Name);
+    //    }
+
+
+
+
+    //}
 
 
 }

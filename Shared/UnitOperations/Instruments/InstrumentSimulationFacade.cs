@@ -9,31 +9,31 @@ using System.Text;
 
 namespace Shared.UnitOperations.Instruments
 {
-    public class InstrumentSimulationFacade : EquipmentFacade2
-    {
+    //public class InstrumentSimulationFacade : EquipmentFacade2
+    //{
 
 
-        public override string StatusColor => "#63B3ED"; // Azul claro (Ready to solve)
-        public override string StatusText => "Awaiting Feed";
+    //    public override string StatusColor => "#63B3ED"; // Azul claro (Ready to solve)
+    //    public override string StatusText => "Awaiting Feed";
 
-        public override List<ToolTipLegend> GetToolTipLegend()
-        {
-            List<ToolTipLegend> result = new();
+    //    public override List<ToolTipLegend> GetToolTipLegend()
+    //    {
+    //        List<ToolTipLegend> result = new();
 
-            return result;
+    //        return result;
 
-        }
+    //    }
 
-        public override void AttachConnection(string portName, IStreamFacade2 connectedFacade)
-        {
+    //    public override void AttachConnection(string portName, IStreamFacade2 connectedFacade)
+    //    {
 
-        }
-        public override void DetachConnection(string portName)
-        {
+    //    }
+    //    public override void DetachConnection(string portName)
+    //    {
 
-        }
+    //    }
 
 
        
-    }
+    //}
 }

@@ -322,7 +322,7 @@ namespace Shared.Thermodynamics.Phases
             int iter;
             double sumX = 0.0, sumY = 0.0;
             double _sumMassLiq = 0, _sumMassVap = 0;
-            if (_cachedK != null && relDeltaT < maxRelativeDeltaT && relDeltaP < maxRelativeDeltaP)
+            if (_cachedK != null /*&& relDeltaT < maxRelativeDeltaT && relDeltaP < maxRelativeDeltaP*/)
             {
                 K = (double[])_cachedK.Clone();
             }
@@ -353,10 +353,10 @@ namespace Shared.Thermodynamics.Phases
                 }
             }
 
-          
 
-           
-            
+
+
+
             // ---------------------------------------------------------------------
             // ⚙️ BUCLE EXTERNO (Sustitución Sucesiva Pura - SSI)
             // ---------------------------------------------------------------------
@@ -414,7 +414,7 @@ namespace Shared.Thermodynamics.Phases
             _cachedK = (double[])K.Clone();
             _lastTKelvin = temperature.GetValue(TemperatureUnits.Kelvin);
             _lastPBar = pressure.GetValue(PressureUnits.Bara);
-           
+
 
             // ---------------------------------------------------------------------
             // 🏁 ASIGNACIÓN DE ESTADOS
@@ -681,52 +681,209 @@ namespace Shared.Thermodynamics.Phases
             double targetHmolar = massEnthalpyTargetJ * MolecularWeight;
             Pressure = pressure;
 
-            double tBurbuja = SolveFlashPVF(pressure, new Percentage(0, PercentageUnits.Percentage));
-            Temperature tempBurbuja = new Temperature(tBurbuja, TemperatureUnits.Kelvin);
+            //double tBurbuja = SolveFlashPVF(pressure, new Percentage(0, PercentageUnits.Percentage));
+            //Temperature tempBurbuja = new Temperature(tBurbuja, TemperatureUnits.Kelvin);
 
-            var propsBurbuja = CalculateMolarEnthalpyOnly(tempBurbuja, new Percentage(0, PercentageUnits.Percentage));
-            double hBurbuja = propsBurbuja.molarEnthalpy.GetValue(MolarEnergyUnits.J_Kgmol);
-            double cpBurbuja = propsBurbuja.Cp.GetValue(MolarEntropyUnits.J_Kgmol_C);
+            //var propsBurbuja = CalculateMolarEnthalpyOnly(tempBurbuja, new Percentage(0, PercentageUnits.Percentage));
+            //double hBurbuja = propsBurbuja.molarEnthalpy.GetValue(MolarEnergyUnits.J_Kgmol);
+            //double cpBurbuja = propsBurbuja.Cp.GetValue(MolarEntropyUnits.J_Kgmol_C);
 
-            // 🎯 PUNTO DE ROCÍO (Vapor Saturado, VF = 100)
-            double tRocio = SolveFlashPVF(pressure, new Percentage(100, PercentageUnits.Percentage));
-            Temperature tempRocio = new Temperature(tRocio, TemperatureUnits.Kelvin);
+            //// 🎯 PUNTO DE ROCÍO (Vapor Saturado, VF = 100)
+            //double tRocio = SolveFlashPVF(pressure, new Percentage(100, PercentageUnits.Percentage));
+            //Temperature tempRocio = new Temperature(tRocio, TemperatureUnits.Kelvin);
 
-            var propsRocio = CalculateMolarEnthalpyOnly(tempRocio, new Percentage(100, PercentageUnits.Percentage));
-            double hRocio = propsRocio.molarEnthalpy.GetValue(MolarEnergyUnits.J_Kgmol);
-            double cpRocio = propsRocio.Cp.GetValue(MolarEntropyUnits.J_Kgmol_C);
+            //var propsRocio = CalculateMolarEnthalpyOnly(tempRocio, new Percentage(100, PercentageUnits.Percentage));
+            //double hRocio = propsRocio.molarEnthalpy.GetValue(MolarEnergyUnits.J_Kgmol);
+            //double cpRocio = propsRocio.Cp.GetValue(MolarEntropyUnits.J_Kgmol_C);
 
-#if DEBUG
-            Console.WriteLine($"      [PH-Radar] Burbuja: T={tBurbuja:F2}K, H={hBurbuja:E4}, Cp={cpBurbuja:F2}");
-            Console.WriteLine($"      [PH-Radar] Rocío:   T={tRocio:F2}K, H={hRocio:E4}, Cp={cpRocio:F2}");
-#endif
+//#if DEBUG
+//            Console.WriteLine($"      [PH-Radar] Burbuja: T={tBurbuja:F2}K, H={hBurbuja:E4}, Cp={cpBurbuja:F2}");
+//            Console.WriteLine($"      [PH-Radar] Rocío:   T={tRocio:F2}K, H={hRocio:E4}, Cp={cpRocio:F2}");
+//#endif
             double tGuess = 300.0;
-            if (targetHmolar < hBurbuja)
-            {
-                tGuess = tBurbuja - (hBurbuja - targetHmolar) / cpBurbuja;
+            //if (targetHmolar < hBurbuja)
+            //{
+            //    tGuess = tBurbuja - (hBurbuja - targetHmolar) / cpBurbuja;
 
+            //    if (tGuess < 300)
+            //        tGuess = 300;
 
-            }
-            else if (targetHmolar > hRocio)
-            {
-                tGuess = tRocio + (targetHmolar - hRocio) / cpRocio;
+            //}
+            //else if (targetHmolar > hRocio)
+            //{
+            //    tGuess = tRocio + (targetHmolar - hRocio) / cpRocio;
 
-            }
-            else
-            {
-                // ☁️💧 ZONA BIFÁSICA (MEZCLA)
-                // Interpolación lineal pura, esquivando el calor latente
-                double fraccionTermica = (targetHmolar - hBurbuja) / (hRocio - hBurbuja);
-                tGuess = tBurbuja + fraccionTermica * (tRocio - tBurbuja);
+            //}
+            //else
+            //{
+            //    // ☁️💧 ZONA BIFÁSICA (MEZCLA)
+            //    // Interpolación lineal pura, esquivando el calor latente
+            //    double fraccionTermica = (targetHmolar - hBurbuja) / (hRocio - hBurbuja);
+            //    tGuess = tBurbuja + fraccionTermica * (tRocio - tBurbuja);
 
-            }
+            //}
 #if DEBUG
             Console.WriteLine($"      [PH-Zona] Temperatura supuesta inicial. Guess preciso: {tGuess:F2} K");
 #endif
             return (tGuess, targetHmolar); // Placeholder - reemplazar con lógica real
         }
-
         public void PerformFlashPH(Pressure pressure, MassEnergy massenthalpy)
+        {
+#if DEBUG
+            var sw = System.Diagnostics.Stopwatch.StartNew();
+            Console.WriteLine($"\n[DEBUG-PH] ⚡ Iniciando Flash PH | P={pressure.GetValue(PressureUnits.Bara):F2} bar | H_mass={massenthalpy.GetValue(MassEnergyUnits.J_Kg):F2} J/kg");
+#endif
+
+            _cachedK = null!; // Invalidamos la caché de K
+
+            const double T_NORM = 300.0;
+            const double H_NORM = 1e8;
+            const double TOL_ADIM = 0.001;
+            const double HADMIN = 0.01; // ← Aumentado de 0.0001 a 0.01
+
+            // ====================================================================
+            // 1. CALCULAR PUNTOS DE BURBUJA Y ROCÍO
+            // ====================================================================
+            double massEnthalpyTargetJ = massenthalpy.GetValue(MassEnergyUnits.J_Kg);
+            double targetHmolar = massEnthalpyTargetJ * MolecularWeight;
+            Pressure = pressure;
+
+            // 🎯 PUNTO DE BURBUJA (VF = 0%)
+            double tBurbuja = SolveFlashPVF(pressure, new Percentage(0, PercentageUnits.Percentage));
+            Temperature tempBurbuja = new Temperature(tBurbuja, TemperatureUnits.Kelvin);
+            var propsBurbuja = CalculateMolarEnthalpyOnly(tempBurbuja, new Percentage(0, PercentageUnits.Percentage));
+            double hBurbuja = propsBurbuja.molarEnthalpy.GetValue(MolarEnergyUnits.J_Kgmol);
+
+            // 🎯 PUNTO DE ROCÍO (VF = 100%)
+            double tRocio = SolveFlashPVF(pressure, new Percentage(100, PercentageUnits.Percentage));
+            Temperature tempRocio = new Temperature(tRocio, TemperatureUnits.Kelvin);
+            var propsRocio = CalculateMolarEnthalpyOnly(tempRocio, new Percentage(100, PercentageUnits.Percentage));
+            double hRocio = propsRocio.molarEnthalpy.GetValue(MolarEnergyUnits.J_Kgmol);
+
+#if DEBUG
+            Console.WriteLine($"      [PH-Radar] Burbuja: T={tBurbuja:F2}K ({tBurbuja - 273.15:F2}°C), H={hBurbuja:E4} J/kmol");
+            Console.WriteLine($"      [PH-Radar] Rocío:   T={tRocio:F2}K ({tRocio - 273.15:F2}°C), H={hRocio:E4} J/kmol");
+            Console.WriteLine($"      [PH-Radar] Target:  H={targetHmolar:E4} J/kmol");
+#endif
+
+            // ====================================================================
+            // 2. DETECCIÓN DE ZONA TERMODINÁMICA
+            // ====================================================================
+            bool isSubcooled = targetHmolar < hBurbuja;
+            bool isSuperheated = targetHmolar > hRocio;
+            bool isTwoPhase = !isSubcooled && !isSuperheated;
+
+#if DEBUG
+            if (isSubcooled)
+                Console.WriteLine($"      [PH-Zona] 💧 LÍQUIDO SUBENFRIADO (H < H_burbuja)");
+            else if (isSuperheated)
+                Console.WriteLine($"      [PH-Zona] 🔥 VAPOR SOBRECALENTADO (H > H_rocio)");
+            else
+                Console.WriteLine($"      [PH-Zona] 🌫️ MEZCLA BIFÁSICA (H_burbuja < H < H_rocio)");
+#endif
+
+            // ====================================================================
+            // 3. RESOLUCIÓN SEGÚN ZONA
+            // ====================================================================
+            double tFinal;
+
+            if (isTwoPhase)
+            {
+                // 🌫️ ESTRATEGIA BIFÁSICA: T fija en T_sat, resolver para VF
+                Temperature = new Temperature(tBurbuja, TemperatureUnits.Kelvin);
+
+                Func<double, double> funcVF = (vf) =>
+                {
+                    // Realizar flash PT a T_burbuja para actualizar composiciones
+                    PerformFlashPT(Temperature, pressure);
+
+                    // Calcular entalpía con la VF propuesta
+                    var props = CalculateMolarEnthalpyOnly(Temperature, new Percentage(vf * 100, PercentageUnits.Percentage));
+                    double hMolar = props.molarEnthalpy.GetValue(MolarEnergyUnits.J_Kgmol);
+
+                    return hMolar - targetHmolar;
+                };
+
+                // Estimación inicial inteligente por interpolación
+                double vfGuess = (targetHmolar - hBurbuja) / (hRocio - hBurbuja);
+                vfGuess = Math.Max(0.01, Math.Min(0.99, vfGuess)); // Evitar 0 o 1 exactos
+
+#if DEBUG
+                Console.WriteLine($"      [PH-Bifásico] Resolviendo para VF | Guess inicial: {vfGuess:F4}");
+#endif
+
+                var res = ScalarNewtonSolver.Solve(funcVF, vfGuess, 1.0, H_NORM, TOL_ADIM, 25, HADMIN, "PH-VF");
+
+                VaporFraction = new Percentage(res.Value * 100, PercentageUnits.Percentage);
+                CurrentState = ThermodynamicState.VaporLiquidMixture;
+                tFinal = tBurbuja; // T ya está fija
+            }
+            else if (isSubcooled)
+            {
+                // 💧 ESTRATEGIA LÍQUIDO: VF=0, resolver para T
+                Func<double, double> funcT = (tK) =>
+                {
+                    var T = new Temperature(tK, TemperatureUnits.Kelvin);
+                    PerformFlashPT(T, pressure);
+                    var props = CalculateMolarEnthalpyOnly(T, new Percentage(0, PercentageUnits.Percentage));
+                    double hMolar = props.molarEnthalpy.GetValue(MolarEnergyUnits.J_Kgmol);
+                    return hMolar - targetHmolar;
+                };
+
+                // Estimación: iniciar 10-20K por debajo de T_burbuja
+                double tGuess = tBurbuja - Math.Min(20, (hBurbuja - targetHmolar) / 5000);
+                tGuess = Math.Max(273.15, tGuess); // No bajar de 0°C
+
+#if DEBUG
+                Console.WriteLine($"      [PH-Líquido] Resolviendo para T | Guess inicial: {tGuess:F2}K ({tGuess - 273.15:F2}°C)");
+#endif
+
+                var res = ScalarNewtonSolver.Solve(funcT, tGuess, T_NORM, H_NORM, TOL_ADIM, 25, HADMIN, "PH-LIQ");
+
+                Temperature = new Temperature(res.Value, TemperatureUnits.Kelvin);
+                VaporFraction = new Percentage(0, PercentageUnits.Percentage);
+                CurrentState = ThermodynamicState.SubcooledLiquid;
+                tFinal = res.Value;
+            }
+            else // isSuperheated
+            {
+                // 🔥 ESTRATEGIA VAPOR: VF=100, resolver para T
+                Func<double, double> funcT = (tK) =>
+                {
+                    var T = new Temperature(tK, TemperatureUnits.Kelvin);
+                    PerformFlashPT(T, pressure);
+                    var props = CalculateMolarEnthalpyOnly(T, new Percentage(100, PercentageUnits.Percentage));
+                    double hMolar = props.molarEnthalpy.GetValue(MolarEnergyUnits.J_Kgmol);
+                    return hMolar - targetHmolar;
+                };
+
+                // Estimación: iniciar 10-50K por encima de T_rocio
+                double tGuess = tRocio + Math.Min(50, (targetHmolar - hRocio) / 2000);
+
+#if DEBUG
+                Console.WriteLine($"      [PH-Vapor] Resolviendo para T | Guess inicial: {tGuess:F2}K ({tGuess - 273.15:F2}°C)");
+#endif
+
+                var res = ScalarNewtonSolver.Solve(funcT, tGuess, T_NORM, H_NORM, TOL_ADIM, 25, HADMIN, "PH-VAP");
+
+                Temperature = new Temperature(res.Value, TemperatureUnits.Kelvin);
+                VaporFraction = new Percentage(100, PercentageUnits.Percentage);
+                CurrentState = ThermodynamicState.SuperheatedVapor;
+                tFinal = res.Value;
+            }
+
+            // ====================================================================
+            // 4. CIERRE Y ASIGNACIÓN FINAL
+            // ====================================================================
+            Temperature = new Temperature(tFinal, TemperatureUnits.Kelvin);
+
+#if DEBUG
+            sw.Stop();
+            Console.WriteLine($"[DEBUG-PH] ✅ Flash PH Finalizado | T final: {Temperature.GetValue(TemperatureUnits.DegreeCelcius):F2} °C | VF: {VaporFraction.GetValue(PercentageUnits.Percentage):F2}% | Estado: {CurrentState}");
+            Console.WriteLine($"[DEBUG-PH] ⏱️ Tiempo total PH: {sw.Elapsed.TotalMilliseconds:F2} ms\n");
+#endif
+        }
+        public void PerformFlashPH2(Pressure pressure, MassEnergy massenthalpy)
         {
 #if DEBUG
             var sw = System.Diagnostics.Stopwatch.StartNew();
@@ -738,7 +895,7 @@ namespace Shared.Thermodynamics.Phases
             const double T_NORM = 300.0;
             const double H_NORM = 1e8;
             const double TOL_ADIM = 0.001;
-            const double HADMIN = 0.001;
+            const double HADMIN = 0.0001;
 
             var Guess = CalculateGuesForPH(pressure, massenthalpy);
 

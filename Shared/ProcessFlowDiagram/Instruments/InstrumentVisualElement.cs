@@ -30,7 +30,7 @@ namespace Shared.ProcessFlowDiagram.Instruments
             Height = 30;
             ZIndex = 100; // Siempre por encima de las líneas
 
-            Facade = new InstrumentSimulationFacade { Id = this.Id, Name = "PT-101" };
+            //Facade = new InstrumentSimulationFacade { Id = this.Id, Name = "PT-101" };
         }
     }
 }

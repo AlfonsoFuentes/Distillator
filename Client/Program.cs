@@ -17,7 +17,7 @@ builder.Services.AddScoped<DragStateService>();
 builder.Services.AddSingleton<INamingService, EquipmentNamingService>();
 builder.Services.AddSingleton<IEquipmentFactory, EquipmentFactory>();
 builder.Services.AddScoped<WorkspaceManager>();
-builder.Services.AddScoped<SolverMatrixManager2>();
+//builder.Services.AddScoped<SolverMatrixManager2>();
 // 4. Registro del Motor Principal
 
 ExcelPackage.License.SetNonCommercialOrganization("AFDS");

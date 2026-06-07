@@ -258,14 +258,14 @@ namespace Shared.ProcessFlowDiagram
             targetPort.ConnectedElementId = this.Id;
 
             // 🔥 2. NUEVA LÓGICA: Solo equipos llaman AttachConnection hacia corrientes
-            if (this.Facade is IEquipmentFacade2 myEquipment && targetElement.Facade is IStreamFacade2 targetStream)
-            {
-                myEquipment.AttachConnection(myPortName, targetStream);
-            }
-            else if (targetElement.Facade is IEquipmentFacade2 targetEquipment && this.Facade is IStreamFacade2 myStream)
-            {
-                targetEquipment.AttachConnection(targetPortName, myStream);
-            }
+            //if (this.Facade is IEquipmentFacade2 myEquipment && targetElement.Facade is IStreamFacade2 targetStream)
+            //{
+            //    myEquipment.AttachConnection(myPortName, targetStream);
+            //}
+            //else if (targetElement.Facade is IEquipmentFacade2 targetEquipment && this.Facade is IStreamFacade2 myStream)
+            //{
+            //    targetEquipment.AttachConnection(targetPortName, myStream);
+            //}
             // Si ninguno es equipo, no hacer nada (CanConnect ya garantiza que uno es equipo y otro stream)
 
             return true;
@@ -294,10 +294,10 @@ namespace Shared.ProcessFlowDiagram
             if (myPort == null || myPort.ConnectedElementId == null) return;
 
             // 🔥 NUEVA LÓGICA: Solo equipos implementan DetachConnection
-            if (this.Facade is IEquipmentFacade2 equipment)
-            {
-                equipment.DetachConnection(myPortName);
-            }
+            //if (this.Facade is IEquipmentFacade2 equipment)
+            //{
+            //    equipment.DetachConnection(myPortName);
+            //}
 
             // Liberamos el puerto en la UI
             myPort.ConnectedElementId = null;

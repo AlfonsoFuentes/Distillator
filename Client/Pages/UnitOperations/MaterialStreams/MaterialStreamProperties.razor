@@ -1,17 +1,17 @@
-﻿<div class="scrollable-container">
+﻿@* <div class="scrollable-container">
     <div class="data-grid properties-grid-two-col">
 
-        @* 👇 HEADERS: 2 columnas (Alineado con Conditions) *@
+        @* 👇 HEADERS: 2 columnas (Alineado con Conditions) 
         <div class="grid-header">Physical Property</div>
         <div class="grid-header">Value</div>
 
-        @* 👇 GRUPO 1: Phase & Density *@
+        @* 👇 GRUPO 1: Phase & Density 
         <div class="grid-cell label group-title">Phase & Density</div>
         <NewUnifiedDoubleRow Label="Molecular Weight" @bind-Variable="Facade.MolecularWeight" Mode="VariableMode.Compact" IsReadOnly="true" />
         <NewUnifiedVariableRow Label="Mass Density" @bind-Variable="Facade.MassDensity" Mode="VariableMode.Compact" IsReadOnly="true" />
         <NewUnifiedVariableRow Label="Molar Density" @bind-Variable="Facade.MolarDensity" Mode="VariableMode.Compact" IsReadOnly="true" />
 
-        @* 👇 GRUPO 2: Thermodynamics *@
+        @* 👇 GRUPO 2: Thermodynamics 
         <div class="grid-cell label group-title">Thermodynamics</div>
 
         <NewUnifiedVariableRow Label="Mass Enthalpy" @bind-Variable="Facade.MassEnthalpy" Mode="VariableMode.Compact" IsReadOnly="true" />
@@ -19,7 +19,7 @@
         <NewUnifiedVariableRow Label="Mass Cp" @bind-Variable="Facade.MassCp" Mode="VariableMode.Compact" IsReadOnly="true" />
         <NewUnifiedVariableRow Label="Energy Flow" @bind-Variable="Facade.EnthalpyFlow" Mode="VariableMode.Compact" IsReadOnly="true" />
 
-        @* 👇 GRUPO 3: Transport *@
+        @* 👇 GRUPO 3: Transport 
         <div class="grid-cell label group-title">Transport</div>
 
         <NewUnifiedVariableRow Label="Viscosity" @bind-Variable="Facade.Viscosity" Mode="VariableMode.Compact" IsReadOnly="true" />
@@ -32,8 +32,8 @@
         }
 
     </div>
-</div>
+</div> *@
 
 @code {
-    [Parameter, EditorRequired] public StreamFacade2 Facade { get; set; } = default!;
+    // [Parameter, EditorRequired] public StreamFacade2 Facade { get; set; } = default!;
 }

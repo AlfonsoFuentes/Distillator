@@ -29,7 +29,7 @@ namespace Shared.ProcessFlowDiagram.Columns
             // 2. Nacen los puertos dinámicos por primera vez
             RefreshDynamicPorts();
 
-            Facade = new ColumnSimulationFacade2 { Id = this.Id, Name = "T-101" };
+            //Facade = new ColumnSimulationFacade2 { Id = this.Id, Name = "T-101" };
         }
 
         // ==============================================================================

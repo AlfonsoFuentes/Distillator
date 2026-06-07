@@ -1,13 +1,13 @@
 ﻿@using Client.Templates.Units
 
-<div class="data-grid conditions-grid-three-col">
+@* <div class="data-grid conditions-grid-three-col">
 
-    @* 1. HEADERS *@
+    @* 1. HEADERS 
     <div class="grid-header">Property</div>
     <div class="grid-header">Value</div>
 
   
-    @* 2. STREAM NAME *@
+    @* 2. STREAM NAME 
     <UnifiedNameRow Label="Stream Name"
                     @bind-Value="Facade.Name"
                     IsDuplicate="CheckDuplicateName"
@@ -25,7 +25,7 @@
                       MinValue="0"
                       MaxValue="1" />
 
-    @* 5. PROPIEDADES CON NUEVO COMPONENTE (2 celdas del componente + 1 placeholder manual) *@
+    @* 5. PROPIEDADES CON NUEVO COMPONENTE (2 celdas del componente + 1 placeholder manual) 
 
     <NewUnifiedVariableRow Label="Temperature" @bind-Variable="Facade.Temperature" Mode="VariableMode.Compact" />
 
@@ -44,24 +44,24 @@
     <NewUnifiedVariableRow Label="Heat Flow" @bind-Variable="Facade.EnthalpyFlow" Mode="VariableMode.Compact" IsReadOnly="true" />
 
 
-</div>
+</div> *@
 
 @code {
-    [Parameter, EditorRequired] public StreamFacade2 Facade { get; set; } = default!;
-    // [Parameter, EditorRequired] public List<ThermodynamicMethodFullDto> AvailableMethods { get; set; } = new();
+    // [Parameter, EditorRequired] public StreamFacade2 Facade { get; set; } = default!;
+    // // [Parameter, EditorRequired] public List<ThermodynamicMethodFullDto> AvailableMethods { get; set; } = new();
 
-    private bool CheckDuplicateName(string newName)
-    {
-        return WM?.Elements?.Any(e => e.Name.Equals(newName, StringComparison.OrdinalIgnoreCase) && e.Id != Facade?.Id) == true;
-    }
+    // private bool CheckDuplicateName(string newName)
+    // {
+    //     return WM?.Elements?.Any(e => e.Name.Equals(newName, StringComparison.OrdinalIgnoreCase) && e.Id != Facade?.Id) == true;
+    // }
 
-    // 2. Le decimos al componente qué hacer cuando pulse el botón 🔄
-    private void GenerateUniqueStreamName()
-    {
-        if (NamingService == null || Facade == null) return;
+    // // 2. Le decimos al componente qué hacer cuando pulse el botón 🔄
+    // private void GenerateUniqueStreamName()
+    // {
+    //     if (NamingService == null || Facade == null) return;
 
-        Facade.Name = NamingService.GenerateNextName("S");
-        StateHasChanged();
-    }
+    //     Facade.Name = NamingService.GenerateNextName("S");
+    //     StateHasChanged();
+    // }
   
 }

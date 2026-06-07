@@ -26,12 +26,12 @@
     </MainSlot>
 
     <PropertiesSlot>
-        @if (Equipment.Facade is ControlValveSimulationFacade2 cvFacade)
+        @* @if (Equipment.Facade is ControlValveSimulationFacade2 cvFacade)
         {
             <NewUnifiedVariableRow Label="Delta P" @bind-Variable="cvFacade.DeltaPressure" />
 
             <NewUnifiedDoubleRow Label="Valve Cv" @bind-Variable="cvFacade.Cv" MinValue="0" MaxValue="10000" IsReadOnly="true" />
-        }
+        } *@
     </PropertiesSlot>
 
 </EquipmentBaseDialog>

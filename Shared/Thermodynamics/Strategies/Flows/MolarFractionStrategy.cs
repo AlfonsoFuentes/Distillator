@@ -31,7 +31,7 @@ namespace Shared.Thermodynamics.Strategies.Flows
 
                 comp.MassFraction.SetValue(
                     new Percentage(massFrac * 100, PercentageUnits.Percentage),
-                    VariableDataProcedence.StreamCalculated);
+                    SolverConsecutive.VariableDefinedBy.StreamCalculated);
             }
  
 

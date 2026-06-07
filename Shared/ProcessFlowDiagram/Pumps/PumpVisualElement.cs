@@ -34,11 +34,11 @@ namespace Shared.ProcessFlowDiagram.Pumps
             AddPort(PortDischargeName, PortType.Outlet, 40, 10, PortDirection.Top);
     
 
-            Facade = new PumpSimulationFacade2
-            {
-                Id = this.Id,
-                Name = "P-101"
-            };
+            //Facade = new PumpSimulationFacade2
+            //{
+            //    Id = this.Id,
+            //    Name = "P-101"
+            //};
         }
 
         public override bool CanConnect(string myPortName, IVisualElement targetElement, string targetPortName)

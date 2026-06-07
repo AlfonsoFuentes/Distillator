@@ -28,7 +28,7 @@ namespace Shared.ProcessFlowDiagram.Vessels
             // 4. Salida Líquida 2 / Livianos (Bottom - Derecha)
             AddPort("Liquid_2", PortType.Outlet, Width * 0.7, Height, PortDirection.Bottom);
 
-            Facade = new FlashTankSimulationFacade2 { Id = this.Id, Name = "V-102" };
+            //Facade = new FlashTankSimulationFacade2 { Id = this.Id, Name = "V-102" };
         }
 
         public void RefreshDynamicPorts()

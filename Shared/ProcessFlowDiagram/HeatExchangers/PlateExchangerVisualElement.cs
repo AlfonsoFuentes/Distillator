@@ -39,11 +39,11 @@ namespace Shared.ProcessFlowDiagram.HeatExchangers
             // 4. Salida Fría (Arriba, Derecha)
             AddPort("ColdOut", PortType.Outlet, 80, 20, PortDirection.Right);
 
-            Facade = new PlateExchangerSimulationFacade2
-            {
-                Id = this.Id,
-                Name = "E-103"
-            };
+            //Facade = new PlateExchangerSimulationFacade2
+            //{
+            //    Id = this.Id,
+            //    Name = "E-103"
+            //};
         }
     }
 }

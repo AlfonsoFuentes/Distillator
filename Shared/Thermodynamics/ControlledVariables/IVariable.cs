@@ -52,7 +52,7 @@ namespace Shared.Thermodynamics.ControlledVariables
     public interface IVariable<T> : IVariable
     {
         T Value { get; set; }
-    
+
         void SetValueFromStream(T value, string sourceName);
         T GetValue(double solverValue);
         string GetDisplayString();
@@ -262,7 +262,7 @@ namespace Shared.Thermodynamics.ControlledVariables
         public override string GetDisplayString()
         {
             if (!IsDefined) return "<Not Defined>";
-            return  "<Empty>";
+            return "<Empty>";
         }
 
         public override void SetValueFromUI(object value)

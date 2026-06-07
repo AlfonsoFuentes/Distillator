@@ -1,6 +1,5 @@
 ﻿namespace Shared.SolverQwen.Variables
 {
-
     public enum VariableDataProcedence
     {
         Undefined,

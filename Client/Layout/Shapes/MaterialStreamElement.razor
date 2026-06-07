@@ -1,5 +1,5 @@
-﻿@inherits EquipmentUIBase<StreamVisualElement>
-
+﻿@* @inherits EquipmentUIBase<StreamVisualElement> *@
+@* 
 <CanvasEquipmentWrapper Element="Element"
                        
                         IsSelected="IsSelected"
@@ -10,7 +10,7 @@
     
     <svg width="@Element.Width" height="@Element.Height" viewBox="0 0 @Element.Width @Element.Height" class="stream-svg">
         <defs>
-            @* Gradiente para el efecto de relieve en la tubería *@
+            @* Gradiente para el efecto de relieve en la tubería 
             <linearGradient id="streamGrad" x1="0%" y1="0%" x2="0%" y2="100%">
                 <stop offset="0%" style="stop-color:white;stop-opacity:0.3" />
                 <stop offset="50%" style="stop-color:white;stop-opacity:0" />
@@ -18,15 +18,15 @@
             </linearGradient>
         </defs>
 
-        @* 1. CAPA DE SOMBRA (Contorno grueso para dar profundidad) *@
+        @* 1. CAPA DE SOMBRA (Contorno grueso para dar profundidad) 
         <g stroke="#334155" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round">
-            @* Línea del cuerpo *@
+            @* Línea del cuerpo 
             <line x1="0" y1="15" x2="47" y2="15" />
-            @* Triángulo más estilizado *@
+            @* Triángulo más estilizado 
             <path d="M 46 10 L 56 15 L 46 20 Z" />
         </g>
         
-        @* 2. CAPA DE COLOR DINÁMICO (Estado del proceso) *@
+        @* 2. CAPA DE COLOR DINÁMICO (Estado del proceso) 
         <g stroke="@(Element.Facade?.StatusColor ?? "#94A3B8")"
                stroke-width="2.5"
                fill="@(Element.Facade?.StatusColor ?? "#94A3B8")"
@@ -37,7 +37,7 @@
             <path d="M 46 10 L 56 15 L 46 20 Z" />
         </g>
 
-        @* 3. CAPA DE BRILLO (Volumen metálico/cristalino) *@
+        @* 3. CAPA DE BRILLO (Volumen metálico/cristalino) 
         <g stroke="url(#streamGrad)"
                stroke-width="2.5"
                fill="url(#streamGrad)"
@@ -48,33 +48,33 @@
             <path d="M 46 10 L 56 15 L 46 20 Z" />
         </g>
     </svg>
-</CanvasEquipmentWrapper>
-
+</CanvasEquipmentWrapper> 
+*@
 @code {
     // 🚩 NUEVO: Recibimos el Manager para saber el estado global de conexiones
 
-    protected override async Task OpenPropertiesDialogAsync()
-    {
-        if (Element.Facade is StreamFacade streamFacade)
-        {
-            var parameters = new DialogParameters { ["Facade"] = streamFacade };
+    // protected override async Task OpenPropertiesDialogAsync()
+    // {
+    //     if (Element.Facade is StreamFacade streamFacade)
+    //     {
+    //         var parameters = new DialogParameters { ["Facade"] = streamFacade };
         
-            var options = new DialogOptions
-            {
-                MaxWidth = MaxWidth.False,
-                FullWidth = false,
-                NoHeader = true,
-                CloseOnEscapeKey = true,
-                BackdropClick = true
-            };
+    //         var options = new DialogOptions
+    //         {
+    //             MaxWidth = MaxWidth.False,
+    //             FullWidth = false,
+    //             NoHeader = true,
+    //             CloseOnEscapeKey = true,
+    //             BackdropClick = true
+    //         };
 
-            var dialog = await DialogService.ShowAsync<MaterialStreamDialog>("", parameters, options);
-            var result = await dialog.Result;
+    //         var dialog = await DialogService.ShowAsync<MaterialStreamDialog>("", parameters, options);
+    //         var result = await dialog.Result;
 
-            if (result != null && !result.Canceled)
-            {
-                StateHasChanged();
-            }
-        }
-    }
+    //         if (result != null && !result.Canceled)
+    //         {
+    //             StateHasChanged();
+    //         }
+    //     }
+    // }
 }

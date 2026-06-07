@@ -28,11 +28,11 @@ namespace Shared.ProcessFlowDiagram.ControlValves
             // 2. Salida (Lado derecho, centrado en el cuerpo)
             AddPort("Outlet", PortType.Outlet, 60, 50, PortDirection.Right);
 
-            Facade = new ControlValveSimulationFacade2
-            {
-                Id = this.Id,
-                Name = "CV-101"
-            };
+            //Facade = new ControlValveSimulationFacade2
+            //{
+            //    Id = this.Id,
+            //    Name = "CV-101"
+            //};
         }
     }
 }

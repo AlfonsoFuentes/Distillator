@@ -1,13 +1,14 @@
-﻿using System.Diagnostics;
+﻿using Shared.SolverConsecutive;
+using System.Diagnostics;
 using UnitSystem;
 
 namespace Shared.SolverQwen.Variables
 {
     public interface IProcessVariableOwner
     {
-        HashSet<IProcessVariable> Variables { get; }
-        void AddVariable(IProcessVariable variable);
-        void RemoveVariables(VariableDataProcedence _DataProcedence);
+        HashSet<INewVariable> Variables { get; }
+        void AddVariable(INewVariable variable);
+        void RemoveVariables(VariableDefinedBy _DataProcedence);
     }
 
     public interface IProcessVariable

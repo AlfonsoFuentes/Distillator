@@ -58,11 +58,11 @@ namespace Shared.ProcessFlowDiagram.Streams
             AddPort("Outlet", PortType.Outlet, 64, 15, PortDirection.Right);
 
             // 5. Facade por defecto
-            Facade = new StreamFacade
-            {
-                Id = this.Id,
-                Name = "S-New"
-            };
+            //Facade = new StreamFacade
+            //{
+            //    Id = this.Id,
+            //    Name = "S-New"
+            //};
         }
 
         public override bool CanConnect(string myPortName, IVisualElement targetElement, string targetPortName)

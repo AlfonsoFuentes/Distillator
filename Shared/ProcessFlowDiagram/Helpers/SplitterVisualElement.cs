@@ -30,11 +30,11 @@ namespace Shared.ProcessFlowDiagram.Helpers
             // Configuramos los puertos y la altura dinámica inicial
             RefreshDynamicPorts();
 
-            Facade = new SplitterSimulationFacade2
-            {
-                Id = this.Id,
-                Name = "SP-101"
-            };
+            //Facade = new SplitterSimulationFacade2
+            //{
+            //    Id = this.Id,
+            //    Name = "SP-101"
+            //};
         }
 
         // ==============================================================================
