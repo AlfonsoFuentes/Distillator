@@ -1,6 +1,6 @@
 ﻿@using Client.Layout.Shapes.SVGDrawings
 @using Client.Pages.UnitOperations.DialogBase
-@using Shared.UnitOperations.Helpers
+
 
 <EquipmentBaseDialog Equipment="Equipment">
     <MainSlot>
@@ -24,7 +24,7 @@
                 </div>
 
                 <div class="equipment-drawing-zone">
-                    <ColumnSvg Width="@Equipment.Width" Height="@Equipment.Height" StatusColor="@(Equipment.Facade?.StatusColor ?? "#CBD5E0")" />
+                    <ColumnSvg Width="@Equipment.Width" Height="@Equipment.Height" StatusColor="@(Equipment.StatusColor ?? "#CBD5E0")" />
                 </div>
 
                 <div class="static-port-container bottom-port">

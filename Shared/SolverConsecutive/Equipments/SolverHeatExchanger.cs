@@ -7,46 +7,61 @@ using UnitSystem;
 
 namespace Shared.SolverConsecutive.Equipments
 {
+    public enum HeatExchangerStateType { Created, PartiallyConnected, ReadyToCalculate, Solved }
     public class SolverHeatExchanger : SolverEquipmentBase
     {
         public IFacadeStream HotInlet { get; private set; } = null!;
         public IFacadeStream HotOutlet { get; private set; } = null!;
         public IFacadeStream ColdInlet { get; private set; } = null!;
         public IFacadeStream ColdOutlet { get; private set; } = null!;
-        public NewVariable<PressureDrop> DeltaPHot { get; }
-        public NewVariable<PressureDrop> DeltaPCold { get; }
 
-        // ✅ LA MAGIA: Calores separados para permitir resolución aislada reactiva
-        public NewVariable<EnergyFlow> TransferHeat { get; }
+        public Variable<PressureDrop> DeltaPHot { get; }
+        public Variable<PressureDrop> DeltaPCold { get; }
+        public Variable<EnergyFlow> TransferHeat { get; }
 
-        public override string Name { get; }
         public override List<ISolverEquation> Equations => GetEquations().ToList();
 
-        public void SetColdInlet(IFacadeStream stream)
-        {
-            ColdInlet = stream;
-        }
-        public void SetColdOutlet(IFacadeStream stream)
-        {
-            ColdOutlet = stream;
-        }
-        public void SetHotInlet(IFacadeStream stream)
-        {
-            HotInlet = stream;
-        }
-        public void SetHotOutlet(IFacadeStream stream)
-        {
-            HotOutlet = stream;
-        }
         public SolverHeatExchanger(string name)
         {
             Name = name;
-            DeltaPHot = new NewVariable<PressureDrop>(new PressureDrop(0, PressureDropUnits.Pascal), PressureDropUnits.Bar, 100000);
-            DeltaPCold = new NewVariable<PressureDrop>(new PressureDrop(0, PressureDropUnits.Pascal), PressureDropUnits.Bar, 100000);
-
-            TransferHeat = new NewVariable<EnergyFlow>(new EnergyFlow(0, EnergyFlowUnits.J_sg), EnergyFlowUnits.Kcal_hr, 3000);
+            DeltaPHot = new Variable<PressureDrop>(new PressureDrop(0, PressureDropUnits.Pascal), PressureDropUnits.Bar, 100000);
+            DeltaPCold = new Variable<PressureDrop>(new PressureDrop(0, PressureDropUnits.Pascal), PressureDropUnits.Bar, 100000);
+            TransferHeat = new Variable<EnergyFlow>(new EnergyFlow(0, EnergyFlowUnits.J_sg), EnergyFlowUnits.Kcal_hr, 3000);
         }
 
+        public void SetColdInlet(IFacadeStream stream) => ColdInlet = stream;
+        public void SetColdOutlet(IFacadeStream stream) => ColdOutlet = stream;
+        public void SetHotInlet(IFacadeStream stream) => HotInlet = stream;
+        public void SetHotOutlet(IFacadeStream stream) => HotOutlet = stream;
+
+        // ====================================================================
+        // ESTADO DEL EQUIPO
+        // ====================================================================
+        public HeatExchangerStateType State => GetState();
+
+        private HeatExchangerStateType GetState()
+        {
+            // Verificar conexiones mínimas (4 corrientes principales)
+            bool hasMinimumConnections = HotInlet != null &&
+                                         HotOutlet != null &&
+                                         ColdInlet != null &&
+                                         ColdOutlet != null;
+
+            if (!hasMinimumConnections) return HeatExchangerStateType.PartiallyConnected;
+
+            // Verificar si al menos una especificación de diseño está definida
+            bool hasDesignSpec = DeltaPHot.IsDefined ||
+                                 DeltaPCold.IsDefined ||
+                                 TransferHeat.IsDefined;
+
+            if (!hasDesignSpec) return HeatExchangerStateType.ReadyToCalculate;
+
+            return HeatExchangerStateType.Solved;
+        }
+
+        // ====================================================================
+        // GENERADOR DE ECUACIONES
+        // ====================================================================
         private IEnumerable<ISolverEquation> GetEquations()
         {
             yield return new HXPressureHotSideEquation(this);
@@ -55,11 +70,63 @@ namespace Shared.SolverConsecutive.Equipments
             yield return new HXConcentrationColdSideEquation(this);
             yield return new HXMassBalanceHotSideEquation(this);
             yield return new HXMassBalanceColdSideEquation(this);
-
             yield return new HXMassEnergyBalanceHotSideEquation(this);
             yield return new HXMassEnergyBalanceColdSideEquation(this);
         }
     }
+    //public class SolverHeatExchanger2 : SolverEquipmentBase
+    //{
+    //    public IFacadeStream HotInlet { get; private set; } = null!;
+    //    public IFacadeStream HotOutlet { get; private set; } = null!;
+    //    public IFacadeStream ColdInlet { get; private set; } = null!;
+    //    public IFacadeStream ColdOutlet { get; private set; } = null!;
+    //    public Variable<PressureDrop> DeltaPHot { get; }
+    //    public Variable<PressureDrop> DeltaPCold { get; }
+
+    //    // ✅ LA MAGIA: Calores separados para permitir resolución aislada reactiva
+    //    public Variable<EnergyFlow> TransferHeat { get; }
+
+    
+    //    public override List<ISolverEquation> Equations => GetEquations().ToList();
+
+    //    public void SetColdInlet(IFacadeStream stream)
+    //    {
+    //        ColdInlet = stream;
+    //    }
+    //    public void SetColdOutlet(IFacadeStream stream)
+    //    {
+    //        ColdOutlet = stream;
+    //    }
+    //    public void SetHotInlet(IFacadeStream stream)
+    //    {
+    //        HotInlet = stream;
+    //    }
+    //    public void SetHotOutlet(IFacadeStream stream)
+    //    {
+    //        HotOutlet = stream;
+    //    }
+    //    public SolverHeatExchanger2(string name)
+    //    {
+    //        Name = name;
+    //        DeltaPHot = new Variable<PressureDrop>(new PressureDrop(0, PressureDropUnits.Pascal), PressureDropUnits.Bar, 100000);
+    //        DeltaPCold = new Variable<PressureDrop>(new PressureDrop(0, PressureDropUnits.Pascal), PressureDropUnits.Bar, 100000);
+
+    //        TransferHeat = new Variable<EnergyFlow>(new EnergyFlow(0, EnergyFlowUnits.J_sg), EnergyFlowUnits.Kcal_hr, 3000);
+    //    }
+
+    //    private IEnumerable<ISolverEquation> GetEquations()
+    //    {
+    //        yield return new HXPressureHotSideEquation(this);
+    //        yield return new HXPressureColdSideEquation(this);
+    //        yield return new HXConcentrationHotSideEquation(this);
+    //        yield return new HXConcentrationColdSideEquation(this);
+    //        yield return new HXMassBalanceHotSideEquation(this);
+    //        yield return new HXMassBalanceColdSideEquation(this);
+
+    //        yield return new HXMassEnergyBalanceHotSideEquation(this);
+    //        yield return new HXMassEnergyBalanceColdSideEquation(this);
+    //    }
+    //}
 
     public class HXPressureHotSideEquation : ISolverEquation
     {
@@ -68,7 +135,7 @@ namespace Shared.SolverConsecutive.Equipments
         public string Name => $"{EquationType} Hot Side - {hx.Name}";
         public SolverEquationType EquationType => SolverEquationType.Pressure;
         public List<double> Residuals => GetResiduals();
-        public List<INewVariable> Variables => GetVariables();
+        public List<IVariable> Variables => GetVariables();
 
         List<double> GetResiduals()
         {
@@ -78,9 +145,9 @@ namespace Shared.SolverConsecutive.Equipments
 
             return r;
         }
-        List<INewVariable> GetVariables()
+        List<IVariable> GetVariables()
         {
-            List<INewVariable> v = new();
+            List<IVariable> v = new();
             if (hx.HotInlet == null || hx.HotOutlet == null) return v;
             v.Add(hx.HotInlet.Pressure);
             v.Add(hx.HotOutlet.Pressure);
@@ -96,7 +163,7 @@ namespace Shared.SolverConsecutive.Equipments
         public string Name => $"{EquationType} Cold Side - {hx.Name}";
         public SolverEquationType EquationType => SolverEquationType.Pressure;
         public List<double> Residuals => GetResiduals();
-        public List<INewVariable> Variables => GetVariables();
+        public List<IVariable> Variables => GetVariables();
 
         List<double> GetResiduals()
         {
@@ -106,9 +173,9 @@ namespace Shared.SolverConsecutive.Equipments
             r.Add(hx.ColdInlet.Pressure.GetSolverValue() - hx.DeltaPCold.GetSolverValue() - hx.ColdOutlet.Pressure.GetSolverValue());
             return r;
         }
-        List<INewVariable> GetVariables()
+        List<IVariable> GetVariables()
         {
-            List<INewVariable> v = new();
+            List<IVariable> v = new();
             if (hx.ColdInlet == null || hx.ColdOutlet == null) return v;
 
             v.Add(hx.ColdInlet.Pressure);
@@ -125,7 +192,7 @@ namespace Shared.SolverConsecutive.Equipments
         public string Name => $"{EquationType} - Hot Side - {hx.Name}";
         public SolverEquationType EquationType => SolverEquationType.MassBalance;
         public List<double> Residuals => GetResiduals();
-        public List<INewVariable> Variables => GetVariables();
+        public List<IVariable> Variables => GetVariables();
 
         List<double> GetResiduals()
         {
@@ -135,9 +202,9 @@ namespace Shared.SolverConsecutive.Equipments
 
             return r;
         }
-        List<INewVariable> GetVariables()
+        List<IVariable> GetVariables()
         {
-            List<INewVariable> v = new();
+            List<IVariable> v = new();
             if (hx.HotInlet == null || hx.HotOutlet == null) return v;
             v.Add(hx.HotInlet.MassFlow);
             v.Add(hx.HotOutlet.MassFlow);
@@ -152,7 +219,7 @@ namespace Shared.SolverConsecutive.Equipments
         public string Name => $"{EquationType} - Cold Side - {hx.Name}";
         public SolverEquationType EquationType => SolverEquationType.MassBalance;
         public List<double> Residuals => GetResiduals();
-        public List<INewVariable> Variables => GetVariables();
+        public List<IVariable> Variables => GetVariables();
 
         List<double> GetResiduals()
         {
@@ -162,9 +229,9 @@ namespace Shared.SolverConsecutive.Equipments
 
             return r;
         }
-        List<INewVariable> GetVariables()
+        List<IVariable> GetVariables()
         {
-            List<INewVariable> v = new();
+            List<IVariable> v = new();
             if (hx.ColdInlet == null || hx.ColdOutlet == null) return v;
             v.Add(hx.ColdInlet.MassFlow);
             v.Add(hx.ColdOutlet.MassFlow);
@@ -180,7 +247,7 @@ namespace Shared.SolverConsecutive.Equipments
         public string Name => $"{EquationType} - Hot Side - {hx.Name}";
         public SolverEquationType EquationType => SolverEquationType.Concentration;
         public List<double> Residuals => GetResiduals();
-        public List<INewVariable> Variables => GetVariables();
+        public List<IVariable> Variables => GetVariables();
 
         List<double> GetResiduals()
         {
@@ -194,9 +261,9 @@ namespace Shared.SolverConsecutive.Equipments
             }
             return r;
         }
-        List<INewVariable> GetVariables()
+        List<IVariable> GetVariables()
         {
-            List<INewVariable> v = new();
+            List<IVariable> v = new();
             if (hx.HotInlet == null || hx.HotOutlet == null) return v;
             int n = hx.HotInlet.Composition.Components.Count;
             for (int i = 0; i < n; i++)
@@ -215,7 +282,7 @@ namespace Shared.SolverConsecutive.Equipments
         public string Name => $"{EquationType} - Cold Side - {hx.Name}";
         public SolverEquationType EquationType => SolverEquationType.Concentration;
         public List<double> Residuals => GetResiduals();
-        public List<INewVariable> Variables => GetVariables();
+        public List<IVariable> Variables => GetVariables();
 
         List<double> GetResiduals()
         {
@@ -229,9 +296,9 @@ namespace Shared.SolverConsecutive.Equipments
             }
             return r;
         }
-        List<INewVariable> GetVariables()
+        List<IVariable> GetVariables()
         {
-            List<INewVariable> v = new();
+            List<IVariable> v = new();
             if (hx.ColdInlet == null || hx.ColdOutlet == null) return v;
             int n = hx.ColdInlet.Composition.Components.Count;
             for (int i = 0; i < n; i++)
@@ -253,7 +320,7 @@ namespace Shared.SolverConsecutive.Equipments
         public string Name => $"{EquationType} - HotSide - {hx.Name}";
         public SolverEquationType EquationType => SolverEquationType.MassEnergyBalance;
         public List<double> Residuals => GetResiduals();
-        public List<INewVariable> Variables => GetVariables();
+        public List<IVariable> Variables => GetVariables();
 
         List<double> GetResiduals()
         {
@@ -274,9 +341,9 @@ namespace Shared.SolverConsecutive.Equipments
             return r;
         }
 
-        List<INewVariable> GetVariables()
+        List<IVariable> GetVariables()
         {
-            List<INewVariable> v = new();
+            List<IVariable> v = new();
             if (hx.HotInlet == null || hx.HotOutlet == null) return v;
             v.Add(hx.HotInlet.MassFlow);
          
@@ -295,7 +362,7 @@ namespace Shared.SolverConsecutive.Equipments
         public string Name => $"{EquationType} - ColdSide - {hx.Name}";
         public SolverEquationType EquationType => SolverEquationType.MassEnergyBalance;
         public List<double> Residuals => GetResiduals();
-        public List<INewVariable> Variables => GetVariables();
+        public List<IVariable> Variables => GetVariables();
 
         List<double> GetResiduals()
         {
@@ -317,9 +384,9 @@ namespace Shared.SolverConsecutive.Equipments
             return r;
         }
 
-        List<INewVariable> GetVariables()
+        List<IVariable> GetVariables()
         {
-            List<INewVariable> v = new();
+            List<IVariable> v = new();
             if (hx.ColdInlet == null || hx.ColdOutlet == null) return v;
             v.Add(hx.ColdInlet.MassFlow);
            

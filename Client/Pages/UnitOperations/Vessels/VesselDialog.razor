@@ -1,6 +1,6 @@
 ﻿@using Client.Layout.Shapes.SVGDrawings
 @using Client.Pages.UnitOperations.DialogBase
-@using Shared.UnitOperations.Helpers
+
 
 <EquipmentBaseDialog Equipment="Equipment">
     <MainSlot>
@@ -19,7 +19,7 @@
                 <div class="equipment-drawing-zone">
                     <VesselSvg Width="@Equipment.Width"
                                Height="@Equipment.Height"
-                               StatusColor="@(Equipment.Facade?.StatusColor ?? "#CBD5E0")"
+                               StatusColor="@(Equipment.StatusColor ?? "#CBD5E0")"
                                ElementId="@Equipment.Id.ToString()" />
                 </div>
 

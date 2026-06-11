@@ -8,7 +8,7 @@ namespace Shared.ProcessFlowDiagram.Pipes
 {
     public class PipeVisualElement : VisualElementBase
     {
-        public override List<ToolTipLegend> GetToolTipData() => Facade.GetToolTipLegend();
+       
         public override EquipmentType Type => EquipmentType.None;
         public bool ShowTechnicalLabel { get; set; } = true;
         public override string Prefix => "PIPE";

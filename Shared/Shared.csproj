@@ -12,6 +12,11 @@
 
   <ItemGroup>
     <Folder Include="FlowsheetSolvers\" />
+    <Folder Include="Final Solver\" />
+    <Folder Include="MatrixSolvers\" />
+    <Folder Include="SolverQwen\Equipments\" />
+    <Folder Include="UnitOperations\HeatExchangers\" />
+    <Folder Include="UnitOperations\Pumps\" />
   </ItemGroup>
 
 </Project>

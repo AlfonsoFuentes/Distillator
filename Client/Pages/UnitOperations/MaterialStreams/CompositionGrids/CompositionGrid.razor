@@ -1,0 +1,220 @@
+﻿
+@inherits UICompositionGridBase
+
+@if (Variable?.Components == null || !Variable.Components.Any())
+{
+    <div class="composition-not-defined">Composition not defined</div>
+    return;
+}
+
+<div class="scrollable-container">
+    <div class="data-grid composition-grid">
+
+        @* Headers *@
+        <div class="grid-header fixed-col">Component</div>
+        <div class="grid-header">Mass (%)</div>
+        <div class="grid-header">Mole (%)</div>
+        <div class="grid-header">Molar Flow</div>
+        <div class="grid-header">Mass Flow</div>
+        <div class="grid-header">Vol. Flow</div>
+
+        @* Filas*@
+        @foreach (var comp in GetSortedComponents())
+        {
+            <div class="grid-cell fixed-col label">@comp.Name</div>
+
+            @* MASS COLUMN *@
+            <div class="grid-cell value @(HasTooltip(comp, true) ? "has-tooltip" : "")" data-state="@GetCellState(comp, true)">
+                @if (IsCellReadOnly(comp, true))
+                {
+                    <span class="readonly-value">@FormatFraction(comp.MassFraction.GetDisplayValue())</span>
+                }
+                else
+                {
+                    <input type="text" 
+                           value="@GetInputValue(comp, true)"
+                           placeholder="<Not defined>"
+                           @onfocus="@(e => HandleFocus(comp, true))"
+                           @oninput="@(e => HandleInput(e, comp, true))"
+                           @onkeydown="@(e => HandleKeyDown(e, comp, true))"
+                           @onblur="@(e => HandleBlur(comp, true))" />
+                }
+                @if (HasTooltip(comp, true))
+                {
+                    <span class="tooltip-text">@GetCellTooltip(comp, true)</span>
+                }
+            </div>
+
+            @* MOLE COLUMN *@
+            <div class="grid-cell value @(HasTooltip(comp, false) ? "has-tooltip" : "")" data-state="@GetCellState(comp, false)">
+                @if (IsCellReadOnly(comp, false))
+                {
+                    <span class="readonly-value">@FormatFraction(comp.MolarFraction.GetDisplayValue())</span>
+                }
+                else
+                {
+                    <input type="text"
+                           value="@GetInputValue(comp, false)"
+                           placeholder="<Not defined>"
+                           @onfocus="@(e => HandleFocus(comp, false))"
+                           @oninput="@(e => HandleInput(e, comp, false))"
+                           @onkeydown="@(e => HandleKeyDown(e, comp, false))"
+                           @onblur="@(e => HandleBlur(comp, false))" />
+                }
+                @if (HasTooltip(comp, false))
+                {
+                    <span class="tooltip-text">@GetCellTooltip(comp, false)</span>
+                }
+            </div>
+
+            @* FLOW COLUMNS (Siempre calculadas / readonly) *@
+            <div class="grid-cell value has-tooltip" data-state="calculated">
+                <span class="readonly-value">@FormatFlow(comp.MolarFlow.GetDisplayValue())</span>
+                <span class="tooltip-text">@GetFlowTooltip(comp.MolarFlow)</span>
+            </div>
+            <div class="grid-cell value has-tooltip" data-state="calculated">
+                <span class="readonly-value">@FormatFlow(comp.MassFlow.GetDisplayValue())</span>
+                <span class="tooltip-text">@GetFlowTooltip(comp.MassFlow)</span>
+            </div>
+            <div class="grid-cell value" data-state="calculated">
+                <span class="readonly-value">N/A</span>
+            </div>
+        }
+    </div>
+</div>
+
+@* PANEL °GL - Solo para mezcla Etanol/Agua *@
+@if (IsEthanolWaterMixture())
+{
+    <div class="gl-input-container">
+        <EthanolWaterGlInput GLValue="@GetGlValue()"
+                             GlValueChanged="OnGlValueChanged"
+                             IsComponentReadOnly="false"
+                             IsGlInputReadOnly="@(ShouldGlBeReadOnly())"
+                             IsMassFractionDefined="@(DetectInputType() == ComponentInputType.MassFraction || DetectInputType() == ComponentInputType.MolarFraction)"
+                             SourceId="@GetGlSourceId()" />
+    </div>
+}
+
+@code {
+    // 🔥 NUEVO: Determinar si debe mostrar tooltip
+    private bool HasTooltip(ComponentFacade comp, bool isMass)
+    {
+        var state = GetCellState(comp, isMass);
+        return state == "calculated" || state == "blocked";
+    }
+
+    // 🔥 NUEVO: Obtener tooltip para flows
+    private string GetFlowTooltip<T>(Variable<T> variable) where T : Amount
+    {
+        if (!string.IsNullOrWhiteSpace(variable.Source) && variable.Source != "Undefined")
+            return $"Calculated by: {variable.Source}";
+        return "Calculated from mixture";
+    }
+
+    // 🔥 NUEVO: Lógica correcta para bloqueo de °GL
+    private bool ShouldGlBeReadOnly()
+    {
+        // Si el usuario definió por Molar%, el °GL está calculado
+        if (Variable.InputType == ComponentInputType.MolarFraction) return true;
+
+        // Si el solver calculó Y el usuario no definió nada, el °GL está calculado
+        if (Variable.Source == CompositionSource.Solver && Variable.InputType == ComponentInputType.None) return true;
+
+        // En cualquier otro caso (usuario definió por MassFraction o °GL), el °GL es editable
+        return false;
+    }
+
+    // 🔥 NUEVO: Obtener SourceId para el tooltip del °GL
+    private string? GetGlSourceId()
+    {
+        if (Variable.InputType == ComponentInputType.MolarFraction)
+            return "Molar Fraction";
+
+        if (Variable.Source == CompositionSource.Solver && Variable.InputType == ComponentInputType.None)
+            return "Solver";
+
+        return null;
+    }
+
+    private bool IsEthanolWaterMixture()
+    {
+        if (Variable?.Components == null || Variable.Components.Count != 2) return false;
+        var hasEthanol = Variable.Components.Any(c => c.Name.Equals("Ethanol", StringComparison.OrdinalIgnoreCase));
+        var hasWater = Variable.Components.Any(c => c.Name.Equals("Water", StringComparison.OrdinalIgnoreCase));
+        return hasEthanol && hasWater;
+    }
+
+    private double? GetGlValue()
+    {
+        if (!IsEthanolWaterMixture()) return null;
+
+        var ethanol = Variable.Components
+            .FirstOrDefault(c => c.Name.Equals("Ethanol", StringComparison.OrdinalIgnoreCase));
+
+        if (ethanol == null || !ethanol.MassFraction.IsDefined) return null;
+
+        double massFraction = ethanol.MassFraction.GetDisplayValue();
+        if (massFraction <= 0 || massFraction > 100) return null;
+
+        return GetGLEtanol(massFraction);
+    }
+
+    private async Task OnGlValueChanged(double? glValue)
+    {
+        if (!glValue.HasValue)
+        {
+            await ClearCell();
+            StateHasChanged();
+            return;
+        }
+
+        var massFraction = CalcularMasicoDesdeGL(glValue.Value);
+
+        var ethanol = Variable.Components
+            .FirstOrDefault(c => c.Name.Equals("Ethanol", StringComparison.OrdinalIgnoreCase));
+        var water = Variable.Components
+            .FirstOrDefault(c => c.Name.Equals("Water", StringComparison.OrdinalIgnoreCase));
+
+        if (ethanol != null && water != null)
+        {
+            ethanol.MassFraction.SetValueFromUI(new Percentage(massFraction, PercentageUnits.Percentage));
+            water.MassFraction.SetValueFromUI(new Percentage(100 - massFraction, PercentageUnits.Percentage));
+
+            // 🔥 Actualizar InputType
+            Variable.InputType = ComponentInputType.MassFraction;
+
+            // 🔥 Disparar el solver
+            if (_WM != null)
+            {
+                _WM.RunSimulation();
+            }
+
+            if (VariableChanged.HasDelegate)
+                await VariableChanged.InvokeAsync(Variable);
+
+            StateHasChanged();
+        }
+    }
+
+    private double CalcularMasicoDesdeGL(double GL)
+    {
+        if (GL >= 100) return 100; if (GL <= 0) return 0;
+        return ((1.881755917e-9 * Math.Pow(GL, 4)) - (1.161368119e-7 * Math.Pow(GL, 3))
+             + (1.36632945e-5 * Math.Pow(GL, 2)) + (7.8756832e-3 * GL)) * 100;
+    }
+
+    private double GetGLEtanol(double masico)
+    {
+        if (masico <= 0) return 0; if (masico >= 100) return 100;
+        double sup = 100, inf = 0, GL = 0;
+        for (int i = 0; i < 60; i++)
+        {
+            GL = (sup + inf) / 2;
+            double pm = CalcularMasicoDesdeGL(GL);
+            if (Math.Abs(pm - masico) < 1e-4) break;
+            if (pm > masico) sup = GL; else inf = GL;
+        }
+        return Math.Round(GL, 2);
+    }
+}

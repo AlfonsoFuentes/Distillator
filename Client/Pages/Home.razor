@@ -1,7 +1,7 @@
 ﻿@page "/"
 @using Client.Layout.Diagrams
-@using Shared.MatrixSolvers
-@using Shared.SolverQwen
+
+
 @implements IDisposable
 @attribute [Authorize]
 
@@ -108,9 +108,9 @@
             {
                 Value = selectedMethod;
 
-                StreamIntegrationTest manager = new StreamIntegrationTest();
-                manager.SetThermoMethod(Value);
-                manager.Run();
+                // StreamIntegrationTest manager = new StreamIntegrationTest();
+                // manager.SetThermoMethod(Value);
+                // manager.Run();
 
             }
         }

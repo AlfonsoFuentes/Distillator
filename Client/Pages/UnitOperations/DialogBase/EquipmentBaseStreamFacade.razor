@@ -1,6 +1,7 @@
-﻿@* 👇 display: contents hace que este div sea "invisible" para el Grid.
+﻿
+@* 👇 display: contents hace que este div sea "invisible" para el Grid.
       Sus hijos se convierten en celdas directas de la columna actual. *@
-@* <div style="display: contents;">
+<div style="display: contents;">
 
   
     <UnifiedNameRow @bind-Value="Facade.Name"
@@ -9,66 +10,66 @@
                     Mode="VariableMode.Compact" />
 
 
-    <NewUnifiedDoubleRow @bind-Variable="Facade.VaporFraction" @bind-Variable:after="NotifyUpdate" Mode="VariableMode.Compact" MinValue="0" MaxValue="1" />
+    <VariablePercentageRow @bind-Variable="Facade.VaporFraction" @bind-Variable:after="NotifyUpdate" Mode="VariableMode.Compact" />
     @* ==========================================
        VARIABLES CON UNIFIED COMPONENT (Sin Label)
-       ========================================== 
-    <NewUnifiedVariableRow @bind-Variable="Facade.Temperature" @bind-Variable:after="NotifyUpdate" Mode="VariableMode.Compact" />
-    <NewUnifiedVariableRow @bind-Variable="Facade.Pressure" @bind-Variable:after="NotifyUpdate" Mode="VariableMode.Compact" />
-    <NewUnifiedVariableRow @bind-Variable="Facade.MassFlow" @bind-Variable:after="NotifyUpdate" Mode="VariableMode.Compact" />
-    <NewUnifiedVariableRow @bind-Variable="Facade.MolarFlow" @bind-Variable:after="NotifyUpdate" Mode="VariableMode.Compact" />
-    <NewUnifiedVariableRow @bind-Variable="Facade.VolumetricFlow" @bind-Variable:after="NotifyUpdate" Mode="VariableMode.Compact" />
+       ========================================== *@
+    <VariableAmountRow @bind-Variable="Facade.Temperature" @bind-Variable:after="NotifyUpdate" Mode="VariableMode.Compact" />
+    <VariableAmountRow @bind-Variable="Facade.Pressure" @bind-Variable:after="NotifyUpdate" Mode="VariableMode.Compact" />
+    <VariableAmountRow @bind-Variable="Facade.MassFlow" @bind-Variable:after="NotifyUpdate" Mode="VariableMode.Compact" />
+    <VariableAmountRow @bind-Variable="Facade.MolarFlow" @bind-Variable:after="NotifyUpdate" Mode="VariableMode.Compact" />
+    <VariableAmountRow @bind-Variable="Facade.VolumetricFlow" @bind-Variable:after="NotifyUpdate" Mode="VariableMode.Compact" />
 
 
     
-    <NewUnifiedVariableRow @bind-Variable="Facade.EnthalpyFlow" Mode="VariableMode.Compact" IsReadOnly="true" />
+    <VariableAmountRow @bind-Variable="Facade.EnthalpyFlow" Mode="VariableMode.Compact" IsReadOnly="true" />
 
-    @* 👇 Placeholders para mantener alineación con los títulos de grupo del padre 
+    @* 👇 Placeholders para mantener alineación con los títulos de grupo del padre *@
     <div class="grid-cell value group-spacer"></div>
-    <NewUnifiedDoubleRow @bind-Variable="Facade.MolecularWeight" Mode="VariableMode.Compact" IsReadOnly="true" />
-    <NewUnifiedVariableRow @bind-Variable="Facade.MassDensity" Mode="VariableMode.Compact" IsReadOnly="true" />
-    <NewUnifiedVariableRow @bind-Variable="Facade.MolarDensity" Mode="VariableMode.Compact" IsReadOnly="true" />
-
-    <div class="grid-cell value group-spacer"></div>
-    <NewUnifiedVariableRow @bind-Variable="Facade.MassEnthalpy" Mode="VariableMode.Compact" IsReadOnly="true" />
-    <NewUnifiedVariableRow @bind-Variable="Facade.MolarEnthalpy" Mode="VariableMode.Compact" IsReadOnly="true" />
-    <NewUnifiedVariableRow @bind-Variable="Facade.MassCp" Mode="VariableMode.Compact" IsReadOnly="true" />
-    <NewUnifiedVariableRow @bind-Variable="Facade.MolarCp" Mode="VariableMode.Compact" IsReadOnly="true" />
+    <VariableUnitLessRow @bind-Variable="Facade.MolecularWeight" Mode="VariableMode.Compact" IsReadOnly="true" />
+    <VariableAmountRow @bind-Variable="Facade.MassDensity" Mode="VariableMode.Compact" IsReadOnly="true" />
+    <VariableAmountRow @bind-Variable="Facade.MolarDensity" Mode="VariableMode.Compact" IsReadOnly="true" />
 
     <div class="grid-cell value group-spacer"></div>
-    <NewUnifiedVariableRow @bind-Variable="Facade.Viscosity" Mode="VariableMode.Compact" IsReadOnly="true" />
-    <NewUnifiedVariableRow @bind-Variable="Facade.ThermalConductivity" Mode="VariableMode.Compact" IsReadOnly="true" />
-    <NewUnifiedVariableRow @bind-Variable="Facade.SuperficialTension" Mode="VariableMode.Compact" IsReadOnly="true" />
+    <VariableAmountRow @bind-Variable="Facade.MassEnthalpy" Mode="VariableMode.Compact" IsReadOnly="true" />
+    <VariableAmountRow @bind-Variable="Facade.MolarEnthalpy" Mode="VariableMode.Compact" IsReadOnly="true" />
+    <VariableAmountRow @bind-Variable="Facade.MassCp" Mode="VariableMode.Compact" IsReadOnly="true" />
+    <VariableAmountRow @bind-Variable="Facade.MolarCp" Mode="VariableMode.Compact" IsReadOnly="true" />
 
-</div> *@
+    <div class="grid-cell value group-spacer"></div>
+    <VariableAmountRow @bind-Variable="Facade.Viscosity" Mode="VariableMode.Compact" IsReadOnly="true" />
+    <VariableAmountRow @bind-Variable="Facade.ThermalConductivity" Mode="VariableMode.Compact" IsReadOnly="true" />
+    <VariableAmountRow @bind-Variable="Facade.SuperficialTension" Mode="VariableMode.Compact" IsReadOnly="true" />
+
+</div>
 
 @code {
-    // // [Parameter] public StreamFacade2 Facade { get; set; } = default!;
-    // // [Parameter] public List<ThermodynamicMethodFullDto> AvailableMethods { get; set; } = new();
-    // // 👇 NUEVO: Evento para avisar hacia arriba
-    // [Parameter] public EventCallback OnStreamUpdated { get; set; }
+    [Parameter] public IFacadeStream Facade { get; set; } = default!;
+    // [Parameter] public List<ThermodynamicMethodFullDto> AvailableMethods { get; set; } = new();
+    // 👇 NUEVO: Evento para avisar hacia arriba
+    [Parameter] public EventCallback OnStreamUpdated { get; set; }
 
-    // // 👇 NUEVO: Dispara el evento
-    // private async Task NotifyUpdate()
-    // {
-    //     if (OnStreamUpdated.HasDelegate)
-    //     {
-    //         await OnStreamUpdated.InvokeAsync();
-    //     }
-    // }
-    
-    // private bool CheckDuplicateName(string newName)
-    // {
-    //     return WM?.Elements?.Any(e => e.Name.Equals(newName, StringComparison.OrdinalIgnoreCase) && e.Id != Facade?.Id) == true;
-    // }
+    // 👇 NUEVO: Dispara el evento
+    private async Task NotifyUpdate()
+    {
+        if (OnStreamUpdated.HasDelegate)
+        {
+            await OnStreamUpdated.InvokeAsync();
+        }
+    }
 
-    // // 2. Le decimos al componente qué hacer cuando pulse el botón 🔄
-    // private async Task GenerateUniqueStreamName()
-    // {
-    //     if (NamingService == null || Facade == null) return;
+    private bool CheckDuplicateName(string newName)
+    {
+        return WM?.Elements?.Any(e => e.Name.Equals(newName, StringComparison.OrdinalIgnoreCase) && e.Id != Facade?.Id) == true;
+    }
 
-    //     Facade.Name = NamingService.GenerateNextName("S");
-    //     await NotifyUpdate();
-    //     StateHasChanged();
-    // }
+    // 2. Le decimos al componente qué hacer cuando pulse el botón 🔄
+    private async Task GenerateUniqueStreamName()
+    {
+        if (NamingService == null || Facade == null) return;
+
+        Facade.Name = NamingService.GenerateNextName("S");
+        await NotifyUpdate();
+        StateHasChanged();
+    }
 }

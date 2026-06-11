@@ -1,16 +1,17 @@
-﻿@* <div class="scrollable-container">
+﻿
+<div class="scrollable-container">
     @{
         // 🔥 EL TRUCO MAESTRO: Calculamos las columnas explícitas basadas en la cantidad de puertos
         // 180px fijos para los labels + 1fr elástico por cada puerto
         string gridColumns = $"180px repeat({Ports.Count}, minmax(180px, 1fr))";
     }
 
-    @* 👇 Inyectamos la regla dinámicamente aquí 
+    @* 👇 Inyectamos la regla dinámicamente aquí  *@
     <div class="data-grid equipment-streams-grid" style="grid-template-columns: @gridColumns;">
         
         @* ==========================================
            COLUMNA 1: ETIQUETAS (LABELS FIJOS)
-           ==========================================
+           ========================================== *@
         <div class="grid-header header-corner"></div>
         
         <div class="grid-cell label fixed-col">Stream Name</div>
@@ -41,7 +42,7 @@
 
         @* ==========================================
            COLUMNAS 2+: PUERTOS / CORRIENTES
-           ========================================== 
+           ==========================================  *@
         @foreach (var port in Ports)
         {
             <div class="grid-header port-header" title="@port.Name">@port.Name</div>
@@ -62,89 +63,89 @@
             }
         }
     </div>
-</div> *@
+</div>
 
 @code {
-    // [Parameter] public List<EquipmentPort> Ports { get; set; } = new();
+    [Parameter] public List<EquipmentPort> Ports { get; set; } = new();
 
-    // [Parameter] public EventCallback OnEquipmentStreamsUpdated { get; set; }
+    [Parameter] public EventCallback OnEquipmentStreamsUpdated { get; set; }
 
-    // // 👇 NUEVO: Se ejecuta cada vez que CUALQUIER corriente cambia una propiedad
-    // private async Task HandleAnyStreamUpdated()
-    // {
-    //     // Forzamos al Grid a repintarse por si hay cambios visuales globales
-    //     StateHasChanged();
+    // 👇 NUEVO: Se ejecuta cada vez que CUALQUIER corriente cambia una propiedad
+    private async Task HandleAnyStreamUpdated()
+    {
+        // Forzamos al Grid a repintarse por si hay cambios visuales globales
+        StateHasChanged();
 
-    //     // Le avisamos a la ventana principal de la bomba que algo se modificó
-    //     if (OnEquipmentStreamsUpdated.HasDelegate)
-    //     {
-    //         await OnEquipmentStreamsUpdated.InvokeAsync();
-    //     }
-    // }
-    // private StreamFacade2? GetFacadeForPort(EquipmentPort port)
-    // {
-    //     if (!port.ConnectedElementId.HasValue) return null;
+        // Le avisamos a la ventana principal de la bomba que algo se modificó
+        if (OnEquipmentStreamsUpdated.HasDelegate)
+        {
+            await OnEquipmentStreamsUpdated.InvokeAsync();
+        }
+    }
+    private IFacadeStream? GetFacadeForPort(EquipmentPort port)
+    {
+        if (!port.ConnectedElementId.HasValue) return null;
 
-    //     Guid connectedId = port.ConnectedElementId.Value;
-    //     IVisualElement? connectedElement = null;
+        Guid connectedId = port.ConnectedElementId.Value;
+        IVisualElement? connectedElement = null;
 
-    //     // 🔍 1. ¿El ID es una Tubería (Pipe) en CUALQUIER área?
-    //     var pipe = WM.Areas.SelectMany(a => a.Pipes).FirstOrDefault(x => x.Id == connectedId);
-    //     if (pipe != null)
-    //     {
-    //         // Si la tubería toca una corriente directamente, retornamos su Facade
-    //         if (pipe.SourceElement?.Facade is StreamFacade2 sf) return sf;
-    //         if (pipe.TargetElement?.Facade is StreamFacade2 tf) return tf;
+        // 🔍 1. ¿El ID es una Tubería (Pipe) en CUALQUIER área?
+        var pipe = WM.Areas.SelectMany(a => a.Pipes).FirstOrDefault(x => x.Id == connectedId);
+        if (pipe != null)
+        {
+            // Si la tubería toca una corriente directamente, retornamos su Facade
+            if (pipe.SourceElement?.Facade is IFacadeStream sf) return sf;
+            if (pipe.TargetElement?.Facade is IFacadeStream tf) return tf;
 
-    //         // Si la tubería toca un OPC, guardamos el OPC para el Paso 3
-    //         if (pipe.SourceElement is OffPageConnectorElement) connectedElement = pipe.SourceElement;
-    //         else if (pipe.TargetElement is OffPageConnectorElement) connectedElement = pipe.TargetElement;
-    //     }
+            // Si la tubería toca un OPC, guardamos el OPC para el Paso 3
+            if (pipe.SourceElement is OffPageConnectorElement) connectedElement = pipe.SourceElement;
+            else if (pipe.TargetElement is OffPageConnectorElement) connectedElement = pipe.TargetElement;
+        }
 
-    //     // 🔍 2. Si no era tubería, ¿El ID es DIRECTAMENTE un Equipo/Corriente/OPC en CUALQUIER área?
-    //     if (connectedElement == null)
-    //     {
-    //         connectedElement = WM.Areas.SelectMany(a => a.Elements).FirstOrDefault(x => x.Id == connectedId);
-    //     }
+        // 🔍 2. Si no era tubería, ¿El ID es DIRECTAMENTE un Equipo/Corriente/OPC en CUALQUIER área?
+        if (connectedElement == null)
+        {
+            connectedElement = WM.Areas.SelectMany(a => a.Elements).FirstOrDefault(x => x.Id == connectedId);
+        }
 
-    //     // 🚀 3. EVALUACIÓN FINAL Y AGUJERO DE GUSANO
-    //     if (connectedElement != null)
-    //     {
-    //         // Caso A: Es directamente una corriente (Misma área)
-    //         if (connectedElement.Facade is StreamFacade2 directFacade)
-    //         {
-    //             return directFacade;
-    //         }
+        // 🚀 3. EVALUACIÓN FINAL Y AGUJERO DE GUSANO
+        if (connectedElement != null)
+        {
+            // Caso A: Es directamente una corriente (Misma área)
+            if (connectedElement.Facade is IFacadeStream directFacade)
+            {
+                return directFacade;
+            }
 
-    //         // Caso B: Es un OPC -> ¡Viajamos a la otra área!
-    //         if (connectedElement is OffPageConnectorElement opc)
-    //         {
-    //             var targetArea = WM.Areas.FirstOrDefault(a => a.Id == opc.TargetAreaId);
-    //             if (targetArea != null)
-    //             {
-    //                 // Buscamos la bandera gemela
-    //                 var twinOpc = targetArea.Elements.OfType<OffPageConnectorElement>().FirstOrDefault(e => e.Id == opc.TargetConnectorId);
-    //                 if (twinOpc != null)
-    //                 {
-    //                     // Buscamos el tubo conectado a esa bandera
-    //                     var twinPipe = targetArea.Pipes.FirstOrDefault(p => p.SourceElementId == twinOpc.Id || p.TargetElementId == twinOpc.Id);
-    //                     if (twinPipe != null)
-    //                     {
-    //                         // Encontramos la corriente real
-    //                         var realStreamId = twinPipe.SourceElementId == twinOpc.Id ? twinPipe.TargetElementId : twinPipe.SourceElementId;
-    //                         var realStream = targetArea.Elements.FirstOrDefault(e => e.Id == realStreamId);
+            // Caso B: Es un OPC -> ¡Viajamos a la otra área!
+            if (connectedElement is OffPageConnectorElement opc)
+            {
+                var targetArea = WM.Areas.FirstOrDefault(a => a.Id == opc.TargetAreaId);
+                if (targetArea != null)
+                {
+                    // Buscamos la bandera gemela
+                    var twinOpc = targetArea.Elements.OfType<OffPageConnectorElement>().FirstOrDefault(e => e.Id == opc.TargetConnectorId);
+                    if (twinOpc != null)
+                    {
+                        // Buscamos el tubo conectado a esa bandera
+                        var twinPipe = targetArea.Pipes.FirstOrDefault(p => p.SourceElementId == twinOpc.Id || p.TargetElementId == twinOpc.Id);
+                        if (twinPipe != null)
+                        {
+                            // Encontramos la corriente real
+                            var realStreamId = twinPipe.SourceElementId == twinOpc.Id ? twinPipe.TargetElementId : twinPipe.SourceElementId;
+                            var realStream = targetArea.Elements.FirstOrDefault(e => e.Id == realStreamId);
                         
-    //                         // Retornamos el Facade de esa corriente remota
-    //                         if (realStream?.Facade is StreamFacade2 wormholeFacade)
-    //                         {
-    //                             return wormholeFacade;
-    //                         }
-    //                     }
-    //                 }
-    //             }
-    //         }
-    //     }
+                            // Retornamos el Facade de esa corriente remota
+                            if (realStream?.Facade is IFacadeStream wormholeFacade)
+                            {
+                                return wormholeFacade;
+                            }
+                        }
+                    }
+                }
+            }
+        }
 
-    //     return null;
-    // }
+        return null;
+    }
 }

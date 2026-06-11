@@ -12,7 +12,7 @@
     @* 1. EL DIBUJO BASE (Encapsulado y Limpio) *@
     <SplitterSvg Width="@Element.Width"
                  Height="@Element.Height"
-                 StatusColor="@(Element.Facade?.StatusColor ?? "#CBD5E0")"
+                 StatusColor="@(Element.StatusColor ?? "#CBD5E0")"
                  CssClass="spl-svg" />
 
     @* 2. CAPA SUPERIOR: Puertos Dinámicos (N Salidas)

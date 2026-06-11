@@ -1,0 +1,195 @@
+﻿
+
+
+<div class="scrollable-container">
+    <div class="data-grid composition-grid" style="grid-template-columns: 140px 160px repeat(@Ports.Count, minmax(140px, 1fr)) minmax(20px, 1fr);">
+
+        @*  ==========================================
+           FILA 1: ENCABEZADOS FIJOS
+           ==========================================  *@
+        <div class="grid-header sticky-col-1 sticky-header">Component</div>
+        <div class="grid-header sticky-col-2 sticky-header">Property</div>
+
+        @foreach (var port in Ports)
+        {
+            <div class="grid-header port-header" title="@port.Name">@port.Name</div>
+        }
+        <div class="grid-header filler sticky-header-filler"></div>
+
+        @* ==========================================
+           FILAS DE DATOS POR COMPONENTE
+           ==========================================  *@
+        @foreach (var compName in GetDistinctComponents())
+        {
+            bool isEthanol = compName.Equals("Ethanol", StringComparison.OrdinalIgnoreCase);
+            int rowSpan = isEthanol ? 6 : 5;
+
+            <div class="grid-cell component-name sticky-col-1" style="grid-row: span @rowSpan;">
+                @compName
+            </div>
+
+            @* --- FILA 1: MASS (%) ---  *@
+            <div class="grid-cell label sticky-col-2">Mass (%)</div>
+            @foreach (var port in Ports)
+            {
+                var facade = GetFacadeForPort(port);
+                var comp = facade != null ? GetComponent(facade, compName) : null;
+
+                if (facade == null || comp == null)
+                {
+                    <div class="grid-cell empty-port-column"></div>
+                }
+                else
+                {
+                    var state = GetCellState(facade, comp, true);
+                    <div class="grid-cell value editable-cell @(HasTooltip(state) ? "has-tooltip" : "")" data-state="@state">
+                        @if (IsCellReadOnly(state))
+                        {
+                            <span class="readonly-value">
+                                @(comp.MassFraction.IsDefined ? FormatFraction(comp.MassFraction.GetDisplayValue()) : "<Not defined>")
+                            </span>
+                        }
+                        else
+                        {
+                            <input type="text" 
+                                   value="@GetInputValue(facade, comp, true)"
+                                   placeholder="<Not defined>"
+                                   @onfocus="@(e => HandleFocus(facade, comp, true, false))"
+                                   @oninput="@(e => HandleInput(e))"
+                                   @onkeydown="@(e => HandleKeyDown(e, facade, comp, true, false))"
+                                   @onblur="@(e => HandleBlur(facade, comp, true, false))" />
+                        }
+                        @if (HasTooltip(state))
+                        {
+                            <span class="tooltip-text">@GetCellTooltip(facade, comp, true)</span>
+                        }
+                    </div>
+                }
+            }
+            <div class="grid-cell filler"></div>
+
+            @* --- FILA 2: MOLE (%) ---  *@
+            <div class="grid-cell label sticky-col-2">Mole (%)</div>
+            @foreach (var port in Ports)
+            {
+                var facade = GetFacadeForPort(port);
+                var comp = facade != null ? GetComponent(facade, compName) : null;
+
+                if (facade == null || comp == null)
+                {
+                    <div class="grid-cell empty-port-column"></div>
+                }
+                else
+                {
+                    var state = GetCellState(facade, comp, false);
+                    <div class="grid-cell value editable-cell @(HasTooltip(state) ? "has-tooltip" : "")" data-state="@state">
+                        @if (IsCellReadOnly(state))
+                        {
+                            <span class="readonly-value">
+                                @(comp.MolarFraction.IsDefined ? FormatFraction(comp.MolarFraction.GetDisplayValue()) : "<Not defined>")
+                            </span>
+                        }
+                        else
+                        {
+                            <input type="text" 
+                                   value="@GetInputValue(facade, comp, false)"
+                                   placeholder="<Not defined>"
+                                   @onfocus="@(e => HandleFocus(facade, comp, false, false))"
+                                   @oninput="@(e => HandleInput(e))"
+                                   @onkeydown="@(e => HandleKeyDown(e, facade, comp, false, false))"
+                                   @onblur="@(e => HandleBlur(facade, comp, false, false))" />
+                        }
+                        @if (HasTooltip(state))
+                        {
+                            <span class="tooltip-text">@GetCellTooltip(facade, comp, false)</span>
+                        }
+                    </div>
+                }
+            }
+            <div class="grid-cell filler"></div>
+
+            @* --- FILA 3: MOLAR FLOW --- *@
+            <div class="grid-cell label sticky-col-2">Molar Flow</div>
+            @foreach (var port in Ports)
+            {
+                var comp = GetFacadeForPort(port) != null ? GetComponent(GetFacadeForPort(port)!, compName) : null;
+                <div class="grid-cell value calculated has-tooltip">
+                    <span class="readonly-value">@FormatFlow(comp?.MolarFlow.GetDisplayValue())</span>
+                    <span class="tooltip-text">@GetFlowTooltip(comp?.MolarFlow)</span>
+                </div>
+            }
+            <div class="grid-cell filler"></div>
+
+            @* --- FILA 4: MASS FLOW ---  *@
+            <div class="grid-cell label sticky-col-2">Mass Flow</div>
+            @foreach (var port in Ports)
+            {
+                var comp = GetFacadeForPort(port) != null ? GetComponent(GetFacadeForPort(port)!, compName) : null;
+                <div class="grid-cell value calculated has-tooltip">
+                    <span class="readonly-value">@FormatFlow(comp?.MassFlow.GetDisplayValue())</span>
+                    <span class="tooltip-text">@GetFlowTooltip(comp?.MassFlow)</span>
+                </div>
+            }
+            <div class="grid-cell filler"></div>
+
+            @* --- FILA 5: VOLUMETRIC FLOW ---  *@
+            <div class="grid-cell label sticky-col-2">Vol. Flow</div>
+            @foreach (var port in Ports)
+            {
+                <div class="grid-cell value calculated">
+                    <span class="readonly-value">N/A</span>
+                </div>
+            }
+            <div class="grid-cell filler"></div>
+
+            @* --- FILA 6: °GL (SOLO ETANOL) --- *@
+            @if (isEthanol)
+            {
+                <div class="grid-cell label special-gl sticky-col-2">Gay-Lussac (°GL)</div>
+                @foreach (var port in Ports)
+                {
+                    var facade = GetFacadeForPort(port);
+                    var comp = facade != null ? GetComponent(facade, compName) : null;
+
+                    if (facade == null || !IsEthanolWaterMixture(facade))
+                    {
+                        <div class="grid-cell empty-port-column"></div>
+                    }
+                    else if (comp == null)
+                    {
+                        <div class="grid-cell value empty"><span class="readonly-value">0.0</span></div>
+                    }
+                    else
+                    {
+                        bool isGLReadOnly = ShouldGlBeReadOnly(facade);
+                        double? glValue = GetGlValue(facade, comp);
+
+                        <div class="grid-cell value editable-cell special-gl-value @(isGLReadOnly ? "has-tooltip" : "")"
+                             data-state="@(isGLReadOnly ? "calculated" : "editable")">
+
+                            @if (isGLReadOnly)
+                            {
+                                <span class="readonly-value">
+                                    @(glValue.HasValue ? glValue.Value.ToString("F1") : "<Not defined>")
+                                </span>
+                                <span class="tooltip-text">@GetGlTooltip(facade)</span>
+                            }
+                            else
+                            {
+                                <input type="text" 
+                                       value="@GetGlInputValue(facade, comp)"
+                                       placeholder="<Not defined>"
+                                       @onfocus="@(e => HandleFocus(facade, comp, true, true))"
+                                       @oninput="@(e => HandleInput(e))"
+                                       @onkeydown="@(e => HandleKeyDown(e, facade, comp, true, true))"
+                                       @onblur="@(e => HandleBlur(facade, comp, true, true))" />
+                            }
+                        </div>
+                    }
+                }
+                <div class="grid-cell filler"></div>
+            }
+        }
+    </div>
+</div>
+

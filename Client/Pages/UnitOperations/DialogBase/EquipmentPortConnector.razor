@@ -2,7 +2,7 @@
 @using Shared.ProcessFlowDiagram.Pipes
 
 <div class="port-connector-container material-theme">
-    
+
     <div class="connector-header">
         <label class="port-label">@Port.Name</label>
         @if (Port.ConnectedElementId.HasValue)
@@ -29,7 +29,7 @@
 
         @* MÁQUINA DE ESTADOS DEL BOTÓN LATERAL *@
         <div class="btn-tooltip-container">
-            
+
             @if (Port.ConnectedElementId.HasValue)
             {
                 // ESTADO 3: CONECTADO -> Mostrar botón de desconectar
@@ -74,10 +74,10 @@
 
 @code {
 
-    
+
     [Parameter, EditorRequired] public EquipmentPort Port { get; set; } = default!;
     [Parameter, EditorRequired] public IVisualElement ParentEquipment { get; set; } = default!;
-    [Parameter] public EventCallback OnConnectionChanged { get; set; }
+    [Parameter] public EventCallback OnConnChanged { get; set; }
     private string _inputValue = string.Empty;
 
     protected override void OnParametersSet()
@@ -88,7 +88,7 @@
     private IVisualElement? GetConnectedStream()
     {
         if (!Port.ConnectedElementId.HasValue) return null;
-    
+
         // 1. Buscamos el tubo local
         var pipe = WM.Pipes.FirstOrDefault(p =>
             (p.SourceElementId == ParentEquipment.Id && p.SourcePortName == Port.Name) ||
@@ -97,7 +97,7 @@
         if (pipe == null) return null;
 
         var connectedElementId = pipe.SourceElementId == ParentEquipment.Id ? pipe.TargetElementId : pipe.SourceElementId;
-    
+
         // Buscamos a quién está conectado localmente
         var connectedElement = WM.Areas.SelectMany(a => a.Elements).FirstOrDefault(x => x.Id == connectedElementId);
 
@@ -127,7 +127,7 @@
         // Si no era un OPC, devolvemos la corriente normal (como pasa con la P-102)
         return connectedElement;
     }
-    
+
 
     private IEnumerable<IVisualElement> GetAvailableStreams()
     {
@@ -165,7 +165,7 @@
     {
         string prefix = "S";
         string suggestedName = NamingService.GenerateNextName(prefix);
-        
+
         // 🚩 Asegura que el nombre no se repita en NINGUNA área
         while (WM.Areas.SelectMany(a => a.Elements).Any(el => string.Equals(el.Name, suggestedName, StringComparison.OrdinalIgnoreCase)))
         {
@@ -216,13 +216,13 @@
             else
             {
                 // Está en esta misma área, conexión normal
-               await CreatePipeAndConnect(existingStream);
+                await CreatePipeAndConnect(existingStream);
             }
         }
         else
         {
             // No existe en ningún lado, crear espacialmente en el área actual
-          await  CreateSpatiallyAndConnect(streamName);
+            await CreateSpatiallyAndConnect(streamName);
         }
     }
 
@@ -255,8 +255,8 @@
         newStream.X = (absCoords.X + dx) - sOffsetX;
         newStream.Y = (absCoords.Y + dy) - sOffsetY;
 
-      
-      await  CreatePipeAndConnect(newStream);
+
+        await CreatePipeAndConnect(newStream);
         WM.NotifyStateChanged();
     }
 
@@ -281,10 +281,13 @@
         }
 
         WM.Pipes.Add(pipe);
-        if (OnConnectionChanged.HasDelegate)
+      
+
+        if (OnConnChanged.HasDelegate)
         {
-            await OnConnectionChanged.InvokeAsync();
+            await OnConnChanged.InvokeAsync();
         }
+        WM.RunSimulation();
     }
 
     private async Task DisconnectCurrent()
@@ -294,11 +297,11 @@
         var pipe = WM.Pipes.FirstOrDefault(p =>
             (p.SourceElementId == ParentEquipment.Id && p.SourcePortName == Port.Name) ||
             (p.TargetElementId == ParentEquipment.Id && p.TargetPortName == Port.Name));
-        
+
         if (pipe != null) WM.Pipes.Remove(pipe);
 
         ParentEquipment.Disconnect(Port.Name);
-        
+
         if (pipe != null)
         {
             var otherEl = pipe.SourceElementId == ParentEquipment.Id ? pipe.TargetElement : pipe.SourceElement;
@@ -307,10 +310,10 @@
         }
 
         _inputValue = string.Empty;
-
-        if (OnConnectionChanged.HasDelegate)
+        if (OnConnChanged.HasDelegate)
         {
-            await OnConnectionChanged.InvokeAsync();
+            await OnConnChanged.InvokeAsync();
         }
+        WM.RunSimulation();
     }
 }

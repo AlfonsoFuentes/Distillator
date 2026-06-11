@@ -18,7 +18,7 @@ namespace Shared.Thermodynamics.Phases
         ThermodynamicState CurrentState { get; set; }
         void SetComponentsProperties(ThermodynamicMethodFullDto method);
         void ClearComponentsProperties();
-        void SetCompositionData(StreamComposition streamComposition);
+    
         void SetCompositionData(CompositionOrchestrator streamComposition);
         void SetVaporFraction(Percentage vaporFraction);
         void SolveSaturationTemperature();
@@ -130,23 +130,7 @@ namespace Shared.Thermodynamics.Phases
         // ========================================================================
 
 
-        public void SetCompositionData(StreamComposition streamComposition)
-        {
-            if (streamComposition?.Components == null) return;
-
-            foreach (var comp in streamComposition.Components)
-            {
-                var localComponent = Components.FirstOrDefault(x => x.Id == comp.ComponentId);
-                if (localComponent != null)
-                {
-                    if (comp.MassFractionSolver.IsDefined)
-                        localComponent.MassFraction = comp.MassFractionSolver.Value / 100;
-                    if (comp.MolarFractionSolver.IsDefined)
-                        localComponent.MolarFraction = comp.MolarFractionSolver.Value / 100;
-                }
-            }
-            CalculateMixtureMolecularWeight();
-        }
+    
         public void SetCompositionData(CompositionOrchestrator streamComposition)
         {
             if (streamComposition?.Components == null) return;
@@ -301,8 +285,7 @@ namespace Shared.Thermodynamics.Phases
 
             Temperature = temperature;
             Pressure = pressure;
-            double maxRelativeDeltaT = 0.02;
-            double maxRelativeDeltaP = 0.05;
+       
 
             // ---------------------------------------------------------------------
             // 🚀 INYECTOR DE ARRANQUE (WARM START vs COLD START)

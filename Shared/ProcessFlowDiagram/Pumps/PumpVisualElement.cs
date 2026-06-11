@@ -1,11 +1,16 @@
 ﻿using Shared.ProcessFlowDiagram.Streams;
-using Shared.UnitOperations.Pumps;
+using Shared.SolverConsecutive.Equipments;
+using Shared.SolverQwen.Stream;
 
 namespace Shared.ProcessFlowDiagram.Pumps
 {
+
     public class PumpVisualElement : VisualElementBase
     {
-        public override List<ToolTipLegend> GetToolTipData() => Facade.GetToolTipLegend();
+
+
+        private SolverPump Pump => Facade as SolverPump ?? throw new InvalidOperationException("Facade must be SolverPump");
+
         public override EquipmentType Type => EquipmentType.Pump;
         public override string Prefix => "P";
 
@@ -32,13 +37,13 @@ namespace Shared.ProcessFlowDiagram.Pumps
             // Usamos las constantes al inicializar
             AddPort(PortSuctionName, PortType.Inlet, 12, 40, PortDirection.Left);
             AddPort(PortDischargeName, PortType.Outlet, 40, 10, PortDirection.Top);
-    
 
-            //Facade = new PumpSimulationFacade2
-            //{
-            //    Id = this.Id,
-            //    Name = "P-101"
-            //};
+
+            Facade = new SolverPump
+            {
+                Id = this.Id,
+                Name = "P-101"
+            };
         }
 
         public override bool CanConnect(string myPortName, IVisualElement targetElement, string targetPortName)
@@ -51,9 +56,75 @@ namespace Shared.ProcessFlowDiagram.Pumps
                 if (!(targetElement is StreamVisualElement)) return false;
             }
 
-           
+
 
             return true;
+        }
+        public override IEnumerable<string> GetPortNames()
+        {
+            yield return PortSuctionName;
+            yield return PortDischargeName;
+        }
+        public override IFacadeStream? GetConnectedStream(string portName)
+        {
+            return portName switch
+            {
+                PortSuctionName => Pump.Inlet,
+                PortDischargeName => Pump.Outlet,
+                _ => null
+            };
+        }
+        public override void AttachConnection(string portName, IFacadeStream connectedFacade)
+        {
+            if (portName == "Suction" && Pump.Inlet == null)
+            {
+                Pump.SetInlet(connectedFacade);
+
+            }
+            else if (portName == "Discharge" && Pump.Outlet == null)
+            {
+                Pump.SetOutlet(connectedFacade);
+
+            }
+        }
+        public override void DetachConnection(string portName)
+        {
+            if (portName == "Suction")
+            {
+                Pump.SetInlet(null!);
+            }
+            else if (portName == "Discharge")
+            {
+                Pump.SetOutlet(null!);
+            }
+        }
+
+        public override bool ShowLabel { get; set; } = true;
+        public override string StatusColor => Pump.State switch
+        {
+            PumpStateType.Created => "#CBD5E0",
+            PumpStateType.PartiallyConnected => "#F6AD55",
+            PumpStateType.ReadyToCalculate => "#63B3ED",
+            PumpStateType.Solved => "#34D399",
+            _ => "#CBD5E0"
+        };
+        public override string StatusText => Pump.State switch
+        {
+            PumpStateType.Created => "Ready",
+            PumpStateType.PartiallyConnected => "Underspecified",
+            PumpStateType.ReadyToCalculate => "Ready to Solve",
+            PumpStateType.Solved => "Converged",
+            _ => "Unknown"
+        };
+
+        public override List<ToolTipLegend> GetToolTipData()
+        {
+            return new List<ToolTipLegend>
+             {
+                 new ("ΔP", Pump.DeltaP.ToUiString()),
+                 new ("%Efficiency", Pump.Efficiency.ToUiString()),
+                 new ("Power", Pump.Power.ToUiString())
+             };
         }
     }
 }

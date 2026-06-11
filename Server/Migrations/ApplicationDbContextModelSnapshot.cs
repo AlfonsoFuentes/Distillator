@@ -2,8 +2,8 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Server.Databases;
 
 #nullable disable
@@ -17,34 +17,33 @@ namespace Server.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.6")
-                .HasAnnotation("Relational:MaxIdentifierLength", 128);
+                .HasAnnotation("ProductVersion", "10.0.8")
+                .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
-            SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
+            NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
                 {
                     b.Property<string>("Id")
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("text");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<string>("Name")
                         .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
+                        .HasColumnType("character varying(256)");
 
                     b.Property<string>("NormalizedName")
                         .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
+                        .HasColumnType("character varying(256)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("NormalizedName")
                         .IsUnique()
-                        .HasDatabaseName("RoleNameIndex")
-                        .HasFilter("[NormalizedName] IS NOT NULL");
+                        .HasDatabaseName("RoleNameIndex");
 
                     b.ToTable("Roles", (string)null);
                 });
@@ -53,19 +52,19 @@ namespace Server.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<string>("ClaimType")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<string>("ClaimValue")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<string>("RoleId")
                         .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
@@ -78,19 +77,19 @@ namespace Server.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<string>("ClaimType")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<string>("ClaimValue")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<string>("UserId")
                         .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
@@ -102,17 +101,17 @@ namespace Server.Migrations
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
                 {
                     b.Property<string>("LoginProvider")
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("text");
 
                     b.Property<string>("ProviderKey")
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("text");
 
                     b.Property<string>("ProviderDisplayName")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<string>("UserId")
                         .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("text");
 
                     b.HasKey("LoginProvider", "ProviderKey");
 
@@ -124,10 +123,10 @@ namespace Server.Migrations
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<string>", b =>
                 {
                     b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("text");
 
                     b.Property<string>("RoleId")
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("text");
 
                     b.HasKey("UserId", "RoleId");
 
@@ -139,16 +138,16 @@ namespace Server.Migrations
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
                 {
                     b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("text");
 
                     b.Property<string>("LoginProvider")
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("text");
 
                     b.Property<string>("Name")
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("text");
 
                     b.Property<string>("Value")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.HasKey("UserId", "LoginProvider", "Name");
 
@@ -159,110 +158,110 @@ namespace Server.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<double>("AcentricFactor")
-                        .HasColumnType("float");
+                        .HasColumnType("double precision");
 
                     b.Property<double>("AcentricFactorPitzer")
-                        .HasColumnType("float");
+                        .HasColumnType("double precision");
 
                     b.Property<string>("CreatedBy")
                         .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasColumnType("character varying(100)");
 
                     b.Property<DateTime>("CreatedOn")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<double>("CriticalZ")
-                        .HasColumnType("float");
+                        .HasColumnType("double precision");
 
                     b.Property<DateTime?>("DeletedOnUtc")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Family")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("character varying(50)");
 
                     b.Property<string>("Formula")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("character varying(50)");
 
                     b.Property<bool>("IsDeleted")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
+                        .HasColumnType("boolean")
                         .HasDefaultValue(false);
 
                     b.Property<double>("MolecularWeight")
-                        .HasColumnType("float");
+                        .HasColumnType("double precision");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(150)
-                        .HasColumnType("nvarchar(150)");
+                        .HasColumnType("character varying(150)");
 
                     b.Property<int>("Order")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
+                        .HasColumnType("integer")
                         .HasDefaultValue(0);
 
                     b.Property<string>("SecondaryFamily")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("character varying(50)");
 
                     b.Property<string>("StructuralFormula")
                         .IsRequired()
                         .HasMaxLength(150)
-                        .HasColumnType("nvarchar(150)");
+                        .HasColumnType("character varying(150)");
 
                     b.HasKey("Id");
 
-                    b.ToTable("ChemicalComponents", (string)null);
+                    b.ToTable("ChemicalComponents");
                 });
 
             modelBuilder.Entity("Server.Entities.Thermodynamics.Methods.BinaryInteractionParameter", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<Guid>("ComponentI_Id")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<Guid>("ComponentJ_Id")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<string>("CreatedBy")
                         .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasColumnType("character varying(100)");
 
                     b.Property<DateTime>("CreatedOn")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<DateTime?>("DeletedOnUtc")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<bool>("IsDeleted")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
+                        .HasColumnType("boolean")
                         .HasDefaultValue(false);
 
                     b.Property<Guid>("MethodId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<int>("Order")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
+                        .HasColumnType("integer")
                         .HasDefaultValue(0);
 
                     b.Property<int>("ParameterType")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<double>("Value")
-                        .HasColumnType("float");
+                        .HasColumnType("double precision");
 
                     b.HasKey("Id");
 
@@ -272,42 +271,42 @@ namespace Server.Migrations
 
                     b.HasIndex("MethodId");
 
-                    b.ToTable("BinaryInteractionParameters", (string)null);
+                    b.ToTable("BinaryInteractionParameters");
                 });
 
             modelBuilder.Entity("Server.Entities.Thermodynamics.Methods.MethodComponent", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<Guid>("ComponentId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<string>("CreatedBy")
                         .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasColumnType("character varying(100)");
 
                     b.Property<DateTime>("CreatedOn")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<DateTime?>("DeletedOnUtc")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<bool>("IsDeleted")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
+                        .HasColumnType("boolean")
                         .HasDefaultValue(false);
 
                     b.Property<int>("MatrixIndex")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<Guid>("MethodId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<int>("Order")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
+                        .HasColumnType("integer")
                         .HasDefaultValue(0);
 
                     b.HasKey("Id");
@@ -317,126 +316,126 @@ namespace Server.Migrations
                     b.HasIndex("MethodId", "ComponentId")
                         .IsUnique();
 
-                    b.ToTable("MethodComponents", (string)null);
+                    b.ToTable("MethodComponents");
                 });
 
             modelBuilder.Entity("Server.Entities.Thermodynamics.Methods.ThermodynamicMethod", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<string>("CreatedBy")
                         .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasColumnType("character varying(100)");
 
                     b.Property<DateTime>("CreatedOn")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<DateTime?>("DeletedOnUtc")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                        .HasColumnType("character varying(500)");
 
                     b.Property<bool>("IsDeleted")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
+                        .HasColumnType("boolean")
                         .HasDefaultValue(false);
 
                     b.Property<int>("LiquidModel")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(150)
-                        .HasColumnType("nvarchar(150)");
+                        .HasColumnType("character varying(150)");
 
                     b.Property<int>("Order")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
+                        .HasColumnType("integer")
                         .HasDefaultValue(0);
 
                     b.Property<int>("VaporModel")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 
-                    b.ToTable("ThermodynamicMethods", (string)null);
+                    b.ToTable("ThermodynamicMethods");
                 });
 
             modelBuilder.Entity("Server.Entities.UserManagement.ApplicationUser", b =>
                 {
                     b.Property<string>("Id")
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("text");
 
                     b.Property<int>("AccessFailedCount")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Email")
                         .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
+                        .HasColumnType("character varying(256)");
 
                     b.Property<bool>("EmailConfirmed")
-                        .HasColumnType("bit");
+                        .HasColumnType("boolean");
 
                     b.Property<string>("FirstName")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("character varying(50)");
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
+                        .HasColumnType("boolean");
 
                     b.Property<string>("LastName")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("character varying(50)");
 
                     b.Property<bool>("LockoutEnabled")
-                        .HasColumnType("bit");
+                        .HasColumnType("boolean");
 
                     b.Property<DateTimeOffset?>("LockoutEnd")
-                        .HasColumnType("datetimeoffset");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<bool>("MustChangePassword")
-                        .HasColumnType("bit");
+                        .HasColumnType("boolean");
 
                     b.Property<string>("NormalizedEmail")
                         .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
+                        .HasColumnType("character varying(256)");
 
                     b.Property<string>("NormalizedUserName")
                         .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
+                        .HasColumnType("character varying(256)");
 
                     b.Property<string>("PasswordHash")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<string>("PhoneNumber")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<bool>("PhoneNumberConfirmed")
-                        .HasColumnType("bit");
+                        .HasColumnType("boolean");
 
                     b.Property<string>("SecurityStamp")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<bool>("TwoFactorEnabled")
-                        .HasColumnType("bit");
+                        .HasColumnType("boolean");
 
                     b.Property<string>("UserName")
                         .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
+                        .HasColumnType("character varying(256)");
 
                     b.HasKey("Id");
 
@@ -445,8 +444,7 @@ namespace Server.Migrations
 
                     b.HasIndex("NormalizedUserName")
                         .IsUnique()
-                        .HasDatabaseName("UserNameIndex")
-                        .HasFilter("[NormalizedUserName] IS NOT NULL");
+                        .HasDatabaseName("UserNameIndex");
 
                     b.ToTable("Users", (string)null);
                 });
@@ -507,21 +505,21 @@ namespace Server.Migrations
                     b.OwnsOne("Server.Entities.StoredAmount", "BoilingPoint", b1 =>
                         {
                             b1.Property<Guid>("ChemicalComponentId")
-                                .HasColumnType("uniqueidentifier");
+                                .HasColumnType("uuid");
 
                             b1.Property<string>("UnitName")
                                 .IsRequired()
                                 .HasMaxLength(50)
-                                .HasColumnType("nvarchar(50)")
+                                .HasColumnType("character varying(50)")
                                 .HasColumnName("BoilingPoint_Unit");
 
                             b1.Property<double>("Value")
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasColumnName("BoilingPoint_Value");
 
                             b1.HasKey("ChemicalComponentId");
 
-                            b1.ToTable("ChemicalComponents", (string)null);
+                            b1.ToTable("ChemicalComponents");
 
                             b1.WithOwner()
                                 .HasForeignKey("ChemicalComponentId");
@@ -530,21 +528,21 @@ namespace Server.Migrations
                     b.OwnsOne("Server.Entities.StoredAmount", "CombustionEnthalpy", b1 =>
                         {
                             b1.Property<Guid>("ChemicalComponentId")
-                                .HasColumnType("uniqueidentifier");
+                                .HasColumnType("uuid");
 
                             b1.Property<string>("UnitName")
                                 .IsRequired()
                                 .HasMaxLength(50)
-                                .HasColumnType("nvarchar(50)")
+                                .HasColumnType("character varying(50)")
                                 .HasColumnName("CombustionEnthalpy_Unit");
 
                             b1.Property<double>("Value")
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasColumnName("CombustionEnthalpy_Value");
 
                             b1.HasKey("ChemicalComponentId");
 
-                            b1.ToTable("ChemicalComponents", (string)null);
+                            b1.ToTable("ChemicalComponents");
 
                             b1.WithOwner()
                                 .HasForeignKey("ChemicalComponentId");
@@ -553,21 +551,21 @@ namespace Server.Migrations
                     b.OwnsOne("Server.Entities.StoredAmount", "CriticalPressure", b1 =>
                         {
                             b1.Property<Guid>("ChemicalComponentId")
-                                .HasColumnType("uniqueidentifier");
+                                .HasColumnType("uuid");
 
                             b1.Property<string>("UnitName")
                                 .IsRequired()
                                 .HasMaxLength(50)
-                                .HasColumnType("nvarchar(50)")
+                                .HasColumnType("character varying(50)")
                                 .HasColumnName("CriticalPressure_Unit");
 
                             b1.Property<double>("Value")
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasColumnName("CriticalPressure_Value");
 
                             b1.HasKey("ChemicalComponentId");
 
-                            b1.ToTable("ChemicalComponents", (string)null);
+                            b1.ToTable("ChemicalComponents");
 
                             b1.WithOwner()
                                 .HasForeignKey("ChemicalComponentId");
@@ -576,21 +574,21 @@ namespace Server.Migrations
                     b.OwnsOne("Server.Entities.StoredAmount", "CriticalTemperature", b1 =>
                         {
                             b1.Property<Guid>("ChemicalComponentId")
-                                .HasColumnType("uniqueidentifier");
+                                .HasColumnType("uuid");
 
                             b1.Property<string>("UnitName")
                                 .IsRequired()
                                 .HasMaxLength(50)
-                                .HasColumnType("nvarchar(50)")
+                                .HasColumnType("character varying(50)")
                                 .HasColumnName("CriticalTemperature_Unit");
 
                             b1.Property<double>("Value")
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasColumnName("CriticalTemperature_Value");
 
                             b1.HasKey("ChemicalComponentId");
 
-                            b1.ToTable("ChemicalComponents", (string)null);
+                            b1.ToTable("ChemicalComponents");
 
                             b1.WithOwner()
                                 .HasForeignKey("ChemicalComponentId");
@@ -599,21 +597,21 @@ namespace Server.Migrations
                     b.OwnsOne("Server.Entities.StoredAmount", "CriticalVolume", b1 =>
                         {
                             b1.Property<Guid>("ChemicalComponentId")
-                                .HasColumnType("uniqueidentifier");
+                                .HasColumnType("uuid");
 
                             b1.Property<string>("UnitName")
                                 .IsRequired()
                                 .HasMaxLength(50)
-                                .HasColumnType("nvarchar(50)")
+                                .HasColumnType("character varying(50)")
                                 .HasColumnName("CriticalVolume_Unit");
 
                             b1.Property<double>("Value")
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasColumnName("CriticalVolume_Value");
 
                             b1.HasKey("ChemicalComponentId");
 
-                            b1.ToTable("ChemicalComponents", (string)null);
+                            b1.ToTable("ChemicalComponents");
 
                             b1.WithOwner()
                                 .HasForeignKey("ChemicalComponentId");
@@ -622,39 +620,39 @@ namespace Server.Migrations
                     b.OwnsOne("Server.Entities.BaseStructure.Components.CorrelationCoefficients", "Density", b1 =>
                         {
                             b1.Property<Guid>("ChemicalComponentId")
-                                .HasColumnType("uniqueidentifier");
+                                .HasColumnType("uuid");
 
                             b1.Property<double>("C1")
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasColumnName("Density_C1");
 
                             b1.Property<double>("C2")
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasColumnName("Density_C2");
 
                             b1.Property<double>("C3")
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasColumnName("Density_C3");
 
                             b1.Property<double>("C4")
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasColumnName("Density_C4");
 
                             b1.Property<double>("C5")
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasColumnName("Density_C5");
 
                             b1.Property<double>("C6")
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasColumnName("Density_C6");
 
                             b1.Property<double>("C7")
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasColumnName("Density_C7");
 
                             b1.HasKey("ChemicalComponentId");
 
-                            b1.ToTable("ChemicalComponents", (string)null);
+                            b1.ToTable("ChemicalComponents");
 
                             b1.WithOwner()
                                 .HasForeignKey("ChemicalComponentId");
@@ -662,21 +660,21 @@ namespace Server.Migrations
                             b1.OwnsOne("Server.Entities.StoredAmount", "Tmax", b2 =>
                                 {
                                     b2.Property<Guid>("CorrelationCoefficientsChemicalComponentId")
-                                        .HasColumnType("uniqueidentifier");
+                                        .HasColumnType("uuid");
 
                                     b2.Property<string>("UnitName")
                                         .IsRequired()
                                         .HasMaxLength(50)
-                                        .HasColumnType("nvarchar(50)")
+                                        .HasColumnType("character varying(50)")
                                         .HasColumnName("Density_Tmax_Unit");
 
                                     b2.Property<double>("Value")
-                                        .HasColumnType("float")
+                                        .HasColumnType("double precision")
                                         .HasColumnName("Density_Tmax_Value");
 
                                     b2.HasKey("CorrelationCoefficientsChemicalComponentId");
 
-                                    b2.ToTable("ChemicalComponents", (string)null);
+                                    b2.ToTable("ChemicalComponents");
 
                                     b2.WithOwner()
                                         .HasForeignKey("CorrelationCoefficientsChemicalComponentId");
@@ -685,21 +683,21 @@ namespace Server.Migrations
                             b1.OwnsOne("Server.Entities.StoredAmount", "Tmin", b2 =>
                                 {
                                     b2.Property<Guid>("CorrelationCoefficientsChemicalComponentId")
-                                        .HasColumnType("uniqueidentifier");
+                                        .HasColumnType("uuid");
 
                                     b2.Property<string>("UnitName")
                                         .IsRequired()
                                         .HasMaxLength(50)
-                                        .HasColumnType("nvarchar(50)")
+                                        .HasColumnType("character varying(50)")
                                         .HasColumnName("Density_Tmin_Unit");
 
                                     b2.Property<double>("Value")
-                                        .HasColumnType("float")
+                                        .HasColumnType("double precision")
                                         .HasColumnName("Density_Tmin_Value");
 
                                     b2.HasKey("CorrelationCoefficientsChemicalComponentId");
 
-                                    b2.ToTable("ChemicalComponents", (string)null);
+                                    b2.ToTable("ChemicalComponents");
 
                                     b2.WithOwner()
                                         .HasForeignKey("CorrelationCoefficientsChemicalComponentId");
@@ -715,21 +713,21 @@ namespace Server.Migrations
                     b.OwnsOne("Server.Entities.StoredAmount", "EnthalpyForm", b1 =>
                         {
                             b1.Property<Guid>("ChemicalComponentId")
-                                .HasColumnType("uniqueidentifier");
+                                .HasColumnType("uuid");
 
                             b1.Property<string>("UnitName")
                                 .IsRequired()
                                 .HasMaxLength(50)
-                                .HasColumnType("nvarchar(50)")
+                                .HasColumnType("character varying(50)")
                                 .HasColumnName("EnthalpyForm_Unit");
 
                             b1.Property<double>("Value")
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasColumnName("EnthalpyForm_Value");
 
                             b1.HasKey("ChemicalComponentId");
 
-                            b1.ToTable("ChemicalComponents", (string)null);
+                            b1.ToTable("ChemicalComponents");
 
                             b1.WithOwner()
                                 .HasForeignKey("ChemicalComponentId");
@@ -738,21 +736,21 @@ namespace Server.Migrations
                     b.OwnsOne("Server.Entities.StoredAmount", "EntropyForm", b1 =>
                         {
                             b1.Property<Guid>("ChemicalComponentId")
-                                .HasColumnType("uniqueidentifier");
+                                .HasColumnType("uuid");
 
                             b1.Property<string>("UnitName")
                                 .IsRequired()
                                 .HasMaxLength(50)
-                                .HasColumnType("nvarchar(50)")
+                                .HasColumnType("character varying(50)")
                                 .HasColumnName("EntropyForm_Unit");
 
                             b1.Property<double>("Value")
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasColumnName("EntropyForm_Value");
 
                             b1.HasKey("ChemicalComponentId");
 
-                            b1.ToTable("ChemicalComponents", (string)null);
+                            b1.ToTable("ChemicalComponents");
 
                             b1.WithOwner()
                                 .HasForeignKey("ChemicalComponentId");
@@ -761,39 +759,39 @@ namespace Server.Migrations
                     b.OwnsOne("Server.Entities.BaseStructure.Components.CorrelationCoefficients", "GasHeatCapacity", b1 =>
                         {
                             b1.Property<Guid>("ChemicalComponentId")
-                                .HasColumnType("uniqueidentifier");
+                                .HasColumnType("uuid");
 
                             b1.Property<double>("C1")
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasColumnName("GasHeatCapacity_C1");
 
                             b1.Property<double>("C2")
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasColumnName("GasHeatCapacity_C2");
 
                             b1.Property<double>("C3")
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasColumnName("GasHeatCapacity_C3");
 
                             b1.Property<double>("C4")
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasColumnName("GasHeatCapacity_C4");
 
                             b1.Property<double>("C5")
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasColumnName("GasHeatCapacity_C5");
 
                             b1.Property<double>("C6")
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasColumnName("GasHeatCapacity_C6");
 
                             b1.Property<double>("C7")
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasColumnName("GasHeatCapacity_C7");
 
                             b1.HasKey("ChemicalComponentId");
 
-                            b1.ToTable("ChemicalComponents", (string)null);
+                            b1.ToTable("ChemicalComponents");
 
                             b1.WithOwner()
                                 .HasForeignKey("ChemicalComponentId");
@@ -801,21 +799,21 @@ namespace Server.Migrations
                             b1.OwnsOne("Server.Entities.StoredAmount", "Tmax", b2 =>
                                 {
                                     b2.Property<Guid>("CorrelationCoefficientsChemicalComponentId")
-                                        .HasColumnType("uniqueidentifier");
+                                        .HasColumnType("uuid");
 
                                     b2.Property<string>("UnitName")
                                         .IsRequired()
                                         .HasMaxLength(50)
-                                        .HasColumnType("nvarchar(50)")
+                                        .HasColumnType("character varying(50)")
                                         .HasColumnName("GasHeatCapacity_Tmax_Unit");
 
                                     b2.Property<double>("Value")
-                                        .HasColumnType("float")
+                                        .HasColumnType("double precision")
                                         .HasColumnName("GasHeatCapacity_Tmax_Value");
 
                                     b2.HasKey("CorrelationCoefficientsChemicalComponentId");
 
-                                    b2.ToTable("ChemicalComponents", (string)null);
+                                    b2.ToTable("ChemicalComponents");
 
                                     b2.WithOwner()
                                         .HasForeignKey("CorrelationCoefficientsChemicalComponentId");
@@ -824,21 +822,21 @@ namespace Server.Migrations
                             b1.OwnsOne("Server.Entities.StoredAmount", "Tmin", b2 =>
                                 {
                                     b2.Property<Guid>("CorrelationCoefficientsChemicalComponentId")
-                                        .HasColumnType("uniqueidentifier");
+                                        .HasColumnType("uuid");
 
                                     b2.Property<string>("UnitName")
                                         .IsRequired()
                                         .HasMaxLength(50)
-                                        .HasColumnType("nvarchar(50)")
+                                        .HasColumnType("character varying(50)")
                                         .HasColumnName("GasHeatCapacity_Tmin_Unit");
 
                                     b2.Property<double>("Value")
-                                        .HasColumnType("float")
+                                        .HasColumnType("double precision")
                                         .HasColumnName("GasHeatCapacity_Tmin_Value");
 
                                     b2.HasKey("CorrelationCoefficientsChemicalComponentId");
 
-                                    b2.ToTable("ChemicalComponents", (string)null);
+                                    b2.ToTable("ChemicalComponents");
 
                                     b2.WithOwner()
                                         .HasForeignKey("CorrelationCoefficientsChemicalComponentId");
@@ -854,39 +852,39 @@ namespace Server.Migrations
                     b.OwnsOne("Server.Entities.BaseStructure.Components.CorrelationCoefficients", "GasThermalCond", b1 =>
                         {
                             b1.Property<Guid>("ChemicalComponentId")
-                                .HasColumnType("uniqueidentifier");
+                                .HasColumnType("uuid");
 
                             b1.Property<double>("C1")
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasColumnName("GasThermalCond_C1");
 
                             b1.Property<double>("C2")
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasColumnName("GasThermalCond_C2");
 
                             b1.Property<double>("C3")
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasColumnName("GasThermalCond_C3");
 
                             b1.Property<double>("C4")
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasColumnName("GasThermalCond_C4");
 
                             b1.Property<double>("C5")
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasColumnName("GasThermalCond_C5");
 
                             b1.Property<double>("C6")
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasColumnName("GasThermalCond_C6");
 
                             b1.Property<double>("C7")
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasColumnName("GasThermalCond_C7");
 
                             b1.HasKey("ChemicalComponentId");
 
-                            b1.ToTable("ChemicalComponents", (string)null);
+                            b1.ToTable("ChemicalComponents");
 
                             b1.WithOwner()
                                 .HasForeignKey("ChemicalComponentId");
@@ -894,21 +892,21 @@ namespace Server.Migrations
                             b1.OwnsOne("Server.Entities.StoredAmount", "Tmax", b2 =>
                                 {
                                     b2.Property<Guid>("CorrelationCoefficientsChemicalComponentId")
-                                        .HasColumnType("uniqueidentifier");
+                                        .HasColumnType("uuid");
 
                                     b2.Property<string>("UnitName")
                                         .IsRequired()
                                         .HasMaxLength(50)
-                                        .HasColumnType("nvarchar(50)")
+                                        .HasColumnType("character varying(50)")
                                         .HasColumnName("GasThermalCond_Tmax_Unit");
 
                                     b2.Property<double>("Value")
-                                        .HasColumnType("float")
+                                        .HasColumnType("double precision")
                                         .HasColumnName("GasThermalCond_Tmax_Value");
 
                                     b2.HasKey("CorrelationCoefficientsChemicalComponentId");
 
-                                    b2.ToTable("ChemicalComponents", (string)null);
+                                    b2.ToTable("ChemicalComponents");
 
                                     b2.WithOwner()
                                         .HasForeignKey("CorrelationCoefficientsChemicalComponentId");
@@ -917,21 +915,21 @@ namespace Server.Migrations
                             b1.OwnsOne("Server.Entities.StoredAmount", "Tmin", b2 =>
                                 {
                                     b2.Property<Guid>("CorrelationCoefficientsChemicalComponentId")
-                                        .HasColumnType("uniqueidentifier");
+                                        .HasColumnType("uuid");
 
                                     b2.Property<string>("UnitName")
                                         .IsRequired()
                                         .HasMaxLength(50)
-                                        .HasColumnType("nvarchar(50)")
+                                        .HasColumnType("character varying(50)")
                                         .HasColumnName("GasThermalCond_Tmin_Unit");
 
                                     b2.Property<double>("Value")
-                                        .HasColumnType("float")
+                                        .HasColumnType("double precision")
                                         .HasColumnName("GasThermalCond_Tmin_Value");
 
                                     b2.HasKey("CorrelationCoefficientsChemicalComponentId");
 
-                                    b2.ToTable("ChemicalComponents", (string)null);
+                                    b2.ToTable("ChemicalComponents");
 
                                     b2.WithOwner()
                                         .HasForeignKey("CorrelationCoefficientsChemicalComponentId");
@@ -947,39 +945,39 @@ namespace Server.Migrations
                     b.OwnsOne("Server.Entities.BaseStructure.Components.CorrelationCoefficients", "GasViscosity", b1 =>
                         {
                             b1.Property<Guid>("ChemicalComponentId")
-                                .HasColumnType("uniqueidentifier");
+                                .HasColumnType("uuid");
 
                             b1.Property<double>("C1")
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasColumnName("GasViscosity_C1");
 
                             b1.Property<double>("C2")
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasColumnName("GasViscosity_C2");
 
                             b1.Property<double>("C3")
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasColumnName("GasViscosity_C3");
 
                             b1.Property<double>("C4")
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasColumnName("GasViscosity_C4");
 
                             b1.Property<double>("C5")
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasColumnName("GasViscosity_C5");
 
                             b1.Property<double>("C6")
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasColumnName("GasViscosity_C6");
 
                             b1.Property<double>("C7")
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasColumnName("GasViscosity_C7");
 
                             b1.HasKey("ChemicalComponentId");
 
-                            b1.ToTable("ChemicalComponents", (string)null);
+                            b1.ToTable("ChemicalComponents");
 
                             b1.WithOwner()
                                 .HasForeignKey("ChemicalComponentId");
@@ -987,21 +985,21 @@ namespace Server.Migrations
                             b1.OwnsOne("Server.Entities.StoredAmount", "Tmax", b2 =>
                                 {
                                     b2.Property<Guid>("CorrelationCoefficientsChemicalComponentId")
-                                        .HasColumnType("uniqueidentifier");
+                                        .HasColumnType("uuid");
 
                                     b2.Property<string>("UnitName")
                                         .IsRequired()
                                         .HasMaxLength(50)
-                                        .HasColumnType("nvarchar(50)")
+                                        .HasColumnType("character varying(50)")
                                         .HasColumnName("GasViscosity_Tmax_Unit");
 
                                     b2.Property<double>("Value")
-                                        .HasColumnType("float")
+                                        .HasColumnType("double precision")
                                         .HasColumnName("GasViscosity_Tmax_Value");
 
                                     b2.HasKey("CorrelationCoefficientsChemicalComponentId");
 
-                                    b2.ToTable("ChemicalComponents", (string)null);
+                                    b2.ToTable("ChemicalComponents");
 
                                     b2.WithOwner()
                                         .HasForeignKey("CorrelationCoefficientsChemicalComponentId");
@@ -1010,21 +1008,21 @@ namespace Server.Migrations
                             b1.OwnsOne("Server.Entities.StoredAmount", "Tmin", b2 =>
                                 {
                                     b2.Property<Guid>("CorrelationCoefficientsChemicalComponentId")
-                                        .HasColumnType("uniqueidentifier");
+                                        .HasColumnType("uuid");
 
                                     b2.Property<string>("UnitName")
                                         .IsRequired()
                                         .HasMaxLength(50)
-                                        .HasColumnType("nvarchar(50)")
+                                        .HasColumnType("character varying(50)")
                                         .HasColumnName("GasViscosity_Tmin_Unit");
 
                                     b2.Property<double>("Value")
-                                        .HasColumnType("float")
+                                        .HasColumnType("double precision")
                                         .HasColumnName("GasViscosity_Tmin_Value");
 
                                     b2.HasKey("CorrelationCoefficientsChemicalComponentId");
 
-                                    b2.ToTable("ChemicalComponents", (string)null);
+                                    b2.ToTable("ChemicalComponents");
 
                                     b2.WithOwner()
                                         .HasForeignKey("CorrelationCoefficientsChemicalComponentId");
@@ -1040,21 +1038,21 @@ namespace Server.Migrations
                     b.OwnsOne("Server.Entities.StoredAmount", "GibbsForm", b1 =>
                         {
                             b1.Property<Guid>("ChemicalComponentId")
-                                .HasColumnType("uniqueidentifier");
+                                .HasColumnType("uuid");
 
                             b1.Property<string>("UnitName")
                                 .IsRequired()
                                 .HasMaxLength(50)
-                                .HasColumnType("nvarchar(50)")
+                                .HasColumnType("character varying(50)")
                                 .HasColumnName("GibbsForm_Unit");
 
                             b1.Property<double>("Value")
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasColumnName("GibbsForm_Value");
 
                             b1.HasKey("ChemicalComponentId");
 
-                            b1.ToTable("ChemicalComponents", (string)null);
+                            b1.ToTable("ChemicalComponents");
 
                             b1.WithOwner()
                                 .HasForeignKey("ChemicalComponentId");
@@ -1063,39 +1061,39 @@ namespace Server.Migrations
                     b.OwnsOne("Server.Entities.BaseStructure.Components.CorrelationCoefficients", "HeatOfVaporization", b1 =>
                         {
                             b1.Property<Guid>("ChemicalComponentId")
-                                .HasColumnType("uniqueidentifier");
+                                .HasColumnType("uuid");
 
                             b1.Property<double>("C1")
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasColumnName("HeatOfVaporization_C1");
 
                             b1.Property<double>("C2")
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasColumnName("HeatOfVaporization_C2");
 
                             b1.Property<double>("C3")
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasColumnName("HeatOfVaporization_C3");
 
                             b1.Property<double>("C4")
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasColumnName("HeatOfVaporization_C4");
 
                             b1.Property<double>("C5")
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasColumnName("HeatOfVaporization_C5");
 
                             b1.Property<double>("C6")
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasColumnName("HeatOfVaporization_C6");
 
                             b1.Property<double>("C7")
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasColumnName("HeatOfVaporization_C7");
 
                             b1.HasKey("ChemicalComponentId");
 
-                            b1.ToTable("ChemicalComponents", (string)null);
+                            b1.ToTable("ChemicalComponents");
 
                             b1.WithOwner()
                                 .HasForeignKey("ChemicalComponentId");
@@ -1103,21 +1101,21 @@ namespace Server.Migrations
                             b1.OwnsOne("Server.Entities.StoredAmount", "Tmax", b2 =>
                                 {
                                     b2.Property<Guid>("CorrelationCoefficientsChemicalComponentId")
-                                        .HasColumnType("uniqueidentifier");
+                                        .HasColumnType("uuid");
 
                                     b2.Property<string>("UnitName")
                                         .IsRequired()
                                         .HasMaxLength(50)
-                                        .HasColumnType("nvarchar(50)")
+                                        .HasColumnType("character varying(50)")
                                         .HasColumnName("HeatOfVaporization_Tmax_Unit");
 
                                     b2.Property<double>("Value")
-                                        .HasColumnType("float")
+                                        .HasColumnType("double precision")
                                         .HasColumnName("HeatOfVaporization_Tmax_Value");
 
                                     b2.HasKey("CorrelationCoefficientsChemicalComponentId");
 
-                                    b2.ToTable("ChemicalComponents", (string)null);
+                                    b2.ToTable("ChemicalComponents");
 
                                     b2.WithOwner()
                                         .HasForeignKey("CorrelationCoefficientsChemicalComponentId");
@@ -1126,21 +1124,21 @@ namespace Server.Migrations
                             b1.OwnsOne("Server.Entities.StoredAmount", "Tmin", b2 =>
                                 {
                                     b2.Property<Guid>("CorrelationCoefficientsChemicalComponentId")
-                                        .HasColumnType("uniqueidentifier");
+                                        .HasColumnType("uuid");
 
                                     b2.Property<string>("UnitName")
                                         .IsRequired()
                                         .HasMaxLength(50)
-                                        .HasColumnType("nvarchar(50)")
+                                        .HasColumnType("character varying(50)")
                                         .HasColumnName("HeatOfVaporization_Tmin_Unit");
 
                                     b2.Property<double>("Value")
-                                        .HasColumnType("float")
+                                        .HasColumnType("double precision")
                                         .HasColumnName("HeatOfVaporization_Tmin_Value");
 
                                     b2.HasKey("CorrelationCoefficientsChemicalComponentId");
 
-                                    b2.ToTable("ChemicalComponents", (string)null);
+                                    b2.ToTable("ChemicalComponents");
 
                                     b2.WithOwner()
                                         .HasForeignKey("CorrelationCoefficientsChemicalComponentId");
@@ -1156,39 +1154,39 @@ namespace Server.Migrations
                     b.OwnsOne("Server.Entities.BaseStructure.Components.CorrelationCoefficients", "LiquidHeatCapacity", b1 =>
                         {
                             b1.Property<Guid>("ChemicalComponentId")
-                                .HasColumnType("uniqueidentifier");
+                                .HasColumnType("uuid");
 
                             b1.Property<double>("C1")
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasColumnName("LiquidHeatCapacity_C1");
 
                             b1.Property<double>("C2")
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasColumnName("LiquidHeatCapacity_C2");
 
                             b1.Property<double>("C3")
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasColumnName("LiquidHeatCapacity_C3");
 
                             b1.Property<double>("C4")
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasColumnName("LiquidHeatCapacity_C4");
 
                             b1.Property<double>("C5")
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasColumnName("LiquidHeatCapacity_C5");
 
                             b1.Property<double>("C6")
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasColumnName("LiquidHeatCapacity_C6");
 
                             b1.Property<double>("C7")
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasColumnName("LiquidHeatCapacity_C7");
 
                             b1.HasKey("ChemicalComponentId");
 
-                            b1.ToTable("ChemicalComponents", (string)null);
+                            b1.ToTable("ChemicalComponents");
 
                             b1.WithOwner()
                                 .HasForeignKey("ChemicalComponentId");
@@ -1196,21 +1194,21 @@ namespace Server.Migrations
                             b1.OwnsOne("Server.Entities.StoredAmount", "Tmax", b2 =>
                                 {
                                     b2.Property<Guid>("CorrelationCoefficientsChemicalComponentId")
-                                        .HasColumnType("uniqueidentifier");
+                                        .HasColumnType("uuid");
 
                                     b2.Property<string>("UnitName")
                                         .IsRequired()
                                         .HasMaxLength(50)
-                                        .HasColumnType("nvarchar(50)")
+                                        .HasColumnType("character varying(50)")
                                         .HasColumnName("LiquidHeatCapacity_Tmax_Unit");
 
                                     b2.Property<double>("Value")
-                                        .HasColumnType("float")
+                                        .HasColumnType("double precision")
                                         .HasColumnName("LiquidHeatCapacity_Tmax_Value");
 
                                     b2.HasKey("CorrelationCoefficientsChemicalComponentId");
 
-                                    b2.ToTable("ChemicalComponents", (string)null);
+                                    b2.ToTable("ChemicalComponents");
 
                                     b2.WithOwner()
                                         .HasForeignKey("CorrelationCoefficientsChemicalComponentId");
@@ -1219,21 +1217,21 @@ namespace Server.Migrations
                             b1.OwnsOne("Server.Entities.StoredAmount", "Tmin", b2 =>
                                 {
                                     b2.Property<Guid>("CorrelationCoefficientsChemicalComponentId")
-                                        .HasColumnType("uniqueidentifier");
+                                        .HasColumnType("uuid");
 
                                     b2.Property<string>("UnitName")
                                         .IsRequired()
                                         .HasMaxLength(50)
-                                        .HasColumnType("nvarchar(50)")
+                                        .HasColumnType("character varying(50)")
                                         .HasColumnName("LiquidHeatCapacity_Tmin_Unit");
 
                                     b2.Property<double>("Value")
-                                        .HasColumnType("float")
+                                        .HasColumnType("double precision")
                                         .HasColumnName("LiquidHeatCapacity_Tmin_Value");
 
                                     b2.HasKey("CorrelationCoefficientsChemicalComponentId");
 
-                                    b2.ToTable("ChemicalComponents", (string)null);
+                                    b2.ToTable("ChemicalComponents");
 
                                     b2.WithOwner()
                                         .HasForeignKey("CorrelationCoefficientsChemicalComponentId");
@@ -1249,39 +1247,39 @@ namespace Server.Migrations
                     b.OwnsOne("Server.Entities.BaseStructure.Components.CorrelationCoefficients", "LiquidThermalCond", b1 =>
                         {
                             b1.Property<Guid>("ChemicalComponentId")
-                                .HasColumnType("uniqueidentifier");
+                                .HasColumnType("uuid");
 
                             b1.Property<double>("C1")
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasColumnName("LiquidThermalCond_C1");
 
                             b1.Property<double>("C2")
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasColumnName("LiquidThermalCond_C2");
 
                             b1.Property<double>("C3")
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasColumnName("LiquidThermalCond_C3");
 
                             b1.Property<double>("C4")
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasColumnName("LiquidThermalCond_C4");
 
                             b1.Property<double>("C5")
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasColumnName("LiquidThermalCond_C5");
 
                             b1.Property<double>("C6")
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasColumnName("LiquidThermalCond_C6");
 
                             b1.Property<double>("C7")
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasColumnName("LiquidThermalCond_C7");
 
                             b1.HasKey("ChemicalComponentId");
 
-                            b1.ToTable("ChemicalComponents", (string)null);
+                            b1.ToTable("ChemicalComponents");
 
                             b1.WithOwner()
                                 .HasForeignKey("ChemicalComponentId");
@@ -1289,21 +1287,21 @@ namespace Server.Migrations
                             b1.OwnsOne("Server.Entities.StoredAmount", "Tmax", b2 =>
                                 {
                                     b2.Property<Guid>("CorrelationCoefficientsChemicalComponentId")
-                                        .HasColumnType("uniqueidentifier");
+                                        .HasColumnType("uuid");
 
                                     b2.Property<string>("UnitName")
                                         .IsRequired()
                                         .HasMaxLength(50)
-                                        .HasColumnType("nvarchar(50)")
+                                        .HasColumnType("character varying(50)")
                                         .HasColumnName("LiquidThermalCond_Tmax_Unit");
 
                                     b2.Property<double>("Value")
-                                        .HasColumnType("float")
+                                        .HasColumnType("double precision")
                                         .HasColumnName("LiquidThermalCond_Tmax_Value");
 
                                     b2.HasKey("CorrelationCoefficientsChemicalComponentId");
 
-                                    b2.ToTable("ChemicalComponents", (string)null);
+                                    b2.ToTable("ChemicalComponents");
 
                                     b2.WithOwner()
                                         .HasForeignKey("CorrelationCoefficientsChemicalComponentId");
@@ -1312,21 +1310,21 @@ namespace Server.Migrations
                             b1.OwnsOne("Server.Entities.StoredAmount", "Tmin", b2 =>
                                 {
                                     b2.Property<Guid>("CorrelationCoefficientsChemicalComponentId")
-                                        .HasColumnType("uniqueidentifier");
+                                        .HasColumnType("uuid");
 
                                     b2.Property<string>("UnitName")
                                         .IsRequired()
                                         .HasMaxLength(50)
-                                        .HasColumnType("nvarchar(50)")
+                                        .HasColumnType("character varying(50)")
                                         .HasColumnName("LiquidThermalCond_Tmin_Unit");
 
                                     b2.Property<double>("Value")
-                                        .HasColumnType("float")
+                                        .HasColumnType("double precision")
                                         .HasColumnName("LiquidThermalCond_Tmin_Value");
 
                                     b2.HasKey("CorrelationCoefficientsChemicalComponentId");
 
-                                    b2.ToTable("ChemicalComponents", (string)null);
+                                    b2.ToTable("ChemicalComponents");
 
                                     b2.WithOwner()
                                         .HasForeignKey("CorrelationCoefficientsChemicalComponentId");
@@ -1342,39 +1340,39 @@ namespace Server.Migrations
                     b.OwnsOne("Server.Entities.BaseStructure.Components.CorrelationCoefficients", "LiquidViscosity", b1 =>
                         {
                             b1.Property<Guid>("ChemicalComponentId")
-                                .HasColumnType("uniqueidentifier");
+                                .HasColumnType("uuid");
 
                             b1.Property<double>("C1")
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasColumnName("LiquidViscosity_C1");
 
                             b1.Property<double>("C2")
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasColumnName("LiquidViscosity_C2");
 
                             b1.Property<double>("C3")
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasColumnName("LiquidViscosity_C3");
 
                             b1.Property<double>("C4")
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasColumnName("LiquidViscosity_C4");
 
                             b1.Property<double>("C5")
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasColumnName("LiquidViscosity_C5");
 
                             b1.Property<double>("C6")
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasColumnName("LiquidViscosity_C6");
 
                             b1.Property<double>("C7")
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasColumnName("LiquidViscosity_C7");
 
                             b1.HasKey("ChemicalComponentId");
 
-                            b1.ToTable("ChemicalComponents", (string)null);
+                            b1.ToTable("ChemicalComponents");
 
                             b1.WithOwner()
                                 .HasForeignKey("ChemicalComponentId");
@@ -1382,21 +1380,21 @@ namespace Server.Migrations
                             b1.OwnsOne("Server.Entities.StoredAmount", "Tmax", b2 =>
                                 {
                                     b2.Property<Guid>("CorrelationCoefficientsChemicalComponentId")
-                                        .HasColumnType("uniqueidentifier");
+                                        .HasColumnType("uuid");
 
                                     b2.Property<string>("UnitName")
                                         .IsRequired()
                                         .HasMaxLength(50)
-                                        .HasColumnType("nvarchar(50)")
+                                        .HasColumnType("character varying(50)")
                                         .HasColumnName("LiquidViscosity_Tmax_Unit");
 
                                     b2.Property<double>("Value")
-                                        .HasColumnType("float")
+                                        .HasColumnType("double precision")
                                         .HasColumnName("LiquidViscosity_Tmax_Value");
 
                                     b2.HasKey("CorrelationCoefficientsChemicalComponentId");
 
-                                    b2.ToTable("ChemicalComponents", (string)null);
+                                    b2.ToTable("ChemicalComponents");
 
                                     b2.WithOwner()
                                         .HasForeignKey("CorrelationCoefficientsChemicalComponentId");
@@ -1405,21 +1403,21 @@ namespace Server.Migrations
                             b1.OwnsOne("Server.Entities.StoredAmount", "Tmin", b2 =>
                                 {
                                     b2.Property<Guid>("CorrelationCoefficientsChemicalComponentId")
-                                        .HasColumnType("uniqueidentifier");
+                                        .HasColumnType("uuid");
 
                                     b2.Property<string>("UnitName")
                                         .IsRequired()
                                         .HasMaxLength(50)
-                                        .HasColumnType("nvarchar(50)")
+                                        .HasColumnType("character varying(50)")
                                         .HasColumnName("LiquidViscosity_Tmin_Unit");
 
                                     b2.Property<double>("Value")
-                                        .HasColumnType("float")
+                                        .HasColumnType("double precision")
                                         .HasColumnName("LiquidViscosity_Tmin_Value");
 
                                     b2.HasKey("CorrelationCoefficientsChemicalComponentId");
 
-                                    b2.ToTable("ChemicalComponents", (string)null);
+                                    b2.ToTable("ChemicalComponents");
 
                                     b2.WithOwner()
                                         .HasForeignKey("CorrelationCoefficientsChemicalComponentId");
@@ -1435,21 +1433,21 @@ namespace Server.Migrations
                     b.OwnsOne("Server.Entities.StoredAmount", "MeltingPoint", b1 =>
                         {
                             b1.Property<Guid>("ChemicalComponentId")
-                                .HasColumnType("uniqueidentifier");
+                                .HasColumnType("uuid");
 
                             b1.Property<string>("UnitName")
                                 .IsRequired()
                                 .HasMaxLength(50)
-                                .HasColumnType("nvarchar(50)")
+                                .HasColumnType("character varying(50)")
                                 .HasColumnName("MeltingPoint_Unit");
 
                             b1.Property<double>("Value")
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasColumnName("MeltingPoint_Value");
 
                             b1.HasKey("ChemicalComponentId");
 
-                            b1.ToTable("ChemicalComponents", (string)null);
+                            b1.ToTable("ChemicalComponents");
 
                             b1.WithOwner()
                                 .HasForeignKey("ChemicalComponentId");
@@ -1458,39 +1456,39 @@ namespace Server.Migrations
                     b.OwnsOne("Server.Entities.BaseStructure.Components.CorrelationCoefficients", "SurfaceTension", b1 =>
                         {
                             b1.Property<Guid>("ChemicalComponentId")
-                                .HasColumnType("uniqueidentifier");
+                                .HasColumnType("uuid");
 
                             b1.Property<double>("C1")
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasColumnName("SurfaceTension_C1");
 
                             b1.Property<double>("C2")
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasColumnName("SurfaceTension_C2");
 
                             b1.Property<double>("C3")
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasColumnName("SurfaceTension_C3");
 
                             b1.Property<double>("C4")
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasColumnName("SurfaceTension_C4");
 
                             b1.Property<double>("C5")
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasColumnName("SurfaceTension_C5");
 
                             b1.Property<double>("C6")
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasColumnName("SurfaceTension_C6");
 
                             b1.Property<double>("C7")
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasColumnName("SurfaceTension_C7");
 
                             b1.HasKey("ChemicalComponentId");
 
-                            b1.ToTable("ChemicalComponents", (string)null);
+                            b1.ToTable("ChemicalComponents");
 
                             b1.WithOwner()
                                 .HasForeignKey("ChemicalComponentId");
@@ -1498,21 +1496,21 @@ namespace Server.Migrations
                             b1.OwnsOne("Server.Entities.StoredAmount", "Tmax", b2 =>
                                 {
                                     b2.Property<Guid>("CorrelationCoefficientsChemicalComponentId")
-                                        .HasColumnType("uniqueidentifier");
+                                        .HasColumnType("uuid");
 
                                     b2.Property<string>("UnitName")
                                         .IsRequired()
                                         .HasMaxLength(50)
-                                        .HasColumnType("nvarchar(50)")
+                                        .HasColumnType("character varying(50)")
                                         .HasColumnName("SurfaceTension_Tmax_Unit");
 
                                     b2.Property<double>("Value")
-                                        .HasColumnType("float")
+                                        .HasColumnType("double precision")
                                         .HasColumnName("SurfaceTension_Tmax_Value");
 
                                     b2.HasKey("CorrelationCoefficientsChemicalComponentId");
 
-                                    b2.ToTable("ChemicalComponents", (string)null);
+                                    b2.ToTable("ChemicalComponents");
 
                                     b2.WithOwner()
                                         .HasForeignKey("CorrelationCoefficientsChemicalComponentId");
@@ -1521,21 +1519,21 @@ namespace Server.Migrations
                             b1.OwnsOne("Server.Entities.StoredAmount", "Tmin", b2 =>
                                 {
                                     b2.Property<Guid>("CorrelationCoefficientsChemicalComponentId")
-                                        .HasColumnType("uniqueidentifier");
+                                        .HasColumnType("uuid");
 
                                     b2.Property<string>("UnitName")
                                         .IsRequired()
                                         .HasMaxLength(50)
-                                        .HasColumnType("nvarchar(50)")
+                                        .HasColumnType("character varying(50)")
                                         .HasColumnName("SurfaceTension_Tmin_Unit");
 
                                     b2.Property<double>("Value")
-                                        .HasColumnType("float")
+                                        .HasColumnType("double precision")
                                         .HasColumnName("SurfaceTension_Tmin_Value");
 
                                     b2.HasKey("CorrelationCoefficientsChemicalComponentId");
 
-                                    b2.ToTable("ChemicalComponents", (string)null);
+                                    b2.ToTable("ChemicalComponents");
 
                                     b2.WithOwner()
                                         .HasForeignKey("CorrelationCoefficientsChemicalComponentId");
@@ -1551,39 +1549,39 @@ namespace Server.Migrations
                     b.OwnsOne("Server.Entities.BaseStructure.Components.CorrelationCoefficients", "VaporPressure", b1 =>
                         {
                             b1.Property<Guid>("ChemicalComponentId")
-                                .HasColumnType("uniqueidentifier");
+                                .HasColumnType("uuid");
 
                             b1.Property<double>("C1")
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasColumnName("VaporPressure_C1");
 
                             b1.Property<double>("C2")
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasColumnName("VaporPressure_C2");
 
                             b1.Property<double>("C3")
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasColumnName("VaporPressure_C3");
 
                             b1.Property<double>("C4")
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasColumnName("VaporPressure_C4");
 
                             b1.Property<double>("C5")
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasColumnName("VaporPressure_C5");
 
                             b1.Property<double>("C6")
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasColumnName("VaporPressure_C6");
 
                             b1.Property<double>("C7")
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasColumnName("VaporPressure_C7");
 
                             b1.HasKey("ChemicalComponentId");
 
-                            b1.ToTable("ChemicalComponents", (string)null);
+                            b1.ToTable("ChemicalComponents");
 
                             b1.WithOwner()
                                 .HasForeignKey("ChemicalComponentId");
@@ -1591,21 +1589,21 @@ namespace Server.Migrations
                             b1.OwnsOne("Server.Entities.StoredAmount", "Tmax", b2 =>
                                 {
                                     b2.Property<Guid>("CorrelationCoefficientsChemicalComponentId")
-                                        .HasColumnType("uniqueidentifier");
+                                        .HasColumnType("uuid");
 
                                     b2.Property<string>("UnitName")
                                         .IsRequired()
                                         .HasMaxLength(50)
-                                        .HasColumnType("nvarchar(50)")
+                                        .HasColumnType("character varying(50)")
                                         .HasColumnName("VaporPressure_Tmax_Unit");
 
                                     b2.Property<double>("Value")
-                                        .HasColumnType("float")
+                                        .HasColumnType("double precision")
                                         .HasColumnName("VaporPressure_Tmax_Value");
 
                                     b2.HasKey("CorrelationCoefficientsChemicalComponentId");
 
-                                    b2.ToTable("ChemicalComponents", (string)null);
+                                    b2.ToTable("ChemicalComponents");
 
                                     b2.WithOwner()
                                         .HasForeignKey("CorrelationCoefficientsChemicalComponentId");
@@ -1614,21 +1612,21 @@ namespace Server.Migrations
                             b1.OwnsOne("Server.Entities.StoredAmount", "Tmin", b2 =>
                                 {
                                     b2.Property<Guid>("CorrelationCoefficientsChemicalComponentId")
-                                        .HasColumnType("uniqueidentifier");
+                                        .HasColumnType("uuid");
 
                                     b2.Property<string>("UnitName")
                                         .IsRequired()
                                         .HasMaxLength(50)
-                                        .HasColumnType("nvarchar(50)")
+                                        .HasColumnType("character varying(50)")
                                         .HasColumnName("VaporPressure_Tmin_Unit");
 
                                     b2.Property<double>("Value")
-                                        .HasColumnType("float")
+                                        .HasColumnType("double precision")
                                         .HasColumnName("VaporPressure_Tmin_Value");
 
                                     b2.HasKey("CorrelationCoefficientsChemicalComponentId");
 
-                                    b2.ToTable("ChemicalComponents", (string)null);
+                                    b2.ToTable("ChemicalComponents");
 
                                     b2.WithOwner()
                                         .HasForeignKey("CorrelationCoefficientsChemicalComponentId");
@@ -1644,21 +1642,21 @@ namespace Server.Migrations
                     b.OwnsOne("Server.Entities.StoredAmount", "VolumeAsterisk", b1 =>
                         {
                             b1.Property<Guid>("ChemicalComponentId")
-                                .HasColumnType("uniqueidentifier");
+                                .HasColumnType("uuid");
 
                             b1.Property<string>("UnitName")
                                 .IsRequired()
                                 .HasMaxLength(50)
-                                .HasColumnType("nvarchar(50)")
+                                .HasColumnType("character varying(50)")
                                 .HasColumnName("VolumeAsterisk_Unit");
 
                             b1.Property<double>("Value")
-                                .HasColumnType("float")
+                                .HasColumnType("double precision")
                                 .HasColumnName("VolumeAsterisk_Value");
 
                             b1.HasKey("ChemicalComponentId");
 
-                            b1.ToTable("ChemicalComponents", (string)null);
+                            b1.ToTable("ChemicalComponents");
 
                             b1.WithOwner()
                                 .HasForeignKey("ChemicalComponentId");

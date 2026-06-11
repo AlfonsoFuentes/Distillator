@@ -1,10 +1,12 @@
-﻿@implements IDisposable
+﻿@using Client.Pages.UnitOperations.MaterialStreams.CompositionGrids
+@implements IDisposable
 
-@* <MudDialog Gutters="false" ContentClass="pa-0">
+
+<MudDialog Gutters="false" ContentClass="pa-0">
     <DialogContent>
-        @* 💡 Ya no necesitamos el div .modal-overlay 
+        @* 💡 Ya no necesitamos el div .modal-overlay *@
         <div class="stream-dialog">
-            
+
             <div class="dialog-header">
                 <span class="dialog-title">Stream Properties</span>
                 <button class="close-button" @onclick="Cancel">✕</button>
@@ -21,13 +23,13 @@
                 @if (activeTab == "Conditions")
                 {
                     <div class="tab-content active">
-                        <MaterialStreamMainData Facade="Facade"/>
+                        <MaterialStreamMainData Facade="Facade" />
                     </div>
                 }
                 @if (activeTab == "Composition")
                 {
                     <div class="tab-content active">
-                        <NewCompositionGrid @bind-Variable="Facade.StreamComposition" />
+                        <CompositionGrid @bind-Variable="Facade.Composition" />
                     </div>
                 }
                 @if (activeTab == "Properties")
@@ -38,29 +40,33 @@
                 }
             </div>
 
-            @* 🟢 AGREGAR este bloque 
-            <div class="status-bar" style="background-color: @Facade.StatusColor; color: #fff;">
-                <span class="status-text">@Facade.StatusText</span>
+            @* 🟢 AGREGAR este bloque *@
+            <div class="status-bar" style="background-color: @Stream.StatusColor; color: #fff;">
+                <span class="status-text">@Stream.StatusText</span>
             </div>
         </div>
     </DialogContent>
-</MudDialog> *@
+</MudDialog>
 
 @code {
     // 1. Necesitas este parámetro para que el diálogo sepa cómo cerrarse
     [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
 
+    [Parameter]
+    public StreamVisualElement Stream { get; set; } = default!;
     // 2. Tu parámetro del Facade que ya tenías
-    // [Parameter] public StreamFacade2 Facade { get; set; } = default!;
 
-    // private void Submit() => MudDialog.Close(DialogResult.Ok(true));
-    // private void Cancel() => MudDialog.Cancel();
+    private IFacadeStream Facade => Stream.Facade as IFacadeStream ?? throw new InvalidOperationException("Facade must be IFacadeStream");
+
+
+    private void Submit() => MudDialog.Close(DialogResult.Ok(true));
+    private void Cancel() => MudDialog.Cancel();
 
   
-    // // ─────────────────────────────────────────────────────────
-    // // 🔹 ESTADO LOCAL
-    // // ─────────────────────────────────────────────────────────
-    // private string activeTab = "Conditions";
+    // ─────────────────────────────────────────────────────────
+    // 🔹 ESTADO LOCAL
+    // ─────────────────────────────────────────────────────────
+    private string activeTab = "Conditions";
 
    
 
@@ -70,31 +76,30 @@
     //     InvokeAsync(StateHasChanged);
     // }
 
-    // // ─────────────────────────────────────────────────────────
-    // // 🔹 HANDLERS DE UI
-    // // ─────────────────────────────────────────────────────────
-    // private void SetTab(string tabName)
-    // {
-    //     activeTab = tabName;
-    // }
+    // ─────────────────────────────────────────────────────────
+    // 🔹 HANDLERS DE UI
+    // ─────────────────────────────────────────────────────────
+    private void SetTab(string tabName)
+    {
+        activeTab = tabName;
+    }
 
-    // private async Task CloseDialog()
-    // {
-    //     MudDialog.Cancel();
-    // }
+    private async Task CloseDialog()
+    {
+        MudDialog.Cancel();
+    }
 
-    // // En el @code de MaterialStreamDialog.razor:
-
-    // protected override void OnInitialized()
-    // {
-    //     // Suscribirse al evento de cambio de estado
-    //     Facade.OnStateChanged += StateHasChanged;
-    // }
+    protected override void OnInitialized()
+    {
+        // 🔥 Suscribirse al WM para que el dialog se actualice
+        WM.OnNotifyUI += StateHasChanged;
+    }
 
     public void Dispose()
     {
-        // Limpiar suscripción para evitar memory leaks
-        // Facade.OnStateChanged -= StateHasChanged;
+        // 🔥 Limpiar suscripción para evitar memory leaks
+        WM.OnNotifyUI -= StateHasChanged;
     }
+
    
 }

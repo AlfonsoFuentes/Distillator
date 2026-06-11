@@ -6,42 +6,100 @@ using UnitSystem;
 
 namespace Shared.SolverConsecutive.Equipments
 {
+    public enum FlashTankStateType { Created, PartiallyConnected, ReadyToCalculate, Solved }
     public class SolverDrum : SolverEquipmentBase
     {
-        public IFacadeStream Feed { get;private set; } = null!;
+        public IFacadeStream Feed { get; private set; } = null!;
         public IFacadeStream VaporOutlet { get; private set; } = null!;
         public IFacadeStream LiquidOutlet { get; private set; } = null!;
-        public override string Name { get; }
 
-        public void SetFeed(IFacadeStream feed)
-        {
-            Feed = feed;
-        }
-        public void SetVaporOutlet(IFacadeStream vaporOutlet)
-        {
-            VaporOutlet = vaporOutlet;
-        }
-        public void SetLiquidOutlet(IFacadeStream liquidOutlet)
-        {
-            LiquidOutlet = liquidOutlet;
-        }
         public override List<ISolverEquation> Equations => GetEquations().ToList();
 
         public SolverDrum(string name)
         {
             Name = name;
-
         }
 
+        public void SetFeed(IFacadeStream feed)
+        {
+            Feed = feed;
+        }
+
+        public void SetVaporOutlet(IFacadeStream vaporOutlet)
+        {
+            VaporOutlet = vaporOutlet;
+        }
+
+        public void SetLiquidOutlet(IFacadeStream liquidOutlet)
+        {
+            LiquidOutlet = liquidOutlet;
+        }
+
+        // ====================================================================
+        // ESTADO DEL EQUIPO
+        // ====================================================================
+        public FlashTankStateType State => GetState();
+
+        private FlashTankStateType GetState()
+        {
+            // Verificar conexiones mínimas
+            bool hasMinimumConnections = Feed != null &&
+                                         VaporOutlet != null &&
+                                         LiquidOutlet != null;
+
+            if (!hasMinimumConnections) return FlashTankStateType.PartiallyConnected;
+
+            // El drum no tiene variables de diseño específicas, solo necesita las conexiones
+            return FlashTankStateType.ReadyToCalculate;
+        }
+
+        // ====================================================================
+        // GENERADOR DE ECUACIONES
+        // ====================================================================
         private IEnumerable<ISolverEquation> GetEquations()
         {
             yield return new DrumPressureEquation(this);
             yield return new DrumConcentrationEquation(this);
-
             yield return new DrumEnthalpyEquation(this);
             yield return new DrumMassEnergyBalanceEquation(this);
         }
     }
+    //public class SolverDrum : SolverEquipmentBase
+    //{
+    //    public IFacadeStream Feed { get;private set; } = null!;
+    //    public IFacadeStream VaporOutlet { get; private set; } = null!;
+    //    public IFacadeStream LiquidOutlet { get; private set; } = null!;
+
+
+    //    public void SetFeed(IFacadeStream feed)
+    //    {
+    //        Feed = feed;
+    //    }
+    //    public void SetVaporOutlet(IFacadeStream vaporOutlet)
+    //    {
+    //        VaporOutlet = vaporOutlet;
+    //    }
+    //    public void SetLiquidOutlet(IFacadeStream liquidOutlet)
+    //    {
+    //        LiquidOutlet = liquidOutlet;
+    //    }
+    //    public override List<ISolverEquation> Equations => GetEquations().ToList();
+
+    //    public SolverDrum(string name)
+    //    {
+    //        Name = name;
+
+    //    }
+
+    //    private IEnumerable<ISolverEquation> GetEquations()
+    //    {
+    //        yield return new DrumPressureEquation(this);
+    //        yield return new DrumConcentrationEquation(this);
+
+    //        yield return new DrumEnthalpyEquation(this);
+    //        yield return new DrumMassEnergyBalanceEquation(this);
+    //    }
+    //}
 
     public class DrumPressureEquation : ISolverEquation
     {
@@ -50,7 +108,7 @@ namespace Shared.SolverConsecutive.Equipments
         public string Name => $"{EquationType} - {drum.Name}";
         public SolverEquationType EquationType => SolverEquationType.Pressure;
         public List<double> Residuals => GetResiduals();
-        public List<INewVariable> Variables => GetVariables();
+        public List<IVariable> Variables => GetVariables();
 
         List<double> GetResiduals()
         {
@@ -67,9 +125,9 @@ namespace Shared.SolverConsecutive.Equipments
             return r;
         }
 
-        List<INewVariable> GetVariables()
+        List<IVariable> GetVariables()
         {
-            List<INewVariable> v = new();
+            List<IVariable> v = new();
             if (drum.Feed == null || drum.VaporOutlet == null || drum.LiquidOutlet == null) return v;
             v.Add(drum.Feed.Pressure);
             v.Add(drum.VaporOutlet.Pressure);
@@ -88,7 +146,7 @@ namespace Shared.SolverConsecutive.Equipments
         public string Name => $"{EquationType} - {drum.Name}";
         public SolverEquationType EquationType => SolverEquationType.Enthalpy;
         public List<double> Residuals => GetResiduals();
-        public List<INewVariable> Variables => GetVariables();
+        public List<IVariable> Variables => GetVariables();
 
         List<double> GetResiduals()
         {
@@ -115,9 +173,9 @@ namespace Shared.SolverConsecutive.Equipments
             return r;
         }
 
-        List<INewVariable> GetVariables()
+        List<IVariable> GetVariables()
         {
-            List<INewVariable> v = new();
+            List<IVariable> v = new();
             if (drum.Feed == null || drum.VaporOutlet == null || drum.LiquidOutlet == null) return v;
        
             v.Add(drum.VaporOutlet.MassEnthalpy);
@@ -133,7 +191,7 @@ namespace Shared.SolverConsecutive.Equipments
         public string Name => $"{EquationType} - {drum.Name}";
         public SolverEquationType EquationType => SolverEquationType.Concentration;
         public List<double> Residuals => GetResiduals();
-        public List<INewVariable> Variables => GetVariables();
+        public List<IVariable> Variables => GetVariables();
 
         List<double> GetResiduals()
         {
@@ -171,9 +229,9 @@ namespace Shared.SolverConsecutive.Equipments
       
         }
 
-        List<INewVariable> GetVariables()
+        List<IVariable> GetVariables()
         {
-            List<INewVariable> v = new();
+            List<IVariable> v = new();
             if (drum.Feed == null || drum.VaporOutlet == null || drum.LiquidOutlet == null) return v;
 
            
@@ -195,7 +253,7 @@ namespace Shared.SolverConsecutive.Equipments
         public string Name => $"{EquationType} - {drum.Name}";
         public SolverEquationType EquationType => SolverEquationType.MassEnergyBalance;
         public List<double> Residuals => GetResiduals();
-        public List<INewVariable> Variables => GetVariables();
+        public List<IVariable> Variables => GetVariables();
 
         List<double> GetResiduals()
         {
@@ -222,9 +280,9 @@ namespace Shared.SolverConsecutive.Equipments
             return r;
         }
 
-        List<INewVariable> GetVariables()
+        List<IVariable> GetVariables()
         {
-            List<INewVariable> v = new();
+            List<IVariable> v = new();
             if (drum.Feed == null || drum.VaporOutlet == null || drum.LiquidOutlet == null) return v;
           
             v.Add(drum.VaporOutlet.MassFlow);

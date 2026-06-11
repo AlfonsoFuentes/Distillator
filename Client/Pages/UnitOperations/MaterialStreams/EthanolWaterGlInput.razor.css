@@ -176,24 +176,79 @@
 .entry-input input[type=number] {
     -moz-appearance: textfield;
 }
-/* En tu archivo CSS del componente */
+
 .gl-value-not-defined {
-    color: #94a3b8; /* Gris suave */
+    color: #94a3b8;
     font-style: italic;
     padding: 0.25rem 0.5rem;
 }
 
 .gl-value-readonly.calculated {
-    color: #64748b; /* Gris medio */
+    color: #64748b;
     background: #f1f5f9;
     padding: 0.25rem 0.5rem;
     border-radius: 4px;
 }
 
 .quick-entry-panel.state-editable input {
-    border: 1px solid #3b82f6; /* Azul para editable */
+    border: 1px solid #3b82f6;
 }
 
 .quick-entry-panel.state-readonly {
     opacity: 0.8;
+}
+
+/* ==================== TOOLTIP CUSTOMIZADO ==================== */
+
+/* ==================== TOOLTIP CUSTOMIZADO ==================== */
+.gl-value-readonly,
+.editable-wrapper {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    z-index: 1; /* Asegurar que el contenedor tenga z-index base */
+}
+
+.tooltip-text {
+    visibility: hidden;
+    position: absolute;
+    background-color: #1e293b;
+    color: #ffffff !important;
+    font-size: 11px;
+    font-weight: 400;
+    font-style: normal;
+    text-align: center;
+    padding: 5px 10px;
+    border-radius: 4px;
+    white-space: nowrap;
+    z-index: 9999; /* 🔥 AUMENTADO: de 1001 a 9999 */
+    bottom: calc(100% + 10px); /* 🔥 CAMBIADO: más arriba para que no se corte */
+    left: 50%;
+    transform: translateX(-50%);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    opacity: 0;
+    transition: opacity 0.2s, transform 0.2s;
+    pointer-events: none;
+}
+
+    .tooltip-text::after {
+        content: "";
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        border-width: 5px;
+        border-style: solid;
+        border-color: #1e293b transparent transparent transparent;
+    }
+
+.has-tooltip:hover .tooltip-text {
+    visibility: visible;
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+/* 🔥 NUEVO: Asegurar que el panel no corte el tooltip */
+.quick-entry-panel {
+    overflow: visible !important; /* Permitir que el tooltip sobresalga */
 }

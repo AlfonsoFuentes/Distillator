@@ -94,18 +94,27 @@ namespace Server.Services
         internal static IServiceCollection AddDatabase(this IServiceCollection services, IConfiguration configuration)
         {
             var connectionString = configuration.GetConnectionString("DefaultConnection");
+            //services.AddDbContext<ApplicationDbContext>(options =>
+            //        options.UseSqlServer(
+            //            connectionString,
+            //            sqlServerOptionsAction: sqlOptions =>
+            //            {
+            //                sqlOptions.EnableRetryOnFailure(
+            //                    maxRetryCount: 5,
+            //                    maxRetryDelay: TimeSpan.FromSeconds(30),
+            //                    errorNumbersToAdd: null);
+            //            }));
             services.AddDbContext<ApplicationDbContext>(options =>
-                    options.UseSqlServer(
-                        connectionString,
-                        sqlServerOptionsAction: sqlOptions =>
-                        {
-                            sqlOptions.EnableRetryOnFailure(
-                                maxRetryCount: 5,
-                                maxRetryDelay: TimeSpan.FromSeconds(30),
-                                errorNumbersToAdd: null);
-                        }));
+        options.UseNpgsql(
+            connectionString,
+            npgsqlOptionsAction: pgOptions =>
+            {
+                pgOptions.EnableRetryOnFailure(
+                    maxRetryCount: 5,
+                    maxRetryDelay: TimeSpan.FromSeconds(30),
+                    errorCodesToAdd: null); // Nota: en Npgsql se llama errorCodesToAdd, no errorNumbersToAdd
+            }));
 
-    
 
             // CAMBIO 1: Usar AddIdentity en lugar de AddIdentityCore
             services.AddIdentity<ApplicationUser, IdentityRole>(options => {

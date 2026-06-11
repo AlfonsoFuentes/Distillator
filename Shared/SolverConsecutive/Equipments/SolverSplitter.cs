@@ -1,51 +1,61 @@
 ﻿using Shared.SolverQwen.Stream;
-using Shared.UnitOperations.Streams;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using UnitSystem;
 
 namespace Shared.SolverConsecutive.Equipments
 {
-    
+    public enum SplitterStateType { Created, PartiallyConnected, ReadyToCalculate, Solved }
     public class SolverSplitter : SolverEquipmentBase
     {
         public IFacadeStream Inlet { get; set; } = null!;
         public List<IFacadeStream> Outlets { get; set; } = new();
-     
-        public override string Name { get; }
+
         public override List<ISolverEquation> Equations => GetEquations().ToList();
 
-        public void SetInlet(IFacadeStream stream)
-        {
-            Inlet = stream;
-        }
-        public void AddOutlet(IFacadeStream stream)
-        {
-            Outlets.Add(stream);
-        }
-        public void RemoveOutlet(IFacadeStream stream)
-        {
-            Outlets.Remove(stream);
-        }
         public SolverSplitter(string name)
         {
             Name = name;
         }
 
+        public void SetInlet(IFacadeStream stream)
+        {
+            Inlet = stream;
+        }
+
+        public void AddOutlet(IFacadeStream stream)
+        {
+            Outlets.Add(stream);
+        }
+
+        public void RemoveOutlet(IFacadeStream stream)
+        {
+            Outlets.Remove(stream);
+        }
+
+        // ====================================================================
+        // ESTADO DEL EQUIPO
+        // ====================================================================
+        public SplitterStateType State => GetState();
+
+        private SplitterStateType GetState()
+        {
+            // Verificar conexiones mínimas
+            bool hasMinimumConnections = Inlet != null && Outlets.Count > 0;
+
+            if (!hasMinimumConnections) return SplitterStateType.PartiallyConnected;
+
+            // El splitter no tiene variables de diseño específicas, solo necesita las conexiones
+            return SplitterStateType.ReadyToCalculate;
+        }
+
+        // ====================================================================
+        // GENERADOR DE ECUACIONES
+        // ====================================================================
         private IEnumerable<ISolverEquation> GetEquations()
         {
             yield return new SplitterPressureEquation(this);
             yield return new SplitterConcentrationEquation(this);
-            //yield return new SplitterVaporFractionEquation(this);
             yield return new SplitterMassBalanceEquation(this);
             yield return new SplitterEnthalpyEquation(this);
-         
         }
-       
-
-
-
     }
 
     public class SplitterPressureEquation : ISolverEquation
@@ -55,7 +65,7 @@ namespace Shared.SolverConsecutive.Equipments
         public string Name => $"{EquationType} - {splitter.Name}";
         public SolverEquationType EquationType => SolverEquationType.Pressure;
         public List<double> Residuals => GetResiduals();
-        public List<INewVariable> Variables => GetVariables();
+        public List<IVariable> Variables => GetVariables();
 
         List<double> GetResiduals()
         {
@@ -73,9 +83,9 @@ namespace Shared.SolverConsecutive.Equipments
         }
 
            
-        List<INewVariable> GetVariables()
+        List<IVariable> GetVariables()
         {
-            List<INewVariable> v = new();
+            List<IVariable> v = new();
             if (splitter.Inlet == null ||  splitter.Outlets.Count == 0) return v;
             v.Add(splitter.Inlet.Pressure);
             foreach (var outlet in splitter.Outlets)
@@ -93,7 +103,7 @@ namespace Shared.SolverConsecutive.Equipments
         public string Name => $"{EquationType} - {splitter.Name}";
         public SolverEquationType EquationType => SolverEquationType.MassBalance;
         public List<double> Residuals => GetResiduals();
-        public List<INewVariable> Variables => GetVariables();
+        public List<IVariable> Variables => GetVariables();
 
         List<double> GetResiduals()
         {
@@ -108,9 +118,9 @@ namespace Shared.SolverConsecutive.Equipments
             return r;
         }
 
-        List<INewVariable> GetVariables()
+        List<IVariable> GetVariables()
         {
-            List<INewVariable> v = new();
+            List<IVariable> v = new();
             if (splitter.Inlet == null || splitter.Outlets.Count == 0) return v;
             v.Add(splitter.Inlet.MassFlow);
             foreach (var outlet in splitter.Outlets)
@@ -128,7 +138,7 @@ namespace Shared.SolverConsecutive.Equipments
         public string Name => $"{EquationType} - {splitter.Name}";
         public SolverEquationType EquationType => SolverEquationType.Concentration;
         public List<double> Residuals => GetResiduals();
-        public List<INewVariable> Variables => GetVariables();
+        public List<IVariable> Variables => GetVariables();
 
         List<double> GetResiduals()
         {
@@ -149,9 +159,9 @@ namespace Shared.SolverConsecutive.Equipments
         }
 
        
-        List<INewVariable> GetVariables()
+        List<IVariable> GetVariables()
         {
-            List<INewVariable> v = new();
+            List<IVariable> v = new();
             if (splitter.Inlet == null || splitter.Outlets.Count == 0) return v;
 
             int n = splitter.Inlet.Composition.Components.Count;
@@ -174,7 +184,7 @@ namespace Shared.SolverConsecutive.Equipments
         public string Name => $"{EquationType} - {splitter.Name}";
         public SolverEquationType EquationType => SolverEquationType.Enthalpy;
         public List<double> Residuals => GetResiduals();
-        public List<INewVariable> Variables => GetVariables();
+        public List<IVariable> Variables => GetVariables();
 
         List<double> GetResiduals()
         {
@@ -190,9 +200,9 @@ namespace Shared.SolverConsecutive.Equipments
             return r;
         }
 
-        List<INewVariable> GetVariables()
+        List<IVariable> GetVariables()
         {
-            List<INewVariable> v = new();
+            List<IVariable> v = new();
             if (splitter.Inlet == null || splitter.Outlets.Count == 0) return v;
             v.Add(splitter.Inlet.MassEnthalpy);
             foreach (var outlet in splitter.Outlets)

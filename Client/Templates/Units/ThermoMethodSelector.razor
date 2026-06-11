@@ -1,4 +1,4 @@
-﻿<div class="grid-cell label">@Label</div>
+﻿@* <div class="grid-cell label">@Label</div>
 
 <div class="grid-cell value @(GetCssClass())" title="@GetTooltipText()">
     <select class="form-select-minimal"
@@ -19,8 +19,13 @@
             }
         }
     </select>
-</div>
-
+</div> *@
+@* <MudSelect @bind-Value="Value" Label="@Label">
+    @foreach (var method in AvailableMethods)
+    {
+        <MudSelectItem Value="method">@method.Name</MudSelectItem>
+    }
+</MudSelect> *@
 
 @code {
     // ─────────────────────────────────────────────────────────

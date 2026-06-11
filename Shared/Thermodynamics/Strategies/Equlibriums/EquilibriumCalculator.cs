@@ -63,6 +63,7 @@ namespace Shared.Thermodynamics.Strategies.Equlibriums
             }
             catch (Exception ex)
             {
+                string message = ex.ToString();
 #if DEBUG
                 Console.WriteLine($"  [EquilCalc] ❌ ERROR CRÍTICO durante el cálculo termodinámico: {ex.Message}");
 #endif
@@ -90,9 +91,9 @@ namespace Shared.Thermodynamics.Strategies.Equlibriums
             FlowsReady?.Invoke(); // Permitir que balances de flujo se recalculen
         }
 
-        public HashSet<INewVariable> Variables { get; } = new();
+        public HashSet<IVariable> Variables { get; } = new();
 
-        public void AddVariable(INewVariable variable)
+        public void AddVariable(IVariable variable)
         {
             if (!Variables.Contains(variable) && variable.DataProcedence == VariableDefinedBy.StreamCalculated)
             {
@@ -172,7 +173,7 @@ namespace Shared.Thermodynamics.Strategies.Equlibriums
         /// <summary>
         /// Helper: verifica si una variable está definida (UserSpecified o Calculated).
         /// </summary>
-        private bool IsDefined<T>(INewVariable<T> variable) where T : Amount
+        private bool IsDefined<T>(IVariable<T> variable) where T : Amount
         {
             return variable.IsDefined;
         }

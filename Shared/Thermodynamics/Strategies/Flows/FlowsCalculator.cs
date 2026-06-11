@@ -18,9 +18,9 @@ namespace Shared.Thermodynamics.Strategies.Flows
             _facade = facade ?? throw new ArgumentNullException(nameof(facade));
         }
 
-        public HashSet<INewVariable> Variables { get; } = new();
+        public HashSet<IVariable> Variables { get; } = new();
 
-        public void AddVariable(INewVariable variable)
+        public void AddVariable(IVariable variable)
         {
             if (!Variables.Contains(variable) && variable.DataProcedence == VariableDefinedBy.StreamCalculated)
             {

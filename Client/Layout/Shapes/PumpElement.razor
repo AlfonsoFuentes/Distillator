@@ -11,7 +11,7 @@
 
                         <PumpSvg Width="@Element.Width" 
              Height="@Element.Height" 
-             StatusColor="@(Element.Facade?.StatusColor ?? "#CBD5E0")" 
+             StatusColor="@(Element.StatusColor ?? "#CBD5E0")" 
              CssClass="pump-svg" />
     
  
@@ -21,11 +21,7 @@
 
 @code {
 
-    // protected override async Task OpenPropertiesDialogAsync()
-    // {
-    //     Console.WriteLine($"[PFD-PRO] Interacting with: {Element.Facade?.Name}");
-    //     await Task.CompletedTask;
-    // } // 🚩 NUEVO: Recibimos el Manager para saber el estado global de conexiones
+   
     protected override async Task OpenPropertiesDialogAsync()
     {
         var parameters = new DialogParameters { ["Equipment"] = Element };

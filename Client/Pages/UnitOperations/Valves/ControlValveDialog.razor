@@ -1,6 +1,5 @@
-﻿@using Client.Layout.Shapes.SVGDrawings
-@using Client.Pages.UnitOperations.DialogBase
-@using Shared.UnitOperations.ControlValves
+﻿
+
 
 <EquipmentBaseDialog Equipment="Equipment">
     
@@ -19,19 +18,19 @@
 
             @* 3. DIBUJO CENTRAL *@
             <div class="equipment-drawing-zone">
-                <ControlValveSvg Width="120" Height="160" StatusColor="@(Equipment.Facade?.StatusColor ?? "#CBD5E0")" CssClass="cv-svg-dialog" />
+                <ControlValveSvg Width="120" Height="160" StatusColor="@(Equipment.StatusColor ?? "#CBD5E0")" CssClass="cv-svg-dialog" />
             </div>
 
         </div>
     </MainSlot>
 
     <PropertiesSlot>
-        @* @if (Equipment.Facade is ControlValveSimulationFacade2 cvFacade)
+        @if (Equipment.Facade is SolverValve cvFacade)
         {
-            <NewUnifiedVariableRow Label="Delta P" @bind-Variable="cvFacade.DeltaPressure" />
+            <VariableAmountRow Label="Delta P" @bind-Variable="cvFacade.DeltaP" />
 
-            <NewUnifiedDoubleRow Label="Valve Cv" @bind-Variable="cvFacade.Cv" MinValue="0" MaxValue="10000" IsReadOnly="true" />
-        } *@
+            @* <VariableUnitLessRow Label="Valve Cv" @bind-Variable="cvFacade.Cv" MinValue="0" MaxValue="10000" IsReadOnly="true" /> *@
+        }
     </PropertiesSlot>
 
 </EquipmentBaseDialog>

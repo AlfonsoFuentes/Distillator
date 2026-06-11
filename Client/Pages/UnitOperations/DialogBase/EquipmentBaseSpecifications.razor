@@ -1,0 +1,295 @@
+﻿@using Shared.ProcessFlowDiagram.Pipes
+@inject WorkspaceManager WM
+
+<div class="scrollable-container spec-container">
+    <div class="data-grid spec-grid">
+
+        @* ==========================================
+           ENCABEZADOS
+           ========================================== *@
+        <div class="grid-header sticky-header">Spec Name</div>
+        <div class="grid-header sticky-header">Type</div>
+        <div class="grid-header sticky-header">Destination (Local)</div>
+        <div class="grid-header sticky-header math-col"></div>
+        <div class="grid-header sticky-header">Value</div>
+        <div class="grid-header sticky-header math-col"></div>
+        <div class="grid-header sticky-header">Source (Global)</div>
+        <div class="grid-header sticky-header">Variable</div>
+        <div class="grid-header sticky-header action-col">Actions</div>
+
+        @foreach (var row in Specs)
+        {
+            @if (row.IsEditing)
+            {
+                @* 1. Nombre (Auto-generado, solo lectura) *@
+                <div class="grid-cell value-text-cell font-bold" style="color: #94a3b8; font-style: italic;">
+                    @(string.IsNullOrWhiteSpace(row.TempDest) ? "New Spec" : $"Spec: {row.TempDest}")
+                </div>
+
+                @* 2. Tipo de Especificación (Dropdown ligado al Enum) *@
+                <div class="grid-cell editable-cell">
+                    <select class="std-input type-selector" @bind="row.TempSpecType">
+                        @foreach (SpecificationType type in Enum.GetValues(typeof(SpecificationType)))
+                        {
+                            if (type != SpecificationType.None)
+                            {
+                                <option value="@type">@type</option>
+                            }
+                        }
+                    </select>
+                </div>
+
+                @* 3. Destino *@
+                <div class="grid-cell editable-cell port-style-cell">
+                    <input type="text" class="std-input" list="dest-list-@row.Id" @bind="row.TempDest" placeholder="Select output..." />
+                    <datalist id="dest-list-@row.Id">
+                        @foreach (var dest in GetAvailableDestinations(row.TempSource))
+                        {
+                            <option value="@dest">@dest</option>
+                        }
+                    </datalist>
+                </div>
+
+                <div class="grid-cell math-cell"><span class="math-symbol">=</span></div>
+
+                @* 4. Multiplicador/Valor *@
+                <div class="grid-cell editable-cell value-cell">
+                    <input type="number" class="std-input" @bind="row.TempValue" step="0.1" />
+                </div>
+
+                <div class="grid-cell math-cell">
+                    <span class="math-symbol">
+                        @(row.TempSpecType == SpecificationType.Multiplier ? "×" : "?")
+                    </span>
+                </div>
+
+                @* 5. Fuente *@
+                <div class="grid-cell editable-cell port-style-cell">
+                    <input type="text" class="std-input" list="source-list-@row.Id" @bind="row.TempSource" placeholder="Select any stream..." />
+                    <datalist id="source-list-@row.Id">
+                        @foreach (var source in GetAvailableSources(row.TempDest))
+                        {
+                            <option value="@source">@source</option>
+                        }
+                    </datalist>
+                </div>
+
+                @* 6. Variable Termodinámica (Dropdown ligado al Enum) *@
+                <div class="grid-cell editable-cell">
+                    <select class="std-input type-selector" @bind="row.TempVarType">
+                        @foreach (SpecVariableType varType in Enum.GetValues(typeof(SpecVariableType)))
+                        {
+                            <option value="@varType">@varType</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="grid-cell action-cell editing-actions">
+                    <button class="action-btn confirm-btn" @onclick="() => SaveRow(row)" title="Confirm">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    </button>
+                    <button class="action-btn disconnect-btn" @onclick="() => CancelEdit(row)" title="Cancel">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    </button>
+                </div>
+            }
+            else
+            {
+                <div class="grid-cell value-text-cell font-bold">Spec: @row.DestinationName</div>
+                <div class="grid-cell value-text-cell source-none" style="font-size: 10px; font-weight: bold;">@row.SpecType.ToString().ToUpper()</div>
+                <div class="grid-cell value-text-cell source-userinterface">@row.DestinationName</div>
+                <div class="grid-cell math-cell"><span class="math-symbol">=</span></div>
+                <div class="grid-cell value-text-cell font-mono text-right pr-2">@row.Value.ToString("0.0###")</div>
+                <div class="grid-cell math-cell">
+                    <span class="math-symbol">
+                        @(row.SpecType == SpecificationType.Multiplier ? "×" : "?")
+                    </span>
+                </div>
+                <div class="grid-cell value-text-cell source-other">@row.SourceName</div>
+                <div class="grid-cell badge-cell">
+                    <span class="type-badge mass-flow">@row.VarType.ToString().Replace("Total", "")</span>
+                </div>
+
+                <div class="grid-cell action-cell read-actions">
+                    <button class="action-btn edit-btn" @onclick="() => EditRow(row)" title="Edit">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                    </button>
+                    <button class="action-btn disconnect-btn" @onclick="() => DeleteRow(row)" title="Delete">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                    </button>
+                </div>
+            }
+        }
+    </div>
+
+    <div class="add-row-container">
+        <button class="ghost-btn-add" @onclick="AddNewRow">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            Add Specification
+        </button>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public IVisualElement Equipment { get; set; } = default!;
+    [Parameter] public EventCallback OnSpecificationsChanged { get; set; }
+
+    public class SpecRowModel
+    {
+        public Guid Id { get; set; } = Guid.NewGuid();
+
+        // El frontend ahora maneja los 2 Enums estrictos de su backend
+        public SpecificationType SpecType { get; set; } = SpecificationType.Multiplier;
+        public SpecificationType TempSpecType { get; set; } = SpecificationType.Multiplier;
+
+        public SpecVariableType VarType { get; set; } = SpecVariableType.TotalMassFlow;
+        public SpecVariableType TempVarType { get; set; } = SpecVariableType.TotalMassFlow;
+
+        public string DestinationName { get; set; } = "";
+        public string SourceName { get; set; } = "";
+        public double Value { get; set; } = 1.0;
+
+        public bool IsEditing { get; set; } = false;
+        public bool IsNew { get; set; } = false;
+
+        public string TempDest { get; set; } = "";
+        public string TempSource { get; set; } = "";
+        public double TempValue { get; set; } = 1.0;
+
+        public ISpecification BackendSpec { get; set; } = null!;
+    }
+
+    private List<SpecRowModel> Specs = new();
+    private List<string> AllStreamNames = new();
+    private List<string> LocalStreamNames = new();
+
+    protected override void OnInitialized() { RefreshLists(); LoadExistingSpecs(); }
+
+    private void LoadExistingSpecs()
+    {
+        var solverEq = Equipment.Facade as SolverEquipmentBase;
+        if (solverEq == null) return;
+
+        Specs.Clear();
+        foreach (var spec in solverEq.Specifications)
+        {
+            // 🔥 Casteo Maestro: Verificamos contra la clase base abstracta
+            if (spec is StreamSpecificationBase streamSpec)
+            {
+                var sourceVisual = WM.Areas.SelectMany(a => a.Elements).FirstOrDefault(e => e.Facade == streamSpec.Source) as StreamVisualElement;
+                var destVisual = WM.Areas.SelectMany(a => a.Elements).FirstOrDefault(e => e.Facade == streamSpec.Destination) as StreamVisualElement;
+
+                double specValue = 1.0;
+
+                // 🔥 Casteo Secundario: Buscamos la propiedad específica del hijo
+                if (streamSpec is MultiplierSpecification multSpec) { specValue = multSpec.Multiplier; }
+
+                Specs.Add(new SpecRowModel
+                {
+                    Id = streamSpec.Id,
+                    SpecType = streamSpec.Type,
+                    VarType = streamSpec.VariableType,
+                    SourceName = sourceVisual?.Label ?? "Unknown",
+                    DestinationName = destVisual?.Label ?? "Unknown",
+                    Value = specValue,
+                    BackendSpec = spec,
+                    IsEditing = false,
+                    IsNew = false
+                });
+            }
+        }
+    }
+
+    private void RefreshLists()
+    {
+        AllStreamNames = WM.Areas.SelectMany(a => a.Elements).OfType<StreamVisualElement>().Select(s => s.Label).ToList();
+        LocalStreamNames = new List<string>();
+        var localPipes = WM.Areas.SelectMany(a => a.Pipes).Where(p => p.SourceElementId == Equipment.Id || p.TargetElementId == Equipment.Id);
+
+        foreach (var pipe in localPipes)
+        {
+            var otherElId = pipe.SourceElementId == Equipment.Id ? pipe.TargetElementId : pipe.SourceElementId;
+            var otherEl = WM.Areas.SelectMany(a => a.Elements).FirstOrDefault(e => e.Id == otherElId);
+            if (otherEl is StreamVisualElement sve) LocalStreamNames.Add(sve.Label);
+        }
+    }
+
+    private IEnumerable<string> GetAvailableDestinations(string currentSource) => LocalStreamNames.Where(s => !string.Equals(s, currentSource, StringComparison.OrdinalIgnoreCase));
+    private IEnumerable<string> GetAvailableSources(string currentDest) => AllStreamNames.Where(s => !string.Equals(s, currentDest, StringComparison.OrdinalIgnoreCase));
+
+    private void AddNewRow()
+    {
+        RefreshLists();
+        Specs.Add(new SpecRowModel { IsEditing = true, IsNew = true });
+    }
+
+    private void EditRow(SpecRowModel row)
+    {
+        RefreshLists();
+        row.TempSpecType = row.SpecType;
+        row.TempVarType = row.VarType;
+        row.TempDest = row.DestinationName;
+        row.TempSource = row.SourceName;
+        row.TempValue = row.Value;
+        row.IsEditing = true;
+    }
+
+    private async Task SaveRow(SpecRowModel row)
+    {
+        if (string.IsNullOrWhiteSpace(row.TempDest) || string.IsNullOrWhiteSpace(row.TempSource)) return;
+
+        var solverEq = Equipment.Facade as SolverEquipmentBase;
+        if (solverEq == null) return;
+
+        var sourceStream = WM.Areas.SelectMany(a => a.Elements).OfType<StreamVisualElement>()
+                             .FirstOrDefault(s => string.Equals(s.Label, row.TempSource, StringComparison.OrdinalIgnoreCase))?.Facade as IFacadeStream;
+        var destStream = WM.Areas.SelectMany(a => a.Elements).OfType<StreamVisualElement>()
+                             .FirstOrDefault(s => string.Equals(s.Label, row.TempDest, StringComparison.OrdinalIgnoreCase))?.Facade as IFacadeStream;
+
+        if (sourceStream == null || destStream == null) return;
+
+        if (!row.IsNew && row.BackendSpec != null) { solverEq.RemoveSpec(row.BackendSpec); }
+
+        ISpecification newSpec;
+
+        // 🔥 Fábrica Dinámica (Factory): Instancia la clase correcta según el Enum
+        switch (row.TempSpecType)
+        {
+            case SpecificationType.Multiplier:
+                newSpec = new MultiplierSpecification
+                {
+                    Source = sourceStream,
+                    Destination = destStream,
+                    VariableType = row.TempVarType, // Ahora toma la variable del UI!
+                    Multiplier = row.TempValue
+                };
+                break;
+            default:
+                throw new InvalidOperationException($"Tipo no soportado: {row.TempSpecType}");
+        }
+
+        solverEq.AddSpec(newSpec);
+
+        row.SpecType = row.TempSpecType;
+        row.VarType = row.TempVarType;
+        row.DestinationName = row.TempDest;
+        row.SourceName = row.TempSource;
+        row.Value = row.TempValue;
+        row.BackendSpec = newSpec;
+        row.IsEditing = false; row.IsNew = false;
+
+        if (OnSpecificationsChanged.HasDelegate) await OnSpecificationsChanged.InvokeAsync();
+        WM.RunSimulation();
+    }
+
+    private void CancelEdit(SpecRowModel row) { if (row.IsNew) Specs.Remove(row); else row.IsEditing = false; }
+
+    private async Task DeleteRow(SpecRowModel row)
+    {
+        Specs.Remove(row);
+        var solverEq = Equipment.Facade as SolverEquipmentBase;
+        if (solverEq != null && row.BackendSpec != null) { solverEq.RemoveSpec(row.BackendSpec); }
+        if (OnSpecificationsChanged.HasDelegate) await OnSpecificationsChanged.InvokeAsync();
+        WM.RunSimulation();
+    }
+}

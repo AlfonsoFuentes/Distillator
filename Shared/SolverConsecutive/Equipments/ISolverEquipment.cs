@@ -1,26 +1,28 @@
-﻿using Shared.SolverQwen.Variables;
+﻿using Shared.ProcessFlowDiagram;
+using Shared.SolverQwen.Stream;
+using Shared.SolverQwen.Variables;
+using Shared.UnitOperations.Basiss;
 
 namespace Shared.SolverConsecutive.Equipments
 {
-    public interface ISolverEquipment
+    public interface ISolverEquipment :IFacade
     {
-        Guid Id { get; }
-        string Name { get; }
+       
         List<ISolverEquation> Equations { get; }
-        IReadOnlyList<Specification> Specifications { get; }
+        IReadOnlyList<ISpecification> Specifications { get; }
     }
 
 
-    public abstract class SolverEquipmentBase : ISolverEquipment
+    public abstract class SolverEquipmentBase : ISolverEquipment , IEquipmentFacade
     {
-        public abstract string Name { get; }
+        public string Name { get; set; } = string.Empty;
         public abstract List<ISolverEquation> Equations { get; }
         public Guid Id { get; set; } = Guid.NewGuid();
 
-        private readonly List<Specification> _specifications = new();
-        public IReadOnlyList<Specification> Specifications => _specifications.AsReadOnly();
+        private readonly List<ISpecification> _specifications = new();
+        public IReadOnlyList<ISpecification> Specifications => _specifications.AsReadOnly();
 
-        public void AddSpec(Specification spec)
+        public void AddSpec(ISpecification spec)
         {
             if (spec == null) throw new ArgumentNullException(nameof(spec));
             if (_specifications.Any(s => s.Id == spec.Id))
@@ -29,7 +31,7 @@ namespace Shared.SolverConsecutive.Equipments
             _specifications.Add(spec);
         }
 
-        public void RemoveSpec(Specification spec)
+        public void RemoveSpec(ISpecification spec)
         {
             if (spec != null) _specifications.Remove(spec);
         }
@@ -38,5 +40,7 @@ namespace Shared.SolverConsecutive.Equipments
         {
             _specifications.Clear();
         }
+
+       
     }
 }

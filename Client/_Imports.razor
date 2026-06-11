@@ -27,7 +27,7 @@
 @using MudBlazor
 @using Pages.UnitOperations.Pumps
 @using Shared.Identity
-@using Shared.MatrixSolvers
+@using Client.Templates.Units.UIVariablePercentage
 @using Shared.ProcessFlowDiagram
 @using Shared.ProcessFlowDiagram.Columns
 @using Shared.ProcessFlowDiagram.ControlValves
@@ -40,12 +40,17 @@
 @using Shared.PropertiesDtos.Enums
 @using Shared.PropertiesDtos.Methods
 @using Shared.Results
+@using Shared.SolverConsecutive
+@using Shared.SolverQwen.Stream
 @using Shared.Thermodynamics.ControlledVariables
-@using Shared.UnitOperations.Pumps
+
+@using Shared.SolverConsecutive.Equipments
 @using Shared.UnitOperations.Streams
 @using Shared.WorkSpaceManagers
 @using UnitSystem
 
+@using Client.Templates.Units.UIVariableUnitLess
+@using Client.Templates.Units.UIVariable
 
 @inject INamingService NamingService
 @inject DragStateService DragState
@@ -60,3 +65,4 @@
 @inject IEquipmentFactory Factory
 @inject IJSRuntime JS
 @inject WorkspaceManager WM
+

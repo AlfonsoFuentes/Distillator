@@ -1,9 +1,11 @@
-﻿using Shared.PropertiesDtos.Methods;
+﻿using Shared.ProcessFlowDiagram;
+using Shared.PropertiesDtos.Methods;
 using Shared.SolverConsecutive;
 using Shared.SolverQwen.Variables;
 using Shared.Thermodynamics.Phases;
 using Shared.Thermodynamics.Strategies.Equlibriums;
 using Shared.Thermodynamics.Strategies.Flows;
+using Shared.UnitOperations.Basiss;
 using Shared.UnitOperations.Streams;
 using System.Diagnostics;
 using UnitSystem;
@@ -18,14 +20,16 @@ namespace Shared.SolverQwen.Stream
         CompositionDefined,     // Composición válida (Σ=100%)
         EquilibriumCalculated,  // Flash PT/PH/etc. ejecutado exitosamente
         FlowCalculated,         // Balances de flujo ejecutados exitosamente
+        Calculated,             // 🔥 NUEVO: TODO calculado (Flow + Equilibrium)
         Error                   // Error en cálculo (ver logs)
     }
-    public interface IFacadeStream
+    public interface IFacadeStream : IFacade
     {
+
         LiquidPhaseMixture LiquidPhase { get; }
         VaporPhaseMixture VaporPhase { get; }
-        string Name { get; set; }
-        StreamStateType State { get; set; }  // Undefined, EquilibriumCalculated, FlowCalculated, etc.
+
+        StreamStateType State { get;  }  // Undefined, EquilibriumCalculated, FlowCalculated, etc.
         bool IsEquilibriumSolved { get; set; }
         bool IsFlowSolved { get; set; }
 
@@ -37,29 +41,31 @@ namespace Shared.SolverQwen.Stream
         // ─────────────────────────────────────────────────────────
         // 🔹 VARIABLES PRINCIPALES (UI/Solver) - Todas ProcessVariable<T>
         // ─────────────────────────────────────────────────────────
-        NewVariable<Temperature> Temperature { get; }
-        NewVariable<Pressure> Pressure { get; }
-        NewVariable<MassFlow> MassFlow { get; }
-        NewVariable<MolarFlow> MolarFlow { get; }
-        NewVariable<VolumetricFlow> VolumetricFlow { get; }
-        NewVariable<Percentage> VaporFraction { get; }
-        NewVariable<EnergyFlow> EnthalpyFlow { get; }
+        Variable<Temperature> Temperature { get; set; }
+        Variable<Pressure> Pressure { get; set; }
+        Variable<MassFlow> MassFlow { get; set; }
+        Variable<MolarFlow> MolarFlow { get; set; }
+        Variable<VolumetricFlow> VolumetricFlow { get; set; }
+        Variable<Percentage> VaporFraction { get; set; }
+        Variable<EnergyFlow> EnthalpyFlow { get; set; }
 
         // ─────────────────────────────────────────────────────────
         // 🔹 PROPIEDADES TERMODINÁMICAS DERIVADAS
         // ─────────────────────────────────────────────────────────
-        NewVariable<ThermalConductivity> ThermalConductivity { get; set; }
-        NewVariable<Viscosity> Viscosity { get; set; }
-        NewVariable<MassEntropy> MassCp { get; set; }
-        NewVariable<MolarEntropy> MolarCp { get; set; }
-        NewVariable<MassEnergy> MassEnthalpy { get; set; }
-        NewVariable<MolarEnergy> MolarEnthalpy { get; set; }
-        NewVariable<MassDensity> MassDensity { get; set; }
-        NewVariable<MolarDensity> MolarDensity { get; set; }
+        Variable<ThermalConductivity> ThermalConductivity { get; set; }
+        Variable<Viscosity> Viscosity { get; set; }
+        Variable<MassEntropy> MassCp { get; set; }
+        Variable<MolarEntropy> MolarCp { get; set; }
+        Variable<MassEnergy> MassEnthalpy { get; set; }
+        Variable<MolarEnergy> MolarEnthalpy { get; set; }
+        Variable<MassDensity> MassDensity { get; set; }
+        Variable<MolarDensity> MolarDensity { get; set; }
+        Variable<UnitLess> MolecularWeight { get; set; }
 
+        Variable<SuperficialTension> SuperficialTension { get; set; }
 
-        CompositionOrchestrator Composition { get; }
-        ThermodynamicState CurrentState { get; }
+        CompositionOrchestrator Composition { get; set; }
+        ThermodynamicState EquilibriumState { get; }
 
         void SetThermodynamicMethod(ThermodynamicMethodFullDto method);
 
@@ -68,13 +74,15 @@ namespace Shared.SolverQwen.Stream
 
     public class FacadeStream : IFacadeStream
     {
-        public ThermodynamicState CurrentState => _materialStream.CurrentState;
+     
+        public Guid Id { get; set; } = Guid.NewGuid();
+        public ThermodynamicState EquilibriumState => _materialStream.CurrentState;
         public LiquidPhaseMixture LiquidPhase => _materialStream.LiquidPhase;
         public VaporPhaseMixture VaporPhase => _materialStream.VaporPhase;
         private readonly IMaterialStream _materialStream;
         private readonly EquilibriumCalculator _equilibriumCalculator;
         private readonly FlowsCalculator _flowsCalculator;
-        private CompositionOrchestrator _composition;
+     
 
         string _name = string.Empty;
         public string Name
@@ -110,54 +118,58 @@ namespace Shared.SolverQwen.Stream
 
 
         }
-        public StreamStateType State { get; set; } = StreamStateType.Undefined;
+        public StreamStateType State => GetState();
         public bool IsEquilibriumSolved { get; set; }
         public bool IsFlowSolved { get; set; }
+        public bool HasError { get; set; } // 🔥 NUEVO: Para detectar errores
         public IMaterialStream MaterialStream => _materialStream;
 
-        public NewVariable<Temperature> Temperature { get; }
-        public NewVariable<Pressure> Pressure { get; }
-        public NewVariable<MassFlow> MassFlow { get; }
-        public NewVariable<MolarFlow> MolarFlow { get; }
-        public NewVariable<VolumetricFlow> VolumetricFlow { get; }
-        public NewVariable<Percentage> VaporFraction { get; }
-        public NewVariable<EnergyFlow> EnthalpyFlow { get; }
+        public Variable<Temperature> Temperature { get; set; }
+        public Variable<Pressure> Pressure { get; set; }
+        public Variable<MassFlow> MassFlow { get; set; }
+        public Variable<MolarFlow> MolarFlow { get; set; }
+        public Variable<VolumetricFlow> VolumetricFlow { get; set; }
+        public Variable<Percentage> VaporFraction { get; set; }
+        public Variable<EnergyFlow> EnthalpyFlow { get; set; }
 
-        public NewVariable<ThermalConductivity> ThermalConductivity { get; set; }
-        public NewVariable<Viscosity> Viscosity { get; set; }
-        public NewVariable<MassEntropy> MassCp { get; set; }
-        public NewVariable<MolarEntropy> MolarCp { get; set; }
-        public NewVariable<MassEnergy> MassEnthalpy { get; set; }
-        public NewVariable<MolarEnergy> MolarEnthalpy { get; set; }
-        public NewVariable<MassDensity> MassDensity { get; set; }
-        public NewVariable<MolarDensity> MolarDensity { get; set; }
+        public Variable<ThermalConductivity> ThermalConductivity { get; set; }
+        public Variable<Viscosity> Viscosity { get; set; }
+        public Variable<MassEntropy> MassCp { get; set; }
+        public Variable<MolarEntropy> MolarCp { get; set; }
+        public Variable<MassEnergy> MassEnthalpy { get; set; }
+        public Variable<MolarEnergy> MolarEnthalpy { get; set; }
+        public Variable<MassDensity> MassDensity { get; set; }
+        public Variable<MolarDensity> MolarDensity { get; set; }
+        public Variable<SuperficialTension> SuperficialTension { get; set; }
+        public Variable<UnitLess> MolecularWeight { get; set; }
+        public CompositionOrchestrator Composition { get; set; } 
+     
 
-
-        public CompositionOrchestrator Composition => _composition;
 
         public FacadeStream(string name = "")
         {
 
             _materialStream = new MaterialStream();
 
-            Temperature = new NewVariable<Temperature>(new Temperature(298.15, TemperatureUnits.Kelvin), TemperatureUnits.DegreeCelcius, 298);
-            Pressure = new NewVariable<Pressure>(new Pressure(101325, PressureUnits.Pascala), PressureUnits.Bara, 100000);
-            MassFlow = new NewVariable<MassFlow>(new MassFlow(1, MassFlowUnits.Kg_sg), MassFlowUnits.Kg_hr, 3);
-            MolarFlow = new NewVariable<MolarFlow>(new MolarFlow(1, MolarFlowUnits.Kgmol_sg), MolarFlowUnits.Kgmol_hr, 3);
-            VolumetricFlow = new NewVariable<VolumetricFlow>(new VolumetricFlow(1, VolumetricFlowUnits.m3_sg), VolumetricFlowUnits.m3_hr, 3);
-            VaporFraction = new NewVariable<Percentage>(new Percentage(0, PercentageUnits.Percentage), PercentageUnits.Percentage, 100);
-            EnthalpyFlow = new NewVariable<EnergyFlow>(new EnergyFlow(0, EnergyFlowUnits.J_sg), EnergyFlowUnits.Kcal_hr, 3000);
+            Temperature = new Variable<Temperature>(new Temperature(298.15, TemperatureUnits.Kelvin), TemperatureUnits.DegreeCelcius, 298);
+            Pressure = new Variable<Pressure>(new Pressure(101325, PressureUnits.Pascala), PressureUnits.Bara, 100000);
+            MassFlow = new Variable<MassFlow>(new MassFlow(1, MassFlowUnits.Kg_sg), MassFlowUnits.Kg_hr, 3);
+            MolarFlow = new Variable<MolarFlow>(new MolarFlow(1, MolarFlowUnits.Kgmol_sg), MolarFlowUnits.Kgmol_hr, 3);
+            VolumetricFlow = new Variable<VolumetricFlow>(new VolumetricFlow(1, VolumetricFlowUnits.m3_sg), VolumetricFlowUnits.m3_hr, 3);
+            VaporFraction = new Variable<Percentage>(new Percentage(0, PercentageUnits.Percentage), PercentageUnits.Percentage, 100);
+            EnthalpyFlow = new Variable<EnergyFlow>(new EnergyFlow(0, EnergyFlowUnits.J_sg), EnergyFlowUnits.Kcal_hr, 3000);
 
-            Viscosity = new NewVariable<Viscosity>(new Viscosity(0, ViscosityUnits.Pa_s), ViscosityUnits.cPoise, 0.001);
-            ThermalConductivity = new NewVariable<ThermalConductivity>(new ThermalConductivity(0, ThermalConductivityUnits.W_m_K), ThermalConductivityUnits.W_m_K, 0.1);
-            MassCp = new NewVariable<MassEntropy>(new MassEntropy(1, MassEntropyUnits.KJ_Kg_C), MassEntropyUnits.Kcal_Kg_C, 4);
-            MolarCp = new NewVariable<MolarEntropy>(new MolarEntropy(1, MolarEntropyUnits.KJ_Kgmol_C), MolarEntropyUnits.Kcal_Kgmol_C, 4);
-            MassEnthalpy = new NewVariable<MassEnergy>(new MassEnergy(1, MassEnergyUnits.J_Kg), MassEnergyUnits.Kcal_Kg, 1000);
-            MolarEnthalpy = new NewVariable<MolarEnergy>(new MolarEnergy(0, MolarEnergyUnits.KJ_Kgmol), MolarEnergyUnits.Kcal_Kgmol, 100000);
-            MassDensity = new NewVariable<MassDensity>(new MassDensity(1000, MassDensityUnits.Kg_m3), MassDensityUnits.Kg_m3, 1000);
-            MolarDensity = new NewVariable<MolarDensity>(new MolarDensity(1, MolarDensityUnits.Kgmol_m3), MolarDensityUnits.Kgmol_m3, 1000 / 18);
-
-            _composition = null!;
+            Viscosity = new Variable<Viscosity>(new Viscosity(0, ViscosityUnits.Pa_s), ViscosityUnits.cPoise, 0.001);
+            ThermalConductivity = new Variable<ThermalConductivity>(new ThermalConductivity(0, ThermalConductivityUnits.W_m_K), ThermalConductivityUnits.W_m_K, 0.1);
+            MassCp = new Variable<MassEntropy>(new MassEntropy(1, MassEntropyUnits.KJ_Kg_C), MassEntropyUnits.Kcal_Kg_C, 4);
+            MolarCp = new Variable<MolarEntropy>(new MolarEntropy(1, MolarEntropyUnits.KJ_Kgmol_C), MolarEntropyUnits.Kcal_Kgmol_C, 4);
+            MassEnthalpy = new Variable<MassEnergy>(new MassEnergy(1, MassEnergyUnits.J_Kg), MassEnergyUnits.Kcal_Kg, 1000);
+            MolarEnthalpy = new Variable<MolarEnergy>(new MolarEnergy(0, MolarEnergyUnits.KJ_Kgmol), MolarEnergyUnits.Kcal_Kgmol, 100000);
+            MassDensity = new Variable<MassDensity>(new MassDensity(1000, MassDensityUnits.Kg_m3), MassDensityUnits.Kg_m3, 1000);
+            MolarDensity = new Variable<MolarDensity>(new MolarDensity(1, MolarDensityUnits.Kgmol_m3), MolarDensityUnits.Kgmol_m3, 1000 / 18);
+            MolecularWeight = new Variable<UnitLess>(new UnitLess(0), UnitLessUnits.None, 1);
+            SuperficialTension = new Variable<SuperficialTension>(new UnitSystem.SuperficialTension(0, SuperficialTensionUnits.dyn_cm), SuperficialTensionUnits.dyn_cm, 1);
+            Composition = null!;
 
             _equilibriumCalculator = new EquilibriumCalculator(this);
             _equilibriumCalculator.EquilibriumReady += OnEquilibriumReady;
@@ -213,6 +225,8 @@ namespace Shared.SolverQwen.Stream
             MolarDensity.AddVariableToList += v => _equilibriumCalculator.AddVariable(v);
 
             EnthalpyFlow.AddVariableToList += v => _flowsCalculator.AddVariable(v);
+            MolecularWeight.AddVariableToList += v => _equilibriumCalculator.AddVariable(v);
+            SuperficialTension.AddVariableToList += v => _equilibriumCalculator.AddVariable(v);
         }
 
 
@@ -238,14 +252,37 @@ namespace Shared.SolverQwen.Stream
             if (_materialStream.ThermalConductivity != null) ThermalConductivity.SetValue(_materialStream.ThermalConductivity, VariableDefinedBy.StreamCalculated);
             if (_materialStream.MassHeatCapacity != null) MassCp.SetValue(_materialStream.MassHeatCapacity, VariableDefinedBy.StreamCalculated);
             if (_materialStream.MolarHeatCapacity != null) MolarCp.SetValue(_materialStream.MolarHeatCapacity, VariableDefinedBy.StreamCalculated);
+            if (_materialStream.SurfaceTension != null) SuperficialTension.SetValue(_materialStream.SurfaceTension, VariableDefinedBy.StreamCalculated);
+            MolecularWeight.SetValue(new UnitLess(_materialStream.MolecularWeight), VariableDefinedBy.StreamCalculated);
 
 
+           
 
-            State = IsFlowSolved ? StreamStateType.FlowCalculated :
-                    IsEquilibriumSolved ? StreamStateType.EquilibriumCalculated :
-                    Composition.IsValid ? StreamStateType.CompositionDefined : StreamStateType.Undefined;
+      
         }
+        private StreamStateType GetState()
+        {
+            // 1. Si hay error, retornar Error
+          
 
+            // 2. Si TODO está calculado, retornar Calculated
+            if (IsFlowSolved && IsEquilibriumSolved) return StreamStateType.Calculated;
+
+            // 3. Si solo flujos están calculados
+            if (IsFlowSolved) return StreamStateType.FlowCalculated;
+
+            // 4. Si solo equilibrio está calculado
+            if (IsEquilibriumSolved) return StreamStateType.EquilibriumCalculated;
+
+            // 5. Si la composición está definida pero nada calculado
+            if (Composition?.IsValid == true) return StreamStateType.CompositionDefined;
+
+            // 6. Si hay método termodinámico pero composición no válida
+            if (Composition != null) return StreamStateType.Initialized;
+
+            // 7. Si no hay nada
+            return StreamStateType.Undefined;
+        }
         public void SetThermodynamicMethod(ThermodynamicMethodFullDto method)
         {
             _materialStream.SetThermodynamicMethod(method);
@@ -276,19 +313,17 @@ namespace Shared.SolverQwen.Stream
             }
 
             // 2. Crear orchestrator con la lista YA poblada
-            _composition = new CompositionOrchestrator(_componentList);
-            _composition.OnCompositionChanged += () => _materialStream.SetCompositionData(Composition);
-            _composition.OnCompositionChanged += ExecuteEquilibrium;
+            Composition = new CompositionOrchestrator(_componentList);
+            Composition.OnCompositionChanged += () => _materialStream.SetCompositionData(Composition);
+            Composition.OnCompositionChanged += ExecuteEquilibrium;
 
-            State = StreamStateType.Initialized;
+          
         }
 
         public void ExecuteEquilibrium() => _equilibriumCalculator.Execute();
         public void ExecuteFlows() => _flowsCalculator.Execute();
 
-        /// <summary>
-        /// Limpia una variable específica o todas las de un owner, disparando cascada de invalidación.
-        /// </summary>
+      
 
     }
 

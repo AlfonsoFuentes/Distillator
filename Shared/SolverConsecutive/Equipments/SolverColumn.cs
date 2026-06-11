@@ -9,82 +9,52 @@ using UnitSystem;
 namespace Shared.SolverConsecutive.Equipments
 {
 
-
+    public enum ColumnStateType { Created, PartiallyConnected, ReadyToCalculate, Solved }
     /// </summary>
     public class SolverColumn : SolverEquipmentBase
     {
         // ====================================================================
         // PARÁMETROS DE DISEÑO
         // ====================================================================
-        public override string Name { get; }
+        public Variable<UnitLess> RefluxRelation { get; set; }
+        public Variable<Pressure> TopPressure { get; }
+        public Variable<PressureDrop> DeltaP { get; }
+        public Variable<Pressure> BottomPressure { get; }
 
-        public NewVariable<UnitLess> RefluxRelation { get; set; }
-        public NewVariable<Pressure> TopPressure { get; }
-
-        /// <summary>
-        /// Caída de presión total de la columna (P_fondo = P_tope + ΔP)
-        /// </summary>
-        public NewVariable<PressureDrop> DeltaP { get; }
-
-        public NewVariable<Pressure> BottomPressure { get; }
-
-        /// <summary>
-        /// Lista de alimentaciones (pueden ser múltiples)
-        /// </summary>
+        // ====================================================================
+        // CORRIENTES DE ENTRADA
+        // ====================================================================
         public List<IFacadeStream> Feeds { get; private set; } = new();
-
-        /// <summary>
-        /// Reflujo que regresa desde el condensador (Tope)
-        /// </summary>
         public IFacadeStream? RefluxInlet { get; private set; }
-
-        /// <summary>
-        /// Vapor que regresa desde el recalentador (Fondo)
-        /// </summary>
         public IFacadeStream? VaporInlet { get; private set; }
 
         // ====================================================================
         // CORRIENTES DE SALIDA
         // ====================================================================
-
-        /// <summary>
-        /// Vapor que sale hacia el condensador (Tope)
-        /// </summary>
         public IFacadeStream? VaporOutlet { get; private set; }
-
-        /// <summary>
-        /// Líquido que sale hacia el recalentador (Fondo)
-        /// </summary>
         public IFacadeStream? BottomOutlet { get; private set; }
-
-        /// <summary>
-        /// Extracciones laterales (pueden ser múltiples)
-        /// </summary>
         public List<IFacadeStream> SideDraws { get; private set; } = new();
 
         // ====================================================================
         // PROPIEDADES DEL EQUIPO
         // ====================================================================
-
         public override List<ISolverEquation> Equations => GetEquations().ToList();
 
         // ====================================================================
         // CONSTRUCTOR
         // ====================================================================
-
         public SolverColumn(string name)
         {
             Name = name;
-            TopPressure = new NewVariable<Pressure>(new Pressure(101325, PressureUnits.Pascala), PressureUnits.Bara, 100000);
-            DeltaP = new NewVariable<PressureDrop>(new PressureDrop(0, PressureDropUnits.Pascal), PressureDropUnits.Bar, 100000);
-            BottomPressure = new NewVariable<Pressure>(new Pressure(101325, PressureUnits.Pascala), PressureUnits.Bara, 100000);
-            RefluxRelation = new NewVariable<UnitLess>(new UnitLess(1), UnitLessUnits.None, 1);
+            TopPressure = new Variable<Pressure>(new Pressure(101325, PressureUnits.Pascala), PressureUnits.Bara, 100000);
+            DeltaP = new Variable<PressureDrop>(new PressureDrop(0, PressureDropUnits.Pascal), PressureDropUnits.Bar, 100000);
+            BottomPressure = new Variable<Pressure>(new Pressure(101325, PressureUnits.Pascala), PressureUnits.Bara, 100000);
+            RefluxRelation = new Variable<UnitLess>(new UnitLess(1), UnitLessUnits.None, 1);
         }
 
         // ====================================================================
         // MÉTODOS PARA CONECTAR CORRIENTES
         // ====================================================================
-
         public void AddFeed(IFacadeStream feed)
         {
             Feeds.Add(feed);
@@ -116,26 +86,40 @@ namespace Shared.SolverConsecutive.Equipments
         }
 
         // ====================================================================
-        // GENERADOR DE ECUACIONES
+        // ESTADO DEL EQUIPO
         // ====================================================================
+        public ColumnStateType State => GetState();
 
-        private IEnumerable<ISolverEquation> GetEquations()
+        private ColumnStateType GetState()
         {
-            // 1. Ecuación de Presión (Entradas a P_fondo, Salidas a P_tope)
-            yield return new ColumnPressureTopEquation(this);
+            // Verificar conexiones mínimas
+            bool hasMinimumConnections = Feeds.Count > 0 &&
+                                         RefluxInlet != null &&
+                                         VaporOutlet != null &&
+                                         BottomOutlet != null;
 
-            yield return new ColumnPressureDeltaPEquation(this);
-            yield return new ColumnPressureBottomEquation(this);
+            if (!hasMinimumConnections) return ColumnStateType.PartiallyConnected;
 
-            // 3. Balance de Energía
-            yield return new ColumnEnergyBalanceEquation(this);
+            // Verificar si las variables de diseño están definidas
+            bool hasDesignSpecs = TopPressure.IsDefined &&
+                                  (DeltaP.IsDefined || BottomPressure.IsDefined) &&
+                                  RefluxRelation.IsDefined;
+
+            if (!hasDesignSpecs) return ColumnStateType.ReadyToCalculate;
+
+            return ColumnStateType.Solved;
         }
 
-
-
-
-
-
+        // ====================================================================
+        // GENERADOR DE ECUACIONES
+        // ====================================================================
+        private IEnumerable<ISolverEquation> GetEquations()
+        {
+            yield return new ColumnPressureTopEquation(this);
+            yield return new ColumnPressureDeltaPEquation(this);
+            yield return new ColumnPressureBottomEquation(this);
+            yield return new ColumnEnergyBalanceEquation(this);
+        }
     }
 
 
@@ -149,7 +133,7 @@ namespace Shared.SolverConsecutive.Equipments
         public string Name => $"{EquationType} - Top - {_column.Name}";
         public SolverEquationType EquationType => SolverEquationType.Pressure;
 
-        public List<INewVariable> Variables => GetVariables();
+        public List<IVariable> Variables => GetVariables();
         public List<double> Residuals => GetResiduals();
         public List<double> GetResiduals()
         {
@@ -165,9 +149,9 @@ namespace Shared.SolverConsecutive.Equipments
             return residuals;
         }
 
-        private List<INewVariable> GetVariables()
+        private List<IVariable> GetVariables()
         {
-            var variables = new List<INewVariable>();
+            var variables = new List<IVariable>();
 
             variables.Add(_column.TopPressure);
 
@@ -190,7 +174,7 @@ namespace Shared.SolverConsecutive.Equipments
         public string Name => $"{EquationType} - DeltaP - {_column.Name}";
         public SolverEquationType EquationType => SolverEquationType.Pressure;
         public List<double> Residuals => GetResiduals();
-        public List<INewVariable> Variables => GetVariables();
+        public List<IVariable> Variables => GetVariables();
 
         public List<double> GetResiduals()
         {
@@ -205,9 +189,9 @@ namespace Shared.SolverConsecutive.Equipments
             return residuals;
         }
 
-        private List<INewVariable> GetVariables()
+        private List<IVariable> GetVariables()
         {
-            var variables = new List<INewVariable>();
+            var variables = new List<IVariable>();
 
             variables.Add(_column.TopPressure);
             variables.Add(_column.BottomPressure);
@@ -227,7 +211,7 @@ namespace Shared.SolverConsecutive.Equipments
         public string Name => $"{EquationType} - Bottom - {_column.Name}";
         public SolverEquationType EquationType => SolverEquationType.Pressure;
         public List<double> Residuals => GetResiduals();
-        public List<INewVariable> Variables => GetVariables();
+        public List<IVariable> Variables => GetVariables();
 
         public List<double> GetResiduals()
         {
@@ -253,9 +237,9 @@ namespace Shared.SolverConsecutive.Equipments
             return residuals;
         }
 
-        private List<INewVariable> GetVariables()
+        private List<IVariable> GetVariables()
         {
-            var variables = new List<INewVariable>();
+            var variables = new List<IVariable>();
 
             variables.Add(_column.BottomPressure);
 
@@ -286,7 +270,7 @@ namespace Shared.SolverConsecutive.Equipments
         public string Name => $"{EquationType} - {_column.Name}";
         public SolverEquationType EquationType => SolverEquationType.MassEnergyBalance;
         public List<double> Residuals => GetResiduals();
-        public List<INewVariable> Variables => GetVariables();
+        public List<IVariable> Variables => GetVariables();
 
         public List<double> GetResiduals()
         {
@@ -395,9 +379,9 @@ namespace Shared.SolverConsecutive.Equipments
             return residuals;
         }
 
-        private List<INewVariable> GetVariables()
+        private List<IVariable> GetVariables()
         {
-            var variables = new List<INewVariable>();
+            var variables = new List<IVariable>();
 
             if (_column.VaporOutlet != null)
             {

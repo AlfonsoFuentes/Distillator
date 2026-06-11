@@ -1,5 +1,5 @@
-﻿
-@* 
+﻿@inject IMainSolver Solver
+
 <MudDialog>
     <TitleContent>
         Solver Configuration
@@ -8,10 +8,10 @@
     <DialogContent>
         <div class="d-flex flex-column gap-4 pa-4">
 
-            @* 🔹 Método Termodinámico 
+            @* 🔹 Método Termodinámico *@
             <div>
-                <MudText Typo="Typo.subtitle1" Class="mb-2">Thermodynamic Method</MudText>
 
+               
                 @if (_isLoadingMethods)
                 {
                     <MudProgressCircular Indeterminate="true" Size="Size.Small" />
@@ -22,31 +22,36 @@
                 }
                 else
                 {
-                    <ThermoMethodSelector @bind-Value="_config.ThermodynamicMethod"
-                                          Label="Thermodynamic Method" AvailableMethods="_methods" />
+                    <MudSelect T=ThermodynamicMethodFullDto Value="_localMethod" ValueChanged="SetMetod"
+                               Margin="Margin.Dense" Dense="true" Variant="Variant.Outlined" Label="Thermodynamic Method">
+                        @foreach (var method in _methods!)
+                        {
+                            <MudSelectItem Value="method">@method.Name</MudSelectItem>
+                        }
+                    </MudSelect>
+
+                    
                    
                 }
             </div>
 
-            @* 🔹 Altitud (con tu componente) 
+            @* 🔹 Altitud (con tu componente) *@
             <div>
-                <MudText Typo="Typo.subtitle1" Class="mb-2">Altitude above sea level</MudText>
-                <NewUnifiedVariableRow Label="Altitude"
-                                       @bind-Variable="_config.Altitude"
-                                       Mode="VariableMode.Standard" />
+
+                <EditAmount Label="Altitude above sea level" T="Length"
+                            @bind-Amount="Solver.Altitude" />
                 <MudText Typo="Typo.caption" Class="text-muted mt-1">
                     Atmospheric pressure is calculated automatically.
                 </MudText>
             </div>
 
-            @* 🔹 Presión Atmosférica Calculada (Read-Only) 
+            @* 🔹 Presión Atmosférica Calculada (Read-Only) *@
             <MudAlert Severity="Severity.Info">
                 <div class="d-flex flex-column gap-1">
                     <MudText><strong>Atmospheric Pressure:</strong></MudText>
                     <div class="d-flex gap-3 flex-wrap">
-                        <MudText>@_config.AtmosphericPressure.GetValue(PressureUnits.Pascala).ToString("F0") Pa</MudText>
-                        <MudText>@_config.AtmosphericPressure.GetValue(PressureUnits.Bara).ToString("F3") bar</MudText>
-                        <MudText>@_config.AtmosphericPressure.GetValue(PressureUnits.Atmospherea).ToString("F3") atm</MudText>
+                        <MudText>@Solver.AtmosphericPressure.ToString()</MudText>
+
                     </div>
                 </div>
             </MudAlert>
@@ -64,79 +69,102 @@
             Apply
         </MudButton>
     </DialogActions>
-</MudDialog> *@
+</MudDialog>
 
 @code {
     [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
 
-    // private SolverConfiguration2 _config = default!;
-    // private List<ThermodynamicMethodFullDto>? _methods;
-    // private bool _isLoadingMethods;
-    // private string? _methodsError;
-    // private bool _isApplying;
+    ThermodynamicMethodFullDto _localMethod = null!;
+    private List<ThermodynamicMethodFullDto> _methods=new();
+    private bool _isLoadingMethods;
+    private string? _methodsError;
+    private bool _isApplying;
 
-    // protected override async Task OnInitializedAsync()
-    // {
-    //     // Clonar configuración actual
-    //     _config = SolverManager.Configuration;
+    protected override async Task OnInitializedAsync()
+    {
+        // Clonar configuración actual
 
-    //     // Cargar métodos desde base de datos
-    //     await LoadThermodynamicMethods();
-    // }
 
-    // private async Task LoadThermodynamicMethods()
-    // {
-    //     _isLoadingMethods = true;
-    //     StateHasChanged();
+        // Cargar métodos desde base de datos
+        await LoadThermodynamicMethods();
+    }
+    async Task SetMetod(ThermodynamicMethodFullDto _metod)
+    {
 
-    //     try
-    //     {
-    //         // 🔥 Tu patrón HTTP: GetAllCompleteMethods
-    //         var request = new GetAllCompleteMethods();
-    //         var result = await HttpServices.PostAsync<GetAllCompleteMethods, Result<List<ThermodynamicMethodFullDto>>>(request);
+        if (_metod != null)
+        {
+            var result = await HttpServices.PostAsync<GetMethodFullRequest, Result<ThermodynamicMethodFullDto>>(new GetMethodFullRequest(_metod.Id));
+            if (result.Succeeded)
+            {
+                var selectedMethod = result.Data;
 
-    //         if (result.Succeeded && result.Data != null)
-    //         {
-    //             _methods = result.Data;
+                if (selectedMethod != null)
+                {
+                    Solver.ThermoMethod = selectedMethod;
+                    _localMethod = _metod;
 
-    //             // Si ya hay un método seleccionado, asegurarse que esté en la lista
-    //             if (_config.ThermodynamicMethod != null &&
-    //                 !_methods.Any(m => m.Id == _config.ThermodynamicMethod.Id))
-    //             {
-    //                 // Si no está, buscar por nombre como fallback
-    //                 var fallback = _methods.FirstOrDefault(m =>
-    //                     m.Name == _config.ThermodynamicMethod.Name);
-    //                 if (fallback != null)
-    //                     _config.ThermodynamicMethod = fallback;
-    //             }
-    //         }
-    //         else
-    //         {
-    //             _methodsError = result.Message ?? "Failed to load thermodynamic methods";
-    //         }
-    //     }
-    //     catch (Exception ex)
-    //     {
-    //         _methodsError = $"Error: {ex.Message}";
-    //     }
-    //     finally
-    //     {
-    //         _isLoadingMethods = false;
-    //         StateHasChanged();
-    //     }
-    // }
 
-    // private async Task Submit()
-    // {
-    //     if (_isLoadingMethods || _isApplying) return;
 
-    //     _isApplying = true;
-    //     StateHasChanged();
-    //     //Aqui ponemos guardar a base de datos
-    //     _isApplying = false;
-    //     MudDialog.Close(true);
+                }
+            }
+        }
+        else
+        {
+            Solver.ThermoMethod = null!;
 
-    // }
+        }
+    }
 
-    // private void Cancel() => MudDialog.Cancel();
+    private async Task LoadThermodynamicMethods()
+    {
+        _isLoadingMethods = true;
+        StateHasChanged();
+
+        try
+        {
+            // 🔥 Tu patrón HTTP: GetAllCompleteMethods
+            var request = new GetAllCompleteMethods();
+            var result = await HttpServices.PostAsync<GetAllCompleteMethods, Result<List<ThermodynamicMethodFullDto>>>(request);
+
+            if (result.Succeeded && result.Data != null)
+            {
+                _methods = result.Data;
+
+                // Si ya hay un método seleccionado, asegurarse que esté en la lista
+                if (Solver.ThermoMethod != null &&!_methods.Any(m => m.Id == Solver.ThermoMethod.Id))
+                {
+                    // Si no está, buscar por nombre como fallback
+                    _localMethod = _methods.First(m => m.Id == Solver.ThermoMethod.Id);
+                   
+                }
+            }
+            else
+            {
+                _methodsError = result.Message ?? "Failed to load thermodynamic methods";
+            }
+        }
+        catch (Exception ex)
+        {
+            _methodsError = $"Error: {ex.Message}";
+        }
+        finally
+        {
+            _isLoadingMethods = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task Submit()
+    {
+        if (_isLoadingMethods || _isApplying) return;
+
+        _isApplying = true;
+        StateHasChanged();
+        //Aqui ponemos guardar a base de datos
+        _isApplying = false;
+        MudDialog.Close(true);
+
+    }
+
+    private void Cancel() => MudDialog.Cancel();
 }

@@ -1,10 +1,12 @@
-﻿using Shared.UnitOperations.Streams;
+﻿using Shared.SolverQwen.Stream;
+using Shared.UnitOperations.Streams;
+using UnitSystem;
 
 namespace Shared.ProcessFlowDiagram.Streams
 {
     public class StreamVisualElement : VisualElementBase
     {
-        public override List<ToolTipLegend> GetToolTipData() => Facade.GetToolTipLegend();
+      
         public override EquipmentType Type => EquipmentType.MaterialStream;
         public override string Prefix => "S";
 
@@ -57,12 +59,12 @@ namespace Shared.ProcessFlowDiagram.Streams
             // La punta de la flecha es 60. Le sumamos 4 para el Outlet.
             AddPort("Outlet", PortType.Outlet, 64, 15, PortDirection.Right);
 
-            // 5. Facade por defecto
-            //Facade = new StreamFacade
-            //{
-            //    Id = this.Id,
-            //    Name = "S-New"
-            //};
+            //5.Facade por defecto
+            Facade = new FacadeStream
+            {
+                Id = this.Id,
+                Name = "S-New"
+            };
         }
 
         public override bool CanConnect(string myPortName, IVisualElement targetElement, string targetPortName)
@@ -75,6 +77,60 @@ namespace Shared.ProcessFlowDiagram.Streams
             if (targetElement is StreamVisualElement) return false;
 
             return true;
+        }
+
+     
+        public override bool ShowLabel { get; set; } = true;
+
+        private IFacadeStream LocalFacade => Facade as IFacadeStream ?? throw new InvalidOperationException("Facade must be IFacadeStream");
+
+        public override string StatusColor => LocalFacade.State switch
+        {
+            StreamStateType.Calculated => "#28a745",              // Verde brillante (TODO OK)
+            StreamStateType.FlowCalculated => "#20c997",          // Verde azulado
+            StreamStateType.EquilibriumCalculated => "#ffc107",   // Amarillo
+            StreamStateType.CompositionDefined => "#17a2b8",      // Azul claro
+            StreamStateType.Initialized => "#6c757d",             // Gris
+            StreamStateType.Error => "#dc3545",                   // Rojo
+            _ => "#6c757d"                                        // Gris por defecto
+        };
+
+        public override string StatusText => LocalFacade.State switch
+        {
+            StreamStateType.Calculated => "Calculated",           // 🔥 NUEVO
+            StreamStateType.FlowCalculated => "Flow Calculated",
+            StreamStateType.EquilibriumCalculated => "Equilibrium Solved",
+            StreamStateType.CompositionDefined => "Composition Defined",
+            StreamStateType.Initialized => "Initialized",
+            StreamStateType.Undefined => "Undefined",
+            StreamStateType.Error => "Error",
+            _ => "Unknown"
+        };
+
+        // 4. GetToolTipLegend (de IFacade) - Implementación básica por ahora
+        public List<ToolTipLegend> GetToolTipLegend()
+        {
+            var legends = new List<ToolTipLegend>();
+
+            // Variables principales (siempre se muestran, incluso si no están definidas)
+            legends.Add(new ToolTipLegend("Temperature", LocalFacade.Temperature.ToUiString()));
+            legends.Add(new ToolTipLegend("Pressure", LocalFacade.Pressure.ToUiString()));
+            legends.Add(new ToolTipLegend("Mass Flow", LocalFacade.MassFlow.ToUiString()));
+            legends.Add(new ToolTipLegend("Vapor Fraction", LocalFacade.VaporFraction.ToUiString()));
+
+            // Composición de cada componente
+            if (LocalFacade.Composition?.Components != null)
+            {
+                foreach (var component in LocalFacade.Composition.Components)
+                {
+                    legends.Add(new ToolTipLegend(component.Name, component.MassFraction.ToUiString()));
+                }
+            }
+
+            // Estado general
+            legends.Add(new ToolTipLegend("Status", StatusText));
+
+            return legends;
         }
     }
    

@@ -1,36 +1,44 @@
 ﻿@using System.Globalization
 
-<div class="@PanelCssClass" title="@GetTooltipText()">
+<div class="@PanelCssClass">
     <div class="entry-label">
         <span>°GL</span>
     </div>
 
     <div class="entry-input">
-        @* 🔹 ESTADO READONLY (sistema o calculado) *@
+        @* 🔹 ESTADO READONLY (sistema o calculado)  *@
         @if (IsReadOnly)
         {
-            <span class="gl-value-readonly @(IsCalculated ? "calculated" : "")" title="@GetTooltipText()">
+            <span class="gl-value-readonly @(IsCalculated ? "calculated" : "") @(ShouldShowTooltip() ? "has-tooltip" : "")">
                 @GetReadonlyDisplayValue()
                 @if (!string.IsNullOrWhiteSpace(SourceId))
                 {
-                    <span class="auto-badge" title="Calculated by: @SourceId"></span>
+                    <span class="auto-badge">⚙ Auto</span>
+                }
+                @if (ShouldShowTooltip())
+                {
+                    <span class="tooltip-text">@GetTooltipText()</span>
                 }
             </span>
         }
-        @* 🔹 ESTADO EDITABLE *@
+        @* 🔹 ESTADO EDITABLE  *@
         else
         {
-            <input type="number"
-                   step="0.1"
-                   min="0"
-                   max="100"
-                   value="@GetInputValue()"
-                   placeholder="@Placeholder"
-                   class="@(HasPlaceholder ? "has-placeholder" : "")"
-                   @onfocus="HandleFocus"
-                   @oninput="HandleInput"
-                   @onkeydown="HandleKeyDown"
-                   @onblur="HandleBlur" />
+            <div class="editable-wrapper @(ShouldShowTooltip() ? "has-tooltip" : "")">
+                <input type="text"
+                       
+                       value="@GetInputValue()"
+                       placeholder="@Placeholder"
+                       class="@(HasPlaceholder ? "has-placeholder" : "")"
+                       @onfocus="HandleFocus"
+                       @oninput="HandleInput"
+                       @onkeydown="HandleKeyDown"
+                       @onblur="HandleBlur" />
+                @if (ShouldShowTooltip())
+                {
+                    <span class="tooltip-text">@GetTooltipText()</span>
+                }
+            </div>
         }
     </div>
 
@@ -56,8 +64,11 @@
     private const string Placeholder = "<Not defined>";
     private bool HasPlaceholder => !IsMassFractionDefined && !_hasUserTyped;
 
+    // 🔥 Determinar si debe mostrar tooltip
+    private bool ShouldShowTooltip() => !string.IsNullOrWhiteSpace(SourceId);
+
     private string? GetTooltipText() =>
-            !string.IsNullOrWhiteSpace(SourceId) ? $"Calculated by: {SourceId}" : null;
+        !string.IsNullOrWhiteSpace(SourceId) ? $"Calculated by: {SourceId}" : null;
 
     private string GetInfoText()
     {

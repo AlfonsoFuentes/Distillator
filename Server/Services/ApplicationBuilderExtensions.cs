@@ -4,33 +4,7 @@ namespace Server.Services
 {
     public static class AppBuilder
     {
-        public static WebApplication UseApp2(this WebApplication app)
-        {
-            if (app.Environment.IsDevelopment())
-            {
-
-                app.UseWebAssemblyDebugging();
-            }
-            else
-            {
-                app.UseExceptionHandler("/Error");
-                app.UseHsts();
-            }
-
-            app.MapStaticAssets();
-
-            app.UseRouting();
-            app.UseCors("AllowBlazorWasm");
-            app.UseHttpsRedirection();
-            app.UseAuthentication();
-            app.UseAuthorization();
-
-            app.MapEndPoint();
-            app.MapRazorPages();
-            app.MapFallbackToFile("index.html");
-            app.MapControllers();
-            return app;
-        }
+       
         // En AppBuilder.cs -> UseApp
         public static WebApplication UseApp(this WebApplication app)
         {

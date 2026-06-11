@@ -21,14 +21,14 @@ namespace Shared.Thermodynamics.Strategies.Flows
         public void Execute()
         {
             // 1. Leer flujo másico total
-            double totalMassFlow = _facade.MassFlow.Value.GetValue(MassFlowUnits.Kg_sg);
+            double totalMassFlow = _facade.MassFlow.Value.GetValue(MassFlowUnits.Kg_hr);
 
             // 2. Calcular flujo molar total
             double molecularWeight = _facade.MaterialStream.MolecularWeight;
             if (molecularWeight > 0)
             {
                 double totalMolarFlow = totalMassFlow / molecularWeight;
-                var totalMolarAmount = new MolarFlow(totalMolarFlow, MolarFlowUnits.Kgmol_sg);
+                var totalMolarAmount = new MolarFlow(totalMolarFlow, MolarFlowUnits.Kgmol_hr);
                 _facade.MolarFlow.SetValue(totalMolarAmount, SolverConsecutive.VariableDefinedBy.StreamCalculated);
             }
 
@@ -42,7 +42,7 @@ namespace Shared.Thermodynamics.Strategies.Flows
                     if (density > 0)
                     {
                         double volumetricFlow = totalMassFlow / density;
-                        var volAmount = new VolumetricFlow(volumetricFlow, VolumetricFlowUnits.m3_sg);
+                        var volAmount = new VolumetricFlow(volumetricFlow, VolumetricFlowUnits.m3_hr);
                         _facade.VolumetricFlow.SetValue(volAmount, SolverConsecutive.VariableDefinedBy.StreamCalculated);
                     }
                 }
@@ -52,7 +52,7 @@ namespace Shared.Thermodynamics.Strategies.Flows
                 {
                     double massEnthalpy = _facade.MaterialStream.MassEnthalpy.GetValue(MassEnergyUnits.KJ_Kg);
                     double energyFlow = totalMassFlow * massEnthalpy;
-                    var energyAmount = new EnergyFlow(energyFlow, EnergyFlowUnits.KJ_sg);
+                    var energyAmount = new EnergyFlow(energyFlow, EnergyFlowUnits.KJ_hr);
                     _facade.EnthalpyFlow.SetValue(energyAmount, SolverConsecutive.VariableDefinedBy.StreamCalculated);
                 }
             }
@@ -66,9 +66,9 @@ namespace Shared.Thermodynamics.Strategies.Flows
                 double massFrac = comp.MassFraction.Value.GetValue(PercentageUnits.Percentage) / 100.0;
                 double compMassFlow = totalMassFlow * massFrac;
 
-                var compMassAmount = new MassFlow(compMassFlow, MassFlowUnits.Kg_sg);
+                var compMassAmount = new MassFlow(compMassFlow, MassFlowUnits.Kg_hr);
                 double compMolarFlow = compMassFlow / comp.MolecularWeight;
-                var compMolarAmount = new MolarFlow(compMolarFlow, MolarFlowUnits.Kgmol_sg);
+                var compMolarAmount = new MolarFlow(compMolarFlow, MolarFlowUnits.Kgmol_hr);
                 if (!comp.MassFlow.ShouldTriggerRecalculation)
                 {
 

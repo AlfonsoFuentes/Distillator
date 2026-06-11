@@ -1,11 +1,7 @@
 ﻿using Shared.PropertiesDtos.Methods;
 using Shared.SolverConsecutive;
 using Shared.SolverConsecutive.Equipments;
-using Shared.SolverQwen.Equipments;
-using Shared.SolverQwen.Simlations;
 using Shared.SolverQwen.Stream;
-using Shared.SolverQwen.Variables;
-using System.Timers;
 using UnitSystem;
 
 namespace Shared.SolverQwen
@@ -47,7 +43,7 @@ namespace Shared.SolverQwen
         public void SetThermoMethod(ThermodynamicMethodFullDto thermoMethod)
         {
             ThermoMethod = thermoMethod;
-            MainSolver.SetThermodynamicMethod(thermoMethod);
+            MainSolver.ThermoMethod = thermoMethod;
 
         }
 
@@ -192,12 +188,12 @@ namespace Shared.SolverQwen
 
             MainSolver.RunSimulation();
             AllPrinter(MainSolver.Streams, "paso 7");
-            var refluxSpec = new Specification
+            var refluxSpec = new MultiplierSpecification
             {
                 Source = Distillate,
                 Destination = Column.RefluxInlet!,
                 VariableType = SpecVariableType.TotalMassFlow,
-                Formula = sourceValue => sourceValue * 5.0
+                
             };
             TopSpliter.AddSpec(refluxSpec);
 

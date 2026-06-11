@@ -38,8 +38,9 @@ namespace Shared.Thermodynamics.Solvers
              Func<double, double> func, double x0, double x_norm = 1.0, double f_norm = 1.0,
              double tolAdim = DefaultAdimTolerance, int maxIter = DefaultMaxIterations, double adimperturbation = DefaultAdimPerturbation, string debugTag = "Newton")
         {
-#if DEBUG
             var sw = System.Diagnostics.Stopwatch.StartNew();
+#if DEBUG
+
             Console.WriteLine($"\n[DEBUG-{debugTag}] ⚡ Iniciando Solve (Motor IQI 3-Puntos) | x0={x0:F4}");
 #endif
             double xAdim = x0 / x_norm;
@@ -144,8 +145,9 @@ namespace Shared.Thermodynamics.Solvers
              Func<double, double> func, double x0, double x_norm = 1.0, double f_norm = 1.0,
              double tolAdim = DefaultAdimTolerance, int maxIter = DefaultMaxIterations, string debugTag = "NewtonRaw")
         {
-#if DEBUG
             var sw = System.Diagnostics.Stopwatch.StartNew();
+#if DEBUG
+       
             Console.WriteLine($"\n[DEBUG-{debugTag}] ⚡ Iniciando SolveRaw | x0={x0:F4}");
 #endif
             double xAdim = x0 / x_norm;

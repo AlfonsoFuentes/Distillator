@@ -7,15 +7,10 @@ namespace Shared.UnitOperations.Basiss
         Guid Id { get; set; }
         string Name { get; set; }
 
-        string StatusText { get; }
-        string StatusColor { get; }
+       
 
-        // Diccionario mágico para el Tooltip genérico
-        List<ToolTipLegend> GetToolTipLegend();
+    
 
-
-        Action? OnExecuteSolver { get; set; }
-   
 
     }
  

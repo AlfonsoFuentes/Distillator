@@ -1,6 +1,4 @@
-﻿using Shared.MatrixSolvers;
-using Shared.SolverQwen.Simlations;
-using Shared.SolverQwen.Variables;
+﻿using Shared.SolverQwen.Simlations;
 
 namespace Shared.SolverConsecutive
 {
@@ -18,7 +16,7 @@ namespace Shared.SolverConsecutive
         double PerturbationFactor { get; set; } = 1e-4;
         double MinPerturbation { get; set; } = 1e-6;
         double Alpha = 1;
-        List<INewVariable> _adjustableVariables = null!;
+        List<IVariable> _adjustableVariables = null!;
         public SolverResult Solve(ISolverEquation _equation, double _alpha = 1.0)
         {
             equation = _equation;
@@ -117,7 +115,7 @@ namespace Shared.SolverConsecutive
             Console.WriteLine($"[NR-Solver] ✅ Convergencia inmediata (Error inicial {normF_old:E4} < {ToleranceResidual}).");
 #endif
 
-            foreach (INewVariable variable in _adjustableVariables)
+            foreach (IVariable variable in _adjustableVariables)
             {
                 variable.SetValueFromSolver(variable.GetSolverValue(), VariableDefinedBy.Solver);
             }
@@ -209,5 +207,12 @@ namespace Shared.SolverConsecutive
             return new DampedStepResult { XNew = bestX, Converged = false, FinalError = minError };
         }
 
+    }
+
+    internal class DampedStepResult
+    {
+        public double[] XNew { get; set; } = null!;
+        public bool Converged { get; set; }
+        public double FinalError { get; set; }
     }
 }

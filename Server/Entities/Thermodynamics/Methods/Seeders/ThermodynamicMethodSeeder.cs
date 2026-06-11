@@ -71,7 +71,7 @@ public static class ThermodynamicMethodSeeder
         if (lines.Length <= 1) return;
 
         var ci = CultureInfo.InvariantCulture;
-        var componentsDict = await context.ChemicalComponents.ToDictionaryAsync(c => c.Name);
+        var componentsDict = await context.ChemicalComponents.ToDictionaryAsync(c => c.Name, StringComparer.OrdinalIgnoreCase);
 
         // Agrupar filas por MethodName
         var rowsByMethod = lines.Skip(1)

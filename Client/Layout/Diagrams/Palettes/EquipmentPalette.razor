@@ -1,6 +1,6 @@
 ﻿@attribute [Authorize]
 @using Pages.Configuration
-@* 
+@inject IMainSolver Solver
 <div class="floating-palette-panel narrow">
     <div class="panel-header">
         <div class="drag-handle"></div>
@@ -19,7 +19,7 @@
         <div class="group-divider"></div>
 
         <div class="group-divider"></div>
-        @* 🔥 MENSAJE INFORMATIVO SI NO HAY MÉTODO DEFINIDO 
+        @* 🔥 MENSAJE INFORMATIVO SI NO HAY MÉTODO DEFINIDO *@
         @if (!isThermoDefined)
         {
             <div class="thermo-warning-banner">
@@ -33,7 +33,7 @@
         @if (isThermoDefined)
         {
 
-            @* --- 1. FUNDAMENTALS ---
+            @* --- 1. FUNDAMENTALS ---*@
             <div class="fundamentals-section">
                 <span class="group-header">FUNDAMENTALS</span>
                 <div class="fundamentals-row">
@@ -61,7 +61,7 @@
 
             <div class="group-divider"></div>
 
-            @* --- 2. EQUIPOS DINÁMICOS --- 
+            @* --- 2. EQUIPOS DINÁMICOS --- *@
             @foreach (var group in EquipmentRegistry.Groups)
             {
                 <div class="equipment-group">
@@ -92,41 +92,41 @@
             }
         }
     </div>
-</div> *@
+</div> 
 
 @code {
     private string? _hoveredName;
-    // bool isThermoDefined => SolverManager.Configuration?.ThermodynamicMethod != null;
+    bool isThermoDefined => Solver.ThermoMethod!= null;
 
-    // private void HandleDragStart(EquipmentType type)
-    // {
-    //     if (SolverManager.Configuration?.ThermodynamicMethod == null)
-    //     {
-    //         // Cancelar drag mostrando mensaje
-    //         _hoveredName = "Configure thermodynamic method first";
-    //         return;
-    //     }
-    //     DragState.CurrentDraggedType = type;
-    //     _hoveredName = null;
-    // }
-    // private async Task OpenSolverConfig()
-    // {
-    //     var options = new DialogOptions
-    //     {
-    //         CloseButton = true,
-    //         MaxWidth = MaxWidth.Small,
-    //         FullWidth = true
-    //     };
+    private void HandleDragStart(EquipmentType type)
+    {
+        if (Solver.ThermoMethod == null)
+        {
+            // Cancelar drag mostrando mensaje
+            _hoveredName = "Configure thermodynamic method first";
+            return;
+        }
+        DragState.CurrentDraggedType = type;
+        _hoveredName = null;
+    }
+    private async Task OpenSolverConfig()
+    {
+        var options = new DialogOptions
+        {
+            CloseButton = true,
+            MaxWidth = MaxWidth.Small,
+            FullWidth = true
+        };
 
-    //     var dialog = await DialogService.ShowAsync<SolverConfigurationDialog>(
-    //                 "Solver Configuration",
-    //                 options);
+        var dialog = await DialogService.ShowAsync<SolverConfigurationDialog>(
+                    "Solver Configuration",
+                    options);
 
-    //     var result = await dialog.Result;
+        var result = await dialog.Result;
 
-    //     if (!result!.Canceled)
-    //     {
-    //         StateHasChanged();
-    //     }
+        if (!result!.Canceled)
+        {
+            StateHasChanged();
+        }
     }
 }

@@ -13,7 +13,7 @@
     @* 1. DIBUJO BASE *@
     <ReboilerSvg Width="@Element.Width"
                  Height="@Element.Height"
-                 StatusColor="@(Element.Facade?.StatusColor ?? "#CBD5E0")"
+                 StatusColor="@(Element.StatusColor ?? "#CBD5E0")"
                  ElementId="@Element.Id.ToString()"
                  CssClass="reb-svg" />
 

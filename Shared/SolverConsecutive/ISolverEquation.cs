@@ -7,9 +7,9 @@ namespace Shared.SolverConsecutive
         string Name { get; }
         SolverEquationType EquationType { get; }
         List<double> Residuals { get; }
-        List<INewVariable> Variables { get; }
+        List<IVariable> Variables { get; }
 
-        List<INewVariable> AdjustableVariables() => Variables.Where(x => !x.IsDefined).ToList();
+        List<IVariable> AdjustableVariables() => Variables.Where(x => !x.IsDefined).ToList();
 
 
 

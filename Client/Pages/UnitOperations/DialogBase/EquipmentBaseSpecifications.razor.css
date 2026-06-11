@@ -1,0 +1,257 @@
+﻿/* =================================================
+   BASE DE LA TABLA Y GRILLA
+   ================================================= */
+.spec-container {
+    overflow: auto;
+    max-height: 450px;
+    border: 1px solid var(--border-color, #b0b0b0);
+    border-radius: 4px;
+    background: #f8fafc; /* Fondo técnico tenue */
+    padding-bottom: 8px;
+}
+
+.spec-grid {
+    display: grid;
+    /* Columnas: Name | Type | Dest | = | Value | x | Source | VarType | Actions */
+    grid-template-columns: 1.2fr 110px 1.5fr 24px 80px 24px 1.5fr 130px 70px;
+    grid-auto-rows: minmax(32px, auto);
+    gap: 0;
+    width: 100%;
+    background-color: var(--border-color, #b0b0b0);
+}
+
+.grid-header {
+    background-color: var(--header-bg, #e4e4e4) !important;
+    font-weight: 600;
+    color: #333333;
+    padding: 6px 8px;
+    border-bottom: 1px solid #999999;
+    border-right: 1px solid var(--border-color, #b0b0b0);
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    min-height: 32px;
+    font-size: 11px;
+    text-transform: uppercase;
+}
+
+.sticky-header {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+}
+
+.grid-cell {
+    padding: 0 8px;
+    border-bottom: 1px solid var(--border-color, #b0b0b0);
+    border-right: 1px solid var(--border-color, #b0b0b0);
+    display: flex;
+    align-items: center;
+    font-size: 12px;
+    background-color: #ffffff;
+    min-height: 32px;
+}
+
+/* =================================================
+   LA ECUACIÓN (MÁGICA VISUAL)
+   ================================================= */
+.math-col {
+    border-right: none !important;
+}
+
+.math-cell {
+    background-color: #f8fafc !important;
+    justify-content: center;
+    padding: 0;
+}
+
+.math-symbol {
+    font-family: 'Consolas', monospace;
+    font-weight: bold;
+    font-size: 14px;
+    color: #475569;
+}
+
+/* =================================================
+   INPUTS, SELECTS Y MODO EDICIÓN
+   ================================================= */
+.editable-cell {
+    padding: 0 !important;
+    position: relative;
+}
+
+.std-input {
+    width: 100%;
+    height: 100%;
+    border: none;
+    outline: none;
+    background: transparent;
+    padding: 0 8px;
+    font: inherit;
+    color: #0056b3;
+    font-family: 'Consolas', monospace;
+}
+
+    .std-input:focus {
+        background-color: #f0f8ff;
+        box-shadow: inset 0 0 0 1px #4674a6;
+    }
+
+.value-cell .std-input {
+    text-align: right;
+}
+
+/* Menú desplegable para los Enums */
+.type-selector {
+    cursor: pointer;
+    font-weight: 600;
+    color: #4674a6;
+    font-size: 11px;
+    text-transform: uppercase;
+    appearance: none; /* Quita la flecha por defecto en algunos navegadores para un look más limpio */
+}
+
+/* =================================================
+   MODO LECTURA
+   ================================================= */
+.value-text-cell {
+    color: #333;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.font-bold {
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.font-mono {
+    font-family: 'Consolas', monospace;
+}
+
+.text-right {
+    text-align: right;
+    width: 100%;
+}
+
+.pr-2 {
+    padding-right: 8px;
+}
+
+.source-userinterface {
+    color: #4674a6 !important;
+    font-weight: 600;
+}
+
+.source-other {
+    color: #2a2f3a !important;
+    font-weight: 600;
+}
+
+.source-none {
+    color: #64748b !important;
+}
+
+/* =================================================
+   BADGE FUTURE-PROOF
+   ================================================= */
+.badge-cell {
+    justify-content: center;
+    background-color: #fafafa;
+}
+
+.type-badge {
+    font-size: 9px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    font-weight: 700;
+}
+
+    .type-badge.mass-flow {
+        background-color: #e2e8f0;
+        color: #64748b;
+        border: 1px solid #cbd5e1;
+    }
+
+/* =================================================
+   BOTONES DE ACCIÓN 
+   ================================================= */
+.action-col {
+    justify-content: center;
+}
+
+.action-cell {
+    justify-content: center;
+    gap: 4px;
+}
+
+.action-btn {
+    background: none;
+    border: none;
+    padding: 4px;
+    border-radius: 3px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.confirm-btn {
+    color: #10b981;
+}
+
+    .confirm-btn:hover {
+        background: #ecfdf5;
+        color: #059669;
+    }
+
+.disconnect-btn {
+    color: #ef4444;
+}
+
+    .disconnect-btn:hover {
+        background: #fef2f2;
+        color: #dc2626;
+    }
+
+.edit-btn {
+    color: #4674a6;
+}
+
+    .edit-btn:hover {
+        background: #eef5ff;
+        color: #2563eb;
+    }
+
+/* =================================================
+   BOTÓN GHOST AGREGAR
+   ================================================= */
+.add-row-container {
+    padding: 12px;
+    display: flex;
+    justify-content: flex-start;
+}
+
+.ghost-btn-add {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: transparent;
+    border: 1px dashed #4674a6;
+    color: #4674a6;
+    padding: 6px 16px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+    .ghost-btn-add:hover {
+        background: #f0f8ff;
+        border-style: solid;
+        box-shadow: 0 2px 4px rgba(70, 116, 166, 0.1);
+    }

@@ -12,7 +12,7 @@ namespace Shared.ProcessFlowDiagram.Instruments
 
     public class InstrumentVisualElement : VisualElementBase
     {
-         public override List<ToolTipLegend> GetToolTipData() => Facade.GetToolTipLegend();
+       
         public override EquipmentType Type => EquipmentType.Instrument;
         public override string Prefix => "IT"; // Instrument Transmitter
 

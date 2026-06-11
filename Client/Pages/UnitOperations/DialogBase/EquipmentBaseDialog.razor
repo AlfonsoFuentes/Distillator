@@ -1,7 +1,7 @@
 ﻿<MudDialog Gutters="false" ContentClass="pa-0">
     <DialogContent>
         <div class="equipment-dialog">
-            
+
             @* ENCABEZADO: Solo usa Equipment.Label *@
             <div class="dialog-header">
                 <span class="dialog-title">@Equipment.Label</span>
@@ -11,6 +11,7 @@
             @* PESTAÑAS *@
             <div class="tabs-header">
                 <div class="tab @(activeTab == "Main" ? "active" : "")" @onclick='() => SetTab("Main")'>Main</div>
+                <div class="tab @(activeTab == "Specs" ? "active" : "")" @onclick='() => SetTab("Specs")'>Specs</div>
                 <div class="tab @(activeTab == "Design" ? "active" : "")" @onclick='() => SetTab("Design")'>Design</div>
                 <div class="tab @(activeTab == "Streams" ? "active" : "")" @onclick='() => SetTab("Streams")'>Streams</div>
                 <div class="tab @(activeTab == "Composition" ? "active" : "")" @onclick='() => SetTab("Composition")'>Composition</div>
@@ -21,7 +22,7 @@
                 @if (activeTab == "Main")
                 {
                     <div class="main-tab-container">
-        
+
                         @* 1. Topología (Conexiones y Dibujo) *@
                         <div class="main-slot-container">
                             @MainSlot
@@ -39,6 +40,11 @@
                         }
                     </div>
                 }
+                else if (activeTab == "Specs")
+                {
+                    <EquipmentBaseSpecifications Equipment="Equipment"
+                                                 OnSpecificationsChanged="HandleEquipmentUpdate" />
+                }
                 else if (activeTab == "Design")
                 {
                     @(DesignSlot ?? (RenderFragment)(b => b.AddContent(0, "Design parameters will be defined after mass balance calculation.")))
@@ -46,12 +52,11 @@
                 else if (activeTab == "Streams")
                 {
                     <EquipmentBaseStreams Ports="_Ports"
-                                         
                                           OnEquipmentStreamsUpdated="HandleEquipmentUpdate" />
                 }
                 else if (activeTab == "Composition")
                 {
-                    <NewEquipmentBaseCompositionGrid Ports="_Ports"></NewEquipmentBaseCompositionGrid>
+                    <EquipmentBaseCompositionGrid Ports="_Ports"></EquipmentBaseCompositionGrid>
                 }
             </div>
 
@@ -67,22 +72,22 @@
 @code {
     [CascadingParameter] public IMudDialogInstance MudDialog { get; set; } = default!;
     [Parameter, EditorRequired] public IVisualElement Equipment { get; set; } = default!;
-    
+
     [Parameter] public RenderFragment? MainSlot { get; set; }
     [Parameter] public RenderFragment? PropertiesSlot { get; set; }
     [Parameter] public RenderFragment? DesignSlot { get; set; }
+
     
-   
     private string activeTab = "Main";
 
     List<EquipmentPort> _Ports => Equipment.Ports;
 
     private void SetTab(string tabName) { activeTab = tabName; StateHasChanged(); }
     private void Cancel() => MudDialog.Cancel();
-    
+
     protected override async Task OnInitializedAsync()
     {
-       
+
     }
     private async Task HandleEquipmentUpdate()
     {

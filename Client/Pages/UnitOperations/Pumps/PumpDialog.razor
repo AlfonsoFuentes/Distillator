@@ -1,5 +1,7 @@
 ﻿
 
+
+
 <EquipmentBaseDialog Equipment="Equipment">
 
     @* TOPOLOGÍA, DIBUJO Y PARÁMETROS FLOTANTES (ESTILO HYSYS) *@
@@ -17,7 +19,7 @@
 
             @* 2. DIBUJO CENTRAL *@
             <div class="equipment-drawing-zone">
-                <PumpSvg Width="180" Height="180" StatusColor="@(Equipment.Facade?.StatusColor ?? "#CBD5E0")" CssClass="pump-svg-dialog" />
+                <PumpSvg Width="180" Height="180" StatusColor="@(Equipment.StatusColor ?? "#CBD5E0")" CssClass="pump-svg-dialog" />
             </div>
 
             @* 3. PROPIEDADES FLOTANTES *@
@@ -25,24 +27,24 @@
         </div>
     </MainSlot>
     <PropertiesSlot>
-        @* @if (Equipment.Facade is PumpSimulationFacade2 pumpFacade)
+        @if (Equipment.Facade is SolverPump pumpFacade)
         {
 
-            <NewUnifiedVariableRow Label="Delta P"
-                                @bind-Variable="pumpFacade.DeltaPressure"
+            <VariableAmountRow Label="Delta P"
+                                @bind-Variable="pumpFacade.DeltaP"
                                 Mode="VariableMode.Standard" />
 
-            <NewUnifiedDoubleRow Label="Adiabatic Eff (%)"
+            <VariablePercentageRow Label="Adiabatic Eff (%)"
                               @bind-Variable="pumpFacade.Efficiency"
-                              Mode="VariableMode.Standard" MinValue="0" MaxValue="100" />
+                              Mode="VariableMode.Standard"  />
           
-            <NewUnifiedVariableRow Label="Duty (Power)" IsReadOnly="true"
+            <VariableAmountRow Label="Duty (Power)" IsReadOnly="true"
                                 @bind-Variable="pumpFacade.Power"
                                 
                                 Mode="VariableMode.Standard" />
       
            
-        } *@
+        }
     </PropertiesSlot>
 
 </EquipmentBaseDialog>

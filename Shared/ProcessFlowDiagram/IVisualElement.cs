@@ -1,4 +1,5 @@
-﻿using Shared.UnitOperations.Basiss;
+﻿using Shared.SolverQwen.Stream;
+using Shared.UnitOperations.Basiss;
 using Shared.UnitOperations.Streams;
 using System;
 using System.Collections.Generic;
@@ -141,6 +142,24 @@ namespace Shared.ProcessFlowDiagram
         void SetDropPosition(double dropX, double dropY, Func<double, double> snapFunction);
 
         (double X, double Y, double Nx, double Ny) GetCanvasPoint(string portName);
+
+        void AttachConnection(string portName, IFacadeStream connectedFacade);
+
+        /// <summary>
+        /// Desconectar una corriente de un puerto nombrado del equipo.
+        /// </summary>
+        void DetachConnection(string portName);
+
+        /// <summary>
+        /// Retorna los nombres de todos los puertos que este equipo expone.
+        /// Ej: ["Suction", "Discharge"] para bomba, ["Inlet", "Outlet", "Bypass"] para válvula.
+        /// </summary>
+        IEnumerable<string> GetPortNames();
+
+        /// <summary>
+        /// Retorna la corriente conectada a un puerto específico, o null si no hay conexión.
+        /// </summary>
+        IFacadeStream? GetConnectedStream(string portName);
     }
 
     // ==========================================
@@ -149,10 +168,7 @@ namespace Shared.ProcessFlowDiagram
 
     public abstract class VisualElementBase : IVisualElement
     {
-        public abstract List<ToolTipLegend> GetToolTipData();
-        public virtual bool ShowLabel { get; set; } = true;
-        public string StatusColor => Facade?.StatusColor ?? "#CBD5E0";
-        public string StatusText => Facade?.StatusText ?? "Unknown";
+      
         public string Name
         {
             get { return Facade?.Name ?? "Unknown"; }
@@ -257,66 +273,38 @@ namespace Shared.ProcessFlowDiagram
             myPort.ConnectedElementId = targetElement.Id;
             targetPort.ConnectedElementId = this.Id;
 
-            // 🔥 2. NUEVA LÓGICA: Solo equipos llaman AttachConnection hacia corrientes
-            //if (this.Facade is IEquipmentFacade2 myEquipment && targetElement.Facade is IStreamFacade2 targetStream)
-            //{
-            //    myEquipment.AttachConnection(myPortName, targetStream);
-            //}
-            //else if (targetElement.Facade is IEquipmentFacade2 targetEquipment && this.Facade is IStreamFacade2 myStream)
-            //{
-            //    targetEquipment.AttachConnection(targetPortName, myStream);
-            //}
+             
+            if (this.Facade is IEquipmentFacade myEquipment && targetElement.Facade is IFacadeStream targetStream)
+            {
+                AttachConnection(myPortName, targetStream);
+            }
+            else if (targetElement.Facade is IEquipmentFacade targetEquipment && this.Facade is IFacadeStream myStream)
+            {
+                AttachConnection(targetPortName, myStream);
+            }
             // Si ninguno es equipo, no hacer nada (CanConnect ya garantiza que uno es equipo y otro stream)
 
             return true;
         }
 
-        //public bool Connect(string myPortName, IVisualElement targetElement, string targetPortName)
-        //{
-        //    if (!CanConnect(myPortName, targetElement, targetPortName)) return false;
-
-        //    var myPort = Ports.First(p => p.Name == myPortName);
-        //    var targetPort = targetElement.Ports.First(p => p.Name == targetPortName);
-
-        //    // 1. Bloqueamos los puertos visualmente cruzando los IDs
-        //    myPort.ConnectedElementId = targetElement.Id;
-        //    targetPort.ConnectedElementId = this.Id;
-
-        //    // 2. Avisamos a los "Cerebros" (Facades) para que crucen la termodinámica
-        //    this.Facade?.AttachConnection(myPortName, targetElement.Facade!);
-        //    targetElement.Facade?.AttachConnection(targetPortName, this.Facade!);
-
-        //    return true;
-        //}
+       
         public void Disconnect(string myPortName)
         {
             var myPort = Ports.FirstOrDefault(p => p.Name == myPortName);
             if (myPort == null || myPort.ConnectedElementId == null) return;
 
             // 🔥 NUEVA LÓGICA: Solo equipos implementan DetachConnection
-            //if (this.Facade is IEquipmentFacade2 equipment)
-            //{
-            //    equipment.DetachConnection(myPortName);
-            //}
+            if (this.Facade is IEquipmentFacade equipment)
+            {
+                DetachConnection(myPortName);
+            }
 
             // Liberamos el puerto en la UI
             myPort.ConnectedElementId = null;
 
             // Nota: El lienzo también deberá llamar al Disconnect del otro elemento
         }
-        //public void Disconnect(string myPortName)
-        //{
-        //    var myPort = Ports.FirstOrDefault(p => p.Name == myPortName);
-        //    if (myPort == null || myPort.ConnectedElementId == null) return;
-
-        //    // Avisamos al cerebro que soltamos el tubo
-        //    this.Facade?.DetachConnection(myPortName);
-
-        //    // Liberamos el puerto en la UI
-        //    myPort.ConnectedElementId = null;
-
-        //    // Nota: El lienzo también deberá llamar al Disconnect del otro equipo para que queden libres ambos
-        //}
+    
         public void ToggleFlipHorizontal() { if (AllowFlipHorizontal) IsFlippedHorizontal = !IsFlippedHorizontal; }
         public void ToggleFlipVertical() { if (AllowFlipVertical) IsFlippedVertical = !IsFlippedVertical; }
         public void Rotate90()
@@ -344,10 +332,7 @@ namespace Shared.ProcessFlowDiagram
             Y = snapFunction(dropY - (Height / 2));
         }
 
-        /// <summary>
-        /// Rota una dirección en pasos de 90° CW.
-        /// Implementación explícita y segura (sin aritmética modular ambigua).
-        /// </summary>
+        
         private PortDirection RotateDirection(PortDirection current, int steps)
         {
             // Normalizar steps a rango [0, 3]
@@ -386,12 +371,7 @@ namespace Shared.ProcessFlowDiagram
             return result;
         }
 
-        // Método auxiliar para que la flecha de la tubería sepa hacia dónde salir
-
-        /// <summary>
-        /// ÚNICA fuente de verdad para la posición y dirección transformada de un puerto.
-        /// Retorna offset local transformado (relativo al top-left) y dirección absoluta.
-        /// SIN desplazamientos adicionales.
+        
         /// </summary>
         public (double OffsetX, double OffsetY, PortDirection Direction) GetTransformedPort(string portName)
         {
@@ -494,5 +474,19 @@ namespace Shared.ProcessFlowDiagram
             return (finalX, finalY, nx, ny);
         }
 
+        public virtual IEnumerable<string> GetPortNames() => Enumerable.Empty<string>();
+        public virtual IFacadeStream? GetConnectedStream(string portName) => null;
+        public virtual void AttachConnection(string portName, IFacadeStream connectedFacade)
+        {
+
+        }
+        public virtual void DetachConnection(string portName)
+        {
+
+        }
+        public virtual List<ToolTipLegend> GetToolTipData() => new List<ToolTipLegend>();
+        public virtual bool ShowLabel { get; set; } = true;
+        public virtual string StatusColor => "";
+        public virtual string StatusText => "";
     }
 }

@@ -1,12 +1,6 @@
-﻿using Shared.MatrixSolvers;
-using Shared.PropertiesDtos.Methods;
+﻿using Shared.PropertiesDtos.Methods;
 using Shared.SolverConsecutive.Equipments;
-using Shared.SolverQwen.Equipments;
 using Shared.SolverQwen.Stream;
-using Shared.SolverQwen.Variables;
-using System;
-using System.Collections.Generic;
-using System.Text;
 using UnitSystem;
 
 namespace Shared.SolverConsecutive
@@ -20,14 +14,19 @@ namespace Shared.SolverConsecutive
         void RemoveEquipment(ISolverEquipment equipment);
         void AddEquipment(ISolverEquipment equipment);
 
-        ThermodynamicMethodFullDto ThermoMethod { get; }
-        void SetThermodynamicMethod(ThermodynamicMethodFullDto method);
+        Length Altitude { get; set; }
+        Pressure AtmosphericPressure { get; set; }
+        ThermodynamicMethodFullDto ThermoMethod { get; set; }
+
         void RunSimulation();
+
+        event Action? OnSimulationCompleted;
 
 
     }
     public class MainSolver : IMainSolver
     {
+        public event Action? OnSimulationCompleted;
         INewtonSolver Solver { get; } = null!;
         SolverEquationType[] EquationTypes => new[] {
          SolverEquationType.Pressure,
@@ -40,10 +39,39 @@ namespace Shared.SolverConsecutive
         public MainSolver()
         {
             Solver = new SolverNewtonSolver();
+            AtmosphericPressure = new Pressure(101325, PressureUnits.Pascala);
+            Altitude = new Length(0, LengthUnits.Meter);
+        }
+        public Pressure AtmosphericPressure { get; set; }
+
+        Length _Altitude = null!;
+        public Length Altitude
+        {
+            get { return _Altitude; }
+            set
+            {
+                _Altitude = value;
+                CalculateAtmosPhericPressure();
+            }
+        }
+
+        void CalculateAtmosPhericPressure()
+        {
+            if (_Altitude == null) return;
+
+            var altitudeMeters = Altitude.GetValue(LengthUnits.Meter);
+
+            const double P0 = 101325.0;  // Pa
+            const double factor = 2.25577e-5;
+            const double exponent = 5.25588;
+
+            var pressure = P0 * Math.Pow(1 - factor * altitudeMeters, exponent);
+            AtmosphericPressure.SetValue(pressure, PressureUnits.Pascala);
+            UnitManager.SetAtmosphericPressureReference(AtmosphericPressure);
         }
         public List<IFacadeStream> Streams { get; } = new();
         public List<ISolverEquipment> Equipments { get; } = new();
-        public ThermodynamicMethodFullDto ThermoMethod { get; private set; } = null!;
+        public ThermodynamicMethodFullDto ThermoMethod { get; set; } = null!;
         public void AddStream(IFacadeStream stream)
         {
             Streams.Add(stream);
@@ -52,11 +80,20 @@ namespace Shared.SolverConsecutive
         public void RemoveStream(IFacadeStream stream) => Streams.Remove(stream);
         public void AddEquipment(ISolverEquipment equipment) => Equipments.Add(equipment);
         public void RemoveEquipment(ISolverEquipment equipment) => Equipments.Remove(equipment);
-        public void SetThermodynamicMethod(ThermodynamicMethodFullDto method) => ThermoMethod = method;
+
         public void RunSimulation()
         {
-            ClearCalculatedBySolver();
-            SolveEquations();
+            try
+            {
+                ClearCalculatedBySolver();
+                SolveEquations();
+            }
+            finally
+            {
+                // 🔥 NOTIFICAR QUE TERMINÓ (siempre, incluso si hay error)
+                OnSimulationCompleted?.Invoke();
+            }
+
 
         }
         void SolveEquations()
@@ -142,75 +179,7 @@ namespace Shared.SolverConsecutive
                 Console.WriteLine($"⚠️ Convergencia incompleta. Tipos sin resolver: {string.Join(", ", pendingTypes)}");
             }
         }
-        void SolveEquations2()
-        {
-            Dictionary<SolverEquationType, List<ISolverEquation>> equationsByType = CreateEquationsByType();
-
-            // ✅ Lista dinámica de tipos que AÚN tienen ecuaciones
-            var pendingTypes = equationsByType
-                .Where(kvp => kvp.Value != null && kvp.Value.Count > 0)
-                .Select(kvp => kvp.Key)
-                .ToList();
-
-            bool globalMovement = true;
-            int iter = 0;
-            int maxIterations = 10;
-
-            while (globalMovement && iter < maxIterations && pendingTypes.Count > 0)
-            {
-                globalMovement = false;
-
-                // ✅ Solo iterar sobre tipos que AÚN tienen ecuaciones
-                foreach (var type in pendingTypes.ToList()) // ToList() para poder modificar durante iteración
-                {
-                    var equations = equationsByType[type];
-                    bool localMovement = true;
-
-                    while (localMovement)
-                    {
-                        localMovement = false;
-                        int i = 0;
-
-                        while (i < equations.Count)
-                        {
-                            var equation = equations[i];
-                            var resultSolver = Solver.Solve(equation);
-
-                            if (resultSolver.Converged)
-                            {
-                                localMovement = true;
-                                globalMovement = true;
-                                equations.RemoveAt(i);
-                            }
-                            else
-                            {
-                                i++;
-                            }
-                        }
-                    }
-
-                    // ✅ Si este tipo ya no tiene ecuaciones, eliminarlo de pendingTypes
-                    if (equations.Count == 0)
-                    {
-                        pendingTypes.Remove(type);
-                        Console.WriteLine($"✅ Tipo '{type}' completamente resuelto. Pendientes: {pendingTypes.Count}");
-                    }
-                }
-
-                if (!globalMovement) break;
-                iter++;
-            }
-
-            // ✅ Reporte final
-            if (pendingTypes.Count == 0)
-            {
-                Console.WriteLine($"🎉 Todas las ecuaciones resueltas en {iter} iteraciones globales");
-            }
-            else
-            {
-                Console.WriteLine($"⚠️ Convergencia incompleta. Tipos sin resolver: {string.Join(", ", pendingTypes)}");
-            }
-        }
+       
         Dictionary<SolverEquationType, List<ISolverEquation>> CreateEquationsByType()
         {
             var allTasksByType = new Dictionary<SolverEquationType, List<ISolverEquation>>();
@@ -241,24 +210,7 @@ namespace Shared.SolverConsecutive
             }
             return allTasksByType;
         }
-        Dictionary<SolverEquationType, List<ISolverEquation>> CreateEquationsByType2()
-        {
-            var allTasksByType = new Dictionary<SolverEquationType, List<ISolverEquation>>();
-            foreach (var type in EquationTypes)
-            {
-                foreach (var equipment in Equipments)
-                {
-                    var equationsOfType = equipment.Equations.Where(x => x.EquationType == type).ToList();
-                    if (equationsOfType.Any())
-                    {
-                        if (!allTasksByType.ContainsKey(type))
-                            allTasksByType[type] = new List<ISolverEquation>();
-                        allTasksByType[type].AddRange(equationsOfType);
-                    }
-                }
-            }
-            return allTasksByType;
-        }
+       
         public void ClearCalculatedBySolver()
         {
 

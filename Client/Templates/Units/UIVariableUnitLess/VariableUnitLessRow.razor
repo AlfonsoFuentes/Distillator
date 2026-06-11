@@ -1,0 +1,75 @@
+﻿@inherits UIVariableUnitLessBase
+
+<div class="variable-container @(Mode == VariableMode.Standard ? "mode-standard" : "mode-compact")">
+
+    @if (Mode == VariableMode.Standard)
+    {
+        @* --- MODO DIÁLOGO --- *@
+        <div class="variable-standard-grid @GetSourceClass() @(IsEffectivelyReadOnly ? "is-readonly" : "")">
+            <div class="grid-cell label">@Label</div>
+
+            <div class="grid-cell value-cell">
+                @if (_isEditing)
+                {
+                    <input @ref="_inputRef" type="text" class="std-input" value="@_tempInputValue"
+                           @oninput="HandleInput" @onkeyup="HandleKeyUp" @onblur="CommitValue" />
+                }
+                else
+                {
+                    @* 🔥 ACTUALIZADO: Tooltip para cualquier valor calculado *@
+                    <div class="readonly-wrapper @(ShouldShowSourceTooltip() ? "has-tooltip" : "")"
+                         @onclick="EnterEditMode">
+                        <span class="value-text">@GetDisplayValue()</span>
+
+                        @if (ShouldShowSourceTooltip())
+                        {
+                            <span class="tooltip-text">@GetSourceTooltipText()</span>
+                        }
+                    </div>
+                }
+            </div>
+
+            @* Celda vacía para no descuadrar el layout de 3 columnas del Modo Standard *@
+            <div class="grid-cell unit-cell"></div>
+        </div>
+    }
+    else
+    {
+        @* --- MODO COMPACTO (Composición / Grids) --- *@
+
+        @if (!string.IsNullOrWhiteSpace(Label))
+        {
+            <div class="grid-cell label">@Label</div>
+        }
+
+        <div class="grid-cell integrated-cell @GetSourceClass() @(IsEffectivelyReadOnly ? "is-readonly" : "")">
+
+            <div class="value-container-compact @(ShouldShowSourceTooltip() ? "has-tooltip" : "")"
+                 @onclick="EnterEditMode">
+
+                @if (_isEditing)
+                {
+                    <input @ref="_inputRef" type="text" value="@_tempInputValue" class="compact-input"
+                           @oninput="HandleInput" @onkeyup="HandleKeyUp" @onblur="CommitValue"
+                           @onclick:stopPropagation />
+                }
+                else
+                {
+                    <div class="compact-display-text">
+                        <span class="value-text">@GetDisplayValue()</span>
+                    </div>
+
+                    @if (ShouldShowSourceTooltip())
+                    {
+                        <span class="tooltip-text">@GetSourceTooltipText()</span>
+                    }
+                }
+            </div>
+
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public VariableMode Mode { get; set; } = VariableMode.Standard;
+}

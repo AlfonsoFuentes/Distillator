@@ -1,5 +1,5 @@
-﻿@using System.Globalization
-@* 
+﻿
+@*
 <div class="scrollable-container">
     <div class="data-grid composition-grid" style="grid-template-columns: 140px 160px repeat(@Ports.Count, minmax(140px, 1fr)) minmax(20px, 1fr);">
 
@@ -27,7 +27,7 @@
                 @compName
             </div>
 
-            @* --- FILA 1: MASS (%) --- 
+            @* --- FILA 1: MASS (%) ---
             <div class="grid-cell label sticky-col-2">Mass (%)</div>
             @foreach (var port in Ports)
             {
@@ -45,7 +45,7 @@
                         {
                             @* 🔥 CORREGIDO: Verificar IsDefined antes de mostrar 
                             <span class="readonly-value">
-                                @(comp.MassFractionSolver.IsDefined ? FormatFraction(comp.MassFractionSolver.Value) : "<Not defined>")
+                                @(comp.MassFraction.IsDefined ? FormatFraction(comp.MassFraction.Value.Value) : "<Not defined>")
                             </span>
                         }
                         else
@@ -79,9 +79,9 @@
                     <div class="grid-cell value editable-cell" data-state="@GetCellState(facade, comp, false)" title="@GetCellTooltip(facade, comp, false)">
                         @if (IsCellReadOnly(facade, comp, false))
                         {
-                            @* 🔥 CORREGIDO: Verificar IsDefined antes de mostrar 
+                            @* 🔥 CORREGIDO: Verificar IsDefined antes de mostrar
                             <span class="readonly-value">
-                                @(comp.MolarFractionSolver.IsDefined ? FormatFraction(comp.MolarFractionSolver.Value) : "<Not defined>")
+                                @(comp.MolarFraction.IsDefined ? FormatFraction(comp.MolarFraction.Value.Value) : "<Not defined>")
                             </span>
                         }
                         else
@@ -105,29 +105,29 @@
             {
                 var comp = GetFacadeForPort(port) != null ? GetComponent(GetFacadeForPort(port)!, compName) : null;
                 <div class="grid-cell value calculated">
-                    <span class="readonly-value">@FormatFlow(comp?.MolarFlowSolver.Value?.Value)</span>
+                    <span class="readonly-value">@FormatFlow(comp?.MolarFlow.Value?.Value)</span>
                 </div>
             }
             <div class="grid-cell filler"></div>
 
-            @* --- FILA 4: MASS FLOW --- 
+            @* --- FILA 4: MASS FLOW ---
             <div class="grid-cell label sticky-col-2">Mass Flow</div>
             @foreach (var port in Ports)
             {
                 var comp = GetFacadeForPort(port) != null ? GetComponent(GetFacadeForPort(port)!, compName) : null;
                 <div class="grid-cell value calculated">
-                    <span class="readonly-value">@FormatFlow(comp?.MassFlowSolver.Value?.Value)</span>
+                    <span class="readonly-value">@FormatFlow(comp?.MassFlow.Value.Value?.Value)</span>
                 </div>
             }
             <div class="grid-cell filler"></div>
 
             @* --- FILA 5: VOLUMETRIC FLOW --- 
-            <div class="grid-cell label sticky-col-2">Vol. Flow</div>
+           @*  <div class="grid-cell label sticky-col-2">Vol. Flow</div>
             @foreach (var port in Ports)
             {
                 var comp = GetFacadeForPort(port) != null ? GetComponent(GetFacadeForPort(port)!, compName) : null;
                 <div class="grid-cell value calculated">
-                    <span class="readonly-value">@FormatFlow(comp?.VolumetricFlowSolver.Value?.Value)</span>
+                    <span class="readonly-value">@FormatFlow(comp?.Volu.Value?.Value)</span>
                 </div>
             }
             <div class="grid-cell filler"></div>
@@ -142,7 +142,7 @@
                     var facade = GetFacadeForPort(port);
                     var comp = facade != null ? GetComponent(facade, compName) : null;
 
-                    if (facade == null || facade.StreamComposition?.Value?.IsEthanolWaterMixture() != true)
+                    if (facade == null || facade.Composition.IsEthanolWaterMixture() != true)
                     {
                         <div class="grid-cell empty-port-column"></div>
                     }
@@ -153,17 +153,17 @@
                     else
                     {
                         // 🔥 CORREGIDO: Lógica IDÉNTICA al componente simple
-                        var variable = facade.StreamComposition;
+                        var variable = facade.Composition;
                         bool isGLReadOnly = variable?.Source == "Solver" ||
                             variable?.Value?.InputType == ComponentInputType.MolarFraction;
 
                         // 🔥 CORREGIDO: Calcular GLValue basado en comp.MassFractionSolver.IsDefined (no variable.IsDefined)
                         double? glValue = null;
-                        if (comp.MassFractionSolver.IsDefined &&  // ← ✅ CLAVE: verificar el componente, no la variable padre
-                            comp.MassFractionSolver.Value > 0 &&
-                            comp.MassFractionSolver.Value <= 100)
+                        if (comp.MassFraction.IsDefined &&  // ← ✅ CLAVE: verificar el componente, no la variable padre
+                            comp.MassFraction.Value.Value > 0 &&
+                            comp.MassFraction.Value.Value <= 100)
                         {
-                            glValue = GetGLEtanol(comp.MassFractionSolver.Value);
+                            glValue = GetGLEtanol(comp.MassFraction.Value.Value);
                         }
 
                         <div class="grid-cell value editable-cell special-gl-value"
@@ -190,41 +190,41 @@
                 }
                 <div class="grid-cell filler"></div>
             }
-            
+
         }
     </div>
-</div> *@
-
+</div>
+ *@
 @code {
     // [Parameter] public List<EquipmentPort> Ports { get; set; } = new();
     // [Parameter] public EventCallback OnEquipmentUpdated { get; set; }
 
-    // private IStreamFacade2? _editingFacade;
-    // private ComponentComposition? _editingComponent;
+    // private IFacadeStream? _editingFacade;
+    // private ComponentFacade? _editingComponent;
     // private bool _isEditingMass;
     // private bool _isEditingMolar;
     // private bool _isEditingGL;
     // private double? _tempInputValue;
-    // private string GetGlInputValue(IStreamFacade2 facade, ComponentComposition comp)
+    // private string GetGlInputValue(IFacadeStream facade, ComponentFacade comp)
     // {
     //     bool isEditingThis = _editingFacade == facade && _editingComponent == comp && _isEditingGL;
     //     if (isEditingThis && _tempInputValue.HasValue)
     //         return _tempInputValue.Value.ToString("F1", System.Globalization.CultureInfo.InvariantCulture);
 
     //     // 🔥 NUEVO: Verificar IsDefined y acceder vía .Value
-    //     double? val = comp.MassFractionSolver.IsDefined ? GetGLEtanol(comp.MassFractionSolver.Value) : null;
+    //     double? val = comp.MassFraction.IsDefined ? GetGLEtanol(comp.MolarFraction.Value.GetValue(PercentageUnits.Percentage)) : null;
 
     //     return val.HasValue ? val.Value.ToString("F1", System.Globalization.CultureInfo.InvariantCulture) : "";
     // }
-    // private string GetCellState(IStreamFacade2 facade, ComponentComposition comp, bool isMass)
+    // private string GetCellState(IFacadeStream facade, ComponentFacade comp, bool isMass)
     // {
-    //     var variable = facade.StreamComposition;
+    //     var variable = facade.Composition;
     //     if (variable == null) return "empty";
 
     //     if (variable.Source == "Solver") return "calculated";
 
-    //     var hasValue = isMass ? comp.MassFractionSolver.IsDefined : comp.MolarFractionSolver.IsDefined;
-    //     var inputType = variable.Value!.InputType;
+    //     var hasValue = isMass ? comp.MassFraction.IsDefined : comp.MolarFraction.IsDefined;
+    //     var inputType = variable.InputType;
 
     //     if (inputType == ComponentInputType.None) return hasValue ? "editable" : "empty";
 
@@ -237,16 +237,16 @@
     //     return "empty";
     // }
 
-    // private bool IsCellReadOnly(IStreamFacade2 facade, ComponentComposition comp, bool isMass)
+    // private bool IsCellReadOnly(IFacadeStream facade, ComponentFacade comp, bool isMass)
     // {
     //     var state = GetCellState(facade, comp, isMass);
     //     return state == "calculated" || state == "blocked";
     // }
 
-    // private string? GetCellTooltip(IStreamFacade2 facade, ComponentComposition comp, bool isMass)
+    // private string? GetCellTooltip(IFacadeStream facade, ComponentFacade comp, bool isMass)
     // {
     //     var state = GetCellState(facade, comp, isMass);
-    //     var variable = facade.StreamComposition;
+    //     var variable = facade.Composition;
     //     if (state == "calculated" && !string.IsNullOrWhiteSpace(variable?.Source))
     //         return $"Calculated by: {variable.Source}";
     //     if (state == "calculated") return "Calculated from mixture";
@@ -268,18 +268,18 @@
     //     return val == 0 ? "0.00" : (Math.Abs(val) >= 1.0 ? val.ToString("F2") : val.ToString("F6").TrimEnd('0').TrimEnd('.'));
     // }
 
-    // private string GetInputValue(IStreamFacade2 facade, ComponentComposition comp, bool isMass)
+    // private string GetInputValue(IFacadeStream facade, ComponentFacade comp, bool isMass)
     // {
     //     bool isEditingThis = _editingFacade == facade && _editingComponent == comp && ((isMass && _isEditingMass) || (!isMass && _isEditingMolar));
     //     if (isEditingThis && _tempInputValue.HasValue)
     //         return _tempInputValue.Value.ToString("F1", CultureInfo.InvariantCulture);
 
-    //     var val = isMass ? comp.MassFractionSolver.Value : comp.MolarFractionSolver.Value;
+    //     var val = isMass ? comp.MassFraction.Value : comp.MassFraction.Value;
 
-    //     if (!(isMass ? comp.MassFractionSolver.IsDefined : comp.MolarFractionSolver.IsDefined))
+    //     if (!(isMass ? comp.MassFraction.IsDefined : comp.MassFraction.IsDefined))
     //         return "";
 
-    //     double v = val;
+    //     double v = val.Value;
     //     if (v == 0) return "0";
 
     //     return Math.Abs(v) >= 1.0
@@ -287,7 +287,7 @@
     //                 : v.ToString("F6", CultureInfo.InvariantCulture).TrimEnd('0').TrimEnd('.');
     // }
 
-    // private void HandleFocus(IStreamFacade2 facade, ComponentComposition comp, bool isMass, bool isGL)
+    // private void HandleFocus(IFacadeStream facade, ComponentFacade comp, bool isMass, bool isGL)
     // {
     //     if (!isGL && IsCellReadOnly(facade, comp, isMass)) return;
     //     if (isGL && IsGLReadOnly(facade)) return;
@@ -299,9 +299,9 @@
     //     _isEditingMolar = !isGL && !isMass;
 
     //     if (isGL)
-    //         _tempInputValue = comp.MassFractionSolver.IsDefined ? GetGLEtanol(comp.MassFractionSolver.Value) : null;
+    //         _tempInputValue = comp.MassFraction.IsDefined ? GetGLEtanol(comp.MassFraction.Value.Value) : null;
     //     else
-    //         _tempInputValue = isMass ? comp.MassFractionSolver.Value : comp.MolarFractionSolver.Value;
+    //         _tempInputValue = isMass ? comp.MassFraction.Value.Value : comp.MassFraction.Value.Value;
     // }
 
     // private void HandleInput(ChangeEventArgs e)
@@ -312,90 +312,89 @@
     //         _tempInputValue = null;
     // }
 
-    // private async Task HandleKeyDown(KeyboardEventArgs e, IStreamFacade2 facade, ComponentComposition comp, bool isMass, bool isGL)
+    // private async Task HandleKeyDown(KeyboardEventArgs e, IFacadeStream facade, ComponentFacade comp, bool isMass, bool isGL)
     // {
     //     if (e.Key == "Enter") await CommitValue(facade, comp, isMass, isGL);
     //     else if (e.Key == "Delete" || e.Key == "Backspace") await ClearCell(facade, comp);
     // }
 
-    // private async Task HandleBlur(IStreamFacade2 facade, ComponentComposition comp, bool isMass, bool isGL)
+    // private async Task HandleBlur(IFacadeStream facade, ComponentFacade comp, bool isMass, bool isGL)
     // {
-    //     if (_tempInputValue.HasValue || (isMass ? comp.MassFractionSolver.IsDefined : comp.MolarFractionSolver.IsDefined))
+    //     if (_tempInputValue.HasValue || (isMass ? comp.MassFraction.IsDefined : comp.MolarFraction.IsDefined))
     //         await CommitValue(facade, comp, isMass, isGL);
     //     else
     //         await ClearCell(facade, comp);
     // }
 
-    // private async Task CommitValue(IStreamFacade2 facade, ComponentComposition comp, bool isMass, bool isGL)
+    // private async Task CommitValue(IFacadeStream facade, ComponentFacade comp, bool isMass, bool isGL)
     // {
     //     if (!_tempInputValue.HasValue) return;
-    //     var variable = facade.StreamComposition;
+    //     var variable = facade.Composition;
     //     if (variable == null) return;
 
     //     if (isGL)
     //     {
     //         var massFraction = CalcularMasicoDesdeGL(_tempInputValue.Value);
-    //         var water = variable.Value!.Components.FirstOrDefault(c => c.ComponentName.Equals("Water", StringComparison.OrdinalIgnoreCase));
+    //         var water = variable.Components.FirstOrDefault(c => c.Name.Equals("Water", StringComparison.OrdinalIgnoreCase));
     //         if (water != null)
     //         {
-    //             comp.MassFractionSolver.SetValueFromUI(massFraction);
-    //             water.MassFractionSolver.SetValueFromUI(100 - massFraction);
-    //             variable.Value.InputType = ComponentInputType.MassFraction;
+    //             comp.MassFraction.SetValueFromUI(new Percentage(massFraction, PercentageUnits.Percentage));
+    //             water.MassFraction.SetValueFromUI(new Percentage(100 - massFraction, PercentageUnits.Percentage));
+    //             variable.InputType = ComponentInputType.MassFraction;
     //         }
     //     }
     //     else
     //     {
     //         if (isMass)
-    //             comp.MassFractionSolver.SetValueFromUI(_tempInputValue.Value);
+    //             comp.MassFraction.SetValueFromUI(new Percentage(_tempInputValue.Value, PercentageUnits.Percentage));
     //         else
-    //             comp.MolarFractionSolver.SetValueFromUI(_tempInputValue.Value);
+    //             comp.MolarFraction.SetValueFromUI(new Percentage(_tempInputValue.Value, PercentageUnits.Percentage)); 
 
-    //         variable.Value!.InputType = isMass ? ComponentInputType.MassFraction : ComponentInputType.MolarFraction;
+    //         variable.InputType = isMass ? ComponentInputType.MassFraction : ComponentInputType.MolarFraction;
     //     }
 
     //     // 🔥 CORREGIDO: Validar Σ% ≈ 100 antes de disparar cálculo centralizado
-    //     var sum = variable.Value.Components
-    //         .Sum(c => (variable.Value.InputType == ComponentInputType.MassFraction)
-    //             ? c.MassFractionSolver.Value
-    //             : c.MolarFractionSolver.Value);
+    //     var sum = variable.Components
+    //         .Sum(c => (variable.InputType == ComponentInputType.MassFraction)
+    //             ? c.MassFraction.Value.Value
+    //             : c.MolarFraction.Value.Value);
 
     //     if (sum >= 99 && sum <= 101)
     //     {
     //         // 🔥 Este llamado dispara CalculateMassMolarFractions() vía override
-    //         variable.SetValueFromUI(variable.Value);
+    //         WM.RunSimulation();
     //     }
 
     //     ResetEditingState();
     //     if (OnEquipmentUpdated.HasDelegate) await OnEquipmentUpdated.InvokeAsync();
     // }
 
-    // private async Task ClearCell(IStreamFacade2 facade, ComponentComposition comp)
+    // private async Task ClearCell(IFacadeStream facade, ComponentFacade comp)
     // {
-    //     var variable = facade.StreamComposition;
+    //     var variable = facade.Composition;
     //     if (variable == null) return;
 
-    //     if (variable.Value!.IsEthanolWaterMixture())
+    //     if (variable.IsEthanolWaterMixture())
     //     {
     //         // 🔥 CORREGIDO: Usar ClearFromUINoEvents para evitar eventos en cascada
-    //         foreach (var c in variable.Value.Components)
+    //         foreach (var c in variable.Components)
     //         {
-    //             c.MassFractionSolver.ClearFromUINoEvents();
-    //             c.MolarFractionSolver.ClearFromUINoEvents();
+    //             c.MassFraction.ClearFromUI();
+    //             c.MolarFraction.ClearFromUI();
     //         }
     //     }
     //     else
     //     {
-    //         comp.MassFractionSolver.ClearFromUINoEvents();
-    //         comp.MolarFractionSolver.ClearFromUINoEvents();
+    //         comp.MassFraction.ClearFromUI();
+    //         comp.MolarFraction.ClearFromUI();
     //     }
 
-    //     if (variable.Value.Components.All(c => !c.MassFractionSolver.IsDefined && !c.MolarFractionSolver.IsDefined))
-    //         variable.Value.InputType = ComponentInputType.None;
+     
 
     //     ResetEditingState();
 
     //     // 🔥 Notificar al sistema
-    //     variable.ClearFromUI();
+    //     WM.RunSimulation();
 
     //     if (OnEquipmentUpdated.HasDelegate) await OnEquipmentUpdated.InvokeAsync();
     // }
@@ -405,7 +404,7 @@
     //     _editingFacade = null; _editingComponent = null; _isEditingMass = false; _isEditingMolar = false; _isEditingGL = false; _tempInputValue = null;
     // }
 
-    // private IStreamFacade2? GetFacadeForPort(EquipmentPort port)
+    // private IFacadeStream? GetFacadeForPort(EquipmentPort port)
     // {
     //     if (!port.ConnectedElementId.HasValue) return null;
 
@@ -415,8 +414,8 @@
     //     var pipe = WM.Areas.SelectMany(a => a.Pipes).FirstOrDefault(x => x.Id == connectedId);
     //     if (pipe != null)
     //     {
-    //         if (pipe.SourceElement?.Facade is IStreamFacade2 sf) return sf;
-    //         if (pipe.TargetElement?.Facade is IStreamFacade2 tf) return tf;
+    //         if (pipe.SourceElement?.Facade is IFacadeStream sf) return sf;
+    //         if (pipe.TargetElement?.Facade is IFacadeStream tf) return tf;
 
     //         if (pipe.SourceElement is OffPageConnectorElement) connectedElement = pipe.SourceElement;
     //         else if (pipe.TargetElement is OffPageConnectorElement) connectedElement = pipe.TargetElement;
@@ -429,7 +428,7 @@
 
     //     if (connectedElement != null)
     //     {
-    //         if (connectedElement.Facade is IStreamFacade2 directFacade)
+    //         if (connectedElement.Facade is IFacadeStream directFacade)
     //         {
     //             return directFacade;
     //         }
@@ -448,7 +447,7 @@
     //                         var realStreamId = twinPipe.SourceElementId == twinOpc.Id ? twinPipe.TargetElementId : twinPipe.SourceElementId;
     //                         var realStream = targetArea.Elements.FirstOrDefault(e => e.Id == realStreamId);
 
-    //                         if (realStream?.Facade is IStreamFacade2 wormholeFacade)
+    //                         if (realStream?.Facade is IFacadeStream wormholeFacade)
     //                         {
     //                             return wormholeFacade;
     //                         }
@@ -467,20 +466,20 @@
     //     foreach (var port in Ports)
     //     {
     //         var facade = GetFacadeForPort(port);
-    //         if (facade?.StreamComposition?.Value?.Components != null)
-    //             foreach (var c in facade.StreamComposition.Value.Components) allComps.Add(c.ComponentName);
+    //         if (facade?.Composition.Components != null)
+    //             foreach (var c in facade.Composition.Components) allComps.Add(c.Name);
     //     }
     //     return allComps.OrderBy(c => c == "Ethanol" ? 0 : c == "Water" ? 1 : 2).ThenBy(c => c).ToList();
     // }
 
-    // private ComponentComposition? GetComponent(IStreamFacade2 facade, string compName) =>
-    //     facade.StreamComposition?.Value?.Components?.FirstOrDefault(c => c.ComponentName.Equals(compName, StringComparison.OrdinalIgnoreCase));
+    // private ComponentFacade? GetComponent(IFacadeStream facade, string compName) =>
+    //     facade.Composition.Components?.FirstOrDefault(c => c.Name.Equals(compName, StringComparison.OrdinalIgnoreCase));
 
-    // private bool IsGLReadOnly(IStreamFacade2 facade)
+    // private bool IsGLReadOnly(IFacadeStream facade)
     // {
-    //     var variable = facade.StreamComposition;
+    //     var variable = facade.Composition;
     //     if (variable == null) return true;
-    //     return variable.Source == "Solver" || variable.Value!.InputType == ComponentInputType.MolarFraction;
+    //     return variable.Source == "Solver" || variable.InputType == ComponentInputType.MolarFraction;
     // }
 
     // private double CalcularMasicoDesdeGL(double GL)

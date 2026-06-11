@@ -7,6 +7,7 @@
         StreamCalculated,
         Solver,
         Specification,
+        Equipment,
     }
     public enum SolverEquationType
     {

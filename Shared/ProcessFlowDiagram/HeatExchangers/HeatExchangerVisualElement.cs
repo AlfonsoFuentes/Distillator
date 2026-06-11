@@ -1,52 +1,147 @@
-﻿using Shared.ProcessFlowDiagram;
-using Shared.UnitOperations.HeatExchangers;
+﻿using Shared.SolverConsecutive.Equipments;
+using Shared.SolverQwen.Stream;
 
 namespace Shared.ProcessFlowDiagram.HeatExchangers
 {
     public class HeatExchangerVisualElement : VisualElementBase
     {
-         public override List<ToolTipLegend> GetToolTipData() => Facade.GetToolTipLegend();
-        public override EquipmentType Type => EquipmentType.Exchanger;
-        public override string Prefix => "E"; // "E" por Exchanger
+        private SolverHeatExchanger HX => Facade as SolverHeatExchanger ?? throw new InvalidOperationException("Facade must be SolverHeatExchanger");
 
-        // Permitimos rotar o hacer espejos para adaptar el P&ID
+        public override EquipmentType Type => EquipmentType.Exchanger;
+        public override string Prefix => "E";
+
         public override bool AllowFreeRotation => true;
         public override bool AllowFlipHorizontal => true;
         public override bool AllowFlipVertical => true;
         public override bool IsResizable => false;
 
+        // Constantes para nombres de puertos
+        public const string PortTubeInName = "TubeIn";
+        public const string PortTubeOutName = "TubeOut";
+        public const string PortShellInName = "ShellIn";
+        public const string PortCondensateOutName = "CondensateOut";
+ 
+
+        // Propiedades fuertemente tipadas
+        public EquipmentPort TubeInPort => Ports.First(p => p.Name == PortTubeInName);
+        public EquipmentPort TubeOutPort => Ports.First(p => p.Name == PortTubeOutName);
+        public EquipmentPort ShellInPort => Ports.First(p => p.Name == PortShellInName);
+        public EquipmentPort CondensateOutPort => Ports.First(p => p.Name == PortCondensateOutName);
+  
+
         public HeatExchangerVisualElement()
         {
-            Width = 160;   // Más alargado que una bomba
-            Height = 60;   // Altura estándar
+            Width = 160;
+            Height = 60;
 
-            // ==========================================
             // LADO DE LOS TUBOS (Izquierda - 2 Pasos)
-            // ==========================================
-            // 1. Entrada a los tubos (Arriba a la izquierda)
-            AddPort("TubeIn", PortType.Inlet, 0, 15, PortDirection.Left);
+            AddPort(PortTubeInName, PortType.Inlet, 0, 15, PortDirection.Left);
+            AddPort(PortTubeOutName, PortType.Outlet, 0, 45, PortDirection.Left);
 
-            // 2. Salida de los tubos (Abajo a la izquierda, misma cara)
-            AddPort("TubeOut", PortType.Outlet, 0, 45, PortDirection.Left);
-
-            // ==========================================
             // LADO DE LA CORAZA (Shell)
-            // ==========================================
-            // 3. Entrada a la coraza (Arriba, pegado a la izquierda)
-            AddPort("ShellIn", PortType.Inlet, 30, 0, PortDirection.Top);
+            AddPort(PortShellInName, PortType.Inlet, 30, 0, PortDirection.Top);
+            AddPort(PortCondensateOutName, PortType.Outlet, 130, 60, PortDirection.Bottom);
+    
 
-            // 4. Salida de condensado (Abajo, pegado a la derecha)
-            AddPort("CondensateOut", PortType.Outlet, 130, 60, PortDirection.Bottom);
+            Facade = new SolverHeatExchanger("E-101")
+            {
+                Id = this.Id
+            };
+        }
 
-            // 5. Venteo de vapor no condensado (Lateral derecho, sobre el condensado)
-            AddPort("VaporVent", PortType.Outlet, 130, 0, PortDirection.Top);
+        // ==============================================================================
+        // IMPLEMENTACIÓN DE IEquipmentFacade
+        // ==============================================================================
+        public override IEnumerable<string> GetPortNames()
+        {
+            yield return PortTubeInName;
+            yield return PortTubeOutName;
+            yield return PortShellInName;
+            yield return PortCondensateOutName;
+      
+        }
 
-            // TODO: Crear luego la clase HeatExchangerSimulationFacade
-            //Facade = new HeatExchangerSimulationFacade2
-            //{
-            //    Id = this.Id,
-            //    Name = "E-101"
-            //};
+        public override IFacadeStream? GetConnectedStream(string portName)
+        {
+            return portName switch
+            {
+                PortTubeInName => HX.ColdInlet,
+                PortTubeOutName => HX.ColdOutlet,
+                PortShellInName => HX.HotInlet,
+                PortCondensateOutName => HX.HotOutlet,
+                // VaporVent no tiene correspondencia directa en el solver
+                _ => null
+            };
+        }
+
+        public override void AttachConnection(string portName, IFacadeStream connectedFacade)
+        {
+            if (portName == PortTubeInName && HX.ColdInlet == null)
+            {
+                HX.SetColdInlet(connectedFacade);
+            }
+            else if (portName == PortTubeOutName && HX.ColdOutlet == null)
+            {
+                HX.SetColdOutlet(connectedFacade);
+            }
+            else if (portName == PortShellInName && HX.HotInlet == null)
+            {
+                HX.SetHotInlet(connectedFacade);
+            }
+            else if (portName == PortCondensateOutName && HX.HotOutlet == null)
+            {
+                HX.SetHotOutlet(connectedFacade);
+            }
+            // VaporVent: puerto visual sin lógica de solver por ahora
+        }
+
+        public override void DetachConnection(string portName)
+        {
+            if (portName == PortTubeInName)
+            {
+                HX.SetColdInlet(null!);
+            }
+            else if (portName == PortTubeOutName)
+            {
+                HX.SetColdOutlet(null!);
+            }
+            else if (portName == PortShellInName)
+            {
+                HX.SetHotInlet(null!);
+            }
+            else if (portName == PortCondensateOutName)
+            {
+                HX.SetHotOutlet(null!);
+            }
+            // VaporVent: puerto visual sin lógica de solver por ahora
+        }
+
+        public override string StatusColor => HX.State switch
+        {
+            HeatExchangerStateType.Created => "#CBD5E0",
+            HeatExchangerStateType.PartiallyConnected => "#F6AD55",
+            HeatExchangerStateType.ReadyToCalculate => "#63B3ED",
+            HeatExchangerStateType.Solved => "#34D399",
+            _ => "#CBD5E0"
+        };
+
+        public override string StatusText => HX.State switch
+        {
+            HeatExchangerStateType.Created => "Ready",
+            HeatExchangerStateType.PartiallyConnected => "Underspecified",
+            HeatExchangerStateType.ReadyToCalculate => "Ready to Solve",
+            HeatExchangerStateType.Solved => "Converged",
+            _ => "Unknown"
+        };
+
+        public override List<ToolTipLegend> GetToolTipData()
+        {
+            return new List<ToolTipLegend>
+        {
+            new("ΔP Hot", HX.DeltaPHot.ToUiString()),
+            new("ΔP Cold", HX.DeltaPCold.ToUiString()),
+            new("Q Transfer", HX.TransferHeat.ToUiString())
+        };
         }
     }
 }

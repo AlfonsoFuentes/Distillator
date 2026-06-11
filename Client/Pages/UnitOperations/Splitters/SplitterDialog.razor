@@ -1,6 +1,6 @@
 ﻿@using Client.Layout.Shapes.SVGDrawings
 @using Client.Pages.UnitOperations.DialogBase
-@using Shared.UnitOperations.Helpers
+
 
 
 <EquipmentBaseDialog Equipment="Equipment">
@@ -12,12 +12,12 @@
                 <div class="port-list-title">Feed (Inlet)</div>
                 <EquipmentPortConnector Port="@Equipment.Ports.First(p => p.Name == "Inlet")"
                                         ParentEquipment="Equipment"
-                                        OnConnectionChanged="HandleTopologyChanged" />
+                                        OnConnChanged="HandleTopologyChanged" />
             </div>
 
             @* 2. SVG *@
             <div class="equipment-drawing-zone">
-                <SplitterSvg Width="180" Height="180" StatusColor="@(Equipment.Facade?.StatusColor ?? "#CBD5E0")" />
+                <SplitterSvg Width="180" Height="180" StatusColor="@(Equipment.StatusColor ?? "#CBD5E0")" />
             </div>
 
             @* 3. PRODUCTS (Con integración visual de fracciones) *@
