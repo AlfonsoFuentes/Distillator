@@ -12,6 +12,11 @@
             <div class="tabs-header">
                 <div class="tab @(activeTab == "Main" ? "active" : "")" @onclick='() => SetTab("Main")'>Main</div>
                 <div class="tab @(activeTab == "Specs" ? "active" : "")" @onclick='() => SetTab("Specs")'>Specs</div>
+                @if (ProfilesSlot!=null)
+                {
+                    <div class="tab @(activeTab == "Profiles" ? "active" : "")" @onclick='() => SetTab("Profiles")'>Profiles</div>
+                }
+              
                 <div class="tab @(activeTab == "Design" ? "active" : "")" @onclick='() => SetTab("Design")'>Design</div>
                 <div class="tab @(activeTab == "Streams" ? "active" : "")" @onclick='() => SetTab("Streams")'>Streams</div>
                 <div class="tab @(activeTab == "Composition" ? "active" : "")" @onclick='() => SetTab("Composition")'>Composition</div>
@@ -47,7 +52,15 @@
                 }
                 else if (activeTab == "Design")
                 {
-                    @(DesignSlot ?? (RenderFragment)(b => b.AddContent(0, "Design parameters will be defined after mass balance calculation.")))
+                    if(DesignSlot!=null)
+                    {
+                        @DesignSlot
+                    }
+                    else
+                    {
+                        @(DesignSlot ?? (RenderFragment)(b => b.AddContent(0, "Design parameters will be defined after mass balance calculation.")))
+                    }
+                   
                 }
                 else if (activeTab == "Streams")
                 {
@@ -57,6 +70,19 @@
                 else if (activeTab == "Composition")
                 {
                     <EquipmentBaseCompositionGrid Ports="_Ports"></EquipmentBaseCompositionGrid>
+                }
+                else if (activeTab == "Profiles")
+                {
+                    @if (ProfilesSlot != null)
+                    {
+                        @ProfilesSlot
+                    }
+                    else
+                    {
+                        <div class="empty-state-message">
+                            <p>No profiles available for this equipment.</p>
+                        </div>
+                    }
                 }
             </div>
 
@@ -76,7 +102,7 @@
     [Parameter] public RenderFragment? MainSlot { get; set; }
     [Parameter] public RenderFragment? PropertiesSlot { get; set; }
     [Parameter] public RenderFragment? DesignSlot { get; set; }
-
+    [Parameter] public RenderFragment? ProfilesSlot { get; set; }
     
     private string activeTab = "Main";
 

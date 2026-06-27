@@ -1,0 +1,20 @@
+﻿
+
+<div class="vle-chart">
+    <SvgChart Series="@_series"
+              Markers="@_markers"
+              ChartTitle="@_chartTitle"
+              ChartSubtitle="@_chartSubtitle"
+              XAxisTitle="Mole Fraction of Light Component (x, y)"
+              YAxisTitle="@_yAxisTitle"
+              XMin="0"
+              XMax="1"
+              YMin="@_minEnthalpy"
+              YMax="@_maxEnthalpy"
+              ViewState="@_viewState"
+              IsLoading="@IsLoading"
+              UnitOptions="@_Units"
+              SelectedUnit="@_currentUnit"
+              UnitChanged="@OnUnitChanged"
+              LoadingText="Loading VLE data..." />
+</div>

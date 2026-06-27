@@ -20,9 +20,6 @@ namespace Client.Pages.UnitOperations.MaterialStreams.CompositionGrids
         protected bool _isEditingMolar;
         protected double? _tempInputValue;
         protected string? _rawInput;
-        // ─────────────────────────────────────────────────────────
-        // 🔹 MANEJO DE ESTADOS (STATE MACHINE) - SIMPLIFICADO
-        // ─────────────────────────────────────────────────────────
 
         protected string GetCellState(ComponentFacade comp, bool isMass)
         {
@@ -30,19 +27,16 @@ namespace Client.Pages.UnitOperations.MaterialStreams.CompositionGrids
 
             var hasValue = isMass ? comp.MassFraction.IsDefined : comp.MolarFraction.IsDefined;
             var inputType = Variable.InputType;
-            var source = Variable.Source; // 🔥 USAR Source del orchestrator
+            var source = Variable.Source;
 
-            // 🔥 Si viene del solver, TODO está calculado
             if (source == CompositionSource.Solver)
             {
                 return hasValue ? "calculated" : "empty";
             }
 
-            // Si no hay input type definido
             if (inputType == ComponentInputType.None)
                 return hasValue ? "editable" : "empty";
 
-            // Reglas de interbloqueo termodinámico
             if (inputType == ComponentInputType.MassFraction)
             {
                 return isMass
@@ -66,7 +60,6 @@ namespace Client.Pages.UnitOperations.MaterialStreams.CompositionGrids
 
             if (state == "calculated")
             {
-                // 🔥 Usar Source de la variable para mostrar tooltip específico
                 var variable = isMass ? comp.MassFraction : comp.MolarFraction;
                 if (!string.IsNullOrWhiteSpace(variable.Source) && variable.Source != "Undefined")
                     return $"Calculated by: {variable.Source}";
@@ -79,28 +72,20 @@ namespace Client.Pages.UnitOperations.MaterialStreams.CompositionGrids
             return null;
         }
 
-        // ─────────────────────────────────────────────────────────
-        // 🔹 COMMIT Y CLEAR - SIMPLIFICADOS
-        // ─────────────────────────────────────────────────────────
-
         protected async Task CommitValue(ComponentFacade comp, bool isMass)
         {
             if (!_tempInputValue.HasValue) return;
 
-            // 1. Definir el valor ingresado en el componente
             if (isMass)
                 comp.MassFraction.SetValueFromUI(new Percentage(_tempInputValue.Value, PercentageUnits.Percentage));
             else
                 comp.MolarFraction.SetValueFromUI(new Percentage(_tempInputValue.Value, PercentageUnits.Percentage));
 
-            // 2. Actualizar InputType en la composición
             Variable.InputType = isMass ? ComponentInputType.MassFraction : ComponentInputType.MolarFraction;
 
-            // 3. VALIDACIÓN CRÍTICA: ¿La suma de TODOS los componentes da ~100%?
             var sum = Variable.Components
                 .Sum(c => isMass ? c.MassFraction.GetDisplayValue() : c.MolarFraction.GetDisplayValue());
 
-            // 4. SI suma ≈ 100% → disparar cálculo
             if (sum >= 99 && sum <= 101)
             {
                 _WM?.RunSimulation();
@@ -112,10 +97,8 @@ namespace Client.Pages.UnitOperations.MaterialStreams.CompositionGrids
 
         protected async Task ClearCell()
         {
-            // 🔥 Limpiar toda la composición
             Variable.Clear();
-
-            // Disparar el solver después de limpiar
+            Variable.InputType = ComponentInputType.None; // 🔥 CRÍTICO: Resetea el InputType
             _WM?.RunSimulation();
 
             ResetEditingState();
@@ -128,19 +111,10 @@ namespace Client.Pages.UnitOperations.MaterialStreams.CompositionGrids
             return state == "calculated" || state == "blocked";
         }
 
-        // ─────────────────────────────────────────────────────────
-        // 🔹 DETECCIÓN DE INPUT TYPE
-        // ─────────────────────────────────────────────────────────
-
         protected ComponentInputType DetectInputType()
         {
-            // 🔥 Simplemente retornar el InputType del orchestrator
             return Variable?.InputType ?? ComponentInputType.None;
         }
-
-        // ─────────────────────────────────────────────────────────
-        // 🔹 FORMATOS
-        // ─────────────────────────────────────────────────────────
 
         protected string FormatFraction(double? fraction)
         {
@@ -155,13 +129,13 @@ namespace Client.Pages.UnitOperations.MaterialStreams.CompositionGrids
             var val = value.Value;
             return val == 0 ? "0.00" : (Math.Abs(val) >= 1.0 ? val.ToString("F2", CultureInfo.InvariantCulture) : val.ToString("F6", CultureInfo.InvariantCulture).TrimEnd('0').TrimEnd('.'));
         }
+
         protected string GetInputValue(ComponentFacade comp, bool isMass)
         {
             bool isEditingThis = _editingComponent == comp && ((isMass && _isEditingMass) || (!isMass && _isEditingMolar));
 
             if (isEditingThis)
             {
-                // 🔥 Retorna el texto crudo sin formatear para no mover el cursor
                 return _rawInput ?? "";
             }
 
@@ -170,7 +144,6 @@ namespace Client.Pages.UnitOperations.MaterialStreams.CompositionGrids
 
             return isDefined ? FormatFraction(val) : "";
         }
-
 
         protected void HandleFocus(ComponentFacade comp, bool isMass)
         {
@@ -186,8 +159,6 @@ namespace Client.Pages.UnitOperations.MaterialStreams.CompositionGrids
             {
                 var val = isMass ? comp.MassFraction.GetDisplayValue() : comp.MolarFraction.GetDisplayValue();
                 _tempInputValue = val;
-
-                // 🔥 FIX: Usamos tu FormatFraction para respetar los decimales (evitamos los miles de decimales)
                 _rawInput = FormatFraction(val);
             }
             else
@@ -199,10 +170,9 @@ namespace Client.Pages.UnitOperations.MaterialStreams.CompositionGrids
 
         protected async Task HandleBlur(ComponentFacade comp, bool isMass)
         {
-            // 🔥 FIX: Si ya no estamos editando este componente (porque el "Enter" ya limpió el estado), cancelamos el Blur.
             if (_editingComponent != comp) return;
 
-            ParseRawInput(); // Convertimos el string a double
+            ParseRawInput();
 
             if (_tempInputValue.HasValue)
             {
@@ -210,23 +180,19 @@ namespace Client.Pages.UnitOperations.MaterialStreams.CompositionGrids
             }
             else
             {
-                // Si el usuario dejó la celda vacía, limpiamos
                 if (string.IsNullOrWhiteSpace(_rawInput))
                 {
                     await ClearCell();
                 }
                 else
                 {
-                    // Si escribió algo inválido, cancelamos
                     ResetEditingState();
                 }
             }
         }
 
-
         protected void HandleInput(ChangeEventArgs e, ComponentFacade comp, bool isMass)
         {
-            // 🔥 Solo guardamos lo que el usuario escribe, sin evaluar matemáticamente
             _rawInput = e.Value?.ToString();
         }
 
@@ -238,27 +204,32 @@ namespace Client.Pages.UnitOperations.MaterialStreams.CompositionGrids
                 _tempInputValue = null;
         }
 
-        protected async Task HandleKeyDown(KeyboardEventArgs e, ComponentFacade comp, bool isMass)
+        // 🔥 CAMBIADO DE HandleKeyDown A HandleKeyUp
+        protected async Task HandleKeyUp(KeyboardEventArgs e, ComponentFacade comp, bool isMass)
         {
             if (e.Key == "Enter")
             {
-                ParseRawInput(); // Convertimos el string a double
+                ParseRawInput();
                 await CommitValue(comp, isMass);
             }
-            // Nota: Removí el borrado por Delete/Backspace aquí para que no interfiera 
-            // cuando estás editando texto normalmente (borrando un solo número).
-            // Si borras todo el input, el Blur se encargará de vaciar la celda.
+            else if (e.Key == "Delete" && string.IsNullOrWhiteSpace(_rawInput))
+            {
+                await ClearCell();
+            }
+            else if (e.Key == "Backspace" && string.IsNullOrWhiteSpace(_rawInput))
+            {
+                await ClearCell();
+            }
         }
-         
+
         protected void ResetEditingState()
         {
             _editingComponent = null;
             _isEditingMass = false;
             _isEditingMolar = false;
             _tempInputValue = null;
-            _rawInput = null; // 🔥 Limpiar el string crudo
+            _rawInput = null;
         }
-   
 
         protected IEnumerable<ComponentFacade> GetSortedComponents()
         {
@@ -269,7 +240,4 @@ namespace Client.Pages.UnitOperations.MaterialStreams.CompositionGrids
             return components;
         }
     }
-   
-
-   
 }

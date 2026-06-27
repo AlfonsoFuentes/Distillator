@@ -17,23 +17,14 @@
                        ElementId="@Element.Id.ToString()"
                        CssClass="phe-svg" />
 
-    @* 2. BOQUILLAS INTERACTIVAS *@
-    <svg width="@Element.Width" height="@Element.Height" style="position: absolute; top: 0; left: 0; pointer-events: none;">
-        @foreach (var port in Element.Ports)
-        {
-            <rect x="@GetNozzleX(port)" y="@GetNozzleY(port)"
-                  width="10" height="10"
-                  class="phe-nozzle"
-                  style="pointer-events: all;" />
-        }
-    </svg>
+   
 </CanvasEquipmentWrapper>
 
 @code {
-    private double GetNozzleX(Shared.ProcessFlowDiagram.EquipmentPort p) =>
-        p.Direction == Shared.ProcessFlowDiagram.PortDirection.Left ? 0 : p.OffsetX - 10;
+    // private double GetNozzleX(Shared.ProcessFlowDiagram.EquipmentPort p) =>
+    //     p.Direction == Shared.ProcessFlowDiagram.PortDirection.Left ? 0 : p.OffsetX - 10;
 
-    private double GetNozzleY(Shared.ProcessFlowDiagram.EquipmentPort p) => p.OffsetY - 5;
+    // private double GetNozzleY(Shared.ProcessFlowDiagram.EquipmentPort p) => p.OffsetY - 5;
 
     protected override async Task OpenPropertiesDialogAsync()
     {

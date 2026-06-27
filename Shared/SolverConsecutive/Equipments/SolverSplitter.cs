@@ -37,12 +37,20 @@ namespace Shared.SolverConsecutive.Equipments
 
         private SplitterStateType GetState()
         {
-            // Verificar conexiones mínimas
-            bool hasMinimumConnections = Inlet != null && Outlets.Count > 0;
+            // 1. Topología: Verificar conexiones mínimas
+            if (Inlet == null || Outlets.Count == 0)
+                return SplitterStateType.PartiallyConnected;
 
-            if (!hasMinimumConnections) return SplitterStateType.PartiallyConnected;
+            // 2. Verificar si el Inlet tiene flujo definido
+            if (!Inlet.MassFlow.IsDefined)
+                return SplitterStateType.ReadyToCalculate;
 
-            // El splitter no tiene variables de diseño específicas, solo necesita las conexiones
+            // 3. Verificar si TODOS los Outlets tienen flujo calculado
+            bool allOutletsCalculated = Outlets.All(o => o.MassFlow.IsDefined);
+
+            if (allOutletsCalculated)
+                return SplitterStateType.Solved;
+
             return SplitterStateType.ReadyToCalculate;
         }
 
@@ -55,6 +63,12 @@ namespace Shared.SolverConsecutive.Equipments
             yield return new SplitterConcentrationEquation(this);
             yield return new SplitterMassBalanceEquation(this);
             yield return new SplitterEnthalpyEquation(this);
+        }
+        public override Task PostSolveAsync()
+        {
+            // El Splitter no tiene KPIs post-convergencia (como Power en la Bomba)
+            // Pero dejamos el método para seguir el patrón de SolverEquipmentBase
+            return Task.CompletedTask;
         }
     }
 

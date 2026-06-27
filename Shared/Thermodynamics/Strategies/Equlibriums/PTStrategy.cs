@@ -29,51 +29,6 @@ namespace Shared.Thermodynamics.Strategies.Equlibriums
 
         }
     }
-    //public class PTStrategy3 : IEquilibriumStrategy
-    //{
-    //    private readonly IStreamFacade _facade;
-    //    private IMaterialStream Stream => _facade.MaterialStream;
-
-    //    public PTStrategy3(IStreamFacade facade)
-    //    {
-    //        _facade = facade;
-    //    }
-
-    //    public void Execute()
-    //    {
-
-    //        //Stream.PerformFlashPT();
-
-
-    //        //_facade.VaporFraction.SetValueFromStream(Stream.VaporFraction, _facade.Name);
-
-    //        //_facade.MaterialStream.CalculateBulkProperties();
-    //        //_facade.MassEnthalpy.SetValueFromStream(_facade.MaterialStream.MassEnthalpy, _facade.Name);
-
-    //    }
-    //}
-    //public class PTStrategy2 : IEquilibriumStrategy
-    //{
-    //    private readonly IStreamFacade2 _facade;
-    //    private IMaterialStream Stream => _facade.MaterialStream;
-
-    //    public PTStrategy2(IStreamFacade2 facade)
-    //    {
-    //        _facade = facade;
-    //    }
-
-    //    public void Execute()
-    //    {
-
-    //        //Stream.PerformFlashPT();
-
-
-    //        //_facade.VaporFraction.SetValueFromStream(Stream.VaporFraction, _facade.Name);
-
-    //        //_facade.MaterialStream.CalculateBulkProperties();
-    //        //_facade.MassEnthalpy.SetValueFromStream(_facade.MaterialStream.MassEnthalpy, _facade.Name);
-
-    //    }
-    //}
+   
 
 }

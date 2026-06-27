@@ -76,13 +76,13 @@ namespace Shared.ProcessFlowDiagram.Helpers
 
             // 3. Punta (Inlet) a la izquierda
             var inlet = Ports.FirstOrDefault(p => p.Name == PortInletName);
-            if (inlet != null) { inlet.OffsetX = 5; inlet.OffsetY = centerY; }
+            if (inlet != null) { inlet.OffsetX =0; inlet.OffsetY = centerY; }
 
             // 4. Salidas (Outlets) a la derecha (usando el nuevo Width)
             double startY = centerY - ((targetPorts.Count - 1) * spacing) / 2;
             for (int i = 0; i < targetPorts.Count; i++)
             {
-                targetPorts[i].OffsetX = Width - 5;
+                targetPorts[i].OffsetX = Width;
                 targetPorts[i].OffsetY = startY + (i * spacing);
             }
         }

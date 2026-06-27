@@ -1,4 +1,6 @@
-﻿using Shared.SolverQwen.Stream;
+﻿using Shared.SolverConsecutive.Equipments.Columns.Orchestrador;
+using Shared.SolverQwen.Stream;
+using Shared.Thermodynamics.PureComponents;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -6,20 +8,17 @@ using System.Reflection;
 using System.Text;
 using UnitSystem;
 
-namespace Shared.SolverConsecutive.Equipments
+namespace Shared.SolverConsecutive.Equipments.Columns
 {
-
     public enum ColumnStateType { Created, PartiallyConnected, ReadyToCalculate, Solved }
     /// </summary>
     public class SolverColumn : SolverEquipmentBase
     {
-        // ====================================================================
-        // PARÁMETROS DE DISEÑO
-        // ====================================================================
-        public Variable<UnitLess> RefluxRelation { get; set; }
-        public Variable<Pressure> TopPressure { get; }
-        public Variable<PressureDrop> DeltaP { get; }
-        public Variable<Pressure> BottomPressure { get; }
+      
+
+        public Variable<Pressure> TopPressure { get; set; }
+        public Variable<PressureDrop> DeltaP { get; set; }
+        public Variable<Pressure> BottomPressure { get; set; }
 
         // ====================================================================
         // CORRIENTES DE ENTRADA
@@ -34,22 +33,60 @@ namespace Shared.SolverConsecutive.Equipments
         public IFacadeStream? VaporOutlet { get; private set; }
         public IFacadeStream? BottomOutlet { get; private set; }
         public List<IFacadeStream> SideDraws { get; private set; } = new();
-
-        // ====================================================================
-        // PROPIEDADES DEL EQUIPO
-        // ====================================================================
+       
         public override List<ISolverEquation> Equations => GetEquations().ToList();
+        public ColumnResult? CalculationResult { get; private set; }
+        public bool IsCalculationCompleted { get; private set; } = false;
 
         // ====================================================================
-        // CONSTRUCTOR
+        // ORQUESTADOR
         // ====================================================================
+        public IColumnCalculationOrchestrator? Orchestrator { get; private set; }
+        public IFacadeStream? GetFirstAvailableStream()
+        {
+            if (Feeds != null && Feeds.Any()) return Feeds.First();
+            if (RefluxInlet != null) return RefluxInlet;
+            if (VaporInlet != null) return VaporInlet;
+            if (VaporOutlet != null) return VaporOutlet;
+            if (BottomOutlet != null) return BottomOutlet;
+            if (SideDraws != null && SideDraws.Any()) return SideDraws.First();
+
+            return null;
+        }
+        public override async Task PostSolveAsync()
+        {
+            try
+            {
+                // 1. Crear orquestador si no existe
+                if (Orchestrator == null)
+                {
+                    Orchestrator = new ColumnCalculationOrchestrator(this);
+                }
+
+                CalculationResult = await Orchestrator.CalculateAsync();
+
+
+
+                Console.WriteLine($"✅ Columna {Name}: Cálculo completado exitosamente");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Error en PostSolveAsync de {Name}: {ex.Message}");
+                IsCalculationCompleted = false;
+                CalculationResult = null;
+            }
+        }
+
+        
         public SolverColumn(string name)
         {
             Name = name;
             TopPressure = new Variable<Pressure>(new Pressure(101325, PressureUnits.Pascala), PressureUnits.Bara, 100000);
             DeltaP = new Variable<PressureDrop>(new PressureDrop(0, PressureDropUnits.Pascal), PressureDropUnits.Bar, 100000);
             BottomPressure = new Variable<Pressure>(new Pressure(101325, PressureUnits.Pascala), PressureUnits.Bara, 100000);
-            RefluxRelation = new Variable<UnitLess>(new UnitLess(1), UnitLessUnits.None, 1);
+
+            
+
         }
 
         // ====================================================================
@@ -92,27 +129,29 @@ namespace Shared.SolverConsecutive.Equipments
 
         private ColumnStateType GetState()
         {
-            // Verificar conexiones mínimas
-            bool hasMinimumConnections = Feeds.Count > 0 &&
-                                         RefluxInlet != null &&
-                                         VaporOutlet != null &&
-                                         BottomOutlet != null;
+            // 1. TOPOLOGÍA MÍNIMA: 
+            // Para que sea una columna (o absorbedora/stripper) debe tener al menos una alimentación, 
+            // una salida de destilado (Tope) y una salida de fondos (Bottom).
+            if (Feeds.Count == 0 || VaporOutlet == null || BottomOutlet == null || RefluxInlet == null || VaporInlet == null)
+                return ColumnStateType.PartiallyConnected;
 
-            if (!hasMinimumConnections) return ColumnStateType.PartiallyConnected;
+            // 2. ESPECIFICACIÓN MÍNIMA DE DISEÑO:
+            // El solver necesita conocer la presión del tope y al menos el DeltaP o la del fondo
+            // para poder barrer las presiones de los platos.
+            bool hasTopPressure = TopPressure.IsDefined;
+            bool hasDeltaPOrBottom = DeltaP.IsDefined || BottomPressure.IsDefined;
 
-            // Verificar si las variables de diseño están definidas
-            bool hasDesignSpecs = TopPressure.IsDefined &&
-                                  (DeltaP.IsDefined || BottomPressure.IsDefined) &&
-                                  RefluxRelation.IsDefined;
+            if (!hasTopPressure || !hasDeltaPOrBottom)
+                return ColumnStateType.ReadyToCalculate;
 
-            if (!hasDesignSpecs) return ColumnStateType.ReadyToCalculate;
+            // 3. ESTADO RESUELTO:
+            // Si el motor logró hacer el balance general y las corrientes salientes tienen masa calculada.
+            if (VaporOutlet.State == StreamStateType.Calculated && BottomOutlet.State == StreamStateType.Calculated)
+                return ColumnStateType.Solved;
 
-            return ColumnStateType.Solved;
+            return ColumnStateType.ReadyToCalculate;
         }
-
-        // ====================================================================
-        // GENERADOR DE ECUACIONES
-        // ====================================================================
+       
         private IEnumerable<ISolverEquation> GetEquations()
         {
             yield return new ColumnPressureTopEquation(this);
@@ -276,7 +315,15 @@ namespace Shared.SolverConsecutive.Equipments
         {
             var residuals = new List<double>();
 
-
+            if (_column.VaporOutlet == null ||
+                _column.BottomOutlet == null ||
+                _column.RefluxInlet == null ||
+                _column.VaporInlet == null ||
+                _column.Feeds == null ||
+                _column.Feeds.Count == 0)
+            {
+                return residuals; // Retorna vacío, el solver ignora esta ecuación
+            }
 
             double totalEnergyIn = 0;
             double totalEnergyOut = 0;

@@ -86,7 +86,7 @@ namespace Shared.SolverConsecutive.Equipments
 
         public string Name => _spec.Name; // 🔥 USA EL NOMBRE DE LA INTERFAZ
 
-        public SolverEquationType EquationType => SolverEquationType.MassBalance;
+        public SolverEquationType EquationType => SolverEquationType.Specification;
         public List<double> Residuals => new List<double> { _spec.GetResidual() };
         public List<IVariable> Variables => _spec.GetVariables();
 

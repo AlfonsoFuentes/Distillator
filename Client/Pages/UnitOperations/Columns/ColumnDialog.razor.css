@@ -1,13 +1,13 @@
 ﻿.column-canvas-layout {
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
     align-items: stretch;
     width: 100%;
-    min-height: 450px;
+    min-height: 400px; /* Mantén este valor */
     background-color: #f8fafc;
     border-radius: 4px;
     padding: 20px;
-    overflow-x: auto;
+    flex-shrink: 0; /* ← AGREGA ESTO: Evita que el canvas se encoja */
 }
 
 /* Zonas laterales */
@@ -70,4 +70,32 @@
     text-transform: uppercase;
     color: #64748b;
     letter-spacing: 0.05em;
+}
+/* ... (mantiene tus estilos anteriores) ... */
+
+.property-group {
+    margin-bottom: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+/* 🔥 NUEVO: Contenedor para alinear los grupos */
+.properties-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Dos columnas iguales */
+    gap: 20px; /* Espacio entre las dos secciones */
+    width: 100%;
+}
+
+.group-header {
+    font-size: 11px;
+    font-weight: 700;
+    color: #4A5568;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding-bottom: 4px;
+    margin-bottom: 8px;
+    margin-top: 8px;
+    border-bottom: 1px solid #E2E8F0;
 }

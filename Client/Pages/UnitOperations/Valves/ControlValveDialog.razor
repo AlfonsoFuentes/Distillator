@@ -25,11 +25,11 @@
     </MainSlot>
 
     <PropertiesSlot>
-        @if (Equipment.Facade is SolverValve cvFacade)
+        @if (Equipment.Facade is SolverValve Valve)
         {
-            <VariableAmountRow Label="Delta P" @bind-Variable="cvFacade.DeltaP" />
-
-            @* <VariableUnitLessRow Label="Valve Cv" @bind-Variable="cvFacade.Cv" MinValue="0" MaxValue="10000" IsReadOnly="true" /> *@
+            <VariableAmountRow Label="Delta P" @bind-Variable="Valve.DeltaP" Mode="VariableMode.Standard" />
+            <VariableUnitLessRow Label="Cv" @bind-Variable="Valve.Cv" IsReadOnly="true" Mode="VariableMode.Standard" />
+          
         }
     </PropertiesSlot>
 

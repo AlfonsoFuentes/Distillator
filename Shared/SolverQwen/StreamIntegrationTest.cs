@@ -1,6 +1,7 @@
 ﻿using Shared.PropertiesDtos.Methods;
 using Shared.SolverConsecutive;
 using Shared.SolverConsecutive.Equipments;
+using Shared.SolverConsecutive.Equipments.Columns;
 using Shared.SolverQwen.Stream;
 using UnitSystem;
 

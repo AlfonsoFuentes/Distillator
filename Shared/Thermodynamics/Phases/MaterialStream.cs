@@ -25,11 +25,9 @@ namespace Shared.Thermodynamics.Phases
         void SolveSaturationPressure();
         void PerformFlashPT();
         void PerformFlashPH();
-        //void PerformFlashPH(Pressure targetPressure, MassEnergy targetEnthalpy);
+       
         void SolveFlashPVF();
-        //double SolveFlashPVF(Pressure P, Percentage targetVF);
-        //double SolveFlashTVF(Temperature T, Percentage targetVF);
-
+  
         void SolveFlashTVF();
         Temperature Temperature { get; set; }
         Pressure Pressure { get; set; }
@@ -39,6 +37,7 @@ namespace Shared.Thermodynamics.Phases
         void SetPressure(Pressure? pressure);
         void SetTemperature(Temperature? temperature);
         void CalculateBulkProperties();
+        double SolveFlashPVF(Pressure P, Percentage targetVF);
 
 
         // Extensive Properties (Allowed to be set in the leaf)
@@ -63,6 +62,7 @@ namespace Shared.Thermodynamics.Phases
 
 
         MolarVolumeSpecific MolarVolume { get; set; }
+        ThermodynamicMethodFullDto ThermoMethod { get; }
     }
     public class MaterialStream : Phase, IMaterialStream
     {
@@ -78,9 +78,7 @@ namespace Shared.Thermodynamics.Phases
 
         protected override IReadOnlyList<ChemicalComponentNode> ComponentsForPropagation => Components;
 
-        // ========================================================================
-        // CONSTRUCTOR
-        // ========================================================================
+        
         public MaterialStream(string name = "New Stream")
         {
             Name = name;
@@ -94,6 +92,7 @@ namespace Shared.Thermodynamics.Phases
         public override void SetComponentsProperties(ThermodynamicMethodFullDto method)
         {
             Components.Clear();
+            ThermoMethod = method;
 
             foreach (var componentDto in method.Components)
             {

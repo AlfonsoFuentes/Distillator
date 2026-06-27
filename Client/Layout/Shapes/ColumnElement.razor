@@ -16,18 +16,7 @@
                StatusColor="@(Element.StatusColor ?? "#CBD5E0")"
                CssClass="col-svg" />
 
-    @* 2. CAPA SUPERIOR: Boquillas Interactivas (Capa transparente)
-          pointer-events: none en el contenedor, pointer-events: all en las boquillas. *@
-    <svg width="@Element.Width" height="@Element.Height" style="position: absolute; top: 0; left: 0; pointer-events: none;">
-        @foreach (var port in Element.Ports)
-        {
-            <rect x="@GetNozzleX(port)"
-                  y="@GetNozzleY(port)"
-                  width="10" height="10"
-                  class="col-nozzle"
-                  style="pointer-events: all;" />
-        }
-    </svg>
+
 </CanvasEquipmentWrapper>
 
 @code {
@@ -62,25 +51,5 @@
         }
     }
 
-    // =========================================================
-    // HELPERS VISUALES (Se mantienen para respetar el ajuste geométrico del cilindro)
-    // =========================================================
-    private double GetNozzleX(Shared.ProcessFlowDiagram.EquipmentPort port)
-    {
-        if (port.Direction == Shared.ProcessFlowDiagram.PortDirection.Top ||
-            port.Direction == Shared.ProcessFlowDiagram.PortDirection.Bottom) return port.OffsetX - 5;
-
-        if (port.Direction == Shared.ProcessFlowDiagram.PortDirection.Left) return port.OffsetX;
-        if (port.Direction == Shared.ProcessFlowDiagram.PortDirection.Right) return port.OffsetX - 10;
-
-        return port.OffsetX;
-    }
-
-    private double GetNozzleY(Shared.ProcessFlowDiagram.EquipmentPort port)
-    {
-        if (port.Direction == Shared.ProcessFlowDiagram.PortDirection.Top ||
-            port.Direction == Shared.ProcessFlowDiagram.PortDirection.Bottom) return port.OffsetY;
-
-        return port.OffsetY - 5;
-    }
+   
 }

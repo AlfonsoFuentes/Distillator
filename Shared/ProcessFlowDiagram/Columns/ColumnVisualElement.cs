@@ -1,4 +1,4 @@
-﻿using Shared.SolverConsecutive.Equipments;
+﻿using Shared.SolverConsecutive.Equipments.Columns;
 using Shared.SolverQwen.Stream;
 
 namespace Shared.ProcessFlowDiagram.Columns
@@ -32,8 +32,9 @@ namespace Shared.ProcessFlowDiagram.Columns
             Height = 320;
 
             // 1. Puertos Estáticos Principales
+            // 1. Puertos Estáticos Principales
             AddPort(PortOverheadName, PortType.Outlet, 40, 10, PortDirection.Top);
-            AddPort(PortBottomsName, PortType.Outlet, 40, 280, PortDirection.Bottom);
+            AddPort(PortBottomsName, PortType.Outlet, 40, 290, PortDirection.Bottom); // <-- Ajustado aquí (280 a 290)
             AddPort(PortRefluxName, PortType.Inlet, 70, 60, PortDirection.Right);
             AddPort(PortReboilerReturnName, PortType.Inlet, 70, 240, PortDirection.Right);
 
@@ -72,7 +73,7 @@ namespace Shared.ProcessFlowDiagram.Columns
                 Height = newHeight;
 
                 var bottomsPort = Ports.FirstOrDefault(p => p.Name == PortBottomsName);
-                if (bottomsPort != null) bottomsPort.OffsetY = Height - 40;
+                if (bottomsPort != null) bottomsPort.OffsetY = Height - 30;
 
                 var reboilerPort = Ports.FirstOrDefault(p => p.Name == PortReboilerReturnName);
                 if (reboilerPort != null) reboilerPort.OffsetY = Height - 80;
@@ -256,7 +257,7 @@ namespace Shared.ProcessFlowDiagram.Columns
             new("Top Pressure", Column.TopPressure.ToUiString()),
             new("ΔP", Column.DeltaP.ToUiString()),
             new("Bottom Pressure", Column.BottomPressure.ToUiString()),
-            new("Reflux Ratio", Column.RefluxRelation.ToUiString())
+            
         };
         }
     }

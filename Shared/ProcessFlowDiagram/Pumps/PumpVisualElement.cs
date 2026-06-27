@@ -34,10 +34,11 @@ namespace Shared.ProcessFlowDiagram.Pumps
             Width = 80;
             Height = 80;
 
-            // Usamos las constantes al inicializar
-            AddPort(PortSuctionName, PortType.Inlet, 12, 40, PortDirection.Left);
-            AddPort(PortDischargeName, PortType.Outlet, 40, 10, PortDirection.Top);
+            // La voluta izquierda empieza en X=10. Para que el cuadrito muerda a ras, lo ponemos en 10.
+            AddPort(PortSuctionName, PortType.Inlet, 0, 40, PortDirection.Left);
 
+            // El cuello de descarga superior termina en Y=20 (centro en X=30). 
+            AddPort(PortDischargeName, PortType.Outlet, 30, 10, PortDirection.Top);
 
             Facade = new SolverPump
             {

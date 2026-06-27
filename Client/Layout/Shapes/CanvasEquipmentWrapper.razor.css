@@ -248,6 +248,7 @@
     outline-offset: 6px;
     border-radius: 1px;
 }
+
 /* Agrega esto a tus clases de puertos */
 .connection-ports.connection-mode .port.port-valid-target {
     opacity: 1;
@@ -259,13 +260,6 @@
     transform: translate(-50%, -50%) scale(1.4);
     animation: glow-target 1.2s ease-in-out infinite alternate;
 }
-/*Nuevos*/
-
-
-
-
-
-
 
 /* ─────────────────────────────────────────────────────────
    ETAPA 2: Feedback Guiado (Origen, Válidos, Inválidos)
@@ -282,9 +276,6 @@
     animation: pulse-source 1.5s infinite;
 }
 
-/* Destinos válidos: Brillan intensamente invitando al clic */
-
-
 /* Puertos inválidos en Etapa 2: Se atenúan fuertemente */
 .connection-ports.connection-mode .port.port-dimmed {
     opacity: 0.1;
@@ -298,7 +289,6 @@
 /* ─────────────────────────────────────────────────────────
    ANIMACIONES
    ───────────────────────────────────────────────────────── */
-
 @keyframes pulse-source {
     0%, 100% {
         box-shadow: 0 0 15px 4px rgba(14, 165, 233, 0.7);
@@ -318,14 +308,17 @@
         box-shadow: 0 0 22px 8px rgba(0, 210, 106, 0.95);
     }
 }
-/**nuevo aqui*/
-/* 5. TOOLTIP (EXPANSIÓN) */
 
+/* =============================================================================
+   ESTILOS GLOBALES PARA BOQUILLAS (NOZZLES) DE TODOS LOS EQUIPOS
+   ============================================================================= */
+::deep .equipment-nozzle {
+    fill: #94A3B8; /* Tu gris industrial */
+    stroke: #334155;
+    stroke-width: 1.2px;
+    transition: filter 0.2s;
+}
 
-
-
-
-
-    
-
-    
+.equipment-container:hover ::deep .equipment-nozzle {
+    filter: brightness(1.1);
+}

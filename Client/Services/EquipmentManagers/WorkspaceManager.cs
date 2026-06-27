@@ -141,7 +141,7 @@ namespace Client.Services.EquipmentManagers
             var el = _factory.Create(type, lx, ly, Snap);
             if (el != null)
             {
-                if (HasEquipmentCollision(el, el.X, el.Y)) return;
+                //if (HasEquipmentCollision(el, el.X, el.Y)) return;
                 Elements.Add(el);
                 if (el.Facade != null)
                 {

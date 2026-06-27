@@ -43,7 +43,7 @@ namespace Shared.WorkSpaceManagers
             Register(EquipmentType.Pump, () => new PumpVisualElement());
             Register(EquipmentType.ControlValve, () => new ControlValveVisualElement());
             Register(EquipmentType.Splitter, () => new SplitterVisualElement());
-            Register(EquipmentType.Mixer, () => new MixerVisualElement());
+            Register(EquipmentType.Mixer, () => new StreamMixerVisualElement());
             Register(EquipmentType.Instrument, () => new InstrumentVisualElement());
         }
 

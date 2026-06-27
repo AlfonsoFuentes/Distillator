@@ -13,11 +13,25 @@
 
     @* 1. CAPA DE ROTACIÓN: Contiene los gráficos y los puertos para que giren juntos *@
     <div class="equipment-graphics-rotate" style="@GetGraphicsLayerStyle()">
-        
+
         @* Gráficos del equipo (SVG) *@
         @ChildContent
 
-        @* 2. Puertos de conexión REALES (Reactivos al Modo Conexión) *@
+        @* 🔥 NUEVO: BOQUILLAS ESTÁTICAS CENTRALIZADAS *@
+        @if (Element.ShowNozzles)
+        {
+            <svg width="@Element.Width" height="@Element.Height" style="position: absolute; top: 0; left: 0; pointer-events: none; overflow: visible; z-index: 5;">
+                @foreach (var port in Element.Ports)
+                {
+                    <rect x="@GetNozzleX(port)"
+                          y="@GetNozzleY(port)"
+                          width="10" height="10"
+                          class="equipment-nozzle"
+                          style="pointer-events: all;" />
+                }
+            </svg>
+        }
+
         @* 2. Puertos de conexión REACTIVOS al Modo Conexión *@
         <div class="connection-ports @(WM.IsConnectionModeActive ? "connection-mode" : "")">
             @foreach (var port in Element.Ports)
@@ -86,8 +100,8 @@
             @Element.Label
         </span>
     }
-  
 
+  
     @* 4. Mini Toolbar (Leemos la distancia desde C#) *@
     <div class="mini-toolbar" style="top: @(Element.ToolbarOffsetY)px;">
         @if (Element.AllowFlipHorizontal)
@@ -128,7 +142,7 @@
                 </div>
             </div>
         }
-       
+
     }
 
     @* 6. Tooltip Dinámico del Puerto (Sigue a su respectivo puerto) *@
@@ -144,8 +158,6 @@
     [Parameter, EditorRequired] public IVisualElement Element { get; set; } = default!;
     [Parameter] public RenderFragment ChildContent { get; set; } = default!;
 
-
-
     [Parameter] public bool IsSelected { get; set; }
     [Parameter] public bool IsDragging { get; set; }
 
@@ -156,18 +168,18 @@
     private bool showTooltip = false;
     private string? HoveredPortName;
 
-  
-
     private async Task HandleSingleClick()
     {
         Console.WriteLine($"[DEBUG] HandleSingleClick on: {Element?.Label} ({Element?.GetType().Name})");
         await OnSelect.InvokeAsync(Element);
     }
+
     private async Task HandleDoubleClick()
     {
         Console.WriteLine($"[DEBUG] DoubleClick on: {Element?.Label} ({Element?.GetType().Name})");
         await OnOpenDetails.InvokeAsync(Element);
     }
+
     private async Task HandleMouseDown(MouseEventArgs e) => await OnDragStart.InvokeAsync(e);
 
     private void ShowTooltip() => showTooltip = true;
@@ -192,6 +204,23 @@
     }
 
     // =========================================================
+    // LÓGICA DIRECCIONAL CENTRALIZADA PARA BOQUILLAS
+    // =========================================================
+    private double GetNozzleX(Shared.ProcessFlowDiagram.EquipmentPort port)
+    {
+        if (port.Direction == Shared.ProcessFlowDiagram.PortDirection.Left) return port.OffsetX;
+        if (port.Direction == Shared.ProcessFlowDiagram.PortDirection.Right) return port.OffsetX - 10;
+        return port.OffsetX - 5;
+    }
+
+    private double GetNozzleY(Shared.ProcessFlowDiagram.EquipmentPort port)
+    {
+        if (port.Direction == Shared.ProcessFlowDiagram.PortDirection.Top) return port.OffsetY;
+        if (port.Direction == Shared.ProcessFlowDiagram.PortDirection.Bottom) return port.OffsetY - 10;
+        return port.OffsetY - 5;
+    }
+
+    // =========================================================
     // LÓGICA DE CONEXIÓN DE PUERTOS (Fase 2)
     // =========================================================
     private void HandlePortMouseDown2(EquipmentPort port)
@@ -202,6 +231,7 @@
             WM.StartConnectionDraft(Element, port.Name);
         }
     }
+
     private void HandlePortMouseDown(EquipmentPort port)
     {
         // ✅ CORREGIDO: Solo inicia si no hay draft activo
@@ -236,7 +266,6 @@
         var port = Element.Ports.FirstOrDefault(p => p.Name == HoveredPortName);
         if (port == null) return "";
 
-      
         var (finalX, finalY, nx, ny) = Element.GetCanvasPoint(HoveredPortName);
         string translateX = "-50%";
         string translateY = "-50%";

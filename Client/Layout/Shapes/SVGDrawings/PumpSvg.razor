@@ -1,4 +1,4 @@
-﻿<svg width="@Width" height="@Height" viewBox="0 0 80 80" class="@CssClass">
+﻿<svg width="@Width" height="@Height" viewBox="0 0 80 80" class="@CssClass" style="display: block; overflow: visible;">
     <defs>
         <linearGradient id="@GradientId" x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" style="stop-color:#ffffff;stop-opacity:0.4" />
@@ -8,37 +8,37 @@
     </defs>
 
     @* Base / Soporte *@
-    <rect x="25" y="62" width="30" height="6" rx="3" fill="#64748B" stroke="#334155" stroke-width="1.2" />
-        
-    @* Cuerpo del motor *@
+    <rect x="25" y="65" width="30" height="5" rx="2" fill="#64748B" stroke="#334155" stroke-width="1.2" />
+
+    @* Cuerpo del motor (Desplazado a la derecha) *@
     <g class="pump-part">
-        <rect x="45" y="26" width="35" height="28" rx="14" fill="@StatusColor" class="pump-dynamic-fill" />
-        <rect x="45" y="26" width="35" height="28" rx="14" fill="url(#@GradientId)" stroke="#334155" stroke-width="1.2" />
+        <rect x="35" y="26" width="35" height="28" rx="14" fill="@StatusColor" class="pump-dynamic-fill" />
+        <rect x="35" y="26" width="35" height="28" rx="14" fill="url(#@GradientId)" stroke="#334155" stroke-width="1.2" />
     </g>
-        
+
     @* Aletas enfriamiento *@
     <g stroke="#334155" stroke-width="1" stroke-linecap="round" opacity="0.3">
-        <line x1="58" y1="32" x2="58" y2="48" />
-        <line x1="63" y1="32" x2="63" y2="48" />
-        <line x1="68" y1="32" x2="68" y2="48" />
+        <line x1="50" y1="32" x2="50" y2="48" />
+        <line x1="55" y1="32" x2="55" y2="48" />
+        <line x1="60" y1="32" x2="60" y2="48" />
     </g>
-        
-    @* Bridas *@
-    <rect x="12" y="35" width="22" height="10" fill="@StatusColor" stroke="#334155" stroke-width="1.2" class="pump-dynamic-fill" />
-    <rect x="35" y="10" width="10" height="22" fill="@StatusColor" stroke="#334155" stroke-width="1.2" class="pump-dynamic-fill" />
-        
-    @* Voluta Circular *@
+
+    @* Voluta Circular (Centro principal desplazado un poco a la izquierda) *@
     <g class="pump-part">
-        <circle cx="40" cy="40" r="20" fill="@StatusColor" class="pump-dynamic-fill" />
-        <circle cx="40" cy="40" r="20" fill="url(#@GradientId)" stroke="#334155" stroke-width="1.5" />
+        <circle cx="30" cy="40" r="20" fill="@StatusColor" class="pump-dynamic-fill" />
+        <circle cx="30" cy="40" r="20" fill="url(#@GradientId)" stroke="#334155" stroke-width="1.5" />
+
+        @* Cuello de descarga hacia arriba *@
+        <path d="M 20,40 L 20,20 L 40,20 L 40,40 Z" fill="@StatusColor" class="pump-dynamic-fill" />
+        <path d="M 20,40 L 20,20 L 40,20 L 40,40 Z" fill="url(#@GradientId)" stroke="#334155" stroke-width="1.5" />
+
+        @* Tapa circular frontal para ocultar la superposición del cuello *@
+        <circle cx="30" cy="40" r="20" fill="@StatusColor" class="pump-dynamic-fill" />
+        <circle cx="30" cy="40" r="20" fill="url(#@GradientId)" stroke="#334155" stroke-width="1.5" />
     </g>
-        
+
     @* Eje central *@
-    <circle cx="40" cy="40" r="5" fill="#F8FAFC" stroke="#334155" stroke-width="1" />
-        
-    @* Tornillería *@
-    <line x1="12" y1="32" x2="12" y2="48" stroke="#334155" stroke-width="1.5" stroke-linecap="round" />
-    <line x1="32" y1="10" x2="48" y2="10" stroke="#334155" stroke-width="1.5" stroke-linecap="round" />
+    <circle cx="30" cy="40" r="5" fill="#F8FAFC" stroke="#334155" stroke-width="1" />
 </svg>
 
 @code {
@@ -46,8 +46,6 @@
     [Parameter] public double Height { get; set; } = 80;
     [Parameter] public string StatusColor { get; set; } = "#CBD5E0";
     [Parameter] public string CssClass { get; set; } = "";
-    
-    // Generamos un ID único para el gradiente, así si hay 10 bombas en pantalla,
-    // los SVG no se roban el defs de gradiente entre sí.
+
     private string GradientId = $"pumpReflex_{Guid.NewGuid().ToString("N").Substring(0, 8)}";
 }

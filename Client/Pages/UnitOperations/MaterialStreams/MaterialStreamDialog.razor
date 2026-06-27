@@ -1,4 +1,5 @@
 ﻿@using Client.Pages.UnitOperations.MaterialStreams.CompositionGrids
+@using Shared.PhaseEnvelopes
 @implements IDisposable
 
 
@@ -16,7 +17,8 @@
                 <div class="tab @(activeTab == "Conditions" ? "active" : "")" @onclick='() => SetTab("Conditions")'>Conditions</div>
                 <div class="tab @(activeTab == "Composition" ? "active" : "")" @onclick='() => SetTab("Composition")'>Composition</div>
                 <div class="tab @(activeTab == "Properties" ? "active" : "")" @onclick='() => SetTab("Properties")'>Properties</div>
-                <div class="tab disabled">Phase Envelope</div>
+                <div class="tab @(activeTab == "Phase Envelope" ? "active" : "")" @onclick='() => SetTab("PhaseEnvelope")'>Phase Envelope</div>
+              
             </div>
 
             <div class="tab-content">
@@ -36,6 +38,34 @@
                 {
                     <div class="tab-content active">
                         <MaterialStreamProperties Facade="Facade" />
+                    </div>
+                }
+                @if (activeTab == "PhaseEnvelope")
+                {
+                    <div class="tab-content active" style="min-height: 400px; display: flex; justify-content: center; align-items: center; flex-direction: column;">
+
+                        @if (isCalculatingEnvelope)
+                        {
+                            <div style="text-align: center; color: #64748b;">
+                                <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" />
+                                <div style="margin-top: 10px; font-weight: 600;">Generating Phase Envelope...</div>
+                                <div style="font-size: 12px; opacity: 0.8;">Running 50 thermodynamic flashes</div>
+                            </div>
+                        }
+                        else if (Facade.EnvelopeCache != null && Facade.EnvelopeCache.Success)
+                        {
+                            @* 📊 AQUI LLAMAMOS AL COMPONENTE SVG *@
+                            <StreamPhaseEnvelope EnvelopeData="Facade.EnvelopeCache"
+                                              CurrentStream="Facade"
+                                              ChartMode="PT" />
+                        }
+                        else
+                        {
+                            <div style="color: #ef4444; font-weight: bold; text-align: center;">
+                                <MudIcon Icon="@Icons.Material.Filled.Error" Size="Size.Large" />
+                                <p>@Facade.EnvelopeCache?.ErrorMessage ?? "Could not generate envelope."</p>
+                            </div>
+                        }
                     </div>
                 }
             </div>
@@ -79,9 +109,28 @@
     // ─────────────────────────────────────────────────────────
     // 🔹 HANDLERS DE UI
     // ─────────────────────────────────────────────────────────
-    private void SetTab(string tabName)
+    private bool isCalculatingEnvelope = false;
+
+    // Modificamos el manejador de cambio de pestaña
+    private async Task SetTab(string tabName)
     {
         activeTab = tabName;
+
+        if (tabName == "PhaseEnvelope")
+        {
+            // Solo calculamos si la caché está vacía
+            if (Facade.EnvelopeCache == null)
+            {
+                isCalculatingEnvelope = true;
+                StateHasChanged(); // Forzamos a pintar el Spinner de MudBlazor
+
+                // Esperamos que el generador haga los 50 flashes en segundo plano
+                await Facade.GenerateEnvelopeAsync();
+
+                isCalculatingEnvelope = false;
+                StateHasChanged(); // Forzamos a quitar el Spinner y pintar el gráfico SVG
+            }
+        }
     }
 
     private async Task CloseDialog()

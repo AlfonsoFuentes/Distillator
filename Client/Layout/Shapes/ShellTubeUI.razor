@@ -1,0 +1,37 @@
+﻿@using Client.Layout.Shapes.SVGDrawings
+@using Client.Pages.UnitOperations.HeatExchangers
+@using Shared.ProcessFlowDiagram.HeatExchangers
+@inherits EquipmentUIBase<HeatExchangerVisualElement>
+
+<CanvasEquipmentWrapper Element="Element"
+                        IsSelected="IsSelected"
+                        IsDragging="IsDragging"
+                        OnSelect="HandleSelectionAsync"
+                        OnDragStart="OnDragStart"
+                        OnOpenDetails="OpenPropertiesDialogAsync">
+
+    @* 1. DIBUJO BASE *@
+    <ShellTubeSvg Width="@Element.Width"
+                  Height="@Element.Height"
+                  StatusColor="@(Element.StatusColor ?? "#CBD5E0")"
+                  ElementId="@Element.Id.ToString()"
+                  CssClass="st-svg" />
+
+ 
+</CanvasEquipmentWrapper>
+
+@code {
+    protected override async Task OpenPropertiesDialogAsync()
+    {
+        var parameters = new DialogParameters { ["Equipment"] = Element };
+        var options = new DialogOptions { MaxWidth = MaxWidth.False, FullWidth = false, NoHeader = true, CloseOnEscapeKey = true, BackdropClick = true };
+
+        var dialog = await DialogService.ShowAsync<HeatExchangerDialog>("", parameters, options);
+        var result = await dialog.Result;
+
+        if (result != null && !result.Canceled)
+        {
+            StateHasChanged();
+        }
+    }
+}

@@ -1,0 +1,69 @@
+﻿<div class="explorer-layout">
+    <!-- Panel Izquierdo: Árbol (COLAPSABLE) -->
+    <div class="@($"explorer-tree-panel {(IsTreePanelCollapsed ? "collapsed" : "expanded")}")">
+        <div class="explorer-header">
+            @if (!IsTreePanelCollapsed)
+            {
+                <span>@HeaderTitle</span>
+            }
+            <button @onclick="ToggleTreePanel" class="collapse-btn" title="@(IsTreePanelCollapsed ? "Expand" : "Collapse")">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="3" y1="12" x2="21" y2="12"></line>
+                    <line x1="3" y1="6" x2="21" y2="6"></line>
+                    <line x1="3" y1="18" x2="21" y2="18"></line>
+                </svg>
+            </button>
+        </div>
+
+        @if (!IsTreePanelCollapsed)
+        {
+            <div class="explorer-tree-content">
+                @if (Nodes != null && Nodes.Any())
+                {
+                    @foreach (var node in Nodes)
+                    {
+                        <ExplorerTreeNode Node="node"
+                                          SelectedNodeId="@SelectedNodeId"
+                                          OnNodeSelected="HandleNodeSelected" />
+                    }
+                }
+                else
+                {
+                    <div class="explorer-empty">@EmptyMessage</div>
+                }
+            </div>
+        }
+    </div>
+
+    <!-- Panel Derecho: Contenido Dinámico Genérico -->
+    <div class="@($"explorer-content-panel {(IsTreePanelCollapsed ? "expanded-space" : "normal-space")}")">
+  
+        @if (IsLoading)
+        {
+            <div class="empty-content">
+                <div class="spinner-icon" style="font-size: 32px; margin-bottom: 16px;">⏳</div>
+                <h3>@LoadingText</h3>
+            </div>
+        }
+        else if (SelectedNode?.ContentFactory != null)
+        {
+            <div class="content-wrapper">
+                @SelectedNode.ContentFactory(IsTreePanelCollapsed)
+            </div>
+        }
+        else if (SelectedNode?.Content != null)
+        {
+            <div class="content-wrapper">
+                @SelectedNode.Content
+            </div>
+        }
+        else
+        {
+            <div class="empty-content">
+                <div class="empty-icon">@EmptyIcon</div>
+                <h3>@EmptyTitle</h3>
+                <p>@EmptyDescription</p>
+            </div>
+        }
+    </div>
+</div>

@@ -26,8 +26,8 @@
         <VariableAmountRow Label="Viscosity" @bind-Variable="Facade.Viscosity" Mode="VariableMode.Compact" IsReadOnly="true" />
         <VariableAmountRow Label="Thermal Cond." @bind-Variable="Facade.ThermalConductivity" Mode="VariableMode.Compact" IsReadOnly="true" />
 
-        @if (Facade.EquilibriumState == ThermodynamicState.SaturatedLiquid ||
-                     Facade.EquilibriumState == ThermodynamicState.SubcooledLiquid)
+        @if (Facade.ThermodynamicState == ThermodynamicState.SaturatedLiquid ||
+                     Facade.ThermodynamicState == ThermodynamicState.SubcooledLiquid)
         {
             <VariableAmountRow Label="Superficial Tension" @bind-Variable="Facade.SuperficialTension" Mode="VariableMode.Compact" IsReadOnly="true" />
         }

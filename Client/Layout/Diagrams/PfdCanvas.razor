@@ -83,7 +83,7 @@
         if (WM != null) WM.OnNotifyUI -= StateHasChanged;
     }
 
-    private void HandleDrop(DragEventArgs e) => WM.AddFromToolbox(DragState.CurrentDraggedType, e.OffsetX, e.OffsetY);
+    // private void HandleDrop(DragEventArgs e) => WM.AddFromToolbox(DragState.CurrentDraggedType, e.OffsetX, e.OffsetY);
     
     private void HandleSelect(IVisualElement element) => WM.SelectElement(element);
     
@@ -98,6 +98,16 @@
         await workspaceRef.FocusAsync();
         // 🚩 Ahora esto detecta tanto la rueda como el clic izquierdo
         WM.StartPan(e);
+    }
+    private async Task HandleDrop(DragEventArgs e)
+    {
+        // Obtener offset actualizado del canvas
+        var offset = await JS.InvokeAsync<Offset>("canvasInterop.getCanvasOffset", workspaceRef);
+        canvasX = offset.X;
+        canvasY = offset.Y;
+
+        var pos = GetRelativeMousePosition(e);
+        WM.AddFromToolbox(DragState.CurrentDraggedType, pos.X, pos.Y);
     }
 
     private void HandleMouseMove(MouseEventArgs e)

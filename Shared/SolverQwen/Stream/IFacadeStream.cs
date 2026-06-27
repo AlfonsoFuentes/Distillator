@@ -1,4 +1,5 @@
-﻿using Shared.ProcessFlowDiagram;
+﻿using Shared.PhaseEnvelopes;
+using Shared.ProcessFlowDiagram;
 using Shared.PropertiesDtos.Methods;
 using Shared.SolverConsecutive;
 using Shared.SolverQwen.Variables;
@@ -29,7 +30,7 @@ namespace Shared.SolverQwen.Stream
         LiquidPhaseMixture LiquidPhase { get; }
         VaporPhaseMixture VaporPhase { get; }
 
-        StreamStateType State { get;  }  // Undefined, EquilibriumCalculated, FlowCalculated, etc.
+        StreamStateType State { get; }  // Undefined, EquilibriumCalculated, FlowCalculated, etc.
         bool IsEquilibriumSolved { get; set; }
         bool IsFlowSolved { get; set; }
 
@@ -65,16 +66,19 @@ namespace Shared.SolverQwen.Stream
         Variable<SuperficialTension> SuperficialTension { get; set; }
 
         CompositionOrchestrator Composition { get; set; }
-        ThermodynamicState EquilibriumState { get; }
+     
+        ThermodynamicState ThermodynamicState { get; }
 
         void SetThermodynamicMethod(ThermodynamicMethodFullDto method);
-
+        PhaseEnvelopeData EnvelopeCache { get; }
+        Task GenerateEnvelopeAsync();
+        ThermodynamicMethodFullDto ThermoMethod { get; }
 
     }
 
     public class FacadeStream : IFacadeStream
     {
-     
+
         public Guid Id { get; set; } = Guid.NewGuid();
         public ThermodynamicState EquilibriumState => _materialStream.CurrentState;
         public LiquidPhaseMixture LiquidPhase => _materialStream.LiquidPhase;
@@ -82,7 +86,8 @@ namespace Shared.SolverQwen.Stream
         private readonly IMaterialStream _materialStream;
         private readonly EquilibriumCalculator _equilibriumCalculator;
         private readonly FlowsCalculator _flowsCalculator;
-     
+
+        public ThermodynamicState ThermodynamicState => _materialStream.CurrentState;
 
         string _name = string.Empty;
         public string Name
@@ -142,8 +147,8 @@ namespace Shared.SolverQwen.Stream
         public Variable<MolarDensity> MolarDensity { get; set; }
         public Variable<SuperficialTension> SuperficialTension { get; set; }
         public Variable<UnitLess> MolecularWeight { get; set; }
-        public CompositionOrchestrator Composition { get; set; } 
-     
+        public CompositionOrchestrator Composition { get; set; }
+
 
 
         public FacadeStream(string name = "")
@@ -256,35 +261,57 @@ namespace Shared.SolverQwen.Stream
             MolecularWeight.SetValue(new UnitLess(_materialStream.MolecularWeight), VariableDefinedBy.StreamCalculated);
 
 
-           
 
-      
+
+
         }
         private StreamStateType GetState()
         {
             // 1. Si hay error, retornar Error
-          
+            if (HasError) return StreamStateType.Error;
 
-            // 2. Si TODO está calculado, retornar Calculated
-            if (IsFlowSolved && IsEquilibriumSolved) return StreamStateType.Calculated;
+            // 2. Verificar si TODO está realmente calculado
+            bool hasValidComposition = Composition?.IsValid == true;
+            bool hasMethodDefined = ThermoMethod != null;
+            bool hasTemperatureDefined = Temperature.IsDefined;
+            bool hasPressureDefined = Pressure.IsDefined;
 
-            // 3. Si solo flujos están calculados
-            if (IsFlowSolved) return StreamStateType.FlowCalculated;
+            // Flujos están resueltos si al menos uno está definido
+            bool hasFlowsSolved = IsFlowSolved &&
+                (MassFlow.IsDefined || MolarFlow.IsDefined || VolumetricFlow.IsDefined);
 
-            // 4. Si solo equilibrio está calculado
-            if (IsEquilibriumSolved) return StreamStateType.EquilibriumCalculated;
+            // Equilibrio está resuelto si tenemos T, P, composición y método
+            bool hasEquilibriumSolved = IsEquilibriumSolved &&
+                hasTemperatureDefined && hasPressureDefined &&
+                hasValidComposition && hasMethodDefined;
 
-            // 5. Si la composición está definida pero nada calculado
-            if (Composition?.IsValid == true) return StreamStateType.CompositionDefined;
+            // 3. Si TODO está calculado, retornar Calculated
+            if (hasFlowsSolved && hasEquilibriumSolved)
+                return StreamStateType.Calculated;
 
-            // 6. Si hay método termodinámico pero composición no válida
-            if (Composition != null) return StreamStateType.Initialized;
+            // 4. Si solo flujos están calculados
+            if (hasFlowsSolved)
+                return StreamStateType.FlowCalculated;
 
-            // 7. Si no hay nada
+            // 5. Si solo equilibrio está calculado  
+            if (hasEquilibriumSolved)
+                return StreamStateType.EquilibriumCalculated;
+
+            // 6. Si la composición está definida pero nada calculado
+            if (hasValidComposition)
+                return StreamStateType.CompositionDefined;
+
+            // 7. Si hay método termodinámico pero composición no válida
+            if (hasMethodDefined)
+                return StreamStateType.Initialized;
+
+            // 8. Si no hay nada
             return StreamStateType.Undefined;
         }
+        public ThermodynamicMethodFullDto ThermoMethod { get; private set; } = null!;
         public void SetThermodynamicMethod(ThermodynamicMethodFullDto method)
         {
+            ThermoMethod = method;
             _materialStream.SetThermodynamicMethod(method);
 
             List<ComponentFacade> _componentList = new();
@@ -316,14 +343,33 @@ namespace Shared.SolverQwen.Stream
             Composition = new CompositionOrchestrator(_componentList);
             Composition.OnCompositionChanged += () => _materialStream.SetCompositionData(Composition);
             Composition.OnCompositionChanged += ExecuteEquilibrium;
+            Composition.OnCompositionChanged += () => EnvelopeCache = null!;
 
-          
+
         }
 
         public void ExecuteEquilibrium() => _equilibriumCalculator.Execute();
         public void ExecuteFlows() => _flowsCalculator.Execute();
+        // =========================================================
+        // CACHÉ Y ESTADO DE LA ENVOLVENTE DE FASES
+        // =========================================================
+        // La propiedad pública de solo lectura para la UI
+        public PhaseEnvelopeData EnvelopeCache { get; private set; } = null!;
 
-      
+        // El método que la UI llamará bajo demanda
+        public async Task GenerateEnvelopeAsync()
+        {
+            // Llamamos al motor que creamos en el Paso 2
+            EnvelopeCache = await PhaseEnvelopeGenerator.GenerateAsync(this, 50);
+        }
+        public async Task PostSolveAsync()
+        {
+            // Solo si hay cambios en composición, recalcula la envolvente
+            // Opcional: podrías agregar una lógica para verificar si la composición cambió desde el último PostSolve
+            //await TriggerEnvelopeCalculationAsync();
+
+            // Aquí podrías añadir cualquier otro post-cálculo de la corriente
+        }
 
     }
 

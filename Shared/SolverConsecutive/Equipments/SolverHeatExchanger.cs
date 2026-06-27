@@ -15,9 +15,9 @@ namespace Shared.SolverConsecutive.Equipments
         public IFacadeStream ColdInlet { get; private set; } = null!;
         public IFacadeStream ColdOutlet { get; private set; } = null!;
 
-        public Variable<PressureDrop> DeltaPHot { get; }
-        public Variable<PressureDrop> DeltaPCold { get; }
-        public Variable<EnergyFlow> TransferHeat { get; }
+        public Variable<PressureDrop> DeltaPHot { get; set; }
+        public Variable<PressureDrop> DeltaPCold { get; set; }
+        public Variable<EnergyFlow> TransferHeat { get; set; }
 
         public override List<ISolverEquation> Equations => GetEquations().ToList();
 
@@ -74,59 +74,7 @@ namespace Shared.SolverConsecutive.Equipments
             yield return new HXMassEnergyBalanceColdSideEquation(this);
         }
     }
-    //public class SolverHeatExchanger2 : SolverEquipmentBase
-    //{
-    //    public IFacadeStream HotInlet { get; private set; } = null!;
-    //    public IFacadeStream HotOutlet { get; private set; } = null!;
-    //    public IFacadeStream ColdInlet { get; private set; } = null!;
-    //    public IFacadeStream ColdOutlet { get; private set; } = null!;
-    //    public Variable<PressureDrop> DeltaPHot { get; }
-    //    public Variable<PressureDrop> DeltaPCold { get; }
-
-    //    // ✅ LA MAGIA: Calores separados para permitir resolución aislada reactiva
-    //    public Variable<EnergyFlow> TransferHeat { get; }
-
     
-    //    public override List<ISolverEquation> Equations => GetEquations().ToList();
-
-    //    public void SetColdInlet(IFacadeStream stream)
-    //    {
-    //        ColdInlet = stream;
-    //    }
-    //    public void SetColdOutlet(IFacadeStream stream)
-    //    {
-    //        ColdOutlet = stream;
-    //    }
-    //    public void SetHotInlet(IFacadeStream stream)
-    //    {
-    //        HotInlet = stream;
-    //    }
-    //    public void SetHotOutlet(IFacadeStream stream)
-    //    {
-    //        HotOutlet = stream;
-    //    }
-    //    public SolverHeatExchanger2(string name)
-    //    {
-    //        Name = name;
-    //        DeltaPHot = new Variable<PressureDrop>(new PressureDrop(0, PressureDropUnits.Pascal), PressureDropUnits.Bar, 100000);
-    //        DeltaPCold = new Variable<PressureDrop>(new PressureDrop(0, PressureDropUnits.Pascal), PressureDropUnits.Bar, 100000);
-
-    //        TransferHeat = new Variable<EnergyFlow>(new EnergyFlow(0, EnergyFlowUnits.J_sg), EnergyFlowUnits.Kcal_hr, 3000);
-    //    }
-
-    //    private IEnumerable<ISolverEquation> GetEquations()
-    //    {
-    //        yield return new HXPressureHotSideEquation(this);
-    //        yield return new HXPressureColdSideEquation(this);
-    //        yield return new HXConcentrationHotSideEquation(this);
-    //        yield return new HXConcentrationColdSideEquation(this);
-    //        yield return new HXMassBalanceHotSideEquation(this);
-    //        yield return new HXMassBalanceColdSideEquation(this);
-
-    //        yield return new HXMassEnergyBalanceHotSideEquation(this);
-    //        yield return new HXMassEnergyBalanceColdSideEquation(this);
-    //    }
-    //}
 
     public class HXPressureHotSideEquation : ISolverEquation
     {

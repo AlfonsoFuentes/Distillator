@@ -12,6 +12,7 @@ namespace Shared.SolverQwen.Stream
         private readonly MethodComponentFullDto _DataBase;
 
 
+        public MethodComponentFullDto DataBase=> _DataBase;
         public Guid Id => _DataBase.ComponentId;
         public string Name => _DataBase.ComponentName;
         public string Formula => _DataBase.FullData?.Formula ?? string.Empty;

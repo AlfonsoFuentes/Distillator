@@ -9,11 +9,12 @@
     {
         double w = Width;
         double h = Height;
-        return $"M 10,{h} L {w - 10},{h} L {w - 10},20 Q {w / 2},0 10,20 Z";
+        // 🚩 Protegido contra la configuración regional (comas vs puntos)
+        return System.FormattableString.Invariant($"M 10,{h} L {w - 10},{h} L {w - 10},20 Q {w / 2},0 10,20 Z");
     }
 }
 
-<svg class="@CssClass" width="@Width" height="@Height" viewBox="0 0 @Width @Height" style="display: block; overflow: visible; filter: drop-shadow(0px 4px 6px rgba(0, 0, 0, 0.25));">
+<svg class="@CssClass" width="@Width" height="@Height" viewBox="0 0 @Width @Height" style="display: block; overflow: visible;">
     <defs>
         <linearGradient id="vesselReflex-@ElementId" x1="0%" y1="0%" x2="100%" y2="0%">
             <stop offset="0%" style="stop-color:#ffffff;stop-opacity:0.6" />

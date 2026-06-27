@@ -15,19 +15,7 @@
                  StatusColor="@(Element.StatusColor ?? "#CBD5E0")"
                  CssClass="spl-svg" />
 
-    @* 2. CAPA SUPERIOR: Puertos Dinámicos (N Salidas)
-          Usamos pointer-events: none en el svg contenedor para que no bloquee los clics del equipo,
-          y pointer-events: all en los rectángulos para que sigan siendo interactivos. *@
-    <svg width="@Element.Width" height="@Element.Height" style="position: absolute; top: 0; left: 0; pointer-events: none;">
-        @foreach (var port in Element.Ports)
-        {
-            <rect x="@(port.OffsetX - 5)"
-                  y="@(port.OffsetY - 5)"
-                  width="10" height="10"
-                  class="spl-nozzle"
-                  style="pointer-events: all;" />
-        }
-    </svg>
+   
 
 </CanvasEquipmentWrapper>
 

@@ -7,9 +7,9 @@ namespace Shared.UnitOperations.Basiss
         Guid Id { get; set; }
         string Name { get; set; }
 
-       
+        Task PostSolveAsync();
 
-    
+
 
 
     }

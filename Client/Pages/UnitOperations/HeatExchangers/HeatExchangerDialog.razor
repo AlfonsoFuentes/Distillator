@@ -6,7 +6,7 @@
     <MainSlot>
         <div class="hx-canvas-layout">
 
-            @* 1. ZONA IZQUIERDA: Lado de los Tubos *@
+            @* 1. ZONA IZQUIERDA: Lado de los Tubos  *@
             <div class="tube-side-zone">
                 <div class="port-label">Tube Side</div>
                 <div class="static-port-container">
@@ -28,10 +28,7 @@
                         <span class="sub-label">Shell In</span>
                         <EquipmentPortConnector Port="@Equipment.Ports.First(p => p.Name == "ShellIn")" ParentEquipment="Equipment" />
                     </div>
-                    <div class="static-port-container">
-                        <span class="sub-label">Vapor Vent</span>
-                        <EquipmentPortConnector Port="@Equipment.Ports.First(p => p.Name == "VaporVent")" ParentEquipment="Equipment" />
-                    </div>
+               
                 </div>
 
                 @* Dibujo del Intercambiador *@
@@ -48,13 +45,29 @@
                         <EquipmentPortConnector Port="@Equipment.Ports.First(p => p.Name == "CondensateOut")" ParentEquipment="Equipment" />
                         <span class="sub-label">Condensate Out</span>
                     </div>
-                </div>
+                </div> 
             </div>
-
+           
         </div>
     </MainSlot>
 
-    <PropertiesSlot></PropertiesSlot>
+    <PropertiesSlot>
+        @if (Equipment.Facade is SolverHeatExchanger hx)
+        {
+            <VariableAmountRow Label="Shell Side ΔP (Hot)"
+                               @bind-Variable="hx.DeltaPHot"
+                               Mode="VariableMode.Standard" />
+
+            <VariableAmountRow Label="Tube Side ΔP (Cold)"
+                               @bind-Variable="hx.DeltaPCold"
+                               Mode="VariableMode.Standard" />
+
+            <VariableAmountRow Label="Duty (Heat Transfer)"
+                               @bind-Variable="hx.TransferHeat"
+                               Mode="VariableMode.Standard"
+                               IsReadOnly="true" />
+        }
+    </PropertiesSlot>
 </EquipmentBaseDialog>
 
 @code {

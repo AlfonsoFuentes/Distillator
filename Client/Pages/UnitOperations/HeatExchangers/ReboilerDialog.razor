@@ -6,7 +6,7 @@
     <MainSlot>
         <div class="reb-canvas-layout">
 
-            @* 1. ZONA IZQUIERDA: Salida a la Torre *@
+            @* 1. ZONA IZQUIERDA: Salida a la Torre  *@
             <div class="side-zone left-zone">
                 <div class="static-port-container top-align">
                     <span class="sub-label">Vapor/Mix Out</span>
@@ -49,7 +49,23 @@
         </div>
     </MainSlot>
 
-    <PropertiesSlot></PropertiesSlot>
+    <PropertiesSlot>
+        @if (Equipment.Facade is SolverHeatExchanger hx)
+        {
+            <VariableAmountRow Label="Utility Side ΔP (Hot)"
+                               @bind-Variable="hx.DeltaPHot"
+                               Mode="VariableMode.Standard" />
+
+            <VariableAmountRow Label="Process Side ΔP (Cold)"
+                               @bind-Variable="hx.DeltaPCold"
+                               Mode="VariableMode.Standard" />
+
+            <VariableAmountRow Label="Duty (Heat Transfer)"
+                               @bind-Variable="hx.TransferHeat"
+                               Mode="VariableMode.Standard"
+                               IsReadOnly="true" />
+        }
+    </PropertiesSlot>
 </EquipmentBaseDialog>
 
 @code {

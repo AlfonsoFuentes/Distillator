@@ -32,5 +32,11 @@ window.canvasInterop = {
             width: rect.width,
             height: rect.height
         };
+    },
+    getWindowDimensions: function () {
+        return {
+            width: window.innerWidth,
+            height: window.innerHeight
+        };
     }
 };

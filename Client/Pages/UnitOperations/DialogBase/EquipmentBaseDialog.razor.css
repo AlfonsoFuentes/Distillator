@@ -8,17 +8,19 @@
     --font-family: "Segoe UI", Arial, sans-serif;
     font-family: var(--font-family);
     font-size: 12px;
-    width: fit-content;
-    min-width: 480px;
+    width: 70vw;
+    min-width: 800px;
     max-width: 95vw;
     border-radius: 4px;
     border: 1px solid #888888;
     background-color: #ffffff;
     margin: 0 auto;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     display: flex;
     flex-direction: column;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    max-height: 90vh;
     overflow: hidden;
+   
 }
 
 /* ==================== HEADER DEL DIÁLOGO (AZUL) ==================== */
@@ -86,11 +88,13 @@
 .tab-content {
     padding: 10px;
     flex-grow: 1;
-    min-height: 480px;
+    min-height: 0;
     width: 100%;
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
+    overflow-y: auto; /* ← Cambiado de hidden a auto */
+    overflow-x: hidden; /* ← Agregado para evitar scroll horizontal */
 }
 
     .tab-content.active {
@@ -102,15 +106,16 @@
     display: flex;
     flex-direction: column;
     gap: 1rem;
-    height: 100%;
+    min-height: 0;
 }
-
 .main-slot-container {
     border: 1px solid var(--border-color);
     border-radius: 4px;
-    overflow: hidden;
+    overflow: visible; /* ← Cambiado de hidden a visible */
     background-color: #f8fafc;
+    flex-shrink: 0; /* ← AGREGA ESTO también */
 }
+
 
 .properties-section {
     background-color: #ffffff;
@@ -173,11 +178,15 @@
     align-items: center;
     gap: 8px;
     padding: 8px 12px;
-    margin-top: 10px;
+    margin-top: auto; /* 🔥 NUEVO: Empuja la barra al final */
     border-radius: 4px;
     font-family: var(--font-family);
     font-size: 12px;
     font-weight: 500;
+    position: sticky; /* 🔥 CLAVE: Se queda pegada */
+    bottom: 0; /* 🔥 CLAVE: Pegada al borde inferior */
+    z-index: 10; /* 🔥 CLAVE: Por encima del contenido */
+    box-shadow: 0 -2px 4px rgba(0,0,0,0.1); /* Sombra arriba para separar */
 }
 
 .status-text {

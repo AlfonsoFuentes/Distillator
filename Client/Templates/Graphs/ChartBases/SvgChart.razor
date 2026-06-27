@@ -1,0 +1,240 @@
+﻿<div @ref="chartContainerRef" class="chart-container"
+     @onwheel="HandleWheel"
+     @onmousedown="HandleMouseDown"
+     @onmousemove="HandleMouseMove"
+     @onmouseup="HandleMouseUp"
+     @onmouseleave="HandleMouseUp">
+
+    <!-- 1. Título del Gráfico (Fijo arriba) -->
+    @if (!string.IsNullOrEmpty(ChartTitle))
+    {
+        <div class="chart-title">
+            <h3>@ChartTitle</h3>
+            @if (!string.IsNullOrEmpty(ChartSubtitle))
+            {
+                <p class="chart-subtitle">@ChartSubtitle</p>
+            }
+        </div>
+    }
+
+    <!-- 2. Cuerpo: Gráfica Cuadrada + Leyenda Lateral Fija -->
+    <div class="chart-body">
+
+        <!-- ZONA IZQUIERDA: Contenedor del Gráfico Cuadrado -->
+        <div class="chart-graph-area">
+            <svg viewBox="@ViewState.ViewBox" class="chart-svg" preserveAspectRatio="xMidYMid meet">
+                <defs>
+                    <clipPath id="plot-area-clip">
+                        <rect x="@ViewState.PaddingLeft"
+                              y="@ViewState.PaddingTop"
+                              width="@ViewState.InnerWidth"
+                              height="@ViewState.InnerHeight" />
+                    </clipPath>
+                </defs>
+
+                <!-- Background -->
+                <rect x="0" y="0" width="@ViewState.BaseWidth" height="@ViewState.BaseHeight" fill="#ffffff" />
+
+                <!-- Grid Lines -->
+                <!-- Grid Lines -->
+                <g class="grid-lines" clip-path="url(#plot-area-clip)">
+                    @foreach (var tick in XTicks)
+                    {
+                        <line x1="@MapX(tick)" y1="@ViewState.PaddingTop"
+                              x2="@MapX(tick)" y2="@(ViewState.BaseHeight - ViewState.PaddingBottom)" />
+                    }
+                    @foreach (var tick in YTicks)
+                    {
+                        <line x1="@ViewState.PaddingLeft" y1="@MapY(tick)"
+                              x2="@(ViewState.BaseWidth - ViewState.PaddingRight)" y2="@MapY(tick)" />
+                    }
+                </g>
+
+                <!-- Axes -->
+                <g class="axes">
+                    <line x1="@ViewState.PaddingLeft" y1="@(ViewState.BaseHeight - ViewState.PaddingBottom)"
+                          x2="@(ViewState.BaseWidth - ViewState.PaddingRight)" y2="@(ViewState.BaseHeight - ViewState.PaddingBottom)" />
+                    <line x1="@ViewState.PaddingLeft" y1="@ViewState.PaddingTop"
+                          x2="@ViewState.PaddingLeft" y2="@(ViewState.BaseHeight - ViewState.PaddingBottom)" />
+                </g>
+
+                <!-- Axis Labels -->
+                <!-- Axis Labels -->
+                <g class="axis-labels">
+
+                    @foreach (var tick in XTicks)
+                    {
+                        <g>
+
+                            <text x="@MapX(tick)" y="@(ViewState.BaseHeight - ViewState.PaddingBottom + 15)"
+                                  text-anchor="middle">@FormatNumber(tick,true)</text>
+                        </g>
+                    }
+                    @foreach (var tick in YTicks)
+                    {
+                        <g>
+
+                            <text x="@(ViewState.PaddingLeft - 20)" y="@MapY(tick)"
+                                  dominant-baseline="middle"
+                                  text-anchor="middle">@FormatNumber(tick,false)</text>
+                        </g>
+                    }
+
+                    
+                </g>
+
+                <!-- Axis Titles -->
+                <text x="@(Math.Round(ViewState.PaddingLeft + ViewState.InnerWidth / 2))"
+                      y="@(ViewState.BaseHeight - 5)"
+                      text-anchor="middle"
+                      class="axis-title">
+                    @XAxisTitle
+                </text>
+
+                <text x="15"
+                      y="@(Math.Round(ViewState.PaddingTop + ViewState.InnerHeight / 2))"
+                      text-anchor="middle"
+                      dominant-baseline="middle"
+                      transform="@($"rotate(-90, {ViewState.PaddingLeft - 40}, {Math.Round(ViewState.PaddingTop + ViewState.InnerHeight / 2.0)})")"
+                      class="axis-title">
+                    @YAxisTitle
+                </text>
+            
+
+              
+
+                <!-- Series Rendering -->
+                <g clip-path="url(#plot-area-clip)">
+                    @if (Series != null)
+                    {
+                        @foreach (var series in Series)
+                        {
+                            @RenderSeries(series)
+                        }
+                    }
+                </g>
+
+                <!-- Marcadores -->
+                @if (Markers != null && Markers.Any())
+                {
+                    <g class="chart-markers">
+                        @foreach (var marker in Markers)
+                        {
+                            <g class="marker-group"
+                               @onmouseenter="(e) => HandleMarkerHover(marker, e)"
+                               @onmouseleave="HandlePointLeave">
+                                <circle cx="@MapX(marker.X)" cy="@MapY(marker.Y)" r="5"
+                                        fill="#1e293b" stroke="#ffffff" stroke-width="2" style="cursor: pointer;" />
+                                <text x="@MapX(marker.X)" y="@MapY(marker.Y)" dx="8" dy="-8"
+                                      class="marker-label" dominant-baseline="auto">@marker.Label</text>
+                            </g>
+                        }
+                    </g>
+                }
+            </svg>
+        </div>
+
+   
+        <!-- ZONA DERECHA: Panel de Leyendas Fijo -->
+        <!-- ZONA DERECHA: Panel unificado (Leyendas + Selector de Unidades) -->
+        @if ((ShowLegends && Series != null && Series.Any(s => !string.IsNullOrEmpty(s.Name))) || (UnitOptions != null && UnitOptions.Any()))
+        {
+            <div class="chart-right-panel">
+
+                <!-- Leyendas -->
+                @if (ShowLegends && Series != null && Series.Any(s => !string.IsNullOrEmpty(s.Name)))
+                {
+                    <div class="chart-legend-panel">
+                        @foreach (var series in Series.Where(s => !string.IsNullOrEmpty(s.Name) && s.ShowInLegend))
+                        {
+                            <div class="@($"legend-item {(series.IsHighlighted ? "highlighted" : "")}")"
+                                 style="@($"opacity: {(series.IsVisible ? "1" : "0.5")}; cursor: pointer;")"
+                                 @onclick="() => HandleLegendClick(series)"
+                                 @ondblclick="() => HandleLegendDoubleClick(series)">
+
+                                @if (series.SeriesType == ChartSeriesType.Line || series.SeriesType == ChartSeriesType.Both || series.SeriesType == ChartSeriesType.StepLine)
+                                {
+                                    @if (!string.IsNullOrEmpty(series.StrokeDashArray))
+                                    {
+                                        <div class="legend-line" style="background: repeating-linear-gradient(to right, @series.Color 0px, @series.Color 5px, transparent 5px, transparent 10px); height: 3px;"></div>
+                                    }
+                                    else
+                                    {
+                                        <div class="legend-line" style="@($"background-color: {series.Color}; height: 3px;")"></div>
+                                    }
+                                }
+                                <span class="legend-label">@series.Name</span>
+                            </div>
+                        }
+                    </div>
+                }
+
+                <!-- Selector de Unidades -->
+                @if (UnitOptions != null && UnitOptions.Any())
+                {
+                    <div class="chart-unit-selector">
+                        <select class="custom-industrial-select" @onchange="HandleUnitChange">
+                            @foreach (var unit in UnitOptions)
+                            {
+                                <option value="@unit.Name" selected="@(SelectedUnit?.Name == unit.Name)">
+                                    @unit.Symbol
+                                </option>
+                            }
+                        </select>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+
+    <!-- Botón de Reset Zoom -->
+    @if (ViewState.ZoomLevel != 1.0 || ViewState.PanX != 0 || ViewState.PanY != 0)
+    {
+        <button class="reset-zoom-button" @onclick="ResetZoom" title="Reset zoom">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+                <path d="M3 3v5h5"></path>
+            </svg>
+        </button>
+    }
+
+    <!-- Tooltip -->
+    @if (CurrentTooltip != null && CurrentTooltip.IsVisible)
+    {
+        <div class="chart-tooltip" style="@($"left: {CurrentTooltip.ScreenX}px; top: {CurrentTooltip.ScreenY}px")">
+            <div class="tooltip-title">@CurrentTooltip.Title</div>
+            @foreach (var row in CurrentTooltip.Rows)
+            {
+                <div class="tooltip-row">
+                    <span class="tooltip-color" style="background-color: @row.Color;"></span>
+                    <span class="tooltip-label">@row.Label:</span>
+                    <span class="tooltip-value">@row.Value</span>
+                </div>
+            }
+        </div>
+    }
+
+    <!-- Loader Overlay -->
+    @if (IsLoading)
+    {
+        <div class="chart-loader-overlay">
+            <div class="loader-content">
+                <div class="loader-spinner"></div>
+                <div class="loader-text">@LoadingText</div>
+            </div>
+        </div>
+    }
+</div>
+@code
+{
+    private async Task HandleUnitChange(ChangeEventArgs e)
+    {
+        var unitName = e.Value?.ToString();
+        var selectedUnit = UnitOptions?.FirstOrDefault(u => u.Name == unitName);
+
+        if (selectedUnit != null)
+        {
+            await UnitChanged.InvokeAsync(selectedUnit);
+        }
+    }
+}

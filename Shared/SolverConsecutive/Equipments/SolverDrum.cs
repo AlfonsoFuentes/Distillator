@@ -64,42 +64,7 @@ namespace Shared.SolverConsecutive.Equipments
             yield return new DrumMassEnergyBalanceEquation(this);
         }
     }
-    //public class SolverDrum : SolverEquipmentBase
-    //{
-    //    public IFacadeStream Feed { get;private set; } = null!;
-    //    public IFacadeStream VaporOutlet { get; private set; } = null!;
-    //    public IFacadeStream LiquidOutlet { get; private set; } = null!;
-
-
-    //    public void SetFeed(IFacadeStream feed)
-    //    {
-    //        Feed = feed;
-    //    }
-    //    public void SetVaporOutlet(IFacadeStream vaporOutlet)
-    //    {
-    //        VaporOutlet = vaporOutlet;
-    //    }
-    //    public void SetLiquidOutlet(IFacadeStream liquidOutlet)
-    //    {
-    //        LiquidOutlet = liquidOutlet;
-    //    }
-    //    public override List<ISolverEquation> Equations => GetEquations().ToList();
-
-    //    public SolverDrum(string name)
-    //    {
-    //        Name = name;
-
-    //    }
-
-    //    private IEnumerable<ISolverEquation> GetEquations()
-    //    {
-    //        yield return new DrumPressureEquation(this);
-    //        yield return new DrumConcentrationEquation(this);
-
-    //        yield return new DrumEnthalpyEquation(this);
-    //        yield return new DrumMassEnergyBalanceEquation(this);
-    //    }
-    //}
+    
 
     public class DrumPressureEquation : ISolverEquation
     {

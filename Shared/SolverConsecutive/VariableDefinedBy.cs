@@ -16,7 +16,8 @@
         VaporFraction,
         Enthalpy,
         MassBalance,
-        MassEnergyBalance
+        MassEnergyBalance,
+        Specification
     }
 }
 

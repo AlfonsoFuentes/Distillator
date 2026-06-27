@@ -47,7 +47,23 @@
         </div>
     </MainSlot>
 
-    <PropertiesSlot></PropertiesSlot>
+    <PropertiesSlot>
+        @if (Equipment.Facade is SolverHeatExchanger hx)
+        {
+            <VariableAmountRow Label="Hot Side ΔP"
+                               @bind-Variable="hx.DeltaPHot"
+                               Mode="VariableMode.Standard" />
+
+            <VariableAmountRow Label="Cold Side ΔP"
+                               @bind-Variable="hx.DeltaPCold"
+                               Mode="VariableMode.Standard" />
+
+            <VariableAmountRow Label="Duty (Heat Transfer)"
+                               @bind-Variable="hx.TransferHeat"
+                               Mode="VariableMode.Standard"
+                               IsReadOnly="true" />
+        }
+    </PropertiesSlot>
 </EquipmentBaseDialog>
 
 @code {

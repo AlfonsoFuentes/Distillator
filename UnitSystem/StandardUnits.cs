@@ -818,14 +818,14 @@ namespace UnitSystem
         public static readonly UnitMeasure Kgmol_sg = new UnitMeasure("Kg-mol/sg", "Kg-mol/sg",
        AmountOfSubstanceUnits.KMole / TimeUnits.Second, "MolarFlow");
         public static readonly UnitMeasure Kgmol_hr = new UnitMeasure("Kg-mol/hr", "Kg-mol/hr",
-        AmountOfSubstanceUnits.KMole / TimeUnits.Second, "MolarFlow");
+        AmountOfSubstanceUnits.KMole / TimeUnits.Hour, "MolarFlow");
 
         public static readonly UnitMeasure gmol_min = new UnitMeasure("g-mol/min", "g-mol/min",
        AmountOfSubstanceUnits.Mole / TimeUnits.Minute, "MolarFlow");
         public static readonly UnitMeasure gmol_sg = new UnitMeasure("g-mol/sg", "g-mol/sg",
        AmountOfSubstanceUnits.Mole / TimeUnits.Second, "MolarFlow");
         public static readonly UnitMeasure gmol_hr = new UnitMeasure("g-mol/hr", "g-mol/hr",
-        AmountOfSubstanceUnits.Mole / TimeUnits.Second, "MolarFlow");
+        AmountOfSubstanceUnits.Mole / TimeUnits.Hour, "MolarFlow");
     }
     [UnitDefinitionClass]
     public static class HeatSurfaceFlowUnits

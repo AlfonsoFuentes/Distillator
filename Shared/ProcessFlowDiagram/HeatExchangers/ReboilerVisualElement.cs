@@ -33,10 +33,11 @@ namespace Shared.ProcessFlowDiagram.HeatExchangers
             Height = 140;
 
             // LADO DE LOS TUBOS (1 Paso)
-            AddPort(PortTubeInName, PortType.Inlet, 30, 140, PortDirection.Bottom);
+            // 🚩 AJUSTE: Cambiamos el Y de 140 a 145 para que quede a ras del tanque
+            AddPort(PortTubeInName, PortType.Inlet, 30, 145, PortDirection.Bottom);
             AddPort(PortTubeOutName, PortType.Outlet, 0, 20, PortDirection.Left);
 
-            // LADO DE LA CORAZA (Fluido de calentamiento)
+            // LADO DE LA CORAZA (Fluido de calentamiento) - (Estos ya muerden perfecto)
             AddPort(PortShellInName, PortType.Inlet, 60, 20, PortDirection.Right);
             AddPort(PortCondensateOutName, PortType.Outlet, 60, 120, PortDirection.Right);
 

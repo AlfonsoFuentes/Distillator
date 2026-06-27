@@ -6,7 +6,6 @@
     </div>
 
     <div class="entry-input">
-        @* 🔹 ESTADO READONLY (sistema o calculado)  *@
         @if (IsReadOnly)
         {
             <span class="gl-value-readonly @(IsCalculated ? "calculated" : "") @(ShouldShowTooltip() ? "has-tooltip" : "")">
@@ -21,18 +20,16 @@
                 }
             </span>
         }
-        @* 🔹 ESTADO EDITABLE  *@
         else
         {
             <div class="editable-wrapper @(ShouldShowTooltip() ? "has-tooltip" : "")">
                 <input type="text"
-                       
                        value="@GetInputValue()"
                        placeholder="@Placeholder"
                        class="@(HasPlaceholder ? "has-placeholder" : "")"
                        @onfocus="HandleFocus"
                        @oninput="HandleInput"
-                       @onkeydown="HandleKeyDown"
+                       @onkeyup="HandleKeyUp"
                        @onblur="HandleBlur" />
                 @if (ShouldShowTooltip())
                 {
@@ -64,11 +61,8 @@
     private const string Placeholder = "<Not defined>";
     private bool HasPlaceholder => !IsMassFractionDefined && !_hasUserTyped;
 
-    // 🔥 Determinar si debe mostrar tooltip
     private bool ShouldShowTooltip() => !string.IsNullOrWhiteSpace(SourceId);
-
-    private string? GetTooltipText() =>
-        !string.IsNullOrWhiteSpace(SourceId) ? $"Calculated by: {SourceId}" : null;
+    private string? GetTooltipText() => !string.IsNullOrWhiteSpace(SourceId) ? $"Calculated by: {SourceId}" : null;
 
     private string GetInfoText()
     {
@@ -108,6 +102,7 @@
         if (!CanEdit()) return;
         _isEditing = true;
         if (GLValue.HasValue) _rawInput = GLValue.Value.ToString("F1", System.Globalization.CultureInfo.InvariantCulture);
+        else _rawInput = "";
         StateHasChanged();
     }
 
@@ -117,47 +112,60 @@
         _hasUserTyped = true;
         _rawInput = e.Value?.ToString();
         _tempValue = double.TryParse(_rawInput, NumberStyles.Any, CultureInfo.InvariantCulture, out var v) ? v : null;
+        StateHasChanged();
     }
 
-    private async Task HandleKeyDown(KeyboardEventArgs e)
+    // 🔥 CAMBIADO DE HandleKeyDown A HandleKeyUp
+    private async Task HandleKeyUp(KeyboardEventArgs e)
     {
         if (!CanEdit()) return;
-        if (e.Key == "Enter" && _tempValue.HasValue)
-            await CommitValue(_tempValue.Value);
-        else if (e.Key is "Delete" or "Backspace")
+
+        if (e.Key == "Enter")
+        {
+            if (_tempValue.HasValue)
+                await CommitValue(_tempValue.Value);
+        }
+        else if (e.Key == "Delete" && string.IsNullOrWhiteSpace(_rawInput))
+        {
             await ClearValue();
+        }
+        else if (e.Key == "Backspace" && string.IsNullOrWhiteSpace(_rawInput))
+        {
+            await ClearValue();
+        }
     }
 
     private async Task HandleBlur()
     {
         if (!CanEdit()) return;
-        if ((!IsMassFractionDefined || !GLValue.HasValue) && !_hasUserTyped)
-        {
-            ResetEditingState();
-            return;
-        }
+
         if (_tempValue.HasValue)
+        {
             await CommitValue(_tempValue.Value);
-        else if (IsMassFractionDefined && GLValue.HasValue)
-            await CommitValue(GLValue.Value);
+        }
+        else if (string.IsNullOrWhiteSpace(_rawInput))
+        {
+            await ClearValue();
+        }
+
+        _isEditing = false;
+        _hasUserTyped = false;
+        StateHasChanged();
     }
 
     private async Task CommitValue(double value)
     {
         if (GlValueChanged.HasDelegate)
             await GlValueChanged.InvokeAsync(value);
-        ResetEditingState();
+
+        _tempValue = value;
     }
 
     private async Task ClearValue()
     {
         if (GlValueChanged.HasDelegate)
             await GlValueChanged.InvokeAsync(null);
-        ResetEditingState();
-    }
 
-    private void ResetEditingState()
-    {
         _tempValue = null;
         _rawInput = null;
         _isEditing = false;

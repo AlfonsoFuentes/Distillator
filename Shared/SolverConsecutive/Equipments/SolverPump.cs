@@ -15,10 +15,19 @@ namespace Shared.SolverConsecutive.Equipments
         public PumpStateType State => GetState();
         private PumpStateType GetState()
         {
-            if (Inlet == null || Outlet == null) return PumpStateType.PartiallyConnected;
-            if (!DeltaP.IsDefined || !Efficiency.IsDefined || Efficiency.Value.GetValue(PercentageUnits.Percentage) <= 0)
+            // 1. Topología
+            if (Inlet == null || Outlet == null)
+                return PumpStateType.PartiallyConnected;
+
+            // 2. Especificaciones de entrada
+            bool hasEfficiency = Efficiency.IsDefined && Efficiency.Value.GetValue(PercentageUnits.Percentage) > 0;
+            if (!DeltaP.IsDefined || !hasEfficiency)
                 return PumpStateType.ReadyToCalculate;
-            if (Power?.IsDefined == true) return PumpStateType.Solved;
+
+            // 3. Resolución final (El método CalculatePower se ejecutó exitosamente)
+            if (Power != null && Power.IsDefined)
+                return PumpStateType.Solved;
+
             return PumpStateType.ReadyToCalculate;
         }
         public IFacadeStream Inlet { get; private set; } = null!;
@@ -26,7 +35,13 @@ namespace Shared.SolverConsecutive.Equipments
         public Variable<PressureDrop> DeltaP { get; set; }
         public Variable<Power> Power { get; set; }
         public Variable<Percentage> Efficiency { get; set; }
-        public void CalculatePower()
+        public override Task PostSolveAsync()
+        {
+            // Aquí calculas el Cv, Power, o cualquier KPI post-convergencia
+            CalculatePower();
+            return Task.CompletedTask;
+        }
+        private void CalculatePower()
         {
             Power.Clear(VariableDefinedBy.Equipment);
 
@@ -94,7 +109,7 @@ namespace Shared.SolverConsecutive.Equipments
             double outletP = pump.Outlet.Pressure.GetSolverValue();
             double deltaP = pump.DeltaP.GetSolverValue();
             _residuals.Add(inletP + deltaP - outletP);
-            pump.CalculatePower();
+           
             return _residuals;
         }
         List<IVariable> GetVariables()
@@ -129,7 +144,7 @@ namespace Shared.SolverConsecutive.Equipments
                 double outletFlow = pump.Outlet.Composition.Components[i].MassFraction.GetSolverValue();
                 _residuals.Add(inletFlow - outletFlow);
             }
-            pump.CalculatePower();
+        
             return _residuals;
         }
         List<IVariable> GetVariables()
@@ -162,7 +177,7 @@ namespace Shared.SolverConsecutive.Equipments
             double inletFlow = equipment.Inlet.MassFlow.GetSolverValue();
             double outletFlow = equipment.Outlet.MassFlow.GetSolverValue();
             _residuals.Add(inletFlow - outletFlow);
-            equipment.CalculatePower();
+           
             return _residuals;
         }
         List<IVariable> GetVariables()
@@ -193,7 +208,7 @@ namespace Shared.SolverConsecutive.Equipments
             double outletH = equipment.Outlet.MassEnthalpy.GetSolverValue();
 
             _residuals.Add(inletH - outletH);
-            equipment.CalculatePower();
+            
             return _residuals;
         }
         List<IVariable> GetVariables()
@@ -226,7 +241,7 @@ namespace Shared.SolverConsecutive.Equipments
             double inletH = equipment.Inlet.MassEnthalpy.GetSolverValue();
             double outletH = equipment.Outlet.MassEnthalpy.GetSolverValue();
             _residuals.Add(inletFlow * inletH - outletFlow * outletH);
-            equipment.CalculatePower();
+           
             return _residuals;
         }
         List<IVariable> GetVariables()

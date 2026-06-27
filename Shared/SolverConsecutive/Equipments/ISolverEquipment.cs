@@ -21,7 +21,12 @@ namespace Shared.SolverConsecutive.Equipments
 
         private readonly List<ISpecification> _specifications = new();
         public IReadOnlyList<ISpecification> Specifications => _specifications.AsReadOnly();
-
+        public virtual Task PostSolveAsync()
+        {
+            // Aquí calculas el Cv, Power, o cualquier KPI post-convergencia
+           
+            return Task.CompletedTask;
+        }
         public void AddSpec(ISpecification spec)
         {
             if (spec == null) throw new ArgumentNullException(nameof(spec));

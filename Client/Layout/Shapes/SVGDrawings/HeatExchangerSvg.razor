@@ -6,7 +6,7 @@
     [Parameter] public string CssClass { get; set; } = "";
 }
 
-<svg class="@CssClass" width="@Width" height="@Height" viewBox="0 0 160 60" style="display: block; overflow: visible; filter: drop-shadow(0px 4px 5px rgba(0, 0, 0, 0.2));">
+<svg class="@CssClass" width="@Width" height="@Height" viewBox="0 0 @Width @Height" style="display: block; overflow: visible; filter: drop-shadow(0px 4px 5px rgba(0, 0, 0, 0.2));">
     <defs>
         <linearGradient id="hxReflex-@ElementId" x1="0%" y1="0%" x2="0%" y2="100%">
             <stop offset="0%" style="stop-color:#ffffff;stop-opacity:0.6" />
@@ -15,24 +15,24 @@
         </linearGradient>
     </defs>
 
-    @* 1. CUERPO PRINCIPAL *@
+    @* 1. CUERPO PRINCIPAL (Con márgenes para permitir que salgan los puertos) *@
     <g style="pointer-events: none;">
-        <rect x="10" y="5" width="140" height="50" rx="15"
+        <rect x="10" y="5" width="@(Width - 20)" height="@(Height - 10)" rx="15"
               fill="@StatusColor"
               style="transition: fill 0.5s cubic-bezier(0.4, 0, 0.2, 1);" />
 
-        <rect x="10" y="5" width="140" height="50" rx="15"
+        <rect x="10" y="5" width="@(Width - 20)" height="@(Height - 10)" rx="15"
               fill="url(#hxReflex-@ElementId)"
               stroke="#334155" stroke-width="1.5" />
     </g>
 
-    @* 2. DETALLES INTERNOS *@
+    @* 2. DETALLES INTERNOS (Ajustados al nuevo tamaño del cilindro) *@
     <g style="pointer-events: none; stroke: #334155; stroke-width: 1px; opacity: 0.35;">
-        <line x1="10" y1="30" x2="30" y2="30" stroke-width="1.5" />
-        <line x1="30" y1="20" x2="135" y2="20" stroke-dasharray="4,2" />
-        <line x1="30" y1="40" x2="135" y2="40" stroke-dasharray="4,2" />
-        <line x1="50" y1="5" x2="50" y2="45" />
-        <line x1="80" y1="15" x2="80" y2="55" />
-        <line x1="110" y1="5" x2="110" y2="45" />
+        <line x1="10" y1="@(Height / 2)" x2="30" y2="@(Height / 2)" stroke-width="1.5" />
+        <line x1="30" y1="@(Height / 2 - 10)" x2="@(Width - 35)" y2="@(Height / 2 - 10)" stroke-dasharray="4,2" />
+        <line x1="30" y1="@(Height / 2 + 10)" x2="@(Width - 35)" y2="@(Height / 2 + 10)" stroke-dasharray="4,2" />
+        <line x1="50" y1="5" x2="50" y2="@(Height - 5)" />
+        <line x1="80" y1="15" x2="80" y2="@(Height - 15)" />
+        <line x1="110" y1="5" x2="110" y2="@(Height - 5)" />
     </g>
 </svg>

@@ -1,6 +1,7 @@
 ﻿using Shared.PropertiesDtos.Methods;
 using Shared.SolverConsecutive.Equipments;
 using Shared.SolverQwen.Stream;
+using Shared.UnitOperations.Basiss;
 using UnitSystem;
 
 namespace Shared.SolverConsecutive
@@ -34,11 +35,12 @@ namespace Shared.SolverConsecutive
         SolverEquationType.VaporFraction,
         SolverEquationType.Enthalpy,
         SolverEquationType.MassBalance,
-        SolverEquationType.MassEnergyBalance
+        SolverEquationType.MassEnergyBalance ,
+        SolverEquationType.Specification
     };
         public MainSolver()
         {
-            Solver = new SolverNewtonSolver();
+            Solver = new NewtonSolver();
             AtmosphericPressure = new Pressure(101325, PressureUnits.Pascala);
             Altitude = new Length(0, LengthUnits.Meter);
         }
@@ -83,18 +85,47 @@ namespace Shared.SolverConsecutive
 
         public void RunSimulation()
         {
+            // 🔥 Todo el flujo en hilo de fondo para no bloquear UI
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    ClearCalculatedBySolver();
+                    SolveEquations();
+
+                    // 🔥 PostSolve se ejecuta DESPUÉS de que SolveEquations termine
+                    await ExecutePostSolveCalculationsAsync();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"❌ Error en RunSimulation: {ex.Message}");
+                }
+            });
+        }
+        private async Task ExecutePostSolveCalculationsAsync()
+        {
             try
             {
-                ClearCalculatedBySolver();
-                SolveEquations();
+                // 1. Recopilamos todos los IFacade del Flowsheet
+                var allFacades = new List<IFacade>();
+                allFacades.AddRange(Equipments);
+                allFacades.AddRange(Streams);
+
+                // 2. Ejecutamos todos los Post-Cálculos (Envolventes, Cv, Potencia, FUG, etc.)
+                // Podemos hacerlo en paralelo para que el procesador use todos sus núcleos
+                var postSolveTasks = allFacades.Select(facade => facade.PostSolveAsync());
+                await Task.WhenAll(postSolveTasks);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error en Post-Cálculos: {ex.Message}");
             }
             finally
             {
-                // 🔥 NOTIFICAR QUE TERMINÓ (siempre, incluso si hay error)
+                // 3. AHORA SÍ notificamos a la UI que TODA la matemática y los reportes terminaron.
+                // Aquí la UI apagará su Spinner de "Solving..." y refrescará pantallas.
                 OnSimulationCompleted?.Invoke();
             }
-
-
         }
         void SolveEquations()
         {
@@ -179,7 +210,6 @@ namespace Shared.SolverConsecutive
                 Console.WriteLine($"⚠️ Convergencia incompleta. Tipos sin resolver: {string.Join(", ", pendingTypes)}");
             }
         }
-       
         Dictionary<SolverEquationType, List<ISolverEquation>> CreateEquationsByType()
         {
             var allTasksByType = new Dictionary<SolverEquationType, List<ISolverEquation>>();
@@ -187,12 +217,13 @@ namespace Shared.SolverConsecutive
             {
                 foreach (var equipment in Equipments)
                 {
-                    // 1. Ecuaciones físicas del equipo
+                    if (equipment.Equations.FirstOrDefault() == null) break;
+
+                    // 1. Ecuaciones físicas normales del equipo
                     var equationsOfType = equipment.Equations.Where(x => x.EquationType == type).ToList();
 
-                    // ✅ LA CORRECCIÓN: Como Specification ya no tiene EquationType, 
-                    // las forzamos a entrar SOLO cuando el solver está evaluando MassBalance.
-                    if (type == SolverEquationType.MassBalance)
+                    // 🔥 CORRECCIÓN: Las especificaciones ahora entran en su propio tipo
+                    if (type == SolverEquationType.Specification)
                     {
                         var specs = equipment.Specifications
                                              .Select(s => new SpecificationEquation(s))
@@ -206,15 +237,27 @@ namespace Shared.SolverConsecutive
                             allTasksByType[type] = new List<ISolverEquation>();
                         allTasksByType[type].AddRange(equationsOfType);
                     }
+
                 }
             }
             return allTasksByType;
         }
-       
+      
+
         public void ClearCalculatedBySolver()
         {
 
-            var variables = Equipments.SelectMany(x => x.Equations).SelectMany(x => x.Variables).Where(x => x.DataProcedence == VariableDefinedBy.Solver).ToList();
+            var equations = Equipments
+                .SelectMany(x => x.Equations).ToList();
+            if (equations.Count > 0 && equations[0] == null) return;
+
+            var variables = Equipments
+          
+                .SelectMany(x => x.Equations)
+                .Where(x => x.Variables != null)
+                .Where(x => x.Variables.Any())
+                .SelectMany(x => x.Variables)
+                .Where(x => x.DataProcedence == VariableDefinedBy.Solver).ToList();
 
             foreach (var variable in variables)
             {
@@ -223,6 +266,49 @@ namespace Shared.SolverConsecutive
             }
         }
         private List<ISolverEquation> ClusterEquations(List<ISolverEquation> baseEquations)
+        {
+            var clusters = new List<List<ISolverEquation>>();
+            var unassigned = baseEquations.ToList();
+
+            while (unassigned.Count > 0)
+            {
+                var currentCluster = new List<ISolverEquation> { unassigned[0] };
+                unassigned.RemoveAt(0);
+
+                bool added = true;
+                while (added)
+                {
+                    added = false;
+                    // Extraer las incógnitas actuales del clúster
+                    var clusterUnknowns = currentCluster.SelectMany(e => e.AdjustableVariables()).Distinct().ToList();
+
+                    for (int i = unassigned.Count - 1; i >= 0; i--)
+                    {
+                        var eqUnknowns = unassigned[i].AdjustableVariables();
+                        var candidateEquation = unassigned[i];
+
+                        // 1. ¿Comparten variables?
+                        bool sharesVariables = eqUnknowns.Intersect(clusterUnknowns).Any();
+
+                        // 2. ¿Es de un tipo DIFERENTE a todas las que ya están en el clúster?
+                        // Esto evita agrupar 3 ecuaciones de Pressure, pero permite agrupar MassBalance + Specification
+                        bool isDifferentType = currentCluster.All(e => e.EquationType != candidateEquation.EquationType);
+
+                        if (sharesVariables && isDifferentType)
+                        {
+                            currentCluster.Add(candidateEquation);
+                            unassigned.RemoveAt(i);
+                            added = true;
+                        }
+                    }
+                }
+                clusters.Add(currentCluster);
+            }
+
+            // Convertimos a CompositeEquation si hay más de 1 en el clúster
+            return clusters.Select(c => c.Count == 1 ? c[0] : new CompositeEquation(c)).ToList();
+        }
+        private List<ISolverEquation> ClusterEquations2(List<ISolverEquation> baseEquations)
         {
             var clusters = new List<List<ISolverEquation>>();
             var unassigned = baseEquations.ToList();

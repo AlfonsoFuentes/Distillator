@@ -129,3 +129,32 @@ code {
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
     text-align: start;
 }
+/* =========================================
+   🚩 MUD BLAZOR - Z-INDEX PARA DIÁLOGOS
+   Asegura que los diálogos estén sobre la paleta de equipos (z-index: 2000)
+   ========================================= */
+
+/* 1. El fondo oscuro (backdrop) detrás del diálogo */
+.mud-overlay {
+    z-index: 2999 !important;
+}
+
+/* 2. El contenedor del diálogo */
+.mud-dialog-container {
+    z-index: 3000 !important;
+}
+
+/* 3. El diálogo en sí */
+.mud-dialog {
+    z-index: 3001 !important;
+}
+
+/* 4. Menús desplegables (selects, dropdowns de unidades) */
+.mud-popover {
+    z-index: 3500 !important;
+}
+
+/* 5. Tooltips de MudBlazor */
+.mud-tooltip {
+    z-index: 4000 !important;
+}

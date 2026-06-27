@@ -27,7 +27,7 @@ namespace Shared.ProcessFlowDiagram.HeatExchangers
         public EquipmentPort TubeOutPort => Ports.First(p => p.Name == PortTubeOutName);
         public EquipmentPort ShellInPort => Ports.First(p => p.Name == PortShellInName);
         public EquipmentPort CondensateOutPort => Ports.First(p => p.Name == PortCondensateOutName);
-  
+
 
         public HeatExchangerVisualElement()
         {
@@ -35,13 +35,18 @@ namespace Shared.ProcessFlowDiagram.HeatExchangers
             Height = 60;
 
             // LADO DE LOS TUBOS (Izquierda - 2 Pasos)
+            // La X en 0 ya está perfecta (a ras del borde izquierdo que empieza en 10).
             AddPort(PortTubeInName, PortType.Inlet, 0, 15, PortDirection.Left);
-            AddPort(PortTubeOutName, PortType.Outlet, 0, 45, PortDirection.Left);
+
+            // 🚩 AJUSTE DE SIMETRÍA: Cambié Y de 45 a 35. 
+            // Como el tanque va de Y=5 a Y=55 (centro 30), los puertos en 15 y 35 se ven mucho más simétricos.
+            AddPort(PortTubeOutName, PortType.Outlet, 0, 35, PortDirection.Left);
 
             // LADO DE LA CORAZA (Shell)
-            AddPort(PortShellInName, PortType.Inlet, 30, 0, PortDirection.Top);
-            AddPort(PortCondensateOutName, PortType.Outlet, 130, 60, PortDirection.Bottom);
-    
+            // 🚩 AJUSTE: Empujamos 5 píxeles hacia afuera (-5 arriba, 65 abajo) para que muerdan el borde exacto
+            AddPort(PortShellInName, PortType.Inlet, 30, -5, PortDirection.Top);
+            AddPort(PortCondensateOutName, PortType.Outlet, 130, 65, PortDirection.Bottom);
+
 
             Facade = new SolverHeatExchanger("E-101")
             {
@@ -144,4 +149,5 @@ namespace Shared.ProcessFlowDiagram.HeatExchangers
         };
         }
     }
+   
 }

@@ -6,7 +6,7 @@ namespace Shared.ProcessFlowDiagram.Streams
 {
     public class StreamVisualElement : VisualElementBase
     {
-      
+        public override bool ShowNozzles => false;
         public override EquipmentType Type => EquipmentType.MaterialStream;
         public override string Prefix => "S";
 
@@ -86,13 +86,20 @@ namespace Shared.ProcessFlowDiagram.Streams
 
         public override string StatusColor => LocalFacade.State switch
         {
-            StreamStateType.Calculated => "#28a745",              // Verde brillante (TODO OK)
-            StreamStateType.FlowCalculated => "#20c997",          // Verde azulado
-            StreamStateType.EquilibriumCalculated => "#ffc107",   // Amarillo
-            StreamStateType.CompositionDefined => "#17a2b8",      // Azul claro
-            StreamStateType.Initialized => "#6c757d",             // Gris
-            StreamStateType.Error => "#dc3545",                   // Rojo
-            _ => "#6c757d"                                        // Gris por defecto
+            // 🟢 TODO completo
+            StreamStateType.Calculated => "#48BB78",              // Verde suave
+
+            // 🟡 Algo calculado (pero no todo)
+            StreamStateType.FlowCalculated => "#F6E05E",          // Amarillo suave
+            StreamStateType.EquilibriumCalculated => "#F6E05E",   // Amarillo suave
+
+            // 🔴 Sin nada calculado (o muy poco)
+            StreamStateType.Undefined => "#FC8181",               // Rojo coral suave
+            StreamStateType.Initialized => "#FC8181",             // Rojo coral suave
+            StreamStateType.CompositionDefined => "#FC8181",      // Rojo coral suave
+            StreamStateType.Error => "#FC8181",                   // Rojo coral suave
+
+            _ => "#FC8181"                                        // Fallback rojo
         };
 
         public override string StatusText => LocalFacade.State switch

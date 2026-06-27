@@ -50,14 +50,20 @@ namespace Shared.SolverQwen.Stream
         public void Clear()
         {
             if (_components.Count == 0) return;
+
             foreach (var component in _components)
             {
                 component.MolarFraction.Clear(component.MolarFraction.DataProcedence);
                 component.MassFlow.Clear(component.MassFlow.DataProcedence);
                 component.MolarFlow.Clear(component.MolarFlow.DataProcedence);
                 component.MassFraction.Clear(component.MassFraction.DataProcedence);
-
             }
+
+            // 🔥 CRÍTICO: Resetear el InputType cuando se limpia toda la composición
+            InputType = ComponentInputType.None;
+
+            // 🔥 Notificar a los suscriptores
+            CompositionChanged();
         }
 
         public event Action OnCompositionChanged = null!;
@@ -146,7 +152,7 @@ namespace Shared.SolverQwen.Stream
                 return true;
             }
         }
-
+       
 
     }
 

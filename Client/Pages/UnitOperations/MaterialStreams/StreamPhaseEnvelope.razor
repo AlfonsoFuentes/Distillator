@@ -1,0 +1,410 @@
+﻿@using Shared.PhaseEnvelopes
+
+<div class="chart-container">
+    @if (EnvelopeData == null || !EnvelopeData.Success)
+    {
+        <div class="chart-error">No valid data to display.</div>
+    }
+    else
+    {
+        <svg viewBox="0 0 @Width @Height" width="100%" height="100%" style="max-height: 55vh;" class="eng-svg">
+
+            @* 🔥 NUEVO: MÁSCARA DE RECORTE para evitar que las líneas invadan por fuera del grid *@
+            <defs>
+                <clipPath id="chart-area">
+                    <rect x="@Padding" y="@Padding" width="@InnerWidth" height="@InnerHeight" />
+                </clipPath>
+            </defs>
+
+            @* 1. FONDOS Y EJES *@
+            <rect x="@Padding" y="@Padding" width="@InnerWidth" height="@InnerHeight" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1" />
+
+            @* 🔥 MARCAS DE AGUA DE LAS ZONAS TERMODINÁMICAS 
+            <g opacity="0.15" font-size="18" font-weight="900" fill="#64748b" text-anchor="middle" font-family="Arial, sans-serif">
+                <text x="@SvgNum(Padding + InnerWidth * 0.15)" y="@SvgNum(Padding + InnerHeight * 0.2)">LIQUID</text>
+                <text x="@SvgNum(Padding + InnerWidth * 0.85)" y="@SvgNum(Height - Padding - InnerHeight * 0.15)">VAPOR</text>
+                <text x="@SvgNum(Padding + InnerWidth * 0.5)" y="@SvgNum(Padding + InnerHeight * 0.6)">TWO-PHASE</text>
+            </g>*@
+
+            @* Eje X (Líneas de Grid Verticales) *@
+            @for (int i = 0; i <= 5; i++)
+            {
+                double xPos = Padding + (InnerWidth * i / 5.0);
+                double xVal = XMin + ((XMax - XMin) * i / 5.0);
+                <g>
+                    <line x1="@SvgNum(xPos)" y1="@Padding" x2="@SvgNum(xPos)" y2="@(Height - Padding)" stroke="#e2e8f0" stroke-width="1" />
+                    <text x="@SvgNum(xPos)" y="@(Height - Padding + 15)" class="axis-label" text-anchor="middle">@xVal.ToString("F1")</text>
+                </g>
+            }
+
+            @* Eje Y (Cuadrícula Logarítmica Dinámica) *@
+            @{
+                int minPower = (int)Math.Floor(LogYMin);
+                int maxPower = (int)Math.Ceiling(LogYMax);
+
+                for (int power = minPower; power <= maxPower; power++)
+                {
+                    double mainVal = Math.Pow(10, power);
+                    if (mainVal >= YMin && mainVal <= YMax)
+                    {
+                        double yPos = MapY(mainVal);
+                        <g>
+                            <line x1="@Padding" y1="@SvgNum(yPos)" x2="@(Width - Padding)" y2="@SvgNum(yPos)" stroke="#cbd5e1" stroke-width="1.5" />
+                            <text x="@(Padding - 8)" y="@SvgNum(yPos)" class="axis-label" text-anchor="end" dominant-baseline="middle" font-weight="bold">@mainVal.ToString("0.##")</text>
+                        </g>
+                    }
+
+                    for (int multiplier = 2; multiplier <= 9; multiplier++)
+                    {
+                        double subVal = multiplier * Math.Pow(10, power);
+                        if (subVal > YMin && subVal < YMax)
+                        {
+                            double subYPos = MapY(subVal);
+                            <line x1="@Padding" y1="@SvgNum(subYPos)" x2="@(Width - Padding)" y2="@SvgNum(subYPos)" stroke="#e2e8f0" stroke-width="0.5" stroke-dasharray="2,2" />
+                        }
+                    }
+                }
+            }
+
+            @* 2. CURVAS DE LA ENVOLVENTE (Aplicando la máscara de recorte) *@
+            <polyline clip-path="url(#chart-area)" points="@GetSvgPoints(EnvelopeData.BubbleCurve)" fill="none" stroke="#3b82f6" stroke-width="2.5" />
+            <polyline clip-path="url(#chart-area)" points="@GetSvgPoints(EnvelopeData.DewCurve)" fill="none" stroke="#10b981" stroke-width="2.5" />
+
+            @* 3. PUNTO OPERATIVO ACTUAL (CON COORDENADAS SEGURAS) *@
+            @if (CurrentStream != null)
+            {
+                double currentX = GetXValue(CurrentStream);
+                double currentY = CurrentStream.Pressure.Value.GetValue(PMin.Unit);
+
+                if (currentX >= XMin && currentX <= XMax && currentY >= YMin && currentY <= YMax)
+                {
+                    double px = MapX(currentX);
+                    double py = MapY(currentY);
+
+                    string color = diagnosticColor;
+                    string valX = $"{currentX.ToString("F1")} {XUnitName}";
+                    string valY = $"{currentY.ToString("F1")} {YUnitName}";
+
+                    double boxWidth = 120;
+                    double rectX = px + 12;
+                    double rectY = py - 17;
+
+                    if (rectX + boxWidth > Width) rectX = px - boxWidth - 12;
+                    if (rectY < Padding) rectY = py + 10;
+
+                    <g clip-path="url(#chart-area)">
+                        <line x1="@Padding" y1="@SvgNum(py)" x2="@SvgNum(px)" y2="@SvgNum(py)" stroke="@color" stroke-width="1.5" stroke-dasharray="5,5" />
+                        <line x1="@SvgNum(px)" y1="@(Height - Padding)" x2="@SvgNum(px)" y2="@SvgNum(py)" stroke="@color" stroke-width="1.5" stroke-dasharray="5,5" />
+
+                        <circle cx="@SvgNum(px)" cy="@SvgNum(py)" r="7" fill="@color" stroke="#ffffff" stroke-width="2">
+                            <title>State: @diagnosticMessage</title>
+                        </circle>
+
+                        <rect x="@SvgNum(rectX)" y="@SvgNum(rectY)" width="@SvgNum(boxWidth)" height="34" fill="white" fill-opacity="0.95" stroke="@color" stroke-width="1.5" rx="4" />
+
+                        <text font-size="11" font-weight="bold" fill="@color">
+                            <tspan x="@SvgNum(rectX + 8)" y="@SvgNum(rectY + 14)">@(ChartMode == "PT" ? "T" : "H"): @valX</tspan>
+                            <tspan x="@SvgNum(rectX + 8)" y="@SvgNum(rectY + 28)">P: @valY</tspan>
+                        </text>
+                    </g>
+                }
+            }
+
+            @* 4. ETIQUETAS DE LOS EJES *@
+            <g>
+                <text x="@SvgNum(Padding + InnerWidth / 2)" y="@(Height - 5)" class="axis-title" text-anchor="middle">@XAxisLabel</text>
+                <text x="15" y="@SvgNum(Padding + InnerHeight / 2)" class="axis-title" text-anchor="middle" transform="rotate(-90, 15, @SvgNum(Padding + InnerHeight / 2))">Pressure (@YUnitName) - Log Scale</text>
+            </g>
+
+            @* 🔥 5. LEYENDA (LEGEND) *@
+            <g transform="translate(@SvgNum(Padding + 15), @SvgNum(Padding + 15))">
+                <rect x="0" y="0" width="105" height="46" fill="white" fill-opacity="0.9" stroke="#cbd5e1" stroke-width="1" rx="4" />
+
+                <line x1="10" y1="14" x2="25" y2="14" stroke="#3b82f6" stroke-width="2.5" />
+                <text x="32" y="18" font-size="11" font-weight="600" fill="#475569" font-family="Arial, sans-serif">Bubble Line</text>
+
+                <line x1="10" y1="32" x2="25" y2="32" stroke="#10b981" stroke-width="2.5" />
+                <text x="32" y="36" font-size="11" font-weight="600" fill="#475569" font-family="Arial, sans-serif">Dew Line</text>
+            </g>
+        
+        </svg>
+
+        @* 🔥 PANEL DE DIAGNÓSTICO INFERIOR *@
+        @if (!string.IsNullOrEmpty(diagnosticMessage))
+        {
+            <div style="margin-top: 15px; padding: 12px 16px; border-radius: 6px; background-color: #f8fafc; border-left: 6px solid @diagnosticColor; box-shadow: 0 2px 4px rgba(0,0,0,0.05); display: flex; align-items: center;">
+                <div style="width: 16px; height: 16px; border-radius: 50%; background-color: @diagnosticColor; margin-right: 12px; box-shadow: 0 0 4px @diagnosticColor;"></div>
+                <span style="font-weight: 600; color: #334155; font-size: 14px; letter-spacing: 0.5px;">@diagnosticMessage</span>
+            </div>
+        }
+
+        @* 🔥 PANEL DE LÍMITES MANUALES (Controles UI) *@
+        <div style="margin-top: 15px; padding: 15px; background-color: #f8fafc; border-radius: 6px; border: 1px solid #e2e8f0;">
+            <div style="font-weight: 600; color: #334155; margin-bottom: 12px; font-size: 13px;">Chart Axis Limits (Auto-Synced)</div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                @* Eje Y: Presión *@
+                <EditAmount T=Pressure Label="Min Pressure" Amount="@PMin" AmountChanged="OnPMinChanged" />
+                <EditAmount T=Pressure Label="Max Pressure" Amount="@PMax" AmountChanged="OnPMaxChanged" />
+
+                @* Eje X: Condicional según el modo *@
+                @if (ChartMode == "PT")
+                {
+                    <EditAmount T=Temperature Label="Min Temperature" Amount="@TMin" AmountChanged="OnTMinChanged" />
+                    <EditAmount T=Temperature Label="Max Temperature" Amount="@TMax" AmountChanged="OnTMaxChanged" />
+                }
+                else
+                {
+                    <EditAmount T=MassEnergy Label="Min Enthalpy" Amount="@HMin" AmountChanged="OnHMinChanged" />
+                    <EditAmount T=MassEnergy Label="Max Enthalpy" Amount="@HMax" AmountChanged="OnHMaxChanged" />
+                }
+            </div>
+        </div>
+    }
+
+    @* 🔥 SELECTOR DE VARIABLES *@
+    <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #e2e8f0; display: flex; justify-content: center; gap: 15px;">
+        <button class="@(ChartMode == "PT" ? "btn-active" : "btn-inactive")"
+                @onclick='() => ChangeChartMode("PT")'>
+            Pressure - Temperature (P-T)
+        </button>
+        <button class="@(ChartMode == "PH" ? "btn-active" : "btn-inactive")"
+                @onclick='() => ChangeChartMode("PH")'>
+            Pressure - Enthalpy (P-H)
+        </button>
+    </div>
+</div>
+
+@code {
+    [Parameter] public PhaseEnvelopeData EnvelopeData { get; set; } = null!;
+    [Parameter] public IFacadeStream CurrentStream { get; set; } = null!;
+    [Parameter] public string ChartMode { get; set; } = "PT";
+
+    private string diagnosticMessage = "";
+    private string diagnosticColor = "#64748b";
+
+    private Pressure PMin = new Pressure();
+    private Pressure PMax = new Pressure();
+    private Temperature TMin = new Temperature();
+    private Temperature TMax = new Temperature();
+    private MassEnergy HMin = new MassEnergy();
+    private MassEnergy HMax = new MassEnergy();
+
+    private bool limitsInitialized = false;
+
+    private double Width = 600;
+    private double Height = 400;
+    private double Padding = 50;
+
+    private double InnerWidth => Width - 2 * Padding;
+    private double InnerHeight => Height - 2 * Padding;
+
+    private double XMin => ChartMode == "PT" ? TMin.Value : HMin.Value;
+    private double XMax => ChartMode == "PT" ? TMax.Value : HMax.Value;
+    private double YMin => PMin.Value;
+    private double YMax => PMax.Value;
+
+    private double LogYMin => Math.Log10(YMin > 0 ? YMin : 0.1);
+    private double LogYMax => Math.Log10(YMax > 0 ? YMax : 0.1);
+
+    private string XAxisLabel => ChartMode == "PT" ? $"Temperature ({TMin.Unit?.Symbol ?? "°C"})" : $"Mass Enthalpy ({HMin.Unit?.Symbol ?? "kJ/kg"})";
+    private string XUnitName => ChartMode == "PT" ? (TMin.Unit?.Symbol ?? "°C") : (HMin.Unit?.Symbol ?? "kJ/kg");
+    private string YUnitName => PMin.Unit?.Symbol ?? "bar";
+
+    // 🔥 NUEVA FUNCIÓN: Garantiza que cualquier decimal inyectado en SVG tenga PUNTOS y NO COMAS.
+    private string SvgNum(double value) => value.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture);
+
+    protected override void OnParametersSet()
+    {
+        if (EnvelopeData != null && EnvelopeData.Success)
+        {
+            if (!limitsInitialized && CurrentStream != null)
+            {
+                InitializeSmartDefaults();
+                limitsInitialized = true;
+            }
+
+            EvaluateOperatingPoint();
+        }
+    }
+
+    private void InitializeSmartDefaults()
+    {
+        var pUnit = CurrentStream.Pressure.DisplayUnit;
+        var tUnit = CurrentStream.Temperature.DisplayUnit;
+        var hUnit = CurrentStream.MassEnthalpy.DisplayUnit;
+
+        PMin.Unit = pUnit; PMax.Unit = pUnit;
+        TMin.Unit = tUnit; TMax.Unit = tUnit;
+        HMin.Unit = hUnit; HMax.Unit = hUnit;
+
+        double currentP = CurrentStream.Pressure.Value.GetValue(pUnit);
+        double currentT = CurrentStream.Temperature.Value.GetValue(tUnit);
+        double currentH = CurrentStream.MassEnthalpy.Value.GetValue(hUnit);
+
+        // 1. Unimos todos los puntos de la curva para evaluarlos
+        var allPoints = EnvelopeData.BubbleCurve.Concat(EnvelopeData.DewCurve).ToList();
+
+        if (allPoints.Any())
+        {
+            // 2. Encontramos los extremos de la envolvente real
+            double envPMin = allPoints.Min(p => p.Pressure.GetValue(pUnit));
+            double envPMax = allPoints.Max(p => p.Pressure.GetValue(pUnit));
+
+            double envTMin = allPoints.Min(p => p.Temperature.GetValue(tUnit));
+            double envTMax = allPoints.Max(p => p.Temperature.GetValue(tUnit));
+
+            double envHMin = allPoints.Min(p => p.MassEnthalpy.GetValue(hUnit));
+            double envHMax = allPoints.Max(p => p.MassEnthalpy.GetValue(hUnit));
+
+            // 3. Comparamos con el punto operativo para que nada quede por fuera de la pantalla
+            double finalPMin = Math.Min(currentP, envPMin);
+            double finalPMax = Math.Max(currentP, envPMax);
+
+            double finalTMin = Math.Min(currentT, envTMin);
+            double finalTMax = Math.Max(currentT, envTMax);
+
+            double finalHMin = Math.Min(currentH, envHMin);
+            double finalHMax = Math.Max(currentH, envHMax);
+
+            // 4. Agregamos un margen estético del 10% para que no toque los bordes de la ventana
+            double pMargin = (finalPMax - finalPMin) * 0.1;
+            double tMargin = (finalTMax - finalTMin) * 0.1;
+            double hMargin = (finalHMax - finalHMin) * 0.1;
+
+            if (pMargin == 0) pMargin = finalPMax * 0.1;
+            if (tMargin == 0) tMargin = 10;
+            if (hMargin == 0) hMargin = 100;
+
+            double calculatedPMin = finalPMin - pMargin;
+            if (calculatedPMin <= 0) calculatedPMin = 0.1; // Protección contra log(0)
+
+            PMin.SetValue(calculatedPMin, pUnit);
+            PMax.SetValue(finalPMax + pMargin, pUnit);
+
+            TMin.SetValue(finalTMin - tMargin, tUnit);
+            TMax.SetValue(finalTMax + tMargin, tUnit);
+
+            HMin.SetValue(finalHMin - hMargin, hUnit);
+            HMax.SetValue(finalHMax + hMargin, hUnit);
+        }
+        else
+        {
+            // Fallback de seguridad si falla la data
+            PMin.SetValue(0.1, pUnit); PMax.SetValue(currentP * 10.0, pUnit);
+            TMin.SetValue(currentT - 50, tUnit); TMax.SetValue(currentT + 50, tUnit);
+            HMin.SetValue(currentH - 500, hUnit); HMax.SetValue(currentH + 500, hUnit);
+        }
+    }
+
+    private void EvaluateOperatingPoint()
+    {
+        if (CurrentStream == null || !EnvelopeData.Success) return;
+
+        double evalP = CurrentStream.Pressure.Value.GetValue(PressureUnits.Bara);
+        double currentX = GetXValue(CurrentStream);
+
+        double xBubble = InterpolateXAtPressure(EnvelopeData.BubbleCurve, evalP);
+        double xDew = InterpolateXAtPressure(EnvelopeData.DewCurve, evalP);
+
+        if (double.IsNaN(xBubble) || double.IsNaN(xDew))
+        {
+            diagnosticMessage = "Status: Dense Phase / Supercritical (Out of Saturation Range)";
+            diagnosticColor = "#8b5cf6";
+            return;
+        }
+
+        double margin = Math.Abs(xDew - xBubble) * 0.05;
+        if (margin < 2.0) margin = 2.0;
+
+        if (currentX < (xBubble - margin))
+        {
+            diagnosticMessage = "Status: Subcooled Liquid - Safe for Pumping";
+            diagnosticColor = "#10b981";
+        }
+        else if (currentX > (xDew + margin))
+        {
+            diagnosticMessage = "Status: Superheated Vapor - Safe for Compression";
+            diagnosticColor = "#10b981";
+        }
+        else if (currentX >= (xBubble - margin) && currentX <= xBubble)
+        {
+            diagnosticMessage = "Status: Near Saturation Limit (Liquid) - Risk of Cavitation";
+            diagnosticColor = "#eab308";
+        }
+        else if (currentX <= (xDew + margin) && currentX >= xDew)
+        {
+            diagnosticMessage = "Status: Near Saturation Limit (Vapor) - Risk of Condensation";
+            diagnosticColor = "#eab308";
+        }
+        else
+        {
+            diagnosticMessage = "Status: Two-Phase Mixture - Requires Separation";
+            diagnosticColor = "#ef4444";
+        }
+    }
+
+    private double InterpolateXAtPressure(List<EnvelopePoint> curve, double targetPBara)
+    {
+        if (curve == null || curve.Count < 2) return double.NaN;
+
+        for (int i = 0; i < curve.Count - 1; i++)
+        {
+            double p1 = curve[i].Pressure.GetValue(PressureUnits.Bara);
+            double p2 = curve[i + 1].Pressure.GetValue(PressureUnits.Bara);
+
+            if ((targetPBara >= p1 && targetPBara <= p2) || (targetPBara <= p1 && targetPBara >= p2))
+            {
+                if (Math.Abs(p2 - p1) < 1e-6) return GetXValue(curve[i]);
+
+                double x1 = GetXValue(curve[i]);
+                double x2 = GetXValue(curve[i + 1]);
+
+                return x1 + (targetPBara - p1) * (x2 - x1) / (p2 - p1);
+            }
+        }
+        return double.NaN;
+    }
+
+    private double GetXValue(EnvelopePoint p) => ChartMode == "PT" ? p.Temperature.GetValue(TMin.Unit) : p.MassEnthalpy.GetValue(HMin.Unit);
+    private double GetXValue(IFacadeStream stream) => ChartMode == "PT" ? stream.Temperature.Value.GetValue(TMin.Unit) : stream.MassEnthalpy.Value.GetValue(HMin.Unit);
+
+    private double MapX(double xValue)
+    {
+        if (XMax == XMin) return Padding;
+        return Padding + ((xValue - XMin) / (XMax - XMin)) * InnerWidth;
+    }
+
+    private double MapY(double yValue)
+    {
+        if (yValue <= 0) yValue = 0.1;
+        if (LogYMax == LogYMin) return Padding;
+
+        double logY = Math.Log10(yValue);
+        return (Height - Padding) - ((logY - LogYMin) / (LogYMax - LogYMin)) * InnerHeight;
+    }
+
+    private string GetSvgPoints(List<EnvelopePoint> curve)
+    {
+        if (curve == null || !curve.Any()) return "";
+        var pointStrings = curve.Select(p => $"{SvgNum(MapX(GetXValue(p)))},{SvgNum(MapY(p.Pressure.GetValue(PMin.Unit)))}");
+        return string.Join(" ", pointStrings);
+    }
+
+    private void ChangeChartMode(string mode)
+    {
+        if (ChartMode != mode)
+        {
+            ChartMode = mode;
+            EvaluateOperatingPoint();
+            StateHasChanged();
+        }
+    }
+
+    private void OnPMinChanged(Pressure p) { PMin = p; PMax.Unit = p.Unit; StateHasChanged(); }
+    private void OnPMaxChanged(Pressure p) { PMax = p; PMin.Unit = p.Unit; StateHasChanged(); }
+    private void OnTMinChanged(Temperature t) { TMin = t; TMax.Unit = t.Unit; StateHasChanged(); }
+    private void OnTMaxChanged(Temperature t) { TMax = t; TMin.Unit = t.Unit; StateHasChanged(); }
+    private void OnHMinChanged(MassEnergy h) { HMin = h; HMax.Unit = h.Unit; StateHasChanged(); }
+    private void OnHMaxChanged(MassEnergy h) { HMax = h; HMin.Unit = h.Unit; StateHasChanged(); }
+}

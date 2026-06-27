@@ -83,6 +83,7 @@ namespace Shared.ProcessFlowDiagram
 
     public interface IVisualElement
     {
+        bool ShowNozzles { get; }
         List<ToolTipLegend> GetToolTipData();
         string StatusColor { get; }
         string StatusText { get; }
@@ -168,7 +169,7 @@ namespace Shared.ProcessFlowDiagram
 
     public abstract class VisualElementBase : IVisualElement
     {
-      
+        public virtual bool ShowNozzles => true;
         public string Name
         {
             get { return Facade?.Name ?? "Unknown"; }

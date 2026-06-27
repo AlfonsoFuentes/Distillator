@@ -17,6 +17,7 @@
     <Folder Include="SolverQwen\Equipments\" />
     <Folder Include="UnitOperations\HeatExchangers\" />
     <Folder Include="UnitOperations\Pumps\" />
+    <Folder Include="UnitOperations\Vessels\" />
   </ItemGroup>
 
 </Project>

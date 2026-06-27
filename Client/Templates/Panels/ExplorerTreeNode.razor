@@ -1,0 +1,29 @@
+﻿
+<div class="explorer-node">
+
+    <div class="@($"explorer-node-row {(Node.IsFolder ? "folder" : "item")} {(IsSelected ? "selected" : "")}")" @onclick="HandleClick">
+        @if (Node.IsFolder)
+        {
+            <span class="toggle-icon">@(Node.IsExpanded ? "−" : "+")</span>
+        }
+        else
+        {
+            <span class="toggle-icon spacer">•</span>
+        }
+
+        <span class="node-label">@Node.Name</span>
+    </div>
+
+    @if (Node.IsFolder)
+    {
+        <div class="@($"explorer-node-children {(Node.IsExpanded ? "expanded" : "collapsed")}")">
+ 
+            @foreach (var child in Node.Children)
+            {
+                <ExplorerTreeNode Node="child"
+                                  SelectedNodeId="@SelectedNodeId"
+                                  OnNodeSelected="OnNodeSelected" />
+            }
+        </div>
+    }
+</div>

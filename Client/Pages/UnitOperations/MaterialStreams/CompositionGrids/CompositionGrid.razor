@@ -1,5 +1,4 @@
-﻿
-@inherits UICompositionGridBase
+﻿@inherits UICompositionGridBase
 
 @if (Variable?.Components == null || !Variable.Components.Any())
 {
@@ -31,12 +30,12 @@
                 }
                 else
                 {
-                    <input type="text" 
+                    <input type="text"
                            value="@GetInputValue(comp, true)"
                            placeholder="<Not defined>"
                            @onfocus="@(e => HandleFocus(comp, true))"
                            @oninput="@(e => HandleInput(e, comp, true))"
-                           @onkeydown="@(e => HandleKeyDown(e, comp, true))"
+                           @onkeyup="@(e => HandleKeyUp(e, comp, true))"
                            @onblur="@(e => HandleBlur(comp, true))" />
                 }
                 @if (HasTooltip(comp, true))
@@ -58,7 +57,7 @@
                            placeholder="<Not defined>"
                            @onfocus="@(e => HandleFocus(comp, false))"
                            @oninput="@(e => HandleInput(e, comp, false))"
-                           @onkeydown="@(e => HandleKeyDown(e, comp, false))"
+                           @onkeyup="@(e => HandleKeyUp(e, comp, false))"
                            @onblur="@(e => HandleBlur(comp, false))" />
                 }
                 @if (HasTooltip(comp, false))
@@ -97,14 +96,12 @@
 }
 
 @code {
-    // 🔥 NUEVO: Determinar si debe mostrar tooltip
     private bool HasTooltip(ComponentFacade comp, bool isMass)
     {
         var state = GetCellState(comp, isMass);
         return state == "calculated" || state == "blocked";
     }
 
-    // 🔥 NUEVO: Obtener tooltip para flows
     private string GetFlowTooltip<T>(Variable<T> variable) where T : Amount
     {
         if (!string.IsNullOrWhiteSpace(variable.Source) && variable.Source != "Undefined")
@@ -112,20 +109,13 @@
         return "Calculated from mixture";
     }
 
-    // 🔥 NUEVO: Lógica correcta para bloqueo de °GL
     private bool ShouldGlBeReadOnly()
     {
-        // Si el usuario definió por Molar%, el °GL está calculado
         if (Variable.InputType == ComponentInputType.MolarFraction) return true;
-
-        // Si el solver calculó Y el usuario no definió nada, el °GL está calculado
         if (Variable.Source == CompositionSource.Solver && Variable.InputType == ComponentInputType.None) return true;
-
-        // En cualquier otro caso (usuario definió por MassFraction o °GL), el °GL es editable
         return false;
     }
 
-    // 🔥 NUEVO: Obtener SourceId para el tooltip del °GL
     private string? GetGlSourceId()
     {
         if (Variable.InputType == ComponentInputType.MolarFraction)
@@ -155,7 +145,7 @@
         if (ethanol == null || !ethanol.MassFraction.IsDefined) return null;
 
         double massFraction = ethanol.MassFraction.GetDisplayValue();
-        if (massFraction <= 0 || massFraction > 100) return null;
+        if (massFraction < 0 || massFraction > 100) return null;
 
         return GetGLEtanol(massFraction);
     }
@@ -181,10 +171,8 @@
             ethanol.MassFraction.SetValueFromUI(new Percentage(massFraction, PercentageUnits.Percentage));
             water.MassFraction.SetValueFromUI(new Percentage(100 - massFraction, PercentageUnits.Percentage));
 
-            // 🔥 Actualizar InputType
             Variable.InputType = ComponentInputType.MassFraction;
 
-            // 🔥 Disparar el solver
             if (_WM != null)
             {
                 _WM.RunSimulation();

@@ -1,0 +1,39 @@
+﻿@code {
+    [Parameter] public double Width { get; set; } = 160;
+    [Parameter] public double Height { get; set; } = 80;
+    [Parameter] public string StatusColor { get; set; } = "#CBD5E0";
+    [Parameter] public string ElementId { get; set; } = Guid.NewGuid().ToString();
+    [Parameter] public string CssClass { get; set; } = "";
+}
+
+<svg class="@CssClass" width="@Width" height="@Height" viewBox="0 0 @Width @Height"
+     style="display: block; overflow: visible; filter: drop-shadow(0px 4px 5px rgba(0, 0, 0, 0.2));">
+    <defs>
+        <linearGradient id="stReflex-@ElementId" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" style="stop-color:#ffffff;stop-opacity:0.6" />
+            <stop offset="30%" style="stop-color:#ffffff;stop-opacity:0.1" />
+            <stop offset="100%" style="stop-color:#000000;stop-opacity:0.2" />
+        </linearGradient>
+    </defs>
+
+    @* 1. CUERPO PRINCIPAL (Con márgenes como la columna: x=20, y=15) *@
+    <g style="pointer-events: none;">
+        <rect x="20" y="15" width="@(@Width - 40)" height="@(@Height - 30)" rx="15"
+              fill="@StatusColor"
+              style="transition: fill 0.5s cubic-bezier(0.4, 0, 0.2, 1);" />
+
+        <rect x="20" y="15" width="@(@Width - 40)" height="@(@Height - 30)" rx="15"
+              fill="url(#stReflex-@ElementId)"
+              stroke="#334155" stroke-width="1.5" />
+    </g>
+
+    @* 2. DETALLES INTERNOS (Ajustados al cuerpo con márgenes) *@
+    <g style="pointer-events: none; stroke: #334155; stroke-width: 1px; opacity: 0.35;">
+        <line x1="20" y1="@(@Height / 2)" x2="40" y2="@(@Height / 2)" stroke-width="1.5" />
+        <line x1="40" y1="@(@Height / 2 - 10)" x2="@(@Width - 25)" y2="@(@Height / 2 - 10)" stroke-dasharray="4,2" />
+        <line x1="40" y1="@(@Height / 2 + 10)" x2="@(@Width - 25)" y2="@(@Height / 2 + 10)" stroke-dasharray="4,2" />
+        <line x1="60" y1="15" x2="60" y2="@(@Height - 15)" />
+        <line x1="90" y1="25" x2="90" y2="@(@Height - 25)" />
+        <line x1="120" y1="15" x2="120" y2="@(@Height - 15)" />
+    </g>
+</svg>

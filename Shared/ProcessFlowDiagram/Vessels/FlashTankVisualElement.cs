@@ -1,7 +1,5 @@
-﻿using Shared.ProcessFlowDiagram;
-using Shared.SolverConsecutive.Equipments;
+﻿using Shared.SolverConsecutive.Equipments;
 using Shared.SolverQwen.Stream;
-using Shared.UnitOperations.Vessels;
 
 namespace Shared.ProcessFlowDiagram.Vessels
 {
@@ -29,17 +27,22 @@ namespace Shared.ProcessFlowDiagram.Vessels
 
         public FlashTankVisualElement()
         {
-            Width = 150;
-            Height = 70;
+            // 1. Reducción de tamaño para que se vea proporcionado frente al HX
+            Width = 90;
+            Height = 45;
 
-            // 1. Entrada de Alimento (Lateral Izquierda - En la mitad)
-            AddPort(PortFeedName, PortType.Inlet, 0, Height / 2, PortDirection.Left);
+            // 2. Ajuste milimétrico de puertos
+            // El dibujo (GetCapsulePath) deja un margen interno de 2 píxeles.
+            // Borde Izquierdo = 2 | Borde Superior = 2 | Borde Inferior = Height - 2
 
-            // 2. Salida de Vapor (Top - Centro)
-            AddPort(PortVaporName, PortType.Outlet, Width / 2, 0, PortDirection.Top);
+            // Izquierda: Para que toque X=2, debe dibujar desde X=-8
+            AddPort(PortFeedName, PortType.Inlet, -8, Height / 2, PortDirection.Left);
 
-            // 3. Salida Líquida (Bottom - Centro)
-            AddPort(PortLiquidName, PortType.Outlet, Width / 2, Height, PortDirection.Bottom);
+            // Arriba: Para que toque Y=2, debe dibujar desde Y=-8
+            AddPort(PortVaporName, PortType.Outlet, Width / 2, -8, PortDirection.Top);
+
+            // Abajo: Para que toque Y=(Height-2), el OffsetY debe ser (Height - 2) + 10 = Height + 8
+            AddPort(PortLiquidName, PortType.Outlet, Width / 2, Height + 8, PortDirection.Bottom);
 
             Facade = new SolverDrum("V-102")
             {

@@ -1,0 +1,20 @@
+﻿
+<div class="profile-chart">
+    <SvgChart Series="@_series"
+              Markers="@_markers"
+              ChartTitle="@_chartTitle"
+              ChartSubtitle="@_chartSubtitle"
+              XAxisTitle="Stage Number"
+              YAxisTitle="@_yAxisTitle"
+              XMin="0"
+              XMax="@_maxStage"
+              YMin="@_minPressure"
+              YMax="@_maxPressure"
+              XTickStep="1"
+              ViewState="@_viewState"
+              IsLoading="@IsLoading"
+              UnitOptions="@_Units"
+              SelectedUnit="@_currentUnit"
+              UnitChanged="@OnUnitChanged"
+              LoadingText="Calculating..." />
+</div>

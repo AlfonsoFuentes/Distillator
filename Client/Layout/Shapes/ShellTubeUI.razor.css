@@ -1,0 +1,35 @@
+﻿.st-svg {
+    display: block;
+    overflow: visible;
+    filter: drop-shadow(0px 4px 5px rgba(0, 0, 0, 0.2));
+    transition: transform 0.2s ease-out;
+}
+
+    .st-svg:hover {
+        transform: scale(1.02);
+    }
+
+.st-dynamic-fill {
+    transition: fill 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.st-part {
+    pointer-events: none;
+}
+
+.st-internals {
+    stroke: #334155;
+    stroke-width: 1px;
+    opacity: 0.35;
+}
+
+.st-nozzle {
+    fill: #94A3B8;
+    stroke: #334155;
+    stroke-width: 1.2px;
+    transition: filter 0.2s;
+}
+
+.equipment-container:hover .st-nozzle {
+    filter: brightness(1.1);
+}
