@@ -7,6 +7,8 @@ namespace Shared.SolverConsecutive.Equipments
         Guid Id { get; }
         string Name { get; } // 🔥 NUEVO
         SpecificationType Type { get; }
+        SolverEquationType TargetEquationType { get; }
+
         double GetResidual();
         List<IVariable> GetVariables();
     }
@@ -59,6 +61,13 @@ namespace Shared.SolverConsecutive.Equipments
             }
             return vars;
         }
+        public SolverEquationType TargetEquationType => VariableType switch
+        {
+            SpecVariableType.TotalMassFlow => SolverEquationType.MassBalance,
+            SpecVariableType.TotalMolarFlow => SolverEquationType.MassBalance,
+            // Si luego añades entalpía o presión, lo agregas aquí
+            _ => SolverEquationType.MassBalance
+        };
     }
     public class MultiplierSpecification : StreamSpecificationBase
     {
@@ -86,10 +95,10 @@ namespace Shared.SolverConsecutive.Equipments
 
         public string Name => _spec.Name; // 🔥 USA EL NOMBRE DE LA INTERFAZ
 
-        public SolverEquationType EquationType => SolverEquationType.Specification;
+        public SolverEquationType EquationType => SolverEquationType.MassBalance;
         public List<double> Residuals => new List<double> { _spec.GetResidual() };
         public List<IVariable> Variables => _spec.GetVariables();
-
+        public SolverEquationTypeModifier EquationTypeModifer => SolverEquationTypeModifier.Spec;
 
     }
 
@@ -112,5 +121,28 @@ namespace Shared.SolverConsecutive.Equipments
 
         // Une todas las variables sin duplicar las que están conectadas (ej. Destilado o Reflujo)
         public List<IVariable> Variables => Equations.SelectMany(e => e.Variables).Distinct().ToList();
+        public SolverEquationTypeModifier EquationTypeModifer => SolverEquationTypeModifier.Spec;
+    }
+    public class CompositeEquationEquipmentList : ISolverEquation
+    {
+        // Pública para poder extraer las ecuaciones internas si convergen
+        public readonly List<ISolverEquation> Equations = new();
+
+        public CompositeEquationEquipmentList()
+        {
+
+        }
+        public void AddEquation(ISolverEquation _eq) => Equations.Add(_eq);
+        public string Name => "Clúster: [" + string.Join(" | ", Equations.Select(e => e.Name)) + "]";
+
+        public SolverEquationType EquationType => SolverEquationType.Specification;
+
+        // Une todos los residuos
+        public List<double> Residuals => Equations.SelectMany(e => e.Residuals).ToList();
+
+        // Une todas las variables sin duplicar las que están conectadas (ej. Destilado o Reflujo)
+        public List<IVariable> Variables => Equations.SelectMany(e => e.Variables).Distinct().ToList();
+
+        public SolverEquationTypeModifier EquationTypeModifer => SolverEquationTypeModifier.Spec;
     }
 }

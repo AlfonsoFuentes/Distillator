@@ -1,4 +1,6 @@
 ﻿@inject IMainSolver Solver
+@inject ProjectSessionService SessionService
+@inject FlowsheetManager FSM
 
 <MudDialog>
     <TitleContent>
@@ -93,7 +95,8 @@
 
         if (_metod != null)
         {
-            var result = await HttpServices.PostAsync<GetMethodFullRequest, Result<ThermodynamicMethodFullDto>>(new GetMethodFullRequest(_metod.Id));
+            // ❌ VIEJO: var result = await HttpServices.PostAsync<GetMethodFullRequest, Result<ThermodynamicMethodFullDto>>(new GetMethodFullRequest(_metod.Id));
+            var result = await HttpServices.PostAsync<GetMethodFullRequest, ThermodynamicMethodFullDto>(new GetMethodFullRequest(_metod.Id));
             if (result.Succeeded)
             {
                 var selectedMethod = result.Data;
@@ -124,7 +127,8 @@
         {
             // 🔥 Tu patrón HTTP: GetAllCompleteMethods
             var request = new GetAllCompleteMethods();
-            var result = await HttpServices.PostAsync<GetAllCompleteMethods, Result<List<ThermodynamicMethodFullDto>>>(request);
+            // ❌ VIEJO: var result = await HttpServices.PostAsync<GetAllCompleteMethods, Result<List<ThermodynamicMethodFullDto>>>(request);
+            var result = await HttpServices.PostAsync<GetAllCompleteMethods, List<ThermodynamicMethodFullDto>>(request);
 
             if (result.Succeeded && result.Data != null)
             {
@@ -160,10 +164,17 @@
 
         _isApplying = true;
         StateHasChanged();
-        //Aqui ponemos guardar a base de datos
+
+        if (Solver.ThermoMethod != null)
+        {
+            SessionService.CurrentProject?.UpdateThermodynamicMethod(Solver.ThermoMethod.Id);
+        }
+
+        FSM.NotifyStateChanged();
+        SessionService.NotifyProjectChanged();
+
         _isApplying = false;
         MudDialog.Close(true);
-
     }
 
     private void Cancel() => MudDialog.Cancel();

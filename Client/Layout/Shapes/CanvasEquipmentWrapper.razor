@@ -1,7 +1,7 @@
 ﻿@using Microsoft.AspNetCore.Components.Web
 
 <div class="equipment-container @(IsSelected ? "selected" : "")"
-     style="@($"left: {Math.Round(Element.X)}px; top: {Math.Round(Element.Y)}px; z-index: {(IsSelected ? 9999 : (Element.ZIndex > 0 ? Element.ZIndex : 10))};")"
+     style="@($"left:{Math.Round(Element.X)}px; top:{Math.Round(Element.Y)}px; width:{Math.Round(Element.Width)}px; height:{Math.Round(Element.Height)}px; z-index:{(IsSelected ? 9999 : (Element.ZIndex > 0 ? Element.ZIndex : 10))};")"
      tabindex="0"
      @onclick="HandleSingleClick"
      @onclick:stopPropagation="true"
@@ -33,50 +33,39 @@
         }
 
         @* 2. Puertos de conexión REACTIVOS al Modo Conexión *@
-        <div class="connection-ports @(WM.IsConnectionModeActive ? "connection-mode" : "")">
+        <div class="connection-ports @(FSM.IsConnectionModeActive ? "connection-mode" : "")">
             @foreach (var port in Element.Ports)
             {
                 bool isFree = port.ConnectedElementId == null;
                 bool isValidTarget = false;
                 bool isSource = false;
 
-                // ─────────────────────────────────────────────────────────
-                // ETAPA 2: Si hay draft, calculamos validez
-                // ─────────────────────────────────────────────────────────
-                if (WM.CurrentDraftPipe != null)
+                if (FSM.CurrentDraftPipe != null)
                 {
-                    // ¿Es este puerto el origen seleccionado?
-                    isSource = WM.CurrentDraftPipe.SourceElement?.Id == Element.Id &&
-                               WM.CurrentDraftPipe.SourcePortName == port.Name;
+                    isSource = FSM.CurrentDraftPipe.SourceElement?.Id == Element.Id &&
+                               FSM.CurrentDraftPipe.SourcePortName == port.Name;
 
-                    // ¿Es un destino válido según reglas de negocio?
-                    isValidTarget = isFree && WM.IsValidTarget(Element, port.Name);
+                    isValidTarget = isFree && FSM.IsValidTarget(Element, port.Name);
                 }
 
-                // ─────────────────────────────────────────────────────────
-                // Determinar clase CSS según estado
-                // ─────────────────────────────────────────────────────────
                 string portClass = "port";
 
-                if (WM.CurrentDraftPipe == null)
+                if (FSM.CurrentDraftPipe == null)
                 {
-                    // ETAPA 1: Solo distinguimos libres vs ocupados
                     portClass += isFree ? " port-free" : " port-connected";
                 }
                 else
                 {
-                    // ETAPA 2: Feedback guiado
                     if (isSource)
                     {
-                        portClass += " port-source"; // Origen seleccionado
+                        portClass += " port-source";
                     }
                     else if (isValidTarget)
                     {
-                        portClass += " port-valid-target"; // ✅ Destino válido
+                        portClass += " port-valid-target";
                     }
                     else
                     {
-                        // ❌ No es válido (ocupado o incompatible)
                         portClass += " port-dimmed";
                     }
                 }
@@ -151,7 +140,7 @@
         <div class="port-tooltip-fixed" style="@GetPortTooltipStyle()">
             @HoveredPortName
         </div>
-    }
+    } 
 </div>
 
 @code {
@@ -223,35 +212,45 @@
     // =========================================================
     // LÓGICA DE CONEXIÓN DE PUERTOS (Fase 2)
     // =========================================================
-    private void HandlePortMouseDown2(EquipmentPort port)
+    private void HandlePortMouseDown(EquipmentPort port)
     {
-        if (WM.IsConnectionModeActive && port.ConnectedElementId == null)
+        if (FSM.IsConnectionModeActive &&
+            port.ConnectedElementId == null &&
+            FSM.CurrentDraftPipe == null)
         {
-            // Iniciamos el cable desde este puerto
-            WM.StartConnectionDraft(Element, port.Name);
+            FSM.StartConnectionDraft(Element, port.Name);
         }
     }
 
-    private void HandlePortMouseDown(EquipmentPort port)
+    /*
+    // --- CÓDIGO VIEJO (WM) PARA REFERENCIA ---
+    private void HandlePortMouseDown_Old(EquipmentPort port)
     {
-        // ✅ CORREGIDO: Solo inicia si no hay draft activo
-        if (WM.IsConnectionModeActive &&
-            port.ConnectedElementId == null &&
-            WM.CurrentDraftPipe == null)
+        if (WM.IsConnectionModeActive && port.ConnectedElementId == null && WM.CurrentDraftPipe == null)
         {
             WM.StartConnectionDraft(Element, port.Name);
         }
     }
+    */
 
     private void HandlePortMouseUp(EquipmentPort port)
     {
-        // Si traemos un cable en el ratón y lo soltamos en un puerto libre
-        if (WM.CurrentDraftPipe != null && port.ConnectedElementId == null)
+        if (FSM.CurrentDraftPipe != null)
         {
-            // Le decimos al Manager que concrete la conexión
-            WM.CompleteConnection(Element, port.Name);
+            FSM.CompleteConnection(Element, port.Name, 0, 0);
         }
     }
+
+    /*
+    // --- CÓDIGO VIEJO (WM) PARA REFERENCIA ---
+    private void HandlePortMouseUp_Old(EquipmentPort port)
+    {
+        if (WM.CurrentDraftPipe != null)
+        {
+            WM.CompleteConnection(Element, port.Name, 0, 0);
+        }
+    }
+    */
 
     private string GetGraphicsLayerStyle() =>
         $"width: {Element.Width}px; height: {Element.Height}px; " +

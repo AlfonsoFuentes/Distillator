@@ -1,208 +1,36 @@
-﻿@page "/"
-@using Client.Layout.Diagrams
+@page "/"
 
+@using Client.Templates.Panels
+@using Distillator.Domain.Models
 
-@implements IDisposable
 @attribute [Authorize]
 
-<PageTitle>Distillator System - PFD Workspace</PageTitle>
+<PageTitle>Distillator - Projects</PageTitle>
 
-@* 1. LA BARRA DE PESTAÑAS (SHELL) *@
-<div class="area-tabs-container">
-    @foreach (var area in WM.Areas)
-    {
-        // 🚩 CLAVE: El @key es vital para que Blazor no recicle HTML y mezcle estados al crear o borrar áreas
-        <div @key="area.Id"
-             class="area-tab @(WM.ActiveArea.Id == area.Id ? "active" : "") @(area.Id == _draggingAreaId ? "dragging" : "")"
-             draggable="true"
-             @onclick="() => HandleTabClick(area)"
-             @ondragstart="() => HandleDragStart(area)"
-             @ondragover:preventDefault="true"
-             @ondragover="() => { }"
-             @ondrop="() => HandleDrop(area)">
+<div class="home-layout">
+    <ProjectExplorer OnProjectSelected="HandleProjectSelected" />
 
-            @* MODO EDICIÓN *@
-            @if (_editingAreaId == area.Id)
-            {
-                <input type="text" class="tab-rename-input"
-                       @bind="_editingName"
-                       @bind:event="oninput"
-                       @onkeyup="(e) => HandleRenameKeyUp(e, area)"
-                       @onblur="() => FinishRename(area, true)"
-                       @onclick:stopPropagation="true"
-                       autofocus />
-            }
-            @* MODO LECTURA *@
-            else
-            {
-                <span class="tab-title">@area.Name</span>
-
-                @if (WM.Areas.Count > 1)
-                {
-                    <button class="delete-tab-btn"
-                            title="Delete Area"
-                            @onclick:stopPropagation="true"
-                            @onclick="() => WM.DeleteArea(area)">
-                        ×
-                    </button>
-                }
-            }
-        </div>
-    }
-
-    <button class="add-tab-btn" title="New Area" @onclick="CreateNewArea">+</button>
+    <div class="home-content">
+        @if (_selectedProject != null)
+        {
+            <ProjectDiagram Project="_selectedProject" />
+        }
+        else
+        {
+            <div class="empty-state">
+                <div class="empty-icon">📁</div>
+                <h2>No project selected</h2>
+                <p>Select a project from the explorer to view its details.</p>
+            </div>
+        }
+    </div>
 </div>
 
-@* 2. EL MOTOR GRÁFICO *@
-<PfdCanvas />
-
 @code {
-    private Guid? _editingAreaId;
-    private Guid? _draggingAreaId;
-    private DiagramArea? _draggedArea;
-    private string _editingName = "";
+    private Project? _selectedProject;
 
-    protected override void OnInitialized()
+    private void HandleProjectSelected(Project? project)
     {
-
-
-
-    }
-    protected override async Task OnInitializedAsync()
-    {
-        WM.OnNotifyUI += StateHasChanged;
-        await LoadThermodynamicMethods();
-
-    }
-    private List<ThermodynamicMethodFullDto>? _methods;
-    private async Task LoadThermodynamicMethods()
-    {
-
-        var request = new GetAllCompleteMethods();
-        var result = await HttpServices.PostAsync<GetAllCompleteMethods, Result<List<ThermodynamicMethodFullDto>>>(request);
-
-        if (result.Succeeded && result.Data != null)
-        {
-            _methods = result.Data;
-
-            if (_methods.Any(x => x.Name.Contains("Ethanol-Water (NRTL)")))
-            {
-                var method = _methods.First(x => x.Name.Contains("Ethanol-Water (NRTL)"));
-                await HandleSelection(method.Id);
-
-            }
-
-        }
-    }
-    private async Task HandleSelection(Guid selectedId)
-    {
-
-
-        ThermodynamicMethodFullDto Value = null!;
-        var result = await HttpServices.PostAsync<GetMethodFullRequest, Result<ThermodynamicMethodFullDto>>(new GetMethodFullRequest(selectedId));
-        if (result.Succeeded)
-        {
-            var selectedMethod = result.Data;
-
-            if (selectedMethod != null)
-            {
-                Value = selectedMethod;
-
-                // StreamIntegrationTest manager = new StreamIntegrationTest();
-                // manager.SetThermoMethod(Value);
-                // manager.Run();
-
-            }
-        }
- 
-    }
-
-    public void Dispose()
-    {
-        if (WM != null) WM.OnNotifyUI -= StateHasChanged;
-    }
-
-    // =========================================================
-    // LÓGICA DE PESTAÑAS Y EDICIÓN
-    // =========================================================
-    private void HandleTabClick(DiagramArea area)
-    {
-        // Si la pestaña ya es la activa y hacemos clic, la editamos.
-        // Si no es la activa, simplemente cambiamos a ella.
-        if (WM.ActiveArea.Id == area.Id && _editingAreaId != area.Id)
-        {
-            StartRename(area);
-        }
-        else if (WM.ActiveArea.Id != area.Id)
-        {
-            // Solo cancelamos la edición si estamos cambiando de área
-            _editingAreaId = null;
-            WM.SwitchToArea(area);
-        }
-    }
-
-    private void StartRename(DiagramArea area)
-    {
-        _editingAreaId = area.Id;
-        _editingName = area.Name;
-    }
-
-    private void HandleRenameKeyUp(KeyboardEventArgs e, DiagramArea area)
-    {
-        if (e.Key == "Enter") FinishRename(area, true);
-        else if (e.Key == "Escape") FinishRename(area, false);
-    }
-
-    private void FinishRename(DiagramArea area, bool saveChanges)
-    {
-        if (_editingAreaId == null) return;
-
-        if (saveChanges && !string.IsNullOrWhiteSpace(_editingName))
-        {
-            WM.RenameArea(area, _editingName);
-        }
-
-        _editingAreaId = null;
-        StateHasChanged();
-    }
-
-    // =========================================================
-    // LÓGICA DE REORDENAMIENTO (DRAG & DROP)
-    // =========================================================
-    private void HandleDragStart(DiagramArea area)
-    {
-        _draggedArea = area;
-        _draggingAreaId = area.Id;
-        _editingAreaId = null; // Cancelar edición si empezamos a arrastrar
-    }
-
-    private void HandleDrop(DiagramArea targetArea)
-    {
-        if (_draggedArea != null && targetArea != null)
-        {
-            WM.ReorderArea(_draggedArea, targetArea);
-        }
-        _draggedArea = null;
-        _draggingAreaId = null;
-    }
-    void RunSolver()
-    {
-        // SeriesPumpValveTest.Run();
-    }
-    private void CreateNewArea()
-    {
-        // Cancelamos cualquier edición activa al crear una nueva área
-        _editingAreaId = null;
-
-        // Hacemos el nombre seguro para evitar repeticiones tontas "Area 2", "Area 2"
-        int num = WM.Areas.Count + 1;
-        string newName = $"Area {num}";
-        while (WM.Areas.Any(a => a.Name == newName))
-        {
-            num++;
-            newName = $"Area {num}";
-        }
-
-        WM.CreateArea(newName);
+        _selectedProject = project;
     }
 }

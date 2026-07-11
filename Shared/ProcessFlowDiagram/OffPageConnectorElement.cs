@@ -2,15 +2,16 @@
 {
     public class OffPageConnectorElement : VisualElementBase
     {
+        public override bool ShowNozzles => false;
         public string TargetAreaName { get; set; } = "Unknown";
         public string ConnectedEquipmentName { get; set; } = "Unconnected";
         public override List<ToolTipLegend> GetToolTipData()
         {
             return new List<ToolTipLegend>
         {
-            
             new ToolTipLegend("Target Area", TargetAreaName),
-            new ToolTipLegend("Local Node", ConnectedEquipmentName)
+            new ToolTipLegend("Local Node", ConnectedEquipmentName),
+            new ToolTipLegend("Navigate", "Double-click to go to area")
         };
         }
         public override bool ShowLabel { get; set; } = false;
@@ -22,6 +23,10 @@
         public override bool AllowFlipHorizontal => false;
         public override bool AllowFlipVertical => false;
         public override bool IsResizable => false;
+        // 🚩 UX: OPCs se comportan como banderas en bordes de área
+        // Solo se pueden mover en Y para alinear con puertos (snap vertical)
+        public override bool AllowFreeDragX => false;
+        public override bool AllowFreeDragY => true;
 
         public Guid? TargetAreaId { get; set; }
         public Guid? TargetConnectorId { get; set; }
@@ -43,6 +48,20 @@
             UpdatePorts();
         }
 
+        /// <summary>
+        /// Recalcula puertos según el ancho actual. Llamar después de cambiar Width.
+        /// </summary>
+        public void RefreshPorts() => UpdatePorts();
+
+        /// <summary>
+        /// Cambia el ancho y recalcula geometría interna atómicamente.
+        /// </summary>
+        public void Resize(double newWidth)
+        {
+            Width = newWidth;
+            RefreshPorts();
+        }
+
         private void UpdatePorts()
         {
             Ports.Clear();
@@ -54,7 +73,7 @@
             else
             {
                 // Si el flujo ENTRA, el tubo sale por la derecha
-                AddPort("Transfer", PortType.Outlet, 80, 20, PortDirection.Right);
+                AddPort("Transfer", PortType.Outlet, Width, 20, PortDirection.Right);
             }
         }
     }

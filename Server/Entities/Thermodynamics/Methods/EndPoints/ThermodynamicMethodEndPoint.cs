@@ -16,7 +16,7 @@ public class ThermodynamicMethodEndPoint : IEndPoint
     {
         // Seguridad estricta: Solo Ingenieros Administradores (Developer)
         var group = app.MapGroup("/")
-                       ;
+                       .RequireAuthorization();
         group.MapPost("/GetAllCompleteMethods", async ([FromBody] GetAllCompleteMethods request, ApplicationDbContext context) =>
         {
             // 1. Eager Loading con las rutas de navegación exactas de tus entidades

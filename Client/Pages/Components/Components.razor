@@ -73,7 +73,8 @@
         var request = new GetAllComponents();
 
         // Comentario: El server devuelve Results.Ok(list), por lo que deserializamos directo a la lista
-        var result = await HttpServices.PostAsync<GetAllComponents, Result<List<ChemicalComponentListDto>>>(request);
+        // ❌ VIEJO: var result = await HttpServices.PostAsync<GetAllComponents, Result<List<ChemicalComponentListDto>>>(request);
+        var result = await HttpServices.PostAsync<GetAllComponents, List<ChemicalComponentListDto>>(request);
 
         if (result.Succeeded)
         {
@@ -96,7 +97,8 @@
     }
     private async Task ExportData()
     {
-        var result = await HttpServices.PostAsync<GetAllCompleteComponents, Result<List<EditChemicalComponent>>>(new GetAllCompleteComponents());
+        // ❌ VIEJO: var result = await HttpServices.PostAsync<GetAllCompleteComponents, Result<List<EditChemicalComponent>>>(new GetAllCompleteComponents());
+        var result = await HttpServices.PostAsync<GetAllCompleteComponents, List<EditChemicalComponent>>(new GetAllCompleteComponents());
 
         if(result.Succeeded)
         {

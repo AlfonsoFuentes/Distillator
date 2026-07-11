@@ -1,4 +1,5 @@
 ﻿@page "/login"
+@layout AuthLayout
 
 <MudContainer MaxWidth="MaxWidth.Small" Class="mt-10">
     <MudCard Elevation="3" Class="pa-8">
@@ -95,7 +96,7 @@
         // Añade aquí tu correo o los que necesiten protección máxima
     };
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         // Esterilizamos el modelo por si viene de una expulsión (ForceLoad)
         _loginRequest = new LoginRequest { Email = "", Password = "" };
@@ -103,6 +104,13 @@
         _passwordInput = InputType.Password;
         _passwordInputIcon = Icons.Material.Filled.VisibilityOff;
         _isStrictSecurityAccount = false;
+
+        // Si ya está autenticado, redirigir al home
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        if (authState.User.Identity?.IsAuthenticated == true)
+        {
+            NavigationManager.NavigateTo("/");
+        }
     }
 
     private void OnEmailChanged(string email)
@@ -139,7 +147,8 @@
     {
         _isLoading = true;
         
-        var response = await HttpServices.PostAsync<LoginRequest, Result>(_loginRequest);
+        // ❌ VIEJO: var response = await HttpServices.PostAsync<LoginRequest, Result>(_loginRequest);
+        var response = await HttpServices.PostAsync<LoginRequest>(_loginRequest);
 
         if (response != null && response.Succeeded)
         {

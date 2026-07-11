@@ -112,6 +112,8 @@ namespace Shared.ProcessFlowDiagram
         bool AllowFlipHorizontal { get; }
         bool AllowFlipVertical { get; }
         bool IsResizable { get; }
+        bool AllowFreeDragX { get; }
+        bool AllowFreeDragY { get; }
 
         // Nodos de Conexión y Lógica
         List<EquipmentPort> Ports { get; set; }
@@ -217,6 +219,8 @@ namespace Shared.ProcessFlowDiagram
         public virtual bool AllowFlipHorizontal => true;
         public virtual bool AllowFlipVertical => true;
         public virtual bool IsResizable => false; // Los equipos P&ID rara vez cambian de tamaño
+        public virtual bool AllowFreeDragX => true;
+        public virtual bool AllowFreeDragY => true;
 
         // Colecciones y Enlaces
         public List<EquipmentPort> Ports { get; set; } = new();
@@ -237,6 +241,33 @@ namespace Shared.ProcessFlowDiagram
             });
         }
         public virtual bool CanConnect(string myPortName, IVisualElement targetElement, string targetPortName)
+        {
+            var myPort = Ports.FirstOrDefault(p => p.Name == myPortName);
+            var targetPort = targetElement.Ports.FirstOrDefault(p => p.Name == targetPortName);
+
+            // 1. Validaciones básicas: Existen puertos, están libres y no es el mismo objeto
+            if (myPort == null || targetPort == null) return false;
+            if (myPort.ConnectedElementId != null || targetPort.ConnectedElementId != null) return false;
+            if (this.Id == targetElement.Id) return false;
+
+            // 2. Regla de Naturaleza: Solo prohibimos conectar dos Corrientes entre sí (Stream-Stream)
+            // Equipo-Equipo está permitido ahora. Equipo-Stream está permitido.
+            bool iAmStream = this.Type == EquipmentType.MaterialStream || this.Type == EquipmentType.EnergyStream;
+            bool targetIsStream = targetElement.Type == EquipmentType.MaterialStream || targetElement.Type == EquipmentType.EnergyStream;
+
+            if (iAmStream && targetIsStream) return false;
+
+            // 3. Regla de Polaridad: Entrada <-> Salida (Sigue siendo obligatoria)
+            bool isCompatible = (myPort.Type, targetPort.Type) switch
+            {
+                (PortType.Inlet, PortType.Outlet) => true,
+                (PortType.Outlet, PortType.Inlet) => true,
+                _ => false
+            };
+
+            return isCompatible;
+        }
+        public virtual bool CanConnect2(string myPortName, IVisualElement targetElement, string targetPortName)
         {
             var myPort = Ports.FirstOrDefault(p => p.Name == myPortName);
             var targetPort = targetElement.Ports.FirstOrDefault(p => p.Name == targetPortName);
@@ -264,6 +295,34 @@ namespace Shared.ProcessFlowDiagram
             return isCompatible;
         }
         public bool Connect(string myPortName, IVisualElement targetElement, string targetPortName)
+        {
+            if (!CanConnect(myPortName, targetElement, targetPortName)) return false;
+
+            var myPort = Ports.First(p => p.Name == myPortName);
+            var targetPort = targetElement.Ports.First(p => p.Name == targetPortName);
+
+            // 1. Bloqueamos los puertos visualmente cruzando los IDs
+            myPort.ConnectedElementId = targetElement.Id;
+            targetPort.ConnectedElementId = this.Id;
+
+            // 2. Notificamos a los Facades (Solvers)
+
+            // CASO A: Quien llama al método (this) es el Equipo y el destino es la Corriente
+            if (this.Facade is IEquipmentFacade myEquipment && targetElement.Facade is IFacadeStream targetStream)
+            {
+                this.AttachConnection(myPortName, targetStream);
+            }
+            // CASO B: Quien llama al método (this) es la Corriente y el destino es el Equipo
+            else if (targetElement.Facade is IEquipmentFacade targetEquipment && this.Facade is IFacadeStream myStream)
+            {
+                // 🔥 LA CORRECCIÓN ESTÁ AQUÍ: Agregamos "targetElement." para asegurar 
+                // que guardamos la información en el Facade del equipo, no de la corriente.
+                targetElement.AttachConnection(targetPortName, myStream);
+            }
+
+            return true;
+        }
+        public bool Connect2(string myPortName, IVisualElement targetElement, string targetPortName)
         {
             if (!CanConnect(myPortName, targetElement, targetPortName)) return false;
 

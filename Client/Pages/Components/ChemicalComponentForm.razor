@@ -221,7 +221,8 @@
         {
             // Edición: Consultamos al servidor
             var request = new GetComponentById(Id);
-            var result = await HttpServices.PostAsync<GetComponentById, Result<EditChemicalComponent>>(request);
+            // ❌ VIEJO: var result = await HttpServices.PostAsync<GetComponentById, Result<EditChemicalComponent>>(request);
+            var result = await HttpServices.PostAsync<GetComponentById, EditChemicalComponent>(request);
             if (result.Succeeded)
             {
                 _model = result.Data;
@@ -274,7 +275,8 @@
     // Comentario: Comandos Reales
     private async Task SaveToServerAsync()
     {
-        await HttpServices.PostAsync<ChemicalComponentDto, Result>(_model);
+        // ❌ VIEJO: await HttpServices.PostAsync<ChemicalComponentDto, Result>(_model);
+        await HttpServices.PostAsync<ChemicalComponentDto>(_model);
             
         NavigationManager.NavigateTo("/components");
     }
@@ -282,7 +284,8 @@
     private async Task DeleteFromServerAsync()
     {
         var request = new DeleteComponent(Id);
-        await HttpServices.PostAsync<DeleteComponent, Result>(request);
+        // ❌ VIEJO: await HttpServices.PostAsync<DeleteComponent, Result>(request);
+        await HttpServices.PostAsync<DeleteComponent>(request);
         NavigationManager.NavigateTo("/components");
     }
     // Comentario: Regresa al listado principal sin realizar cambios

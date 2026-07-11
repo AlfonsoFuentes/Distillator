@@ -1,41 +1,49 @@
-﻿@* OffPageConnectorSvg.razor *@
-<svg width="@Width" height="@Height" viewBox="0 0 @Width @Height" class="opc-container @CssClass">
+﻿@* OffPageConnectorSvg.razor — SVG dinámico según Width *@
+@using System.Globalization
+<svg width="@Width.ToString(CultureInfo.InvariantCulture)" height="@Height.ToString(CultureInfo.InvariantCulture)" viewBox="0 0 @Width.ToString(CultureInfo.InvariantCulture) @Height.ToString(CultureInfo.InvariantCulture)" class="opc-container @CssClass">
     <defs>
         <filter id="opc-shadow-@_uid" x="-20%" y="-20%" width="140%" height="140%">
             <feDropShadow dx="2" dy="2" stdDeviation="2" flood-opacity="0.2" />
         </filter>
     </defs>
 
+    @{
+        double bodyEnd = Width - 10;   // Donde termina el cuerpo plano antes de la punta
+        double tip = Width - 5;        // Punta de la flecha
+        double centerY = Height / 2;   // 20 para Height=40
+        double textX = Width / 2;      // Centro horizontal del texto
+    }
+
     @if (IsOutlet)
     {
-        @* 🚩 Banderita de Salida (Apunta a la Derecha) *@
+        @* 🚩 Banderita de Salida *@
         <path class="opc-body outlet-body"
-              d="M 5 5 L 65 5 L 75 20 L 65 35 L 5 35 Z"
+              d="M 5 5 L @bodyEnd.ToString(CultureInfo.InvariantCulture) 5 L @tip.ToString(CultureInfo.InvariantCulture) @centerY.ToString(CultureInfo.InvariantCulture) L @bodyEnd.ToString(CultureInfo.InvariantCulture) 35 L 5 35 Z"
               fill="#FFFFFF"
               stroke="#64748B"
               stroke-width="1.5"
               filter="url(#opc-shadow-@_uid)" />
-              
+
         @* Puerto en la parte plana izquierda (Azul) *@
-        <circle class="opc-port outlet-port" cx="5" cy="20" r="3" fill="#3B82F6" />
+        <circle class="opc-port outlet-port" cx="5" cy="@centerY.ToString(CultureInfo.InvariantCulture)" r="3" fill="#3B82F6" />
     }
     else
     {
-        @* 🚩 Banderita de Entrada (TAMBIÉN apunta a la Derecha) *@
+        @* 🚩 Banderita de Entrada *@
         <path class="opc-body inlet-body"
-              d="M 5 5 L 65 5 L 75 20 L 65 35 L 5 35 Z"
+              d="M 5 5 L @bodyEnd.ToString(CultureInfo.InvariantCulture) 5 L @tip.ToString(CultureInfo.InvariantCulture) @centerY.ToString(CultureInfo.InvariantCulture) L @bodyEnd.ToString(CultureInfo.InvariantCulture) 35 L 5 35 Z"
               fill="#FFFFFF"
               stroke="#64748B"
               stroke-width="1.5"
               filter="url(#opc-shadow-@_uid)" />
-              
+
         @* Puerto en la punta derecha (Verde) *@
-        <circle class="opc-port inlet-port" cx="75" cy="20" r="3" fill="#10B981" />
+        <circle class="opc-port inlet-port" cx="@tip.ToString(CultureInfo.InvariantCulture)" cy="@centerY.ToString(CultureInfo.InvariantCulture)" r="3" fill="#10B981" />
     }
 
-    @* Texto del destino/origen perfectamente centrado en la caja *@
+    @* Texto centrado dinámicamente según ancho real *@
     <text class="opc-label"
-          x="35" y="24"
+          x="@textX.ToString(CultureInfo.InvariantCulture)" y="24"
           text-anchor="middle"
           font-family="Segoe UI, sans-serif"
           font-size="11px"
@@ -57,6 +65,8 @@
     private string GetDisplayText()
     {
         if (string.IsNullOrWhiteSpace(TargetAreaName)) return "?";
-        return TargetAreaName.Length > 8 ? TargetAreaName.Substring(0, 8) + "." : TargetAreaName;
+        // ~7px por carácter a font-size 11px, con 20px de padding
+        int maxChars = Math.Max(3, (int)((Width - 20) / 7.0));
+        return TargetAreaName.Length > maxChars ? TargetAreaName.Substring(0, maxChars) + "." : TargetAreaName;
     }
 }

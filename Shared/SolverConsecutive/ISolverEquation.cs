@@ -1,4 +1,5 @@
 ﻿using Shared.SolverConsecutive.Equipments;
+using Shared.SolverQwen.Stream;
 
 namespace Shared.SolverConsecutive
 {
@@ -11,8 +12,14 @@ namespace Shared.SolverConsecutive
 
         List<IVariable> AdjustableVariables() => Variables.Where(x => !x.IsDefined).ToList();
 
+        SolverEquationTypeModifier EquationTypeModifer { get; }
+        void RefreshEquation() { }
 
 
+    }
+    public interface ISpecSolverEquation : ISolverEquation
+    {
+        IEnumerable<IFacadeStream> AsociatedStreams { get; }
     }
 
 }

@@ -13,7 +13,6 @@ namespace Server.Entities.Thermodynamics.Methods.Configurations
             // 1. CONFIGURACIÓN DE LA CLASE BASE (Entity)
             // ==========================================
             builder.HasKey(x => x.Id);
-            builder.HasQueryFilter(x => !x.IsDeleted);
             builder.Property(x => x.IsDeleted).HasDefaultValue(false);
             builder.Property(x => x.CreatedOn).IsRequired();
             builder.Property(x => x.CreatedBy).HasMaxLength(100);

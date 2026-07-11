@@ -1,0 +1,200 @@
+@using Shared.PipingRoutes
+@using Shared.ProcessFlowDiagram
+@implements IDisposable
+@inject FlowsheetManager FSM
+@inject IJSRuntime JS
+@inject DragStateService DragState
+
+<div class="@FSM.WorkspaceCssClass"
+     style="@FSM.WorkspaceBackgroundStyle"
+     @ref="workspaceRef"
+     tabindex="0"
+     @onmousedown="HandleMouseDown"
+     @onclick="HandleWorkspaceClick"
+     @onkeydown="HandleKeyDown"
+     @onkeyup="HandleKeyUp"
+     @onmousemove="HandleMouseMove"
+     @onmouseup="HandleMouseUp"
+     @onmouseleave="HandleMouseLeave"
+     @onwheel="HandleWheel"
+     @onwheel:preventDefault="true"
+     @ondragover:preventDefault="true"
+     @ondragover="() => { }"
+     @ondrop="HandleDrop">
+
+    <div class="camera-layer" style="@($"transform: {FSM.CameraTransform}; transform-origin: top left;")">
+
+        <div class="diagram-paper" style="@FSM.PaperStyle">
+
+            <svg class="pipes-layer">
+                @foreach (var pipe in FSM.Pipes)
+                {
+                    <ProcessCanvasPipeWrapper @key="pipe.Id" Pipe="pipe" IsDraft="false" />
+                }
+                @if (FSM.CurrentDraftPipe != null)
+                {
+                    <ProcessCanvasPipeWrapper Pipe="FSM.CurrentDraftPipe" IsDraft="true" />
+                }
+            </svg>
+
+            @foreach (var el in FSM.Elements)
+            {
+                <ProcessEquipmentRenderer @key="el.Id"
+                                          Element="el"
+                                          IsDragging="FSM.IsMoving(el)"
+                                          IsSelected="@(FSM.SelectedElement?.Id == el.Id)"
+                                          OnSelect="HandleSelect"
+                                          OnDragStart="e => FSM.StartMove(el, e)" />
+            }
+        </div>
+    </div>
+
+    <div class="zoom-to-fit-container">
+        <button class="zoom-to-fit-btn"
+                @onclick="HandleZoomToFit"
+                @onclick:stopPropagation="true"
+                @onmousedown:stopPropagation="true">
+            ⛶
+        </button>
+        <span class="pure-css-tooltip">Center Diagram & Fit to Screen</span>
+    </div>
+</div>
+
+@code {
+    private ElementReference workspaceRef;
+    private double canvasX;
+    private double canvasY;
+    private bool _mouseLeftCanvas;
+
+    protected override void OnInitialized()
+    {
+        FSM.OnNotifyUI += StateHasChanged;
+    }
+
+    public void Dispose()
+    {
+        FSM.OnNotifyUI -= StateHasChanged;
+    }
+
+    private void HandleSelect(IVisualElement element) => FSM.SelectElement(element);
+    private void HandleWorkspaceClick() => FSM.SelectElement(null);
+
+    private void HandleKeyDown(KeyboardEventArgs e)
+    {
+        if (e.CtrlKey) FSM.SetConnectionMode(true);
+    }
+
+    private void HandleKeyUp(KeyboardEventArgs e)
+    {
+        if (e.Key == "Control") FSM.SetConnectionMode(false);
+    }
+
+    private async Task HandleDrop(DragEventArgs e)
+    {
+        var offset = await JS.InvokeAsync<Offset>("canvasInterop.getCanvasOffset", workspaceRef);
+        canvasX = offset.X;
+        canvasY = offset.Y;
+
+        var pos = GetRelativeMousePosition(e);
+        FSM.AddFromToolbox(DragState.CurrentDraggedType, pos.X, pos.Y);
+    }
+
+    private async Task HandleMouseDown(MouseEventArgs e)
+    {
+        _mouseLeftCanvas = false;
+        await workspaceRef.FocusAsync();
+        var offset = await JS.InvokeAsync<Offset>("canvasInterop.getCanvasOffset", workspaceRef);
+        canvasX = offset.X;
+        canvasY = offset.Y;
+        FSM.StartPan(e);
+    }
+
+    private CanvasPoint GetRelativeMousePosition(MouseEventArgs e)
+    {
+        double relativeX = e.ClientX - canvasX;
+        double relativeY = e.ClientY - canvasY;
+        double effectiveZoom = Math.Max(FSM.Zoom * FSM.GlobalScale, 0.001);
+
+        return new CanvasPoint(
+            (relativeX - FSM.PanX) / effectiveZoom,
+            (relativeY - FSM.PanY) / effectiveZoom
+        );
+    }
+
+    private void HandleMouseMove(MouseEventArgs e)
+    {
+        var pos = GetRelativeMousePosition(e);
+
+        if (FSM.IsMovingAny || FSM.CurrentDraftPipe != null)
+        {
+            FSM.Move(e);
+            if (FSM.CurrentDraftPipe != null)
+            {
+                FSM.UpdateConnectionDraft(pos.X, pos.Y);
+            }
+        }
+        else if (FSM.IsPanning)
+        {
+            FSM.Pan(e);
+        }
+    }
+
+    private void HandleMouseUp(MouseEventArgs e)
+    {
+        if (!_mouseLeftCanvas && FSM.IsConnectionModeActive && FSM.CurrentDraftPipe != null)
+        {
+            var pos = GetRelativeMousePosition(e);
+            FSM.CompleteConnection(null, null, pos.X, pos.Y);
+        }
+
+        if (!_mouseLeftCanvas)
+        {
+            FSM.EndMove();
+        }
+
+        FSM.EndPan();
+        _mouseLeftCanvas = false;
+    }
+
+
+
+    private void HandleMouseLeave(MouseEventArgs e)
+    {
+        _mouseLeftCanvas = true;
+
+        // Si se está moviendo un equipo, finalizar el movimiento dejándolo
+        // dentro de la región cuadriculada (no cancelar). El draft de conexión
+        // sí se cancela si el ratón sale del workspace.
+        if (FSM.IsMovingAny)
+        {
+            FSM.EndMove();
+        }
+
+        FSM.EndPan();
+        if (FSM.CurrentDraftPipe != null) FSM.CancelConnectionDraft();
+    }
+
+    private void HandleWheel(WheelEventArgs e)
+    {
+        var pos = GetRelativeMousePosition(e);
+        FSM.ZoomAt(e.DeltaY, pos.X, pos.Y);
+    }
+
+    private async Task HandleZoomToFit()
+    {
+        var dims = await JS.InvokeAsync<Dimensions>("canvasInterop.getCanvasDimensions", workspaceRef);
+        FSM.ZoomToFit(dims.Width, dims.Height);
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await workspaceRef.FocusAsync();
+            await JS.InvokeVoidAsync("canvasInterop.preventScroll", workspaceRef);
+        }
+    }
+
+    public record Dimensions(double Width, double Height);
+    public record Offset(double X, double Y);
+}

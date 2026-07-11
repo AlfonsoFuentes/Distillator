@@ -152,7 +152,8 @@
         {
             // Edición: Consultamos al servidor
             var request = new GetMethodById(Id);
-            var result = await HttpServices.PostAsync<GetMethodById, Result<EditThermodynamicMethod>>(request);
+            // ❌ VIEJO: var result = await HttpServices.PostAsync<GetMethodById, Result<EditThermodynamicMethod>>(request);
+            var result = await HttpServices.PostAsync<GetMethodById, EditThermodynamicMethod>(request);
             if (result != null && result.Succeeded && result.Data != null)
             {
                 _model = result.Data;
@@ -213,7 +214,8 @@
                 Components = _model.Components,
                 BinaryParameters = _model.BinaryParameters
             };
-            await HttpServices.PostAsync<CreateThermodynamicMethod, Result>(createRequest);
+            // ❌ VIEJO: await HttpServices.PostAsync<CreateThermodynamicMethod, Result>(createRequest);
+            await HttpServices.PostAsync<CreateThermodynamicMethod>(createRequest);
         }
         else
         {
@@ -227,7 +229,8 @@
                 Components = _model.Components,
                 BinaryParameters = _model.BinaryParameters
             };
-            await HttpServices.PostAsync<EditThermodynamicMethod, Result>(editRequest);
+            // ❌ VIEJO: await HttpServices.PostAsync<EditThermodynamicMethod, Result>(editRequest);
+            await HttpServices.PostAsync<EditThermodynamicMethod>(editRequest);
         }
         
         NavigationManager.NavigateTo("/thermodynamic-methods");
@@ -236,7 +239,8 @@
     private async Task DeleteFromServerAsync()
     {
         var request = new DeleteMethod(Id);
-        await HttpServices.PostAsync<DeleteMethod, Result>(request);
+        // ❌ VIEJO: await HttpServices.PostAsync<DeleteMethod, Result>(request);
+        await HttpServices.PostAsync<DeleteMethod>(request);
         NavigationManager.NavigateTo("/thermodynamic-methods");
     }
 

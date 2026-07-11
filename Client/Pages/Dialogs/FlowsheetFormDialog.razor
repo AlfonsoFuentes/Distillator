@@ -1,0 +1,232 @@
+@using Distillator.Domain.Models
+@inject ProjectSessionService SessionService
+
+<MudDialog>
+    <DialogContent>
+        <MudForm @ref="_form" @bind-IsValid="_isValid">
+            <MudTextField @bind-Value="_model.Name"
+                          Label="Diagram Name"
+                          Required="true"
+                          RequiredError="Name is required"
+                          Validation="@(new Func<string?, string?>(ValidateName))"
+                          Immediate="true"
+                          Class="mb-4" />
+
+            @if (IsTypeFixed)
+            {
+                <MudTextField Value="EffectiveTypeName"
+                              Label="Diagram Type"
+                              ReadOnly="true"
+                              Class="mb-4" />
+            }
+            else if (IsNew)
+            {
+                <MudSelect @bind-Value="_model.TypeCode"
+                           Label="Diagram Type"
+                           Required="true"
+                           RequiredError="Type is required"
+                           Class="mb-4">
+                    @foreach (var type in AvailableTypes)
+                    {
+                        <MudSelectItem Value="@type.Code">@type.DisplayName</MudSelectItem>
+                    }
+                </MudSelect>
+            }
+            else
+            {
+                <MudTextField Value="CurrentTypeName"
+                              Label="Diagram Type"
+                              ReadOnly="true"
+                              Class="mb-4" />
+            }
+
+            <MudExpansionPanels MultiExpansion="true">
+                <MudExpansionPanel Text="Diagram Settings">
+                    <MudNumericField @bind-Value="_model.DiagramWidth"
+                                     Label="Paper Width"
+                                     Min="500"
+                                     Max="20000"
+                                     Step="100"
+                                     Class="mb-2" />
+                    <MudNumericField @bind-Value="_model.DiagramHeight"
+                                     Label="Paper Height"
+                                     Min="500"
+                                     Max="20000"
+                                     Step="100"
+                                     Class="mb-2" />
+                    <MudNumericField @bind-Value="_model.GridSize"
+                                     Label="Grid Size"
+                                     Min="5"
+                                     Max="200"
+                                     Step="5"
+                                     Class="mb-2" />
+                    <MudNumericField @bind-Value="_model.GlobalScale"
+                                     Label="Global Scale"
+                                     Min="0.1"
+                                     Max="2.0"
+                                     Step="0.1"
+                                     Class="mb-2" />
+                </MudExpansionPanel>
+
+                <MudExpansionPanel Text="Default Camera">
+                    <MudNumericField @bind-Value="_model.Zoom"
+                                     Label="Zoom"
+                                     Min="0.1"
+                                     Max="5.0"
+                                     Step="0.1"
+                                     Class="mb-2" />
+                    <MudNumericField @bind-Value="_model.PanX"
+                                     Label="Pan X"
+                                     Class="mb-2" />
+                    <MudNumericField @bind-Value="_model.PanY"
+                                     Label="Pan Y"
+                                     Class="mb-2" />
+                </MudExpansionPanel>
+            </MudExpansionPanels>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit" Disabled="!_isValid">Save</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
+    [Parameter] public Project? Project { get; set; }
+    [Parameter] public IFlowsheet? Flowsheet { get; set; }
+    [Parameter] public string? FixedTypeCode { get; set; }
+
+    private MudForm _form = default!;
+    private bool _isValid;
+    private FlowsheetModel _model = new();
+
+    private bool IsNew => Flowsheet == null;
+    private bool IsTypeFixed => !string.IsNullOrWhiteSpace(FixedTypeCode);
+    private string EffectiveTypeCode => IsTypeFixed ? FixedTypeCode! : _model.TypeCode;
+    private string EffectiveTypeName => Project?.FlowsheetTypes.GetByCode(EffectiveTypeCode)?.DisplayName ?? EffectiveTypeCode;
+
+    private IEnumerable<IFlowsheetType> AvailableTypes
+    {
+        get
+        {
+            if (Project == null) return Enumerable.Empty<IFlowsheetType>();
+            return Project.FlowsheetTypes.AllTypes;
+        }
+    }
+
+    private string CurrentTypeName
+    {
+        get
+        {
+            if (Project == null || Flowsheet == null) return string.Empty;
+            return Project.FlowsheetTypes.GetByCode(Flowsheet.TypeCode)?.DisplayName ?? Flowsheet.TypeCode;
+        }
+    }
+
+    protected override void OnParametersSet()
+    {
+        if (Flowsheet != null)
+        {
+            _model.Name = Flowsheet.Name;
+            _model.TypeCode = Flowsheet.TypeCode;
+            _model.DiagramWidth = Flowsheet.DiagramWidth;
+            _model.DiagramHeight = Flowsheet.DiagramHeight;
+            _model.GridSize = Flowsheet.GridSize;
+            _model.GlobalScale = Flowsheet.GlobalScale;
+            _model.Zoom = Flowsheet.Zoom;
+            _model.PanX = Flowsheet.PanX;
+            _model.PanY = Flowsheet.PanY;
+        }
+        else
+        {
+            _model.Name = string.Empty;
+            _model.TypeCode = FixedTypeCode ?? AvailableTypes.FirstOrDefault()?.Code ?? "PFD";
+            _model.DiagramWidth = 5000;
+            _model.DiagramHeight = 5000;
+            _model.GridSize = 20;
+            _model.GlobalScale = 0.7;
+            _model.Zoom = 1.0;
+            _model.PanX = 0;
+            _model.PanY = 0;
+        }
+    }
+
+    private string? ValidateName(string? name)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+            return "Name is required";
+
+        if (Project == null)
+            return null;
+
+        var typeCode = EffectiveTypeCode;
+        var existing = Project.Flowsheets
+            .Where(f => f.TypeCode.Equals(typeCode, StringComparison.OrdinalIgnoreCase)
+                        && (IsNew || f.Id != Flowsheet!.Id))
+            .Any(f => f.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+
+        if (existing)
+            return "A diagram with this name already exists for the selected type";
+
+        return null;
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private async Task Submit()
+    {
+        await _form.ValidateAsync();
+        if (!_isValid) return;
+
+        try
+        {
+            if (IsNew)
+            {
+                var flowsheet = await SessionService.CreateFlowsheetAsync(EffectiveTypeCode, _model.Name);
+                await SessionService.UpdateFlowsheetConfigurationAsync(
+                    flowsheet,
+                    null,
+                    _model.DiagramWidth,
+                    _model.DiagramHeight,
+                    _model.GlobalScale,
+                    _model.GridSize,
+                    _model.Zoom,
+                    _model.PanX,
+                    _model.PanY);
+            }
+            else if (Flowsheet != null)
+            {
+                await SessionService.UpdateFlowsheetConfigurationAsync(
+                    Flowsheet,
+                    _model.Name,
+                    _model.DiagramWidth,
+                    _model.DiagramHeight,
+                    _model.GlobalScale,
+                    _model.GridSize,
+                    _model.Zoom,
+                    _model.PanX,
+                    _model.PanY);
+            }
+
+            MudDialog.Close(DialogResult.Ok(true));
+        }
+        catch
+        {
+            // En caso de error, dejarlo en la UI. Podríamos usar Snackbar en el futuro.
+        }
+    }
+
+    private class FlowsheetModel
+    {
+        public string Name { get; set; } = string.Empty;
+        public string TypeCode { get; set; } = "PFD";
+        public double DiagramWidth { get; set; } = 5000;
+        public double DiagramHeight { get; set; } = 5000;
+        public double GridSize { get; set; } = 20;
+        public double GlobalScale { get; set; } = 0.7;
+        public double Zoom { get; set; } = 1.0;
+        public double PanX { get; set; }
+        public double PanY { get; set; }
+    }
+}

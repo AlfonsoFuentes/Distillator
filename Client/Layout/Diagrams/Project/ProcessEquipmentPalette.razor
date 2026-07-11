@@ -1,0 +1,119 @@
+@using Shared.ProcessFlowDiagram
+@using Client.Services.EquipmentManagers
+@using Client.Pages.Dialogs
+@implements IDisposable
+@inject FlowsheetManager FSM
+@inject ProjectSessionService SessionService
+@inject DragStateService DragState
+
+<div class="process-palette">
+    <div class="palette-header">
+        <span class="palette-title">PALETTE</span>
+    </div>
+
+    <div class="palette-body">
+        @if (!IsThermoDefined)
+        {
+            <div class="thermo-warning" title="Configure the thermodynamic method in Project Configuration">
+                <span>⚠</span>
+                <span>Configure thermodynamic method</span>
+            </div>
+        }
+        else
+        {
+            @* --- FUNDAMENTALS: MaterialStream --- *@
+            @if (AllowedTypes.Contains(EquipmentType.MaterialStream))
+            {
+                <div class="palette-group">
+                    <span class="group-title">FUNDAMENTALS</span>
+                    <div class="palette-item"
+                         draggable="true"
+                         @ondragstart="@(() => HandleDragStart(EquipmentType.MaterialStream))"
+                         @onmouseenter="@(() => _hoveredName = EquipmentType.MaterialStream.GetDescription())"
+                         @onmouseleave="@(() => _hoveredName = null)">
+                        <svg width="24" height="24" viewBox="0 0 32 32">
+                            <path d="M 4,16 L 24,16 M 18,10 L 24,16 L 18,22" fill="none" stroke="#2563EB" stroke-width="2.5" />
+                        </svg>
+                        @if (_hoveredName == EquipmentType.MaterialStream.GetDescription())
+                        {
+                            <div class="item-tooltip">@_hoveredName</div>
+                        }
+                    </div>
+                </div>
+            }
+
+            @* --- EQUIPOS AGRUPADOS POR CATEGORÍA --- *@
+            @foreach (var group in EquipmentRegistry.Groups)
+            {
+                var visibleItems = group.Items.Where(i => AllowedTypes.Contains(i.Type)).ToList();
+                if (!visibleItems.Any()) continue;
+
+                <div class="palette-group">
+                    <span class="group-title">@group.CategoryName</span>
+                    <div class="palette-grid">
+                        @foreach (var item in visibleItems)
+                        {
+                            var description = item.Type.GetDescription();
+
+                            <div class="palette-item"
+                                 draggable="true"
+                                 @ondragstart="@(() => HandleDragStart(item.Type))"
+                                 @onmouseenter="@(() => _hoveredName = description)"
+                                 @onmouseleave="@(() => _hoveredName = null)">
+                                <svg width="24" height="24" viewBox="0 0 32 32">
+                                    @item.IconContent
+                                </svg>
+
+                                @if (_hoveredName == description)
+                                {
+                                    <div class="item-tooltip">@_hoveredName</div>
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        }
+    </div>
+</div>
+
+@code {
+    private string? _hoveredName;
+
+    private bool IsThermoDefined => FSM.CurrentProject?.Configuration.ThermodynamicMethodId != Guid.Empty;
+
+    private HashSet<EquipmentType> AllowedTypes
+    {
+        get
+        {
+            var types = FSM.CurrentFlowsheet?.TypeDefinition.AllowedEquipmentTypes ?? Enumerable.Empty<EquipmentType>();
+            return types.Where(t => t != EquipmentType.None).ToHashSet();
+        }
+    }
+
+    protected override void OnInitialized()
+    {
+        SessionService.ProjectChanged += OnProjectChanged;
+    }
+
+    public void Dispose()
+    {
+        SessionService.ProjectChanged -= OnProjectChanged;
+    }
+
+    private void OnProjectChanged()
+    {
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void HandleDragStart(EquipmentType type)
+    {
+        if (!IsThermoDefined)
+        {
+            _hoveredName = "Configure thermodynamic method first";
+            return;
+        }
+        DragState.CurrentDraggedType = type;
+        _hoveredName = null;
+    }
+}

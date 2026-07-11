@@ -40,17 +40,72 @@ namespace Shared.SolverConsecutive.Equipments
             yield return new ValveMassBalanceEquation(this);
             yield return new ValveEnthalpyEquation(this);
             yield return new ValveMassEnergyBalanceEquation(this);
+            // Backup legacy: la V2 de specifications usa ValveMassBalanceEquation regular.
+            // yield return new ValveMassBalanceEquationSpec(this);
         }
 
         public void SetInlet(IFacadeStream inlet)
         {
-            Inlet = inlet;
-        }
+            if (inlet != null)
+            {
+                Inlets.Add(inlet);
+                Inlet = inlet;
+                Inlet.EquipmentOutlet = this;
 
+            }
+
+        }
+        public void UnSetInlet()
+        {
+            if (Inlet == null) return;
+            Inlets.Remove(Inlet);
+            Inlet.EquipmentOutlet = null!;
+            Inlet = null!;
+        }
         public void SetOutlet(IFacadeStream outlet)
         {
-            Outlet = outlet;
+            if (outlet != null)
+            {
+                Outlets.Add(outlet);
+                Outlet = outlet;
+                Outlet.EquipmentInlet = this;
+
+            }
         }
+        public void UnSetOutlet()
+        {
+            if (Outlet == null) return;
+            Outlets.Remove(Outlet);
+            Outlet.EquipmentInlet = null!;
+            Outlet = null!;
+        }
+
+        //public override IEnumerable<ISolverEquipment> GetEquipmentInlets(IFacadeStream stream)
+        //{
+        //    if (stream == null) yield break;
+        //    if (Outlet == stream)
+        //    {
+        //        yield return Inlet!.EquipmentInlet;
+
+        //    }
+
+
+
+
+
+        //}
+        //public override IEnumerable<ISolverEquipment> GetEquipmentOutlets(IFacadeStream stream)
+        //{
+        //    if (stream == null) yield break;
+
+        //    if (Inlet == stream)
+        //    {
+        //        yield return Outlet!.EquipmentOutlet;
+
+        //    }
+
+
+        //}
 
         public ValveStateType State => GetState();
 
@@ -132,9 +187,11 @@ namespace Shared.SolverConsecutive.Equipments
                 Cv.SetValue(new UnitLess(cv), VariableDefinedBy.Equipment);
             }
         }
+       
     }
     public class ValvePressureEquation : ISolverEquation
     {
+        public SolverEquationTypeModifier EquationTypeModifer { get; } = SolverEquationTypeModifier.Regular;
         SolverValve valve;
         public ValvePressureEquation(SolverValve _valve)
         {
@@ -169,6 +226,7 @@ namespace Shared.SolverConsecutive.Equipments
     }
     public class ValveConcentrationEquation : ISolverEquation
     {
+        public SolverEquationTypeModifier EquationTypeModifer { get; } = SolverEquationTypeModifier.Regular;
         SolverValve equipment;
         public ValveConcentrationEquation(SolverValve _valve)
         {
@@ -206,6 +264,7 @@ namespace Shared.SolverConsecutive.Equipments
 
     public class ValveMassBalanceEquation : ISolverEquation
     {
+        public SolverEquationTypeModifier EquationTypeModifer { get; } = SolverEquationTypeModifier.Regular;
         SolverValve equipment;
         public ValveMassBalanceEquation(SolverValve _valve)
         {
@@ -237,6 +296,7 @@ namespace Shared.SolverConsecutive.Equipments
     }
     public class ValveEnthalpyEquation : ISolverEquation
     {
+        public SolverEquationTypeModifier EquationTypeModifer { get; } = SolverEquationTypeModifier.Regular;
         SolverValve equipment;
         public ValveEnthalpyEquation(SolverValve _valve)
         {
@@ -270,6 +330,7 @@ namespace Shared.SolverConsecutive.Equipments
     }
     public class ValveMassEnergyBalanceEquation : ISolverEquation
     {
+        public SolverEquationTypeModifier EquationTypeModifer { get; } = SolverEquationTypeModifier.Regular;
         SolverValve equipment;
         public ValveMassEnergyBalanceEquation(SolverValve _valve)
         {
@@ -302,4 +363,51 @@ namespace Shared.SolverConsecutive.Equipments
             return _variables;
         }
     }
+    /*
+    // Backup legacy: la V2 de specifications usa ValveMassBalanceEquation regular.
+    public class ValveMassBalanceEquationSpec : ISpecSolverEquation
+    {
+        public SolverEquationTypeModifier EquationTypeModifer { get; } = SolverEquationTypeModifier.Spec;
+        SolverValve equipment;
+        public ValveMassBalanceEquationSpec(SolverValve _valve)
+        {
+            equipment = _valve;
+        }
+        public string Name => $"{EquationType} - {equipment.Name}";
+        public SolverEquationType EquationType => SolverEquationType.MassBalance;
+        public List<double> Residuals => GetResiduals();
+        public List<IVariable> Variables => GetVariables();
+        List<double> GetResiduals()
+        {
+
+            List<double> _residuals = new();
+            if (equipment.Inlet == null || equipment.Outlet == null) return _residuals;
+            double inletFlow = equipment.Inlet.MassFlow.GetSolverValue();
+            double outletFlow = equipment.Outlet.MassFlow.GetSolverValue();
+            _residuals.Add(inletFlow - outletFlow);
+
+            return _residuals;
+        }
+        List<IVariable> GetVariables()
+        {
+            List<IVariable> _variables = new();
+            if (equipment.Inlet == null || equipment.Outlet == null) return _variables;
+            _variables.Add(equipment.Inlet.MassFlow);
+            _variables.Add(equipment.Outlet.MassFlow);
+            return _variables;
+        }
+
+        public IEnumerable<IFacadeStream> AsociatedStreams
+        {
+            get
+            {
+                if (equipment.Inlet != null)
+                    yield return equipment.Inlet;
+
+                if (equipment.Outlet != null)
+                    yield return equipment.Outlet;
+            }
+        }
+    }
+    */
 }

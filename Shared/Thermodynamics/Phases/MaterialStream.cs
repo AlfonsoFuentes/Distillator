@@ -224,11 +224,19 @@ namespace Shared.Thermodynamics.Phases
                 double z_i = globalComp.MolarFraction;
                 double liquidNum = liquidComp.LiquidFugacityNumerator;
                 double vaporDen = vaporComp.VaporFugacityDenominator;
+
+                // 🔹 PROTECCIÓN: División por cero en K_i y denominador Rachford-Rice
                 double K_i = 0;
-                if (vaporDen != 0)
+                if (Math.Abs(vaporDen) > 1e-12)
                     K_i = liquidNum / vaporDen;
+                else
+                    K_i = 1.0; // Fallback neutral para evitar explosión
+
                 double vapfrac = vaporFraction.GetValue(PercentageUnits.Percentage) / 100.0;
-                double xliq = z_i / (1.0 + vapfrac * (K_i - 1.0));
+                double denom = 1.0 + vapfrac * (K_i - 1.0);
+
+                // Si denom ≈ 0, el sistema está en condición crítica o singular
+                double xliq = (Math.Abs(denom) > 1e-12) ? z_i / denom : z_i;
                 double yvap = K_i * xliq;
 
                 sumy += yvap;
@@ -248,8 +256,16 @@ namespace Shared.Thermodynamics.Phases
 
                     continue;
                 }
-                liquidComp.MolarFraction /= sumx;
-                vaporComp.MolarFraction /= sumy;
+                // 🔹 PROTECCIÓN: Normalización con suma cero
+                if (sumx > 1e-12)
+                    liquidComp.MolarFraction /= sumx;
+                else
+                    liquidComp.MolarFraction = 0.0;
+
+                if (sumy > 1e-12)
+                    vaporComp.MolarFraction /= sumy;
+                else
+                    vaporComp.MolarFraction = 0.0;
             }
             // ✅ Residuo: debe ser 0 en el punto de burbuja
             return sumy - sumx;
@@ -292,8 +308,12 @@ namespace Shared.Thermodynamics.Phases
             double deltaT = Math.Abs(temperature.GetValue(TemperatureUnits.Kelvin) - _lastTKelvin);
             double deltaP = Math.Abs(pressure.GetValue(PressureUnits.Bara) - _lastPBar);
 
-            double relDeltaT = deltaT / temperature.GetValue(TemperatureUnits.Kelvin);
-            double relDeltaP = deltaP / pressure.GetValue(PressureUnits.Bara);
+            double tKelvin = temperature.GetValue(TemperatureUnits.Kelvin);
+            double pBara = pressure.GetValue(PressureUnits.Bara);
+
+            // 🔹 PROTECCIÓN: División por cero en delta relativo
+            double relDeltaT = (tKelvin > 1e-12) ? deltaT / tKelvin : 0.0;
+            double relDeltaP = (pBara > 1e-12) ? deltaP / pBara : 0.0;
 
             double[] z = Components.Select(c => c.MolarFraction).ToArray();
             double[] K = new double[Components.Count];
@@ -317,8 +337,18 @@ namespace Shared.Thermodynamics.Phases
                 for (int i = 0; i < Components.Count; i++)
                 {
                     double den = 1.0 + vapfrac * (K[i] - 1.0);
-                    x_temp[i] = z[i] / den;
-                    y_temp[i] = K[i] * x_temp[i];
+
+                    // 🔹 PROTECCIÓN: Denominador Rachford-Rice cercano a cero
+                    if (Math.Abs(den) < 1e-12)
+                    {
+                        x_temp[i] = z[i];
+                        y_temp[i] = z[i];
+                    }
+                    else
+                    {
+                        x_temp[i] = z[i] / den;
+                        y_temp[i] = K[i] * x_temp[i];
+                    }
 
                     sumX += x_temp[i];
                     sumY += y_temp[i];
@@ -370,8 +400,18 @@ namespace Shared.Thermodynamics.Phases
                     // Actualizamos la K directamente
                     K[i] = newK;
                     double den = 1.0 + vapfrac * (K[i] - 1.0);
-                    x_temp[i] = z[i] / den;
-                    y_temp[i] = K[i] * x_temp[i];
+
+                    // 🔹 PROTECCIÓN: Denominador Rachford-Rice cercano a cero
+                    if (Math.Abs(den) < 1e-12)
+                    {
+                        x_temp[i] = z[i];
+                        y_temp[i] = z[i];
+                    }
+                    else
+                    {
+                        x_temp[i] = z[i] / den;
+                        y_temp[i] = K[i] * x_temp[i];
+                    }
 
                     sumX += x_temp[i];
                     sumY += y_temp[i];
@@ -381,10 +421,19 @@ namespace Shared.Thermodynamics.Phases
                 }
                 for (int i = 0; i < K.Length; i++)
                 {
-                    LiquidPhase.Components[i].MolarFraction = x_temp[i] / sumX;
-                    VaporPhase.Components[i].MolarFraction = y_temp[i] / sumY;
-                    LiquidPhase.Components[i].MassFraction = x_temp[i] * Components[i].MolecularWeight / _sumMassLiq;
-                    VaporPhase.Components[i].MassFraction = y_temp[i] * Components[i].MolecularWeight / _sumMassVap;
+                    // 🔹 PROTECCIÓN: Normalización con sumas cero
+                    LiquidPhase.Components[i].MolarFraction = (sumX > 1e-12) ? x_temp[i] / sumX : 0.0;
+                    VaporPhase.Components[i].MolarFraction = (sumY > 1e-12) ? y_temp[i] / sumY : 0.0;
+
+                    if (_sumMassLiq > 1e-12)
+                        LiquidPhase.Components[i].MassFraction = x_temp[i] * Components[i].MolecularWeight / _sumMassLiq;
+                    else
+                        LiquidPhase.Components[i].MassFraction = 0.0;
+
+                    if (_sumMassVap > 1e-12)
+                        VaporPhase.Components[i].MassFraction = y_temp[i] * Components[i].MolecularWeight / _sumMassVap;
+                    else
+                        VaporPhase.Components[i].MassFraction = 0.0;
                 }
                 // Condición de salida exitosa (Esperamos al menos 2 iteraciones para estabilizar)
                 if (iter > 2 && maxDeltaK < outerTol) break;
@@ -425,7 +474,9 @@ namespace Shared.Thermodynamics.Phases
             {
                 // Usamos tus evaluadores DIPPR que ya verificamos
                 double Psat = Components[i].PureComponentData.GetVaporPressure(t).GetValue(PressureUnits.KiloPascala);
-                K[i] = Psat / P_total;
+
+                // 🔹 PROTECCIÓN: Presión total cero
+                K[i] = (P_total > 1e-12) ? Psat / P_total : 1.0;
             }
             return K;
         }
@@ -542,7 +593,10 @@ namespace Shared.Thermodynamics.Phases
 
                 cpMolarMix = LiquidPhase.MolarHeatCapacity.GetValue(MolarEntropyUnits.KJ_Kgmol_C);
                 cpMassMix = LiquidPhase.MassHeatCapacity.GetValue(MassEntropyUnits.KJ_Kg_C);
-                vMolarMix = 1.0 / LiquidPhase.MolarDensity.GetValue(MolarDensityUnits.Kgmol_m3);
+
+                // 🔹 PROTECCIÓN: Densidad cero
+                double liqDens = LiquidPhase.MolarDensity.GetValue(MolarDensityUnits.Kgmol_m3);
+                vMolarMix = (liqDens > 1e-12) ? 1.0 / liqDens : 0.0;
             }
             else if (CurrentState == ThermodynamicState.SuperheatedVapor)
             {
@@ -554,7 +608,10 @@ namespace Shared.Thermodynamics.Phases
 
                 cpMolarMix = VaporPhase.MolarHeatCapacity.GetValue(MolarEntropyUnits.KJ_Kgmol_C);
                 cpMassMix = VaporPhase.MassHeatCapacity.GetValue(MassEntropyUnits.KJ_Kg_C);
-                vMolarMix = 1.0 / VaporPhase.MolarDensity.GetValue(MolarDensityUnits.Kgmol_m3);
+
+                // 🔹 PROTECCIÓN: Densidad cero
+                double vapDens = VaporPhase.MolarDensity.GetValue(MolarDensityUnits.Kgmol_m3);
+                vMolarMix = (vapDens > 1e-12) ? 1.0 / vapDens : 0.0;
             }
             else // Zona Bifásica (VaporLiquidMixture, SaturatedLiquid, SaturatedVapor)
             {
@@ -577,8 +634,11 @@ namespace Shared.Thermodynamics.Phases
 
                 double liquiddensity = LiquidPhase.MolarDensity.GetValue(MolarDensityUnits.Kgmol_m3);
                 double vapordensity = VaporPhase.MolarDensity.GetValue(MolarDensityUnits.Kgmol_m3);
-                vMolarMix = (1.0 - _vaporFrac) * (1.0 / liquiddensity) +
-                            _vaporFrac * (1.0 / vapordensity);
+
+                // 🔹 PROTECCIÓN: Densidades cero en mezcla bifásica
+                double vLiq = (liquiddensity > 1e-12) ? 1.0 / liquiddensity : 0.0;
+                double vVap = (vapordensity > 1e-12) ? 1.0 / vapordensity : 0.0;
+                vMolarMix = (1.0 - _vaporFrac) * vLiq + _vaporFrac * vVap;
             }
 
             MolarEnthalpy = new MolarEnergy(hMolarMix, MolarEnergyUnits.J_Kgmol);
@@ -619,10 +679,11 @@ namespace Shared.Thermodynamics.Phases
 
                 // Modelo de McAdams para viscosidad bifásica (basado en fracciones másicas)
                 double mixViscosity = 0.0;
-                if (viscLiq > 0 && viscVap > 0)
+                // 🔹 PROTECCIÓN: Viscosidad McAdams con denominadores cero
+                if (viscLiq > 1e-12 && viscVap > 1e-12)
                 {
                     double invViscMix = (vaporMassFraction / viscVap) + ((1.0 - vaporMassFraction) / viscLiq);
-                    mixViscosity = 1.0 / invViscMix;
+                    mixViscosity = (Math.Abs(invViscMix) > 1e-12) ? 1.0 / invViscMix : 0.0;
                 }
                 Viscosity = new Viscosity(mixViscosity, ViscosityUnits.Pa_s);
 
@@ -630,11 +691,12 @@ namespace Shared.Thermodynamics.Phases
                 double densLiqMass = LiquidPhase.MassDensity.GetValue(MassDensityUnits.Kg_m3);
                 double densVapMass = VaporPhase.MassDensity.GetValue(MassDensityUnits.Kg_m3);
 
-                double volLiq = (1.0 - vaporMassFraction) / densLiqMass;
-                double volVap = vaporMassFraction / densVapMass;
+                // 🔹 PROTECCIÓN: Densidades de masa cero
+                double volLiq = (densLiqMass > 1e-12) ? (1.0 - vaporMassFraction) / densLiqMass : 0.0;
+                double volVap = (densVapMass > 1e-12) ? vaporMassFraction / densVapMass : 0.0;
                 double totalVol = volLiq + volVap;
 
-                double liquidVolFraction = (totalVol > 0) ? (volLiq / totalVol) : 0.0;
+                double liquidVolFraction = (totalVol > 1e-12) ? (volLiq / totalVol) : 0.0;
 
                 double kLiq = LiquidPhase.ThermalConductivity.GetValue(ThermalConductivityUnits.W_m_K);
                 double kVap = VaporPhase.ThermalConductivity.GetValue(ThermalConductivityUnits.W_m_K);

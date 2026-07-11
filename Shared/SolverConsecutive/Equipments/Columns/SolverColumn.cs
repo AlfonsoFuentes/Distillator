@@ -14,7 +14,7 @@ namespace Shared.SolverConsecutive.Equipments.Columns
     /// </summary>
     public class SolverColumn : SolverEquipmentBase
     {
-      
+
 
         public Variable<Pressure> TopPressure { get; set; }
         public Variable<PressureDrop> DeltaP { get; set; }
@@ -33,7 +33,7 @@ namespace Shared.SolverConsecutive.Equipments.Columns
         public IFacadeStream? VaporOutlet { get; private set; }
         public IFacadeStream? BottomOutlet { get; private set; }
         public List<IFacadeStream> SideDraws { get; private set; } = new();
-       
+
         public override List<ISolverEquation> Equations => GetEquations().ToList();
         public ColumnResult? CalculationResult { get; private set; }
         public bool IsCalculationCompleted { get; private set; } = false;
@@ -77,7 +77,7 @@ namespace Shared.SolverConsecutive.Equipments.Columns
             }
         }
 
-        
+
         public SolverColumn(string name)
         {
             Name = name;
@@ -85,42 +85,111 @@ namespace Shared.SolverConsecutive.Equipments.Columns
             DeltaP = new Variable<PressureDrop>(new PressureDrop(0, PressureDropUnits.Pascal), PressureDropUnits.Bar, 100000);
             BottomPressure = new Variable<Pressure>(new Pressure(101325, PressureUnits.Pascala), PressureUnits.Bara, 100000);
 
-            
+
 
         }
 
-        // ====================================================================
-        // MÉTODOS PARA CONECTAR CORRIENTES
-        // ====================================================================
+
         public void AddFeed(IFacadeStream feed)
         {
+            if (Feeds.Contains(feed)) return;
+            Inlets.Add(feed);
             Feeds.Add(feed);
+            feed.EquipmentOutlet = this;
         }
-
+        public void RemoveSideDraw(IFacadeStream stream)
+        {
+            if (!SideDraws.Contains(stream)) return;
+            Outlets.Remove(stream);
+            SideDraws.Remove(stream);
+            stream.EquipmentInlet = null!;
+        }
+        public void RemoveFeed(IFacadeStream stream)
+        {
+            if (!Feeds.Contains(stream)) return;
+            Inlets.Remove(stream);
+            Feeds.Remove(stream);
+            stream.EquipmentOutlet = null!;
+        }
         public void AddSideDraw(IFacadeStream draw)
         {
+            if (SideDraws.Contains(draw)) return;
+            Outlets.Add(draw);
             SideDraws.Add(draw);
+            draw.EquipmentInlet = this;
         }
-
         public void SetRefluxInlet(IFacadeStream stream)
         {
-            RefluxInlet = stream;
+            if (stream != null)
+            {
+                Inlets.Add(stream);
+                RefluxInlet = stream;
+                RefluxInlet.EquipmentOutlet = this;
+
+            }
+        }
+        public void UnSetRefluxInlet()
+        {
+            if (RefluxInlet == null) return;
+            Inlets.Remove(RefluxInlet);
+            RefluxInlet?.EquipmentOutlet = null!;
+            RefluxInlet = null!;
         }
 
         public void SetVaporInlet(IFacadeStream stream)
         {
-            VaporInlet = stream;
-        }
+            if (stream != null)
+            {
+                Inlets.Add(stream);
+                VaporInlet = stream;
+                VaporInlet.EquipmentOutlet = this;
 
+            }
+        }
+        public void UnSetVaporInlet()
+        {
+            if (VaporInlet == null) return;
+            Inlets.Remove(VaporInlet);
+            VaporInlet?.EquipmentOutlet = null!;
+            VaporInlet = null!;
+        }
         public void SetTopVaporOutlet(IFacadeStream stream)
         {
-            VaporOutlet = stream;
+            if (stream != null)
+            {
+                Outlets.Add(stream);
+                VaporOutlet = stream;
+                VaporOutlet.EquipmentInlet = this;
+
+            }
+        }
+        public void UnSetTopVaporOutlet()
+        {
+            if (VaporOutlet == null) return;
+            Outlets.Remove(VaporOutlet);
+            VaporOutlet?.EquipmentInlet = null!;
+            VaporOutlet = null!;
         }
 
         public void SetBottomOutlet(IFacadeStream stream)
         {
-            BottomOutlet = stream;
+            if (stream != null)
+            {
+                Outlets.Add(stream);
+                BottomOutlet = stream;
+                BottomOutlet.EquipmentInlet = this;
+
+            }
         }
+        public void UnSetBottomOutlet()
+        {
+            if (BottomOutlet == null) return;
+            Outlets.Remove(BottomOutlet);
+            BottomOutlet?.EquipmentInlet = null!;
+            BottomOutlet = null!;
+        }
+
+
 
         // ====================================================================
         // ESTADO DEL EQUIPO
@@ -151,14 +220,17 @@ namespace Shared.SolverConsecutive.Equipments.Columns
 
             return ColumnStateType.ReadyToCalculate;
         }
-       
+
         private IEnumerable<ISolverEquation> GetEquations()
         {
             yield return new ColumnPressureTopEquation(this);
             yield return new ColumnPressureDeltaPEquation(this);
             yield return new ColumnPressureBottomEquation(this);
             yield return new ColumnEnergyBalanceEquation(this);
+            // Backup legacy: la V2 de specifications usa ColumnEnergyBalanceEquation regular.
+            // yield return new ColumnMassBalanceEquationSpec(this);
         }
+        
     }
 
 
@@ -201,13 +273,15 @@ namespace Shared.SolverConsecutive.Equipments.Columns
 
             return variables;
         }
+
+        public SolverEquationTypeModifier EquationTypeModifer => SolverEquationTypeModifier.Regular;
     }
 
     // ECUACIÓN 2: Relación DeltaP (INDEPENDIENTE)
     public class ColumnPressureDeltaPEquation : ISolverEquation
     {
         private readonly SolverColumn _column;
-
+        public SolverEquationTypeModifier EquationTypeModifer => SolverEquationTypeModifier.Regular;
         public ColumnPressureDeltaPEquation(SolverColumn column) => _column = column;
 
         public string Name => $"{EquationType} - DeltaP - {_column.Name}";
@@ -244,7 +318,7 @@ namespace Shared.SolverConsecutive.Equipments.Columns
     public class ColumnPressureBottomEquation : ISolverEquation
     {
         private readonly SolverColumn _column;
-
+        public SolverEquationTypeModifier EquationTypeModifer => SolverEquationTypeModifier.Regular;
         public ColumnPressureBottomEquation(SolverColumn column) => _column = column;
 
         public string Name => $"{EquationType} - Bottom - {_column.Name}";
@@ -300,7 +374,7 @@ namespace Shared.SolverConsecutive.Equipments.Columns
     public class ColumnEnergyBalanceEquation : ISolverEquation
     {
         private readonly SolverColumn _column;
-
+        public SolverEquationTypeModifier EquationTypeModifer => SolverEquationTypeModifier.Regular;
         public ColumnEnergyBalanceEquation(SolverColumn column)
         {
             _column = column;
@@ -479,6 +553,7 @@ namespace Shared.SolverConsecutive.Equipments.Columns
             return variables;
         }
     }
+   
 
 
 }

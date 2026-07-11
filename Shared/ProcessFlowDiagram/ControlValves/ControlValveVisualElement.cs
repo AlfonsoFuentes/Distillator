@@ -72,11 +72,11 @@ namespace Shared.ProcessFlowDiagram.ControlValves
         {
             if (portName == PortInletName)
             {
-                Valve.SetInlet(null!);
+                Valve.UnSetInlet();
             }
             else if (portName == PortOutletName)
             {
-                Valve.SetOutlet(null!);
+                Valve.UnSetOutlet();
             }
         }
 

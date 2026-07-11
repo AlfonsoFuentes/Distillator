@@ -1,6 +1,9 @@
 ﻿using BlazorDownloadFile;
 using Client.Services.HttpServices;
 using Client.Services.Security;
+using Distillator.Domain.Configuration;
+using Distillator.Domain.Repositories;
+using Distillator.Domain.Repositories.InMemory;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using MudBlazor.Services;
@@ -26,7 +29,7 @@ namespace Client.Services
                 .Services
 
                
-               
+                
 
                 .AddScoped(sp => sp
                     .GetRequiredService<IHttpClientFactory>()
@@ -39,7 +42,12 @@ namespace Client.Services
 
                 });
             builder.Services.AddAuthorizationCore();
-            builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStateProvider>();
+            builder.Services.AddScoped<CustomAuthenticationStateProvider>();
+            builder.Services.AddScoped<AuthenticationStateProvider>(sp => sp.GetRequiredService<CustomAuthenticationStateProvider>());
+            builder.Services.AddScoped<IProjectConfiguration, ProjectConfiguration>();
+            builder.Services.AddScoped<ProjectSessionService>();
+            builder.Services.AddScoped<IProjectRepository, InMemoryProjectRepository>();
+            builder.Services.AddScoped<IUserSessionStateRepository, InMemoryUserSessionStateRepository>();
             builder.Services.AddMudServices();
             builder.Services.AddHttpClientInterceptor();
             builder.Services.AddScoped<IHttpService, HttpService>();

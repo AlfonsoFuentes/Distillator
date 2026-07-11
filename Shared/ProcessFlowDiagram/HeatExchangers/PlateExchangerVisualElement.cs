@@ -93,19 +93,19 @@ namespace Shared.ProcessFlowDiagram.HeatExchangers
         {
             if (portName == PortHotInName)
             {
-                HX.SetHotInlet(null!);
+                HX.UnSetHotInlet();
             }
             else if (portName == PortHotOutName)
             {
-                HX.SetHotOutlet(null!);
+                HX.UnSetHotOutlet();
             }
             else if (portName == PortColdInName)
             {
-                HX.SetColdInlet(null!);
+                HX.UnSetColdInlet();
             }
             else if (portName == PortColdOutName)
             {
-                HX.SetColdOutlet(null!);
+                HX.UnSetColdOutlet();
             }
         }
 

@@ -1,5 +1,5 @@
 ﻿@using Shared.ProcessFlowDiagram.Pipes
-@inject WorkspaceManager WM
+@* @inject WorkspaceManager WM *@
 
 <div class="scrollable-container spec-container">
     <div class="data-grid spec-grid">
@@ -165,7 +165,7 @@
 
     protected override void OnInitialized() { RefreshLists(); LoadExistingSpecs(); }
 
-    private void LoadExistingSpecs()
+        private void LoadExistingSpecs()
     {
         var solverEq = Equipment.Facade as SolverEquipmentBase;
         if (solverEq == null) return;
@@ -173,15 +173,13 @@
         Specs.Clear();
         foreach (var spec in solverEq.Specifications)
         {
-            // 🔥 Casteo Maestro: Verificamos contra la clase base abstracta
             if (spec is StreamSpecificationBase streamSpec)
             {
-                var sourceVisual = WM.Areas.SelectMany(a => a.Elements).FirstOrDefault(e => e.Facade == streamSpec.Source) as StreamVisualElement;
-                var destVisual = WM.Areas.SelectMany(a => a.Elements).FirstOrDefault(e => e.Facade == streamSpec.Destination) as StreamVisualElement;
+                var sourceVisual = FSM.Elements.FirstOrDefault(e => e.Facade == streamSpec.Source) as StreamVisualElement;
+                var destVisual = FSM.Elements.FirstOrDefault(e => e.Facade == streamSpec.Destination) as StreamVisualElement;
 
                 double specValue = 1.0;
 
-                // 🔥 Casteo Secundario: Buscamos la propiedad específica del hijo
                 if (streamSpec is MultiplierSpecification multSpec) { specValue = multSpec.Multiplier; }
 
                 Specs.Add(new SpecRowModel
@@ -200,12 +198,47 @@
         }
     }
 
+    /*
+    // --- CÓDIGO VIEJO (WM) PARA REFERENCIA ---
+    private void LoadExistingSpecs_Old()
+    {
+        var solverEq = Equipment.Facade as SolverEquipmentBase;
+        if (solverEq == null) return;
+        Specs.Clear();
+        foreach (var spec in solverEq.Specifications)
+        {
+            if (spec is StreamSpecificationBase streamSpec)
+            {
+                var sourceVisual = WM.Areas.SelectMany(a => a.Elements).FirstOrDefault(e => e.Facade == streamSpec.Source) as StreamVisualElement;
+                var destVisual = WM.Areas.SelectMany(a => a.Elements).FirstOrDefault(e => e.Facade == streamSpec.Destination) as StreamVisualElement;
+                // ...
+            }
+        }
+    }
+    */
+
     private void RefreshLists()
+    {
+        AllStreamNames = FSM.Elements.OfType<StreamVisualElement>().Select(s => s.Label).ToList();
+        LocalStreamNames = new List<string>();
+        var localPipes = FSM.Pipes.Where(p => p.SourceElementId == Equipment.Id || p.TargetElementId == Equipment.Id);
+
+        foreach (var pipe in localPipes)
+        {
+            var otherElId = pipe.SourceElementId == Equipment.Id ? pipe.TargetElementId : pipe.SourceElementId;
+            var otherEl = FSM.Elements.FirstOrDefault(e => e.Id == otherElId)
+                ?? FSM.CurrentProject?.EquipmentRegistry.GetById(otherElId);
+            if (otherEl is StreamVisualElement sve) LocalStreamNames.Add(sve.Label);
+        }
+    }
+
+    /*
+    // --- CÓDIGO VIEJO (WM) PARA REFERENCIA ---
+    private void RefreshLists_Old()
     {
         AllStreamNames = WM.Areas.SelectMany(a => a.Elements).OfType<StreamVisualElement>().Select(s => s.Label).ToList();
         LocalStreamNames = new List<string>();
         var localPipes = WM.Areas.SelectMany(a => a.Pipes).Where(p => p.SourceElementId == Equipment.Id || p.TargetElementId == Equipment.Id);
-
         foreach (var pipe in localPipes)
         {
             var otherElId = pipe.SourceElementId == Equipment.Id ? pipe.TargetElementId : pipe.SourceElementId;
@@ -213,6 +246,7 @@
             if (otherEl is StreamVisualElement sve) LocalStreamNames.Add(sve.Label);
         }
     }
+    */
 
     private IEnumerable<string> GetAvailableDestinations(string currentSource) => LocalStreamNames.Where(s => !string.Equals(s, currentSource, StringComparison.OrdinalIgnoreCase));
     private IEnumerable<string> GetAvailableSources(string currentDest) => AllStreamNames.Where(s => !string.Equals(s, currentDest, StringComparison.OrdinalIgnoreCase));
@@ -241,9 +275,9 @@
         var solverEq = Equipment.Facade as SolverEquipmentBase;
         if (solverEq == null) return;
 
-        var sourceStream = WM.Areas.SelectMany(a => a.Elements).OfType<StreamVisualElement>()
+        var sourceStream = FSM.Elements.OfType<StreamVisualElement>()
                              .FirstOrDefault(s => string.Equals(s.Label, row.TempSource, StringComparison.OrdinalIgnoreCase))?.Facade as IFacadeStream;
-        var destStream = WM.Areas.SelectMany(a => a.Elements).OfType<StreamVisualElement>()
+        var destStream = FSM.Elements.OfType<StreamVisualElement>()
                              .FirstOrDefault(s => string.Equals(s.Label, row.TempDest, StringComparison.OrdinalIgnoreCase))?.Facade as IFacadeStream;
 
         if (sourceStream == null || destStream == null) return;
@@ -279,8 +313,13 @@
         row.IsEditing = false; row.IsNew = false;
 
         if (OnSpecificationsChanged.HasDelegate) await OnSpecificationsChanged.InvokeAsync();
-        WM.RunSimulation();
+        FSM.RunSimulation();
     }
+
+    /*
+    // --- CÓDIGO VIEJO (WM) PARA REFERENCIA ---
+    // WM.RunSimulation() en SaveRow → FSM.RunSimulation()
+    */
 
     private void CancelEdit(SpecRowModel row) { if (row.IsNew) Specs.Remove(row); else row.IsEditing = false; }
 
@@ -290,6 +329,6 @@
         var solverEq = Equipment.Facade as SolverEquipmentBase;
         if (solverEq != null && row.BackendSpec != null) { solverEq.RemoveSpec(row.BackendSpec); }
         if (OnSpecificationsChanged.HasDelegate) await OnSpecificationsChanged.InvokeAsync();
-        WM.RunSimulation();
+        FSM.RunSimulation();
     }
 }

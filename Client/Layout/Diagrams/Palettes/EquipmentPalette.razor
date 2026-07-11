@@ -1,4 +1,5 @@
 ﻿@attribute [Authorize]
+@*
 @using Pages.Configuration
 @inject IMainSolver Solver
 <div class="floating-palette-panel narrow">
@@ -19,7 +20,7 @@
         <div class="group-divider"></div>
 
         <div class="group-divider"></div>
-        @* 🔥 MENSAJE INFORMATIVO SI NO HAY MÉTODO DEFINIDO *@
+        @* 🔥 MENSAJE INFORMATIVO SI NO HAY MÉTODO DEFINIDO 
         @if (!isThermoDefined)
         {
             <div class="thermo-warning-banner">
@@ -33,7 +34,7 @@
         @if (isThermoDefined)
         {
 
-            @* --- 1. FUNDAMENTALS ---*@
+          --- 1. FUNDAMENTALS ---
             <div class="fundamentals-section">
                 <span class="group-header">FUNDAMENTALS</span>
                 <div class="fundamentals-row">
@@ -61,7 +62,7 @@
 
             <div class="group-divider"></div>
 
-            @* --- 2. EQUIPOS DINÁMICOS --- *@
+            @* --- 2. EQUIPOS DINÁMICOS ---
             @foreach (var group in EquipmentRegistry.Groups)
             {
                 <div class="equipment-group">
@@ -129,4 +130,4 @@
             StateHasChanged();
         }
     }
-}
+} *@

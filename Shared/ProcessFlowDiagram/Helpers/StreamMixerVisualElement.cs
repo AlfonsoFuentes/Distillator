@@ -94,7 +94,7 @@ namespace Shared.ProcessFlowDiagram.Helpers
         {
             if (portName == "Outlet")
             {
-                StreamMixer.SetOutlet(null!);
+                StreamMixer.UnSetOutlet();
             }
             else if (portName.StartsWith("Inlet_"))
             {

@@ -15,8 +15,11 @@ namespace Shared.WorkSpaceManagers
 {
     public interface INamingService
     {
+        // Cambiamos la firma para recibir los nombres existentes
         string GenerateNextName(string prefix);
     }
+
+ 
 
     public interface IEquipmentFactory
     {
@@ -26,13 +29,10 @@ namespace Shared.WorkSpaceManagers
 
     public class EquipmentFactory : IEquipmentFactory
     {
-        private readonly INamingService _naming;
         private readonly Dictionary<EquipmentType, Func<IVisualElement>> _registry = new();
 
-        public EquipmentFactory(INamingService naming)
+        public EquipmentFactory()
         {
-            _naming = naming;
-            // Registro tipado con el Enum
             Register(EquipmentType.MaterialStream, () => new StreamVisualElement());
             Register(EquipmentType.Column, () => new ColumnVisualElement());
             Register(EquipmentType.FlashDrum, () => new FlashTankVisualElement());
@@ -51,16 +51,9 @@ namespace Shared.WorkSpaceManagers
 
         public IVisualElement? Create(EquipmentType type, double x, double y, Func<double, double> snap)
         {
-
             if (!_registry.TryGetValue(type, out var factory)) return null;
-
             var element = factory();
             element.SetDropPosition(x, y, snap);
-
-            var name = _naming.GenerateNextName(element.Prefix);
-            element.Facade.Name = name;
-            element.Label = name;
-
             return element;
         }
     }

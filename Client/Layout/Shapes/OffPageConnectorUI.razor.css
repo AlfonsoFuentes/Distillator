@@ -1,9 +1,10 @@
 ﻿/* OffPageConnectorUI.razor.css */
 .opc-svg {
     cursor: pointer;
-    transition: transform 0.1s ease-in-out;
+    transition: transform 0.1s ease-in-out, filter 0.15s ease;
 }
 
     .opc-svg:hover {
         transform: scale(1.05); /* Pequeño feedback visual de que es clickeable */
+        filter: drop-shadow(0 0 4px rgba(59, 130, 246, 0.6)); /* Halo azul al pasar el mouse */
     }

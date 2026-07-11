@@ -1,0 +1,293 @@
+.equipment-container {
+    position: absolute;
+    cursor: grab;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    outline: none;
+    user-select: none;
+    transition: filter 0.2s ease;
+}
+
+    .equipment-container:hover,
+    .equipment-container:focus-within {
+        z-index: 5000 !important;
+    }
+
+    .equipment-container:active {
+        cursor: grabbing;
+    }
+
+    .equipment-container:has(.port:hover) .equipment-tooltip {
+        opacity: 0 !important;
+        visibility: hidden !important;
+        pointer-events: none !important;
+        transition: none !important;
+    }
+
+.equipment-graphics-rotate {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transform-origin: center center;
+    will-change: transform;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 2px;
+}
+
+.equipment-label {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 2px 8px;
+    background-color: #FFFFFF;
+    color: #2D3748;
+    font-size: 0.7rem;
+    font-weight: 800;
+    border: 1px solid #E2E8F0;
+    border-radius: 4px;
+    pointer-events: none;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    white-space: nowrap;
+    z-index: 10;
+}
+
+.mini-toolbar {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 12px;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s ease;
+    z-index: 100;
+}
+
+.equipment-container:hover .mini-toolbar {
+    opacity: 1;
+    visibility: visible;
+}
+
+.mini-toolbar button {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 18px;
+    color: #4A5568;
+    padding: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s ease, transform 0.1s ease;
+    position: relative;
+}
+
+    .mini-toolbar button::after {
+        content: attr(data-title);
+        position: absolute;
+        bottom: calc(100% + 2px);
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: #F8FAFC;
+        color: #4A5568;
+        font-family: 'Consolas', monospace;
+        font-size: 0.65rem;
+        font-weight: 700;
+        padding: 4px 8px;
+        border: 1px solid #E2E8F0;
+        border-radius: 4px;
+        white-space: nowrap;
+        pointer-events: none;
+        box-shadow: 2px 2px 5px rgba(0,0,0,0.06);
+        z-index: 10000;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.2s ease, visibility 0.2s ease, transform 0.2s ease;
+    }
+
+    .mini-toolbar button:hover::after {
+        opacity: 1;
+        visibility: visible;
+    }
+
+.equipment-tooltip {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #FFFFFF !important;
+    opacity: 1 !important;
+    color: #2D3748;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    z-index: 4000;
+    pointer-events: none;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+    border: 1px solid #E2E8F0;
+    border-top: 4px solid #4299E1;
+    min-width: 185px;
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+}
+
+.tooltip-header {
+    font-weight: 900;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    border-bottom: 1px solid #F1F5F9;
+    padding-bottom: 6px;
+}
+
+.tooltip-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 6px;
+}
+
+    .tooltip-row .label {
+        color: #718096;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    .tooltip-row .value {
+        color: #2B6CB0;
+        font-family: 'Consolas', monospace;
+        font-weight: 700;
+        text-align: right;
+        white-space: nowrap;
+    }
+
+.connection-ports {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+    .connection-ports.connection-mode {
+        opacity: 1;
+    }
+
+.port {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 9999;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    pointer-events: none;
+    opacity: 0;
+}
+
+.connection-ports.connection-mode .port.port-free {
+    opacity: 1;
+    pointer-events: auto;
+    cursor: crosshair;
+    background: #10B981;
+    border: 2px solid #FFFFFF;
+    box-shadow: 0 0 12px 3px rgba(16, 185, 129, 0.6);
+    transform: translate(-50%, -50%) scale(1.1);
+}
+
+.connection-ports.connection-mode .port.port-connected {
+    opacity: 0.15;
+    background: #6B7280;
+    border: 1px solid #9CA3AF;
+    pointer-events: none;
+}
+
+.port-tooltip-fixed {
+    position: absolute;
+    background-color: #F8FAFC;
+    color: #4A5568;
+    font-family: 'Consolas', monospace;
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 3px 6px;
+    border: 1px solid #E2E8F0;
+    border-radius: 4px;
+    white-space: nowrap;
+    pointer-events: none;
+    box-shadow: 2px 2px 5px rgba(0,0,0,0.06);
+    z-index: 10000;
+    max-width: 110px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.equipment-container.selected .equipment-graphics-rotate {
+    filter: drop-shadow(0 0 4px rgba(14, 165, 233, 0.5));
+    outline: 1.5px dashed #0EA5E9;
+    outline-offset: 6px;
+    border-radius: 1px;
+}
+
+.connection-ports.connection-mode .port.port-valid-target {
+    opacity: 1;
+    pointer-events: auto;
+    cursor: pointer;
+    background: #00D26A;
+    border: 2px solid #FFFFFF;
+    box-shadow: 0 0 18px 6px rgba(0, 210, 106, 0.8);
+    transform: translate(-50%, -50%) scale(1.4);
+    animation: glow-target 1.2s ease-in-out infinite alternate;
+}
+
+.connection-ports.connection-mode .port.port-source {
+    opacity: 1;
+    background: #0EA5E9;
+    border: 2px solid #FFFFFF;
+    box-shadow: 0 0 15px 4px rgba(14, 165, 233, 0.7);
+    transform: translate(-50%, -50%) scale(1.3);
+    pointer-events: none;
+    animation: pulse-source 1.5s infinite;
+}
+
+.connection-ports.connection-mode .port.port-dimmed {
+    opacity: 0.1;
+    background: #6B7280;
+    border: 1px solid #9CA3AF;
+    pointer-events: none;
+    transform: translate(-50%, -50%) scale(0.8);
+    filter: grayscale(100%);
+}
+
+@keyframes pulse-source {
+    0%, 100% {
+        box-shadow: 0 0 15px 4px rgba(14, 165, 233, 0.7);
+    }
+
+    50% {
+        box-shadow: 0 0 20px 6px rgba(14, 165, 233, 0.9);
+    }
+}
+
+@keyframes glow-target {
+    from {
+        box-shadow: 0 0 15px 5px rgba(0, 210, 106, 0.7);
+    }
+
+    to {
+        box-shadow: 0 0 22px 8px rgba(0, 210, 106, 0.95);
+    }
+}
+
+::deep .equipment-nozzle {
+    fill: #94A3B8;
+    stroke: #334155;
+    stroke-width: 1.2px;
+    transition: filter 0.2s;
+}
+
+.equipment-container:hover ::deep .equipment-nozzle {
+    filter: brightness(1.1);
+}

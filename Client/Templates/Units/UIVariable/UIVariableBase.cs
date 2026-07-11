@@ -1,4 +1,4 @@
-﻿using Client.Services.EquipmentManagers;
+﻿using Client.Services.ProjectWorkspace;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Shared.SolverConsecutive;
@@ -8,19 +8,42 @@ using UnitSystem;
 namespace Client.Templates.Units.UIVariable
 {
 
-    public abstract class UIVariableBase<T> : ComponentBase where T : Amount
+    public abstract class UIVariableBase<T> : ComponentBase, IDisposable where T : Amount
     {
-        [Inject] protected WorkspaceManager _WM { get; set; } = null!;
+        [Inject] protected FlowsheetManager FlowsheetManager { get; set; } = null!;
         [Parameter] public string Label { get; set; } = string.Empty;
         [Parameter] public Variable<T> Variable { get; set; } = default!;
         [Parameter] public EventCallback<Variable<T>> VariableChanged { get; set; }
         [Parameter] public bool IsReadOnly { get; set; } = false;
 
-        // Estado interno del componente (igual que antes)
         protected string? _tempInputValue;
         protected bool _isEditing;
         protected bool _showUnitSelector;
         protected ElementReference _inputRef;
+        private Variable<T>? _subscribedVariable;
+
+        protected override void OnParametersSet()
+        {
+            if (_subscribedVariable != Variable)
+            {
+                if (_subscribedVariable != null)
+                    _subscribedVariable.ValueChanged -= OnVariableValueChanged;
+                _subscribedVariable = Variable;
+                if (_subscribedVariable != null)
+                    _subscribedVariable.ValueChanged += OnVariableValueChanged;
+            }
+        }
+
+        private void OnVariableValueChanged()
+        {
+            InvokeAsync(StateHasChanged);
+        }
+
+        public void Dispose()
+        {
+            if (_subscribedVariable != null)
+                _subscribedVariable.ValueChanged -= OnVariableValueChanged;
+        }
 
         // 🔥 NUEVO: Determinar si es readonly basado en flags del nuevo sistema
         protected bool IsEffectivelyReadOnly => IsReadOnly || Variable?.IsCalculated == true;
@@ -76,11 +99,11 @@ namespace Client.Templates.Units.UIVariable
             if (e.Key == "Delete")
             {
                 Variable?.ClearFromUI(); // 🔥 NUEVO: ClearFromUI en lugar de ClearValue
-                if (_WM != null)
+                if (FlowsheetManager != null)
                 {
                     // Usa 'await' si tu interfaz dice: Task RunSimulation();
                     // Usa llamada normal si dice: void RunSimulation();
-                    _WM.RunSimulation();
+                    FlowsheetManager.RunSimulation();
                 }
                 _isEditing = false;
                 _tempInputValue = null;
@@ -137,11 +160,11 @@ namespace Client.Templates.Units.UIVariable
                     newValue.SetValue(newVal.Value, currentUnit); // 🔥 NUEVO: SetValue con valor y unidad
 
                     Variable.SetValueFromUI(newValue); // 🔥 NUEVO: SetValueFromUI
-                    if (_WM != null)
+                    if (FlowsheetManager != null)
                     {
                         // Usa 'await' si tu interfaz dice: Task RunSimulation();
                         // Usa llamada normal si dice: void RunSimulation();
-                        _WM.RunSimulation();
+                        FlowsheetManager.RunSimulation();
                     }
                 }
             }

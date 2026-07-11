@@ -19,8 +19,36 @@ namespace Shared.PipingRoutes
     {
         private const double EPSILON = 0.1;
         private const double PIPE_MARGIN = 15.0;
-
         public bool HasCollision(CanvasPoint p1, CanvasPoint p2, PipeRoutingContext ctx)
+        {
+            // 1. Equipos obstáculos físicos (Ignorando origen y destino del contexto)
+            foreach (var obstacle in ctx.EquipmentObstacles)
+            {
+                var box = GetScreenBoundingBox(obstacle);
+
+                // El truco: Si el segmento ES MUY CORTO y está saliendo de una boquilla,
+                // no debería contar como colisión. Pero si atraviesa el centro, sí.
+                if (IntersectsRect(p1, p2, new CanvasPoint(box.X, box.Y), box.Width, box.Height))
+                {
+                    // Verificamos si estamos cerca de los puertos del equipo
+                    // Si la línea es muy corta y está cerca de un borde, la perdonamos
+                    if (IsPortExit(p1, box) || IsPortExit(p2, box))
+                        continue;
+
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        // Helper para detectar si un punto es salida de puerto
+        private bool IsPortExit(CanvasPoint p, ScreenBoundingBox box)
+        {
+            double margin = 10.0;
+            return (Math.Abs(p.X - box.X) < margin || Math.Abs(p.X - (box.X + box.Width)) < margin ||
+                    Math.Abs(p.Y - box.Y) < margin || Math.Abs(p.Y - (box.Y + box.Height)) < margin);
+        }
+        public bool HasCollision2(CanvasPoint p1, CanvasPoint p2, PipeRoutingContext ctx)
         {
             // 1. Equipos A y B (Origen y Destino)
             if (IntersectsRect(p1, p2, ctx.AEquipPos, ctx.AWidth, ctx.AHeight)) return true;

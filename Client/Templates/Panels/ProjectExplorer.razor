@@ -1,0 +1,238 @@
+@using Client.Services.Security
+@using Distillator.Domain.Models
+@using Distillator.Domain.Repositories
+@using Distillator.Domain.Repositories.InMemory
+@using Client.Services.Helpers
+@using Client.Pages.Dialogs
+@using Shared.Helpers
+
+@inject IProjectRepository ProjectRepository
+
+<div class="project-explorer @(IsCollapsed ? "collapsed" : "expanded")">
+    <div class="explorer-header">
+        @if (!IsCollapsed)
+        {
+            <span class="explorer-title">PROJECTS</span>
+        }
+        <button class="toggle-btn" @onclick="ToggleExplorer" title="@(IsCollapsed ? "Expand" : "Collapse")">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                @if (IsCollapsed)
+                {
+                    <path d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+                }
+                else
+                {
+                    <path d="M11 19l-7-7 7-7M19 19l-7-7 7-7" />
+                }
+            </svg>
+        </button>
+    </div>
+
+    @if (!IsCollapsed)
+    {
+        <div class="explorer-toolbar">
+            <button class="new-project-btn" @onclick="CreateProject" title="New Project">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+                <span>New Project</span>
+            </button>
+        </div>
+
+        <div class="explorer-content">
+            @if (_isLoading)
+            {
+                <div class="explorer-loading">
+                    <div class="spinner"></div>
+                    <span>Loading projects...</span>
+                </div>
+            }
+            else if (_projects.Count == 0)
+            {
+                <div class="explorer-empty">
+                    <span>No projects available</span>
+                </div>
+            }
+            else
+            {
+                <div class="project-list">
+                    @foreach (var project in _projects)
+                    {
+                        <div class="project-item @(IsSelected(project) ? "selected" : "")"
+                             @onclick="() => SelectProject(project)">
+
+                            <div class="project-icon">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                                </svg>
+                            </div>
+
+                            <span class="project-name">@project.Name</span>
+
+                            <div class="project-actions" @onclick:stopPropagation="true">
+                                <button class="action-btn" @onclick="() => EditProject(project)" title="Edit">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                    </svg>
+                                </button>
+                                <button class="action-btn delete" @onclick="() => DeleteProject(project)" title="Delete">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polyline points="3 6 5 6 21 6"></polyline>
+                                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public EventCallback<Project> OnProjectSelected { get; set; }
+
+    private bool IsCollapsed { get; set; } = false;
+    private bool _isLoading = true;
+    private List<Project> _projects = new();
+    private Guid? _selectedProjectId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadProjectsAsync();
+    }
+
+    private async Task LoadProjectsAsync()
+    {
+        _isLoading = true;
+        StateHasChanged();
+
+        try
+        {
+            var user = AuthProvider.CurrentUser;
+            if (user == null)
+            {
+                await AuthProvider.GetAuthenticationStateAsync();
+                user = AuthProvider.CurrentUser;
+            }
+
+            if (user == null)
+            {
+                SnackbarService?.ShowError("Unable to load user.");
+                return;
+            }
+
+            var projects = await ProjectRepository.GetByUserIdAsync(user.Id);
+            _projects = projects.OrderByDescending(p => p.CreatedAt).Cast<Project>().ToList();
+
+            if (_projects.Count == 0)
+            {
+                var defaultProject = (Project)user.CreateProject("Main Project");
+                await ProjectRepository.SaveAsync(defaultProject);
+                _projects.Add(defaultProject);
+            }
+
+            // Select the first project (most recent) by default
+            if (_projects.Count > 0)
+            {
+                var mostRecent = _projects.First();
+                _selectedProjectId = mostRecent.Id;
+                await OnProjectSelected.InvokeAsync(mostRecent);
+            }
+        }
+        catch (Exception ex)
+        {
+            SnackbarService?.ShowError($"Error loading projects: {ex.Message}");
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private void ToggleExplorer()
+    {
+        IsCollapsed = !IsCollapsed;
+    }
+
+    private bool IsSelected(Project project) => _selectedProjectId == project.Id;
+
+    private async Task SelectProject(Project project)
+    {
+        _selectedProjectId = project.Id;
+        await OnProjectSelected.InvokeAsync(project);
+    }
+
+    private async Task CreateProject()
+    {
+        var parameters = new DialogParameters
+        {
+            { "ExistingProjects", _projects }
+        };
+        var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.ExtraLarge, FullWidth = true };
+        var dialog = await DialogService.ShowAsync<ProjectFormDialog>("New Project", parameters, options);
+        var result = await dialog.Result;
+
+        if (result?.Canceled == false && result.Data is Project newProject)
+        {
+            await ProjectRepository.SaveAsync(newProject);
+            _projects.Insert(0, newProject);
+            _selectedProjectId = newProject.Id;
+            await OnProjectSelected.InvokeAsync(newProject);
+            SnackbarService?.ShowSuccess($"Project '{newProject.Name}' created.");
+        }
+    }
+
+    private async Task EditProject(Project project)
+    {
+        var parameters = new DialogParameters
+        {
+            { "Project", project },
+            { "ExistingProjects", _projects }
+        };
+        var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.ExtraLarge, FullWidth = true };
+        var dialog = await DialogService.ShowAsync<ProjectFormDialog>("Edit Project", parameters, options);
+        var result = await dialog.Result;
+
+        if (result?.Canceled == false && result.Data is Project updatedProject)
+        {
+            await ProjectRepository.SaveAsync(updatedProject);
+            await SelectProject(updatedProject);
+            SnackbarService?.ShowSuccess($"Project '{updatedProject.Name}' updated.");
+        }
+    }
+
+    private async Task DeleteProject(Project project)
+    {
+        var parameters = new DialogParameters
+        {
+            { "ProjectName", project.Name }
+        };
+        var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.ExtraSmall };
+        var dialog = await DialogService.ShowAsync<DeleteProjectDialog>("Delete Project", parameters, options);
+        var result = await dialog.Result;
+
+        if (result?.Canceled == false)
+        {
+            await ProjectRepository.DeleteAsync(project.Id);
+            _projects.Remove(project);
+
+            if (_selectedProjectId == project.Id && _projects.Count > 0)
+            {
+                var next = _projects.First();
+                _selectedProjectId = next.Id;
+                await OnProjectSelected.InvokeAsync(next);
+            }
+            else if (_projects.Count == 0)
+            {
+                _selectedProjectId = null;
+                await OnProjectSelected.InvokeAsync(null);
+            }
+
+            SnackbarService?.ShowSuccess($"Project '{project.Name}' deleted.");
+        }
+    }
+}

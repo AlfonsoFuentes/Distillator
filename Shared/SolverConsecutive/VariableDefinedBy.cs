@@ -19,5 +19,10 @@
         MassEnergyBalance,
         Specification
     }
+    public enum SolverEquationTypeModifier
+    {
+        Regular,
+        Spec
+    }
 }
 

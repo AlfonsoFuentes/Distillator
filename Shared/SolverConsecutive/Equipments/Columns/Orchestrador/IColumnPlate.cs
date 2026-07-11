@@ -249,6 +249,7 @@ namespace Shared.SolverConsecutive.Equipments.Columns.Orchestrador
             return variables;
         }
 
+        public SolverEquationTypeModifier EquationTypeModifer => SolverEquationTypeModifier.Regular;
     }
 
     public interface IColumnPlatesSolverEquation

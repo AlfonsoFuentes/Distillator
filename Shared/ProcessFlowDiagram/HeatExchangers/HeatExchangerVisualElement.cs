@@ -104,19 +104,19 @@ namespace Shared.ProcessFlowDiagram.HeatExchangers
         {
             if (portName == PortTubeInName)
             {
-                HX.SetColdInlet(null!);
+                HX.UnSetColdInlet();
             }
             else if (portName == PortTubeOutName)
             {
-                HX.SetColdOutlet(null!);
+                HX.UnSetColdOutlet();
             }
             else if (portName == PortShellInName)
             {
-                HX.SetHotInlet(null!);
+                HX.UnSetHotInlet();
             }
             else if (portName == PortCondensateOutName)
             {
-                HX.SetHotOutlet(null!);
+                HX.UnSetHotOutlet();
             }
             // VaporVent: puerto visual sin lógica de solver por ahora
         }

@@ -146,7 +146,7 @@ namespace Shared.ProcessFlowDiagram.Helpers
             // Puerto estático
             if (portName == PortInletName)
             {
-                Splitter.SetInlet(null!);
+                Splitter.UnSetInlet();
             }
             // Puertos dinámicos - Outlet
             else if (portName.StartsWith("Outlet_"))

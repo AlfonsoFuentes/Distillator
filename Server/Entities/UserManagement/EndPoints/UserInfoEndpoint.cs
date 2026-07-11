@@ -44,6 +44,7 @@ namespace Server.Entities.UserManagement.EndPoints
                 // 5. Construimos el DTO de respuesta
                 var responseData = new UserInfoResponse
                 {
+                    UserId = user.Id,
                     Email = user.Email ?? string.Empty,
                     FullName = user.FullName, // Usamos la propiedad calculada de tu ApplicationUser
                     Roles = roles.ToList()

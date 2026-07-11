@@ -1,4 +1,4 @@
-﻿using Client.Services.EquipmentManagers;
+﻿using Client.Services.ProjectWorkspace;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Shared.SolverConsecutive;
@@ -8,7 +8,7 @@ namespace Client.Templates.Units.UIVariableUnitLess
 {
     public abstract class UIVariableUnitLessBase : ComponentBase
     {
-        [Inject] protected WorkspaceManager _WM { get; set; } = null!;
+        [Inject] protected FlowsheetManager FlowsheetManager { get; set; } = null!;
 
         [Parameter] public string Label { get; set; } = string.Empty;
         [Parameter] public Variable<UnitLess> Variable { get; set; } = default!;
@@ -84,9 +84,9 @@ namespace Client.Templates.Units.UIVariableUnitLess
             if (e.Key == "Delete")
             {
                 Variable?.ClearFromUI();
-                if (_WM != null)
+                if (FlowsheetManager != null)
                 {
-                    _WM.RunSimulation();
+                    FlowsheetManager.RunSimulation();
                 }
                 _isEditing = false;
                 _tempInputValue = null;
@@ -141,9 +141,9 @@ namespace Client.Templates.Units.UIVariableUnitLess
 
                 Variable.SetValueFromUI(newValue);
 
-                if (_WM != null)
+                if (FlowsheetManager != null)
                 {
-                    _WM.RunSimulation();
+                    FlowsheetManager.RunSimulation();
                 }
             }
 

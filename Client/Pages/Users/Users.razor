@@ -79,7 +79,8 @@
         _loading = true;
         
         // Llamamos al endpoint que devuelve la lista (requiere rol Administrator en el server)
-        var response = await HttpServices.PostAsync<GetUsersRequest, Result<List<UserDto>>>(new GetUsersRequest());
+        // ❌ VIEJO: var response = await HttpServices.PostAsync<GetUsersRequest, Result<List<UserDto>>>(new GetUsersRequest());
+        var response = await HttpServices.PostAsync<GetUsersRequest, List<UserDto>>(new GetUsersRequest());
         
         if (response != null && response.Succeeded && response.Data != null)
         {
@@ -95,7 +96,8 @@
         var request = new ToggleUserStatusRequest { UserId = user.Id };
         
         // Enviamos la petición al servidor usando tu HttpServices (que ya muestra el Snackbar)
-        var response = await HttpServices.PostAsync<ToggleUserStatusRequest, Result>(request);
+        // ❌ VIEJO: var response = await HttpServices.PostAsync<ToggleUserStatusRequest, Result>(request);
+        var response = await HttpServices.PostAsync<ToggleUserStatusRequest>(request);
 
         if (response != null && response.Succeeded)
         {

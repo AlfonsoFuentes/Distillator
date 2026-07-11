@@ -95,6 +95,8 @@
     </DialogContent>
 </MudDialog>
 
+@implements IDisposable
+
 @code {
     [CascadingParameter] public IMudDialogInstance MudDialog { get; set; } = default!;
     [Parameter, EditorRequired] public IVisualElement Equipment { get; set; } = default!;
@@ -105,24 +107,27 @@
     [Parameter] public RenderFragment? ProfilesSlot { get; set; }
     
     private string activeTab = "Main";
-
     List<EquipmentPort> _Ports => Equipment.Ports;
+
+    protected override void OnInitialized()
+    {
+        FSM.OnNotifyUI += OnNotifyUIHandler;
+    }
+
+    public void Dispose()
+    {
+        FSM.OnNotifyUI -= OnNotifyUIHandler;
+    }
+
+    private void OnNotifyUIHandler()
+    {
+        _ = InvokeAsync(StateHasChanged);
+    }
 
     private void SetTab(string tabName) { activeTab = tabName; StateHasChanged(); }
     private void Cancel() => MudDialog.Cancel();
-
-    protected override async Task OnInitializedAsync()
+    private void HandleEquipmentUpdate()
     {
-
-    }
-    private async Task HandleEquipmentUpdate()
-    {
-        // 1. Opcional: Si su equipo tiene un método interno para recalcular
-        //    si ya está listo para resolverse, este es el lugar perfecto para llamarlo.
-        // Ejemplo: Equipment.Facade?.CheckSolveReadiness();
-
-        // 2. Le decimos a la ventana que se repinte. Esto hará que evalúe
-        //    nuevamente el Equipment.StatusColor y el Equipment.StatusText de la barra inferior.
         StateHasChanged();
     }
 }

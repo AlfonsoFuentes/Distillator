@@ -80,10 +80,22 @@
     pointer-events: none;
 }
 
-.zoom-to-fit-btn {
+
+
+ 
+/**nuevo*/
+/* Contenedor padre */
+.zoom-to-fit-container {
     position: absolute;
     bottom: 24px;
     right: 24px;
+    z-index: 100;
+    display: flex;
+    align-items: center; /* Centra el tooltip verticalmente con el botón */
+}
+
+/* El botón (queda igual que antes) */
+.zoom-to-fit-btn {
     width: 40px;
     height: 40px;
     background-color: #FFFFFF;
@@ -93,7 +105,6 @@
     font-size: 1.2rem;
     cursor: pointer;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    z-index: 100;
     transition: all 0.2s ease;
     display: flex;
     justify-content: center;
@@ -106,3 +117,44 @@
         border-color: #0EA5E9;
         transform: translateY(-2px);
     }
+
+/* =========================================
+   TOOLTIP 100% CSS
+   ========================================= */
+.pure-css-tooltip {
+    position: absolute;
+    right: calc(100% + 12px); /* Se ubica a la izquierda del botón con 12px de separación */
+    white-space: nowrap;
+    background-color: #1E293B; /* Tono industrial oscuro */
+    color: #F8FAFC;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 6px 12px;
+    border-radius: 6px;
+    pointer-events: none; /* Para que no interfiera con el mouse */
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    /* Estado inicial invisible */
+    opacity: 0;
+    visibility: hidden;
+    transform: translateX(10px);
+    transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
+}
+
+    /* La flechita del tooltip (apuntando a la derecha) */
+    .pure-css-tooltip::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 100%; /* Se pega al borde derecho del tooltip */
+        transform: translateY(-50%);
+        border-width: 5px;
+        border-style: solid;
+        border-color: transparent transparent transparent #1E293B;
+    }
+
+/* Efecto Hover: Mostramos el tooltip cuando el mouse pasa por el contenedor */
+.zoom-to-fit-container:hover .pure-css-tooltip {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(0); /* Se desliza suavemente a su posición final */
+}

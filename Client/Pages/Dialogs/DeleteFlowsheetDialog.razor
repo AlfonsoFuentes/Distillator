@@ -1,0 +1,22 @@
+@using Distillator.Domain.Models
+
+<MudDialog>
+    <DialogContent>
+        <div class="delete-flowsheet-content">
+            <p>Are you sure you want to delete the diagram <strong>@Flowsheet?.Name</strong>?</p>
+            <p class="delete-warning">This action cannot be undone.</p>
+        </div>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Error" OnClick="Confirm">Delete</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
+    [Parameter] public IFlowsheet? Flowsheet { get; set; }
+
+    private void Cancel() => MudDialog.Cancel();
+    private void Confirm() => MudDialog.Close(DialogResult.Ok(true));
+}

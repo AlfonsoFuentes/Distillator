@@ -196,19 +196,19 @@ namespace Shared.ProcessFlowDiagram.Columns
             // Puertos estáticos
             if (portName == PortOverheadName)
             {
-                Column.SetTopVaporOutlet(null!);
+                Column.UnSetTopVaporOutlet();
             }
             else if (portName == PortBottomsName)
             {
-                Column.SetBottomOutlet(null!);
+                Column.UnSetBottomOutlet();
             }
             else if (portName == PortRefluxName)
             {
-                Column.SetRefluxInlet(null!);
+                Column.UnSetRefluxInlet();
             }
             else if (portName == PortReboilerReturnName)
             {
-                Column.SetVaporInlet(null!);
+                Column.UnSetVaporInlet();
             }
             // Puertos dinámicos - Feed
             else if (portName.StartsWith("Feed_"))
@@ -216,7 +216,7 @@ namespace Shared.ProcessFlowDiagram.Columns
                 int index = ExtractPortIndex(portName, "Feed_");
                 if (index >= 0 && index < Column.Feeds.Count)
                 {
-                    Column.Feeds.RemoveAt(index);
+                    Column.RemoveFeed(Column.Feeds[index]);
                 }
                 RefreshDynamicPorts();
             }
@@ -226,7 +226,7 @@ namespace Shared.ProcessFlowDiagram.Columns
                 int index = ExtractPortIndex(portName, "SideDraw_");
                 if (index >= 0 && index < Column.SideDraws.Count)
                 {
-                    Column.SideDraws.RemoveAt(index);
+                    Column.RemoveSideDraw(Column.SideDraws[index]);
                 }
                 RefreshDynamicPorts();
             }

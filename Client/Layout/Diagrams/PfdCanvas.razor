@@ -1,4 +1,5 @@
 ﻿@using Shared.PipingRoutes
+@*
 @implements IDisposable
 
 
@@ -19,13 +20,14 @@
      @ondragover="() => { }"
      @ondrop="HandleDrop">
 
-    @* 2. LA CÁMARA VIRTUAL *@
-    <div class="camera-layer" style="transform: @WM.CameraTransform;">
+    2. LA CÁMARA VIRTUAL
+    @* 2. LA CÁMARA VIRTUAL 
+    <div class="camera-layer" style="@($"transform: {WM.CameraTransform}; transform-origin: top left;")">
 
-        @* 3. LA HOJA DE PAPEL (El lienzo real finito y elástico) *@
+        @* 3. LA HOJA DE PAPEL (El lienzo real finito y elástico)
         <div class="diagram-paper" style="@WM.PaperStyle">
 
-            @* CAPA 1: TUBERÍAS *@
+            @* CAPA 1: TUBERÍAS 
             <svg class="pipes-layer">
                 @foreach (var pipe in WM.Pipes)
                 {
@@ -37,7 +39,7 @@
                 }
             </svg>
 
-            @* CAPA 2: EQUIPOS FÍSICOS *@
+            @* CAPA 2: EQUIPOS FÍSICOS 
             @foreach (var el in WM.Elements)
             {
                 <EquipmentRenderer @key="el.Id"
@@ -50,113 +52,184 @@
         </div>
     </div>
 
-    @* EL NUEVO BOTÓN DE PÁNICO *@
-    <button class="zoom-to-fit-btn" title="Center Diagram" @onclick="HandleZoomToFit">
-        ⛶
-    </button>
+  
+    @* EL NUEVO BOTÓN DE PÁNICO 
+    <div class="zoom-to-fit-container">
+        <button class="zoom-to-fit-btn"
+                @onclick="HandleZoomToFit"
+                @onclick:stopPropagation="true"
+                @onmousedown:stopPropagation="true">
+            ⛶
+        </button>
+        <span class="pure-css-tooltip">Center Diagram & Fit to Screen</span>
+    </div>
+
+
 </div>
-
+*@
 @code {
-    private ElementReference workspaceRef;
-    private double canvasX;
-    private double canvasY;
+    // private ElementReference workspaceRef;
+    // private double canvasX;
+    // private double canvasY;
+ 
+  
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
-            await workspaceRef.FocusAsync();
-            var offset = await JS.InvokeAsync<Offset>("canvasInterop.getCanvasOffset", workspaceRef);
-            canvasX = offset.X;
-            canvasY = offset.Y;
-            await JS.InvokeVoidAsync("canvasInterop.preventScroll", workspaceRef);
-        }
-    }
+    // protected override void OnInitialized()
+    // {
+    //     WM.OnNotifyUI += StateHasChanged;
+    // }
 
-    protected override void OnInitialized()
-    {
-        WM.OnNotifyUI += StateHasChanged;
-    }
+    // public void Dispose()
+    // {
+    //     if (WM != null) WM.OnNotifyUI -= StateHasChanged;
+    // }
 
-    public void Dispose()
-    {
-        if (WM != null) WM.OnNotifyUI -= StateHasChanged;
-    }
 
-    // private void HandleDrop(DragEventArgs e) => WM.AddFromToolbox(DragState.CurrentDraggedType, e.OffsetX, e.OffsetY);
+
+    // private void HandleSelect(IVisualElement element) => WM.SelectElement(element);
+
+    // private void HandleWorkspaceClick() => WM.SelectElement(null!);
+
+    // private void HandleKeyDown(KeyboardEventArgs e) { if (e.CtrlKey) WM.SetConnectionMode(true); }
+
+    // private void HandleKeyUp(KeyboardEventArgs e) { if (e.Key == "Control") WM.SetConnectionMode(false); }
+
+  
+    // private async Task HandleDrop(DragEventArgs e)
+    // {
+    //     // Obtener offset actualizado del canvas
+    //     var offset = await JS.InvokeAsync<Offset>("canvasInterop.getCanvasOffset", workspaceRef);
+    //     canvasX = offset.X;
+    //     canvasY = offset.Y;
+
+    //     var pos = GetRelativeMousePosition(e);
+    //     WM.AddFromToolbox(DragState.CurrentDraggedType, pos.X, pos.Y);
+    // }
+    // // 1. Modifica HandleMouseDown para asegurar que la referencia sea fresca
+    // private async Task HandleMouseDown(MouseEventArgs e)
+    // {
+    //     await workspaceRef.FocusAsync();
+
+    //     // Actualizamos los offsets justo al empezar el clic.
+    //     // Esto garantiza que el cálculo sea fresco y preciso.
+    //     var offset = await JS.InvokeAsync<Offset>("canvasInterop.getCanvasOffset", workspaceRef);
+    //     canvasX = offset.X;
+    //     canvasY = offset.Y;
+
+    //     WM.StartPan(e);
+    // }
+
+    // // 2. Modifica el cálculo para ser inmune a qué elemento está debajo
+    // private CanvasPoint GetRelativeMousePosition(MouseEventArgs e)
+    // {
+    //     // Usamos ClientX/Y (Global) menos la posición actual del canvas (Fresh)
+    //     // Esto es inmune al "Event Bubbling" o cambio de Target
+    //     double relativeX = e.ClientX - canvasX;
+    //     double relativeY = e.ClientY - canvasY;
+
+    //     double effectiveZoom = Math.Max(WM.Zoom * WM.GlobalScale, 0.001);
+
+    //     // Ahora la matemática coincide 1:1 con la renderización CSS
+    //     return new CanvasPoint(
+    //         (relativeX - WM.PanX) / effectiveZoom,
+    //         (relativeY - WM.PanY) / effectiveZoom
+    //     );
+
+     
+    // }
+    // private void HandleMouseMove(MouseEventArgs e)
+    // {
+    //     var pos = GetRelativeMousePosition(e);
+
+    //     // 🚩 REGLA DE ORO: Si estás moviendo un equipo, NO mueves la cámara
+    //     if (WM.IsMovingAny || WM.CurrentDraftPipe != null)
+    //     {
+    //         WM.Move(e);
+    //         if (WM.CurrentDraftPipe != null)
+    //         WM.UpdateConnectionDraft(pos.X, pos.Y);
+    //     }
+    //     else if (WM.IsPanning)
+    //     {
+    //         // Mueve la cámara libremente
+    //         WM.Pan(e);
+    //     }
+    // }
+    // private void HandleMouseUp(MouseEventArgs e)
+    // {
+    //     if (WM.IsConnectionModeActive && WM.CurrentDraftPipe != null)
+    //     {
+    //         var pos = GetRelativeMousePosition(e);
+    //         // Pasamos null como target para que el Orquestador sepa que soltamos en el vacío
+    //         WM.CompleteConnection(null, null, pos.X, pos.Y);
+    //     }
+
+    //     WM.EndMove();
+    //     WM.EndPan();
+    // }
+    // private void HandleMouseUp(MouseEventArgs e)
+    // {
+    //     if (WM.IsConnectionModeActive && WM.CurrentDraftPipe != null)
+    //     {
+    //         // 1. Obtenemos las coordenadas lógicas exactas
+    //         var pos = GetRelativeMousePosition(e);
+
+    //         // 2. Intentamos completar la conexión usando el orquestador
+    //         // Si hoveredElement es null, el orquestador lo sabe y ejecuta la estrategia de "Vacío"
+    //         WM.CompleteConnection(hoveredElement, hoveredPortName, pos.X, pos.Y);
+    //     }
+
+    //     // 3. Limpieza normal
+    //     WM.EndMove();
+    //     WM.EndPan();
+    // }
+
+    // private void HandleMouseUp2(MouseEventArgs e)
+    // {
+    //     WM.EndMove();
+    //     WM.EndPan();
+    //     if (WM.CurrentDraftPipe != null) WM.CancelConnectionDraft();
+    // }
+
+    // private void HandleMouseLeave(MouseEventArgs e)
+    // {
+    //     WM.EndMove();
+    //     WM.EndPan();
+    //     if (WM.CurrentDraftPipe != null) WM.CancelConnectionDraft();
+    // }
+
+    // private void HandleWheel(WheelEventArgs e)
+    // {
+    //     var pos = GetRelativeMousePosition(e);
+    //     WM.ZoomAt(e.DeltaY, pos.X, pos.Y);
+    // }
+
+    // private CanvasPoint GetRelativeMousePosition2(MouseEventArgs e)
+    // {
+    //     return new CanvasPoint(e.ClientX - canvasX, e.ClientY - canvasY);
+    // }
+  
+    // private async Task HandleZoomToFit()
+    // {
+    //     var dims = await JS.InvokeAsync<Dimensions>("canvasInterop.getCanvasDimensions", workspaceRef);
+    //     WM.ZoomToFit(dims.Width, dims.Height);
+    //     await InvokeAsync(StateHasChanged); // 🔄 A2: Fuerza re-renderizado después de ZoomToFit (async context)
+    // }
+
+    // public record Dimensions(double Width, double Height);
+
+
+    // // 1. ELIMINA canvasX, canvasY y los métodos de JS Interop relacionados
+    // // Mantén solo lo estrictamente necesario para el foco y el scroll
+    // protected override async Task OnAfterRenderAsync(bool firstRender)
+    // {
+    //     if (firstRender)
+    //     {
+    //         await workspaceRef.FocusAsync();
+    //         await JS.InvokeVoidAsync("canvasInterop.preventScroll", workspaceRef);
+            
+    //     }
+    // }
+
     
-    private void HandleSelect(IVisualElement element) => WM.SelectElement(element);
-    
-    private void HandleWorkspaceClick() => WM.SelectElement(null!);
 
-    private void HandleKeyDown(KeyboardEventArgs e) { if (e.CtrlKey) WM.SetConnectionMode(true); }
-    
-    private void HandleKeyUp(KeyboardEventArgs e) { if (e.Key == "Control") WM.SetConnectionMode(false); }
-
-    private async Task HandleMouseDown(MouseEventArgs e)
-    {
-        await workspaceRef.FocusAsync();
-        // 🚩 Ahora esto detecta tanto la rueda como el clic izquierdo
-        WM.StartPan(e);
-    }
-    private async Task HandleDrop(DragEventArgs e)
-    {
-        // Obtener offset actualizado del canvas
-        var offset = await JS.InvokeAsync<Offset>("canvasInterop.getCanvasOffset", workspaceRef);
-        canvasX = offset.X;
-        canvasY = offset.Y;
-
-        var pos = GetRelativeMousePosition(e);
-        WM.AddFromToolbox(DragState.CurrentDraggedType, pos.X, pos.Y);
-    }
-
-    private void HandleMouseMove(MouseEventArgs e)
-    {
-        var pos = GetRelativeMousePosition(e);
-        
-        // 🚩 REGLA DE ORO: Si estás moviendo un equipo, NO mueves la cámara
-        if (WM.IsMovingAny || WM.CurrentDraftPipe != null)
-        {
-            WM.Move(e);
-            if (WM.CurrentDraftPipe != null) WM.UpdateConnectionDraft(pos.X, pos.Y);
-        }
-        else if (WM.IsPanning)
-        {
-            // Mueve la cámara libremente
-            WM.Pan(e);
-        }
-    }
-
-    private void HandleMouseUp(MouseEventArgs e)
-    {
-        WM.EndMove();
-        WM.EndPan();
-        if (WM.CurrentDraftPipe != null) WM.CancelConnectionDraft();
-    }
-
-    private void HandleMouseLeave(MouseEventArgs e)
-    {
-        WM.EndMove();
-        WM.EndPan();
-        if (WM.CurrentDraftPipe != null) WM.CancelConnectionDraft();
-    }
-
-    private void HandleWheel(WheelEventArgs e)
-    {
-        var pos = GetRelativeMousePosition(e);
-        WM.ZoomAt(e.DeltaY, pos.X, pos.Y);
-    }
-
-    private CanvasPoint GetRelativeMousePosition(MouseEventArgs e)
-    {
-        return new CanvasPoint(e.ClientX - canvasX, e.ClientY - canvasY);
-    }
-
-    private async Task HandleZoomToFit()
-    {
-        var dims = await JS.InvokeAsync<Dimensions>("canvasInterop.getCanvasDimensions", workspaceRef);
-        WM.ZoomToFit(dims.Width, dims.Height);
-    }
-
-    public record Dimensions(double Width, double Height);
 }

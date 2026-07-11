@@ -84,7 +84,8 @@
         _isLoading = true;
 
         var request = new GetAllMethods();
-        var result = await HttpServices.PostAsync<GetAllMethods, Result<List<ThermodynamicMethodListDto>>>(request);
+        // ❌ VIEJO: var result = await HttpServices.PostAsync<GetAllMethods, Result<List<ThermodynamicMethodListDto>>>(request);
+        var result = await HttpServices.PostAsync<GetAllMethods, List<ThermodynamicMethodListDto>>(request);
 
         if (result != null && result.Succeeded)
         {
@@ -111,7 +112,8 @@
     private async Task ExportData()
     {
         // 1. Llamamos a tu nuevo endpoint para traer la data masiva inflada
-        var result = await HttpServices.PostAsync<GetAllCompleteMethods, Result<List<ThermodynamicMethodDto>>>(new GetAllCompleteMethods());
+        // ❌ VIEJO: var result = await HttpServices.PostAsync<GetAllCompleteMethods, Result<List<ThermodynamicMethodDto>>>(new GetAllCompleteMethods());
+        var result = await HttpServices.PostAsync<GetAllCompleteMethods, List<ThermodynamicMethodDto>>(new GetAllCompleteMethods());
 
         // 2. Si es exitoso, detonamos el servicio de EPPlus que descargará el archivo al navegador
         if (result.Succeeded && result.Data != null)

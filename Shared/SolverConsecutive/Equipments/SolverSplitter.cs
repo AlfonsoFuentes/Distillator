@@ -6,7 +6,7 @@ namespace Shared.SolverConsecutive.Equipments
     public class SolverSplitter : SolverEquipmentBase
     {
         public IFacadeStream Inlet { get; set; } = null!;
-        public List<IFacadeStream> Outlets { get; set; } = new();
+   
 
         public override List<ISolverEquation> Equations => GetEquations().ToList();
 
@@ -15,19 +15,37 @@ namespace Shared.SolverConsecutive.Equipments
             Name = name;
         }
 
-        public void SetInlet(IFacadeStream stream)
+        public void SetInlet(IFacadeStream inlet)
         {
-            Inlet = stream;
+            if (inlet != null)
+            {
+                Inlets.Add(inlet);
+                Inlet = inlet;
+                Inlet.EquipmentOutlet = this;
+
+            }
+
+        }
+        public void UnSetInlet()
+        {
+            if (Inlet == null) return;
+            Inlets.Remove(Inlet);
+            Inlet.EquipmentOutlet = null!;
+            Inlet = null!;
         }
 
         public void AddOutlet(IFacadeStream stream)
         {
+            if(Outlets.Contains(stream)) return;
             Outlets.Add(stream);
+            stream.EquipmentInlet = this;
         }
 
         public void RemoveOutlet(IFacadeStream stream)
         {
+            if(!Outlets.Contains(stream)) return;
             Outlets.Remove(stream);
+            stream.EquipmentInlet = null!;
         }
 
         // ====================================================================
@@ -63,6 +81,8 @@ namespace Shared.SolverConsecutive.Equipments
             yield return new SplitterConcentrationEquation(this);
             yield return new SplitterMassBalanceEquation(this);
             yield return new SplitterEnthalpyEquation(this);
+            // Backup legacy: la V2 de specifications usa SplitterMassBalanceEquation regular.
+            // yield return new SplitterMassBalanceEquationSpec(this);
         }
         public override Task PostSolveAsync()
         {
@@ -70,10 +90,30 @@ namespace Shared.SolverConsecutive.Equipments
             // Pero dejamos el método para seguir el patrón de SolverEquipmentBase
             return Task.CompletedTask;
         }
+        //public override IEnumerable<ISolverEquipment> GetEquipmentInlets(IFacadeStream stream)
+        //{
+        //    if (stream == null) yield break;
+        //    if (Outlets.Any(x => x == stream)) yield return Inlet.EquipmentInlet;
+
+           
+
+        //}
+        //public override IEnumerable<ISolverEquipment> GetEquipmentOutlets(IFacadeStream stream)
+        //{
+        //    if (stream == null) yield break;
+        //    if (stream == Inlet)
+        //    {
+        //        foreach (var x in Outlets) yield return x.EquipmentOutlet;
+
+        //    }
+
+           
+        //}
     }
 
     public class SplitterPressureEquation : ISolverEquation
     {
+        public SolverEquationTypeModifier EquationTypeModifer { get; } = SolverEquationTypeModifier.Regular;
         SolverSplitter splitter;
         public SplitterPressureEquation(SolverSplitter _splitter) { splitter = _splitter; }
         public string Name => $"{EquationType} - {splitter.Name}";
@@ -84,7 +124,7 @@ namespace Shared.SolverConsecutive.Equipments
         List<double> GetResiduals()
         {
             List<double> r = new();
-            if (splitter.Inlet == null || splitter.Outlets.Count==0) return r;
+            if (splitter.Inlet == null || splitter.Outlets.Count == 0) return r;
 
             double pIn = splitter.Inlet.Pressure.GetSolverValue();
 
@@ -96,11 +136,11 @@ namespace Shared.SolverConsecutive.Equipments
             return r;
         }
 
-           
+
         List<IVariable> GetVariables()
         {
             List<IVariable> v = new();
-            if (splitter.Inlet == null ||  splitter.Outlets.Count == 0) return v;
+            if (splitter.Inlet == null || splitter.Outlets.Count == 0) return v;
             v.Add(splitter.Inlet.Pressure);
             foreach (var outlet in splitter.Outlets)
             {
@@ -108,10 +148,12 @@ namespace Shared.SolverConsecutive.Equipments
             }
             return v;
         }
+
     }
 
     public class SplitterMassBalanceEquation : ISolverEquation
     {
+        public SolverEquationTypeModifier EquationTypeModifer { get; } = SolverEquationTypeModifier.Regular;
         SolverSplitter splitter;
         public SplitterMassBalanceEquation(SolverSplitter _splitter) { splitter = _splitter; }
         public string Name => $"{EquationType} - {splitter.Name}";
@@ -147,6 +189,7 @@ namespace Shared.SolverConsecutive.Equipments
 
     public class SplitterConcentrationEquation : ISolverEquation
     {
+        public SolverEquationTypeModifier EquationTypeModifer { get; } = SolverEquationTypeModifier.Regular;
         SolverSplitter splitter;
         public SplitterConcentrationEquation(SolverSplitter _splitter) { splitter = _splitter; }
         public string Name => $"{EquationType} - {splitter.Name}";
@@ -172,7 +215,7 @@ namespace Shared.SolverConsecutive.Equipments
             return r;
         }
 
-       
+
         List<IVariable> GetVariables()
         {
             List<IVariable> v = new();
@@ -193,6 +236,7 @@ namespace Shared.SolverConsecutive.Equipments
 
     public class SplitterEnthalpyEquation : ISolverEquation
     {
+        public SolverEquationTypeModifier EquationTypeModifer { get; } = SolverEquationTypeModifier.Regular;
         SolverSplitter splitter;
         public SplitterEnthalpyEquation(SolverSplitter _splitter) { splitter = _splitter; }
         public string Name => $"{EquationType} - {splitter.Name}";
@@ -204,6 +248,17 @@ namespace Shared.SolverConsecutive.Equipments
         {
             List<double> r = new();
             if (splitter.Inlet == null || splitter.Outlets.Count == 0) return r;
+
+            if (ShouldUseVaporFraction())
+            {
+                double vfIn = splitter.Inlet.VaporFraction.GetSolverValue();
+                foreach (var outlet in splitter.Outlets)
+                {
+                    double vfOut = outlet.VaporFraction.GetSolverValue();
+                    r.Add(vfIn - vfOut);
+                }
+                return r;
+            }
 
             double hIn = splitter.Inlet.MassEnthalpy.GetSolverValue();
             foreach (var outlet in splitter.Outlets)
@@ -218,6 +273,17 @@ namespace Shared.SolverConsecutive.Equipments
         {
             List<IVariable> v = new();
             if (splitter.Inlet == null || splitter.Outlets.Count == 0) return v;
+
+            if (ShouldUseVaporFraction())
+            {
+                v.Add(splitter.Inlet.VaporFraction);
+                foreach (var outlet in splitter.Outlets)
+                {
+                    v.Add(outlet.VaporFraction);
+                }
+                return v;
+            }
+
             v.Add(splitter.Inlet.MassEnthalpy);
             foreach (var outlet in splitter.Outlets)
             {
@@ -225,9 +291,73 @@ namespace Shared.SolverConsecutive.Equipments
             }
             return v;
         }
+
+        private bool ShouldUseVaporFraction()
+        {
+            if (splitter.Inlet == null) return false;
+
+            return IsStrongVaporFractionSpecification(splitter.Inlet)
+                || splitter.Outlets.Any(IsStrongVaporFractionSpecification);
+        }
+
+        private static bool IsStrongVaporFractionSpecification(IFacadeStream stream)
+        {
+            return stream.VaporFraction.DataProcedence == VariableDefinedBy.UserInput
+                || stream.VaporFraction.DataProcedence == VariableDefinedBy.Specification;
+        }
     }
 
-    
 
+    /*
+    // Backup legacy: la V2 de specifications usa SplitterMassBalanceEquation regular.
+    public class SplitterMassBalanceEquationSpec : ISpecSolverEquation
+    {
+        public SolverEquationTypeModifier EquationTypeModifer { get; } = SolverEquationTypeModifier.Spec;
+        SolverSplitter splitter;
+        public SplitterMassBalanceEquationSpec(SolverSplitter _splitter) { splitter = _splitter; }
+        public string Name => $"{EquationType} - {splitter.Name}";
+        public SolverEquationType EquationType => SolverEquationType.MassBalance;
+        public List<double> Residuals => GetResiduals();
+        public List<IVariable> Variables => GetVariables();
+
+        List<double> GetResiduals()
+        {
+            List<double> r = new();
+            if (splitter.Inlet == null || splitter.Outlets.Count == 0) return r;
+
+            double mIn = splitter.Inlet.MassFlow.GetSolverValue();
+
+            double mOutTotal = splitter.Outlets.Sum(outlet => outlet.MassFlow.GetSolverValue());
+
+            r.Add(mIn - mOutTotal);
+            return r;
+        }
+
+        List<IVariable> GetVariables()
+        {
+            List<IVariable> v = new();
+            if (splitter.Inlet == null || splitter.Outlets.Count == 0) return v;
+            v.Add(splitter.Inlet.MassFlow);
+            foreach (var outlet in splitter.Outlets)
+            {
+                v.Add(outlet.MassFlow);
+            }
+            return v;
+        }
+        public IEnumerable<IFacadeStream> AsociatedStreams
+        {
+            get
+            {
+                if (splitter.Inlet != null)
+                    yield return splitter.Inlet;
+               foreach(var outlet in splitter.Outlets)
+                {
+                    yield return outlet;
+                }
+               ;
+            }
+        }
+    }
+    */
 
 }

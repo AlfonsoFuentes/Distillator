@@ -28,11 +28,80 @@ namespace Shared.SolverConsecutive.Equipments
             DeltaPCold = new Variable<PressureDrop>(new PressureDrop(0, PressureDropUnits.Pascal), PressureDropUnits.Bar, 100000);
             TransferHeat = new Variable<EnergyFlow>(new EnergyFlow(0, EnergyFlowUnits.J_sg), EnergyFlowUnits.Kcal_hr, 3000);
         }
+        
+       
+        public void SetColdInlet(IFacadeStream stream)
+        {
+            if (stream != null)
+            {
+                Inlets.Add(stream);
+                ColdInlet = stream;
+                ColdInlet.EquipmentOutlet = this;
 
-        public void SetColdInlet(IFacadeStream stream) => ColdInlet = stream;
-        public void SetColdOutlet(IFacadeStream stream) => ColdOutlet = stream;
-        public void SetHotInlet(IFacadeStream stream) => HotInlet = stream;
-        public void SetHotOutlet(IFacadeStream stream) => HotOutlet = stream;
+            }
+        }
+        public void UnSetColdInlet()
+        {
+            if (ColdInlet == null) return;
+            Inlets.Remove(ColdInlet);
+            ColdInlet.EquipmentOutlet = null!;
+            ColdInlet = null!;
+        }
+        public void SetColdOutlet(IFacadeStream stream)
+        {
+            if (stream != null)
+            {
+                Outlets.Add(stream);
+                ColdOutlet = stream;
+                ColdOutlet.EquipmentInlet = this;
+
+            }
+        }
+        public void UnSetColdOutlet()
+        {
+            if (ColdOutlet == null) return;
+            Outlets.Remove(ColdOutlet);
+            ColdOutlet.EquipmentInlet = null!;
+            ColdOutlet = null!;
+        }
+        public void SetHotInlet(IFacadeStream stream)
+        {
+            if (stream != null)
+            {
+                Inlets.Add(stream);
+                HotInlet = stream;
+                HotInlet.EquipmentOutlet = this;
+
+            }
+        }
+        public void UnSetHotInlet()
+        {
+            if (HotInlet == null) return;
+            Inlets.Remove(HotInlet);
+            HotInlet.EquipmentOutlet = null!;
+            HotInlet = null!;
+        }
+
+        public void SetHotOutlet(IFacadeStream stream)
+        {
+            if (stream != null)
+            {
+                Outlets.Add(stream);
+                HotOutlet = stream;
+                HotOutlet.EquipmentInlet = this;
+
+            }
+        }
+        public void UnSetHotOutlet()
+        {
+            if (HotOutlet == null) return;
+            Outlets.Remove(HotOutlet);
+            HotOutlet.EquipmentInlet = null!;
+            HotOutlet = null!;
+        }
+
+       
+
 
         // ====================================================================
         // ESTADO DEL EQUIPO
@@ -72,12 +141,17 @@ namespace Shared.SolverConsecutive.Equipments
             yield return new HXMassBalanceColdSideEquation(this);
             yield return new HXMassEnergyBalanceHotSideEquation(this);
             yield return new HXMassEnergyBalanceColdSideEquation(this);
+            // Backup legacy: la V2 de specifications usa las ecuaciones MassBalance regulares.
+            // yield return new HXMassBalanceColdSideEquationSpec(this);
+            // yield return new HXMassBalanceHotSideEquationSpec(this);
         }
+       
     }
-    
+
 
     public class HXPressureHotSideEquation : ISolverEquation
     {
+        public SolverEquationTypeModifier EquationTypeModifer { get; } = SolverEquationTypeModifier.Regular;
         SolverHeatExchanger hx;
         public HXPressureHotSideEquation(SolverHeatExchanger _hx) => hx = _hx;
         public string Name => $"{EquationType} Hot Side - {hx.Name}";
@@ -106,6 +180,7 @@ namespace Shared.SolverConsecutive.Equipments
     }
     public class HXPressureColdSideEquation : ISolverEquation
     {
+        public SolverEquationTypeModifier EquationTypeModifer { get; } = SolverEquationTypeModifier.Regular;
         SolverHeatExchanger hx;
         public HXPressureColdSideEquation(SolverHeatExchanger _hx) => hx = _hx;
         public string Name => $"{EquationType} Cold Side - {hx.Name}";
@@ -135,6 +210,7 @@ namespace Shared.SolverConsecutive.Equipments
 
     public class HXMassBalanceHotSideEquation : ISolverEquation
     {
+        public SolverEquationTypeModifier EquationTypeModifer { get; } = SolverEquationTypeModifier.Regular;
         SolverHeatExchanger hx;
         public HXMassBalanceHotSideEquation(SolverHeatExchanger _hx) => hx = _hx;
         public string Name => $"{EquationType} - Hot Side - {hx.Name}";
@@ -162,6 +238,7 @@ namespace Shared.SolverConsecutive.Equipments
     }
     public class HXMassBalanceColdSideEquation : ISolverEquation
     {
+        public SolverEquationTypeModifier EquationTypeModifer { get; } = SolverEquationTypeModifier.Regular;
         SolverHeatExchanger hx;
         public HXMassBalanceColdSideEquation(SolverHeatExchanger _hx) => hx = _hx;
         public string Name => $"{EquationType} - Cold Side - {hx.Name}";
@@ -190,6 +267,7 @@ namespace Shared.SolverConsecutive.Equipments
 
     public class HXConcentrationHotSideEquation : ISolverEquation
     {
+        public SolverEquationTypeModifier EquationTypeModifer { get; } = SolverEquationTypeModifier.Regular;
         SolverHeatExchanger hx;
         public HXConcentrationHotSideEquation(SolverHeatExchanger _hx) => hx = _hx;
         public string Name => $"{EquationType} - Hot Side - {hx.Name}";
@@ -204,7 +282,9 @@ namespace Shared.SolverConsecutive.Equipments
             int n = hx.HotInlet.Composition.Components.Count;
             for (int i = 0; i < n; i++)
             {
-                r.Add(hx.HotInlet.Composition.Components[i].MassFraction.GetSolverValue() - hx.HotOutlet.Composition.Components[i].MassFraction.GetSolverValue());
+                double inlet = hx.HotInlet.Composition.Components[i].MassFraction.GetSolverValue();
+                double outlet = hx.HotOutlet.Composition.Components[i].MassFraction.GetSolverValue();
+                r.Add(inlet - outlet);
 
             }
             return r;
@@ -225,6 +305,7 @@ namespace Shared.SolverConsecutive.Equipments
     }
     public class HXConcentrationColdSideEquation : ISolverEquation
     {
+        public SolverEquationTypeModifier EquationTypeModifer { get; } = SolverEquationTypeModifier.Regular;
         SolverHeatExchanger hx;
         public HXConcentrationColdSideEquation(SolverHeatExchanger _hx) => hx = _hx;
         public string Name => $"{EquationType} - Cold Side - {hx.Name}";
@@ -263,6 +344,7 @@ namespace Shared.SolverConsecutive.Equipments
 
     public class HXMassEnergyBalanceHotSideEquation : ISolverEquation
     {
+        public SolverEquationTypeModifier EquationTypeModifer { get; } = SolverEquationTypeModifier.Regular;
         SolverHeatExchanger hx;
         public HXMassEnergyBalanceHotSideEquation(SolverHeatExchanger _hx) => hx = _hx;
         public string Name => $"{EquationType} - HotSide - {hx.Name}";
@@ -276,13 +358,13 @@ namespace Shared.SolverConsecutive.Equipments
             if (hx.HotInlet == null || hx.HotOutlet == null) return r;
 
             double mH_in = hx.HotInlet.MassFlow.GetSolverValue();
-         
+
 
 
             double hH_in = hx.HotInlet.MassEnthalpy.GetSolverValue();
             double hH_out = hx.HotOutlet.MassEnthalpy.GetSolverValue();
 
-           
+
             double trasnferHeat = hx.TransferHeat.GetSolverValue();
             // Verificador redundante: Entrada total = Salida total
             r.Add(mH_in * hH_in - mH_in * hH_out - trasnferHeat);
@@ -294,7 +376,7 @@ namespace Shared.SolverConsecutive.Equipments
             List<IVariable> v = new();
             if (hx.HotInlet == null || hx.HotOutlet == null) return v;
             v.Add(hx.HotInlet.MassFlow);
-         
+
 
             v.Add(hx.HotInlet.MassEnthalpy);
             v.Add(hx.HotOutlet.MassEnthalpy);
@@ -305,6 +387,7 @@ namespace Shared.SolverConsecutive.Equipments
     }
     public class HXMassEnergyBalanceColdSideEquation : ISolverEquation
     {
+        public SolverEquationTypeModifier EquationTypeModifer { get; } = SolverEquationTypeModifier.Regular;
         SolverHeatExchanger hx;
         public HXMassEnergyBalanceColdSideEquation(SolverHeatExchanger _hx) => hx = _hx;
         public string Name => $"{EquationType} - ColdSide - {hx.Name}";
@@ -318,7 +401,7 @@ namespace Shared.SolverConsecutive.Equipments
             if (hx.ColdInlet == null || hx.ColdOutlet == null) return r;
 
             double mC_in = hx.ColdInlet.MassFlow.GetSolverValue();
-           
+
 
 
             double hC_in = hx.ColdInlet.MassEnthalpy.GetSolverValue();
@@ -326,7 +409,7 @@ namespace Shared.SolverConsecutive.Equipments
 
             double TransferHeat = hx.TransferHeat.GetSolverValue();
 
-        
+
             // Verificador redundante: Entrada total = Salida total
             r.Add(mC_in * hC_in - mC_in * hC_out + TransferHeat);
             return r;
@@ -337,7 +420,7 @@ namespace Shared.SolverConsecutive.Equipments
             List<IVariable> v = new();
             if (hx.ColdInlet == null || hx.ColdOutlet == null) return v;
             v.Add(hx.ColdInlet.MassFlow);
-           
+
 
             v.Add(hx.ColdInlet.MassEnthalpy);
             v.Add(hx.ColdOutlet.MassEnthalpy);
@@ -346,4 +429,86 @@ namespace Shared.SolverConsecutive.Equipments
             return v;
         }
     }
+
+    /*
+    // Backup legacy: la V2 de specifications usa las ecuaciones MassBalance regulares.
+    public class HXMassBalanceHotSideEquationSpec : ISpecSolverEquation
+    {
+        public SolverEquationTypeModifier EquationTypeModifer { get; } = SolverEquationTypeModifier.Spec;
+        SolverHeatExchanger hx;
+        public HXMassBalanceHotSideEquationSpec(SolverHeatExchanger _hx) => hx = _hx;
+        public string Name => $"{EquationType} - Hot Side - {hx.Name}";
+        public SolverEquationType EquationType => SolverEquationType.MassBalance;
+        public List<double> Residuals => GetResiduals();
+        public List<IVariable> Variables => GetVariables();
+
+        List<double> GetResiduals()
+        {
+            List<double> r = new();
+            if (hx.HotInlet == null || hx.HotOutlet == null) return r;
+            r.Add(hx.HotInlet.MassFlow.GetSolverValue() - hx.HotOutlet.MassFlow.GetSolverValue());
+
+            return r;
+        }
+        List<IVariable> GetVariables()
+        {
+            List<IVariable> v = new();
+            if (hx.HotInlet == null || hx.HotOutlet == null) return v;
+            v.Add(hx.HotInlet.MassFlow);
+            v.Add(hx.HotOutlet.MassFlow);
+
+            return v;
+        }
+        public IEnumerable<IFacadeStream> AsociatedStreams
+        {
+            get
+            {
+                if (hx.HotInlet != null)
+                    yield return hx.HotInlet;
+
+                if (hx.HotOutlet != null)
+                    yield return hx.HotOutlet;
+            }
+        }
+    }
+    public class HXMassBalanceColdSideEquationSpec : ISpecSolverEquation
+    {
+        public SolverEquationTypeModifier EquationTypeModifer { get; } = SolverEquationTypeModifier.Spec;
+        SolverHeatExchanger hx;
+        public HXMassBalanceColdSideEquationSpec(SolverHeatExchanger _hx) => hx = _hx;
+        public string Name => $"{EquationType} - Cold Side - {hx.Name}";
+        public SolverEquationType EquationType => SolverEquationType.MassBalance;
+        public List<double> Residuals => GetResiduals();
+        public List<IVariable> Variables => GetVariables();
+
+        List<double> GetResiduals()
+        {
+            List<double> r = new();
+            if (hx.ColdInlet == null || hx.ColdOutlet == null) return r;
+            r.Add(hx.ColdInlet.MassFlow.GetSolverValue() - hx.ColdOutlet.MassFlow.GetSolverValue());
+
+            return r;
+        }
+        List<IVariable> GetVariables()
+        {
+            List<IVariable> v = new();
+            if (hx.ColdInlet == null || hx.ColdOutlet == null) return v;
+            v.Add(hx.ColdInlet.MassFlow);
+            v.Add(hx.ColdOutlet.MassFlow);
+
+            return v;
+        }
+        public IEnumerable<IFacadeStream> AsociatedStreams
+        {
+            get
+            {
+                if (hx.ColdInlet != null)
+                    yield return hx.ColdInlet;
+
+                if (hx.ColdOutlet != null)
+                    yield return hx.ColdOutlet;
+            }
+        }
+    }
+    */
 }

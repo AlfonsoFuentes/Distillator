@@ -1,0 +1,240 @@
+@using Microsoft.AspNetCore.Components.Web
+@inject FlowsheetManager FSM
+
+<div class="equipment-container @(IsSelected ? "selected" : "")"
+     style="@($"left:{Math.Round(Element.X)}px; top:{Math.Round(Element.Y)}px; width:{Math.Round(Element.Width)}px; height:{Math.Round(Element.Height)}px; z-index:{(IsSelected ? 9999 : (Element.ZIndex > 0 ? Element.ZIndex : 10))};")"
+     tabindex="0"
+     @onclick="HandleSingleClick"
+     @onclick:stopPropagation="true"
+     @ondblclick="HandleDoubleClick"
+     @ondblclick:stopPropagation="true" @onmousedown="HandleMouseDown"
+     @onmousedown:stopPropagation="true" @onkeydown="HandleKeyDown"
+     @onmouseenter="ShowTooltip"
+     @onmouseleave="HideTooltip">
+
+    <div class="equipment-graphics-rotate" style="@GetGraphicsLayerStyle()">
+
+        @ChildContent
+
+        @if (Element.ShowNozzles)
+        {
+            <svg width="@Element.Width" height="@Element.Height" style="position: absolute; top: 0; left: 0; pointer-events: none; overflow: visible; z-index: 5;">
+                @foreach (var port in Element.Ports)
+                {
+                    <rect x="@GetNozzleX(port)"
+                          y="@GetNozzleY(port)"
+                          width="10" height="10"
+                          class="equipment-nozzle"
+                          style="pointer-events: all;" />
+                }
+            </svg>
+        }
+
+        <div class="connection-ports @(FSM.IsConnectionModeActive ? "connection-mode" : "")">
+            @foreach (var port in Element.Ports)
+            {
+                bool isFree = port.ConnectedElementId == null;
+                bool isValidTarget = false;
+                bool isSource = false;
+
+                if (FSM.CurrentDraftPipe != null)
+                {
+                    isSource = FSM.CurrentDraftPipe.SourceElement?.Id == Element.Id &&
+                               FSM.CurrentDraftPipe.SourcePortName == port.Name;
+
+                    isValidTarget = isFree && FSM.IsValidTarget(Element, port.Name);
+                }
+
+                string portClass = "port";
+
+                if (FSM.CurrentDraftPipe == null)
+                {
+                    portClass += isFree ? " port-free" : " port-connected";
+                }
+                else
+                {
+                    if (isSource)
+                    {
+                        portClass += " port-source";
+                    }
+                    else if (isValidTarget)
+                    {
+                        portClass += " port-valid-target";
+                    }
+                    else
+                    {
+                        portClass += " port-dimmed";
+                    }
+                }
+
+                <div class="@portClass"
+                     style="left: @(port.OffsetX)px; top: @(port.OffsetY)px;"
+                     data-name="@port.Name"
+                     @onmouseenter="@(() => HoveredPortName = port.Name)"
+                     @onmouseleave="@(() => HoveredPortName = null)"
+                     @onmousedown:stopPropagation="true"
+                     @onmousedown="@(() => HandlePortMouseDown(port))"
+                     @onmouseup:stopPropagation="true"
+                     @onmouseup="@(() => HandlePortMouseUp(port))">
+                </div>
+            }
+        </div>
+    </div>
+    @if (Element.ShowLabel)
+    {
+        <span class="equipment-label" style="bottom: @(Element.LabelOffsetY)px;">
+            @Element.Label
+        </span>
+    }
+
+    <div class="mini-toolbar" style="top: @(Element.ToolbarOffsetY)px;">
+        @if (Element.AllowFlipHorizontal)
+        {
+            <button data-title="Flip Horizontal"
+                    @onclick:stopPropagation="true"
+                    @onmousedown:stopPropagation="true"
+                    @onclick="HandleFlipHorizontal">
+                ↔
+            </button>
+        }
+        @if (Element.AllowFreeRotation)
+        {
+            <button data-title="Rotate 90°"
+                    @onclick:stopPropagation="true"
+                    @onmousedown:stopPropagation="true"
+                    @onclick="HandleRotate">
+                ↻
+            </button>
+        }
+    </div>
+
+    @if (showTooltip && !IsDragging)
+    {
+        if (Element.GetToolTipData().Count > 0)
+        {
+            <div class="equipment-tooltip" style="top: calc(100% + @(Element.TooltipOffsetY)px);">
+                <div class="tooltip-header">@Element.Label</div>
+                <div class="tooltip-body">
+                    @foreach (var entry in Element.GetToolTipData())
+                    {
+                        <div class="tooltip-row">
+                            <span class="label">@entry.Variable:</span>
+                            <span class="value">@entry.Value</span>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    }
+
+    @if (!string.IsNullOrEmpty(HoveredPortName))
+    {
+        <div class="port-tooltip-fixed" style="@GetPortTooltipStyle()">
+            @HoveredPortName
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public IVisualElement Element { get; set; } = default!;
+    [Parameter] public RenderFragment ChildContent { get; set; } = default!;
+
+    [Parameter] public bool IsSelected { get; set; }
+    [Parameter] public bool IsDragging { get; set; }
+
+    [Parameter] public EventCallback<IVisualElement> OnSelect { get; set; }
+    [Parameter] public EventCallback<IVisualElement> OnOpenDetails { get; set; }
+    [Parameter] public EventCallback<MouseEventArgs> OnDragStart { get; set; }
+
+    private bool showTooltip = false;
+    private string? HoveredPortName;
+
+    private async Task HandleSingleClick()
+    {
+        await OnSelect.InvokeAsync(Element);
+    }
+
+    private async Task HandleDoubleClick()
+    {
+        await OnOpenDetails.InvokeAsync(Element);
+    }
+
+    private async Task HandleMouseDown(MouseEventArgs e) => await OnDragStart.InvokeAsync(e);
+
+    private void ShowTooltip() => showTooltip = true;
+    private void HideTooltip() => showTooltip = false;
+
+    private void HandleFlipHorizontal()
+    {
+        FSM.FlipElementHorizontal(Element);
+    }
+
+    private void HandleRotate()
+    {
+        FSM.RotateElement(Element);
+    }
+
+    private void HandleKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key.Equals("h", StringComparison.OrdinalIgnoreCase)) HandleFlipHorizontal();
+        if (e.Key.Equals("r", StringComparison.OrdinalIgnoreCase)) HandleRotate();
+    }
+
+    private double GetNozzleX(Shared.ProcessFlowDiagram.EquipmentPort port)
+    {
+        if (port.Direction == Shared.ProcessFlowDiagram.PortDirection.Left) return port.OffsetX;
+        if (port.Direction == Shared.ProcessFlowDiagram.PortDirection.Right) return port.OffsetX - 10;
+        return port.OffsetX - 5;
+    }
+
+    private double GetNozzleY(Shared.ProcessFlowDiagram.EquipmentPort port)
+    {
+        if (port.Direction == Shared.ProcessFlowDiagram.PortDirection.Top) return port.OffsetY;
+        if (port.Direction == Shared.ProcessFlowDiagram.PortDirection.Bottom) return port.OffsetY - 10;
+        return port.OffsetY - 5;
+    }
+
+    private void HandlePortMouseDown(EquipmentPort port)
+    {
+        if (FSM.IsConnectionModeActive &&
+            port.ConnectedElementId == null &&
+            FSM.CurrentDraftPipe == null)
+        {
+            FSM.StartConnectionDraft(Element, port.Name);
+        }
+    }
+
+    private void HandlePortMouseUp(EquipmentPort port)
+    {
+        if (FSM.CurrentDraftPipe != null)
+        {
+            FSM.CompleteConnection(Element, port.Name, 0, 0);
+        }
+    }
+
+    private string GetGraphicsLayerStyle() =>
+        $"width: {Element.Width}px; height: {Element.Height}px; " +
+        $"transform: rotate({Element.RotationAngle}deg) " +
+        $"scaleX({(Element.IsFlippedHorizontal ? -1 : 1)}) " +
+        $"scaleY({(Element.IsFlippedVertical ? -1 : 1)});";
+
+    private string GetPortTooltipStyle()
+    {
+        if (string.IsNullOrEmpty(HoveredPortName)) return "";
+
+        var port = Element.Ports.FirstOrDefault(p => p.Name == HoveredPortName);
+        if (port == null) return "";
+
+        var (finalX, finalY, nx, ny) = Element.GetCanvasPoint(HoveredPortName);
+        string translateX = "-50%";
+        string translateY = "-50%";
+
+        if (nx > 0.5) translateX = "0%";
+        else if (nx < -0.5) translateX = "-100%";
+
+        if (ny > 0.5) translateY = "0%";
+        else if (ny < -0.5) translateY = "-100%";
+
+        return $"left: {Math.Round(finalX)}px; top: {Math.Round(finalY)}px; transform: translate({translateX}, {translateY});";
+    }
+}

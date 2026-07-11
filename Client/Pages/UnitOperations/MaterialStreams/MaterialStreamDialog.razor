@@ -140,14 +140,17 @@
 
     protected override void OnInitialized()
     {
-        // 🔥 Suscribirse al WM para que el dialog se actualice
-        WM.OnNotifyUI += StateHasChanged;
+        FSM.OnNotifyUI += StateHasChanged;
     }
+
+    /*
+    // --- CÓDIGO VIEJO (WM) PARA REFERENCIA ---
+    // WM.OnNotifyUI → FSM.OnNotifyUI
+    */
 
     public void Dispose()
     {
-        // 🔥 Limpiar suscripción para evitar memory leaks
-        WM.OnNotifyUI -= StateHasChanged;
+        FSM.OnNotifyUI -= StateHasChanged;
     }
 
    

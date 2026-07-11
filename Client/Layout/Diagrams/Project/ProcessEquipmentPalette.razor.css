@@ -1,0 +1,123 @@
+.process-palette {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 120px;
+    background: #FFFFFF;
+    border: 1px solid #CBD5E1;
+    border-radius: 6px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    z-index: 50;
+    overflow: hidden;
+}
+
+.palette-header {
+    padding: 8px 6px;
+    background: #F8FAFC;
+    border-bottom: 1px solid #E2E8F0;
+    text-align: center;
+}
+
+.palette-title {
+    font-size: 0.65rem;
+    font-weight: 800;
+    color: #64748B;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.palette-body {
+    display: flex;
+    flex-direction: column;
+    padding: 6px;
+    gap: 8px;
+    max-height: calc(100vh - 160px);
+    overflow-y: auto;
+}
+
+.thermo-warning {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    font-size: 0.7rem;
+    color: #B45309;
+    padding: 6px;
+    gap: 4px;
+    border-radius: 4px;
+    background: #FFFBEB;
+    border: 1px solid #FCD34D;
+}
+
+    .thermo-warning span:first-child {
+        font-size: 1.2rem;
+    }
+
+.palette-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.group-title {
+    font-size: 0.55rem;
+    font-weight: 700;
+    color: #64748B;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    padding: 2px 0;
+    border-bottom: 1px solid #E2E8F0;
+}
+
+.palette-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4px;
+}
+
+.palette-item {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    cursor: grab;
+    background: #F8FAFC;
+    border: 1px solid #E2E8F0;
+    position: relative;
+}
+
+    .palette-item:hover {
+        background: #E0F2FE;
+        border-color: #0EA5E9;
+    }
+
+.item-tooltip {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1E293B;
+    color: #F8FAFC;
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 4px 8px;
+    border-radius: 4px;
+    white-space: nowrap;
+    pointer-events: none;
+    z-index: 10000;
+}
+
+    .item-tooltip::after {
+        content: '';
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        border-width: 4px;
+        border-style: solid;
+        border-color: transparent transparent #1E293B transparent;
+    }

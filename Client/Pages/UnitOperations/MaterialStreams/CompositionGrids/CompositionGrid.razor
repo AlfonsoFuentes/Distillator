@@ -68,11 +68,11 @@
 
             @* FLOW COLUMNS (Siempre calculadas / readonly) *@
             <div class="grid-cell value has-tooltip" data-state="calculated">
-                <span class="readonly-value">@FormatFlow(comp.MolarFlow.GetDisplayValue())</span>
+                <span class="readonly-value">@(comp.MolarFlow.IsDefined ? FormatFlow(comp.MolarFlow.GetDisplayValue()) : "<Not defined>")</span>
                 <span class="tooltip-text">@GetFlowTooltip(comp.MolarFlow)</span>
             </div>
             <div class="grid-cell value has-tooltip" data-state="calculated">
-                <span class="readonly-value">@FormatFlow(comp.MassFlow.GetDisplayValue())</span>
+                <span class="readonly-value">@(comp.MassFlow.IsDefined ? FormatFlow(comp.MassFlow.GetDisplayValue()) : "<Not defined>")</span>
                 <span class="tooltip-text">@GetFlowTooltip(comp.MassFlow)</span>
             </div>
             <div class="grid-cell value" data-state="calculated">
@@ -155,6 +155,7 @@
         if (!glValue.HasValue)
         {
             await ClearCell();
+
             StateHasChanged();
             return;
         }
@@ -173,9 +174,9 @@
 
             Variable.InputType = ComponentInputType.MassFraction;
 
-            if (_WM != null)
+            if (FSM != null)
             {
-                _WM.RunSimulation();
+                FSM.RunSimulation();
             }
 
             if (VariableChanged.HasDelegate)

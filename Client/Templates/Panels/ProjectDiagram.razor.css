@@ -1,0 +1,50 @@
+.project-diagram {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background: #F8FAFC;
+    overflow: hidden;
+}
+
+.project-header {
+    padding: 8px 12px;
+    background: #FFFFFF;
+    border-bottom: 1px solid #E2E8F0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+}
+
+.project-title h1 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: #334155;
+}
+
+.flowsheet-name {
+    font-size: 11px;
+    color: #64748B;
+    margin-left: 8px;
+}
+
+.project-body {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+    min-height: 0;
+}
+
+.project-explorer {
+    flex-shrink: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.project-canvas {
+    flex: 1;
+    position: relative;
+    min-width: 0;
+    overflow: hidden;
+}

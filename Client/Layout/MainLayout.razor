@@ -1,7 +1,7 @@
 ﻿@using Client.Layout.Diagrams.Palettes
+@using Client.Services.Security
 
 @inherits LayoutComponentBase
-@inject AuthenticationStateProvider AuthStateProvider
 
 <MudThemeProvider Theme="_industrialTheme" />
 <MudPopoverProvider />
@@ -17,7 +17,7 @@
         <MudSpacer />
         <AuthorizeView>
             <Authorized>
-                <span class="mr-4 operator-text">Operator: @context.User.Identity?.Name</span>
+                <span class="mr-4 operator-text">Operator: @(AuthProvider.CurrentUser?.DisplayName ?? context.User.Identity?.Name)</span>
                 <MudButton Variant="Variant.Outlined" Color="Color.Inherit" OnClick="ExecuteLogout">Sign Out</MudButton>
             </Authorized>
         </AuthorizeView>
@@ -35,12 +35,6 @@
     </AuthorizeView>
 
     <MudMainContent Class="main-content-area">
-        <AuthorizeView Roles="Creator, Viewer">
-            <Authorized>
-                <EquipmentPalette />
-            </Authorized>
-        </AuthorizeView>
-    
         @Body
     </MudMainContent>
 </MudLayout>
@@ -48,18 +42,6 @@
 @code {
     bool _drawerOpen = false;
     void DrawerToggle() => _drawerOpen = !_drawerOpen;
-
-    protected override async Task OnInitializedAsync()
-    {
-        // Si quieres que los Admin vean el panel abierto al entrar:
-        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-        var user = authState.User;
-        
-        if (user.IsInRole("Administrator") || user.IsInRole("Developer"))
-        {
-            _drawerOpen = true;
-        }
-    }
 
     private MudTheme _industrialTheme = new MudTheme()
     {
@@ -76,11 +58,13 @@
 
     private async Task ExecuteLogout()
     {
-        var response = await HttpServices.PostAsync<LogoutRequest, Result>(new LogoutRequest());
+        // ❌ VIEJO: var response = await HttpServices.PostAsync<LogoutRequest, Result>(new LogoutRequest());
+        var response = await HttpServices.PostAsync<LogoutRequest>(new LogoutRequest());
 
         if (response != null && response.Succeeded)
         {
-            ((CustomAuthenticationStateProvider)AuthStateProvider).NotifyAuthenticationStateChanged();
+            AuthProvider.ClearUserInfo();
+            AuthProvider.NotifyAuthenticationStateChanged();
             NavigationManager.NavigateTo("/login");
         }
     }

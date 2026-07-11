@@ -1,0 +1,68 @@
+@using Client.Layout.Diagrams.Project
+@using Client.Services.ProjectWorkspace
+@using Distillator.Domain.Models
+@implements IDisposable
+@inject ProjectSessionService SessionService
+@inject FlowsheetManager FSM
+
+<div class="project-diagram">
+    <div class="project-header">
+        <div class="project-title">
+            <h1>@SessionService.CurrentProject?.Name</h1>
+            <span class="flowsheet-name">@SessionService.ActiveFlowsheet?.Name</span>
+        </div>
+    </div>
+
+    <div class="project-body">
+        <div class="project-explorer">
+            <FlowsheetExplorer />
+        </div>
+
+        <div class="project-canvas">
+            <ProcessFlowsheetCanvas />
+            <ProcessEquipmentPalette />
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public Project Project { get; set; } = default!;
+    private Project? _lastProject;
+
+    protected override void OnInitialized()
+    {
+        SessionService.ProjectChanged += OnProjectChanged;
+    }
+
+    public void Dispose()
+    {
+        SessionService.ProjectChanged -= OnProjectChanged;
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Project != null && Project != _lastProject)
+        {
+            _lastProject = Project;
+            await SessionService.SetCurrentProjectAsync(Project);
+        }
+    }
+
+    private void OnProjectChanged()
+    {
+        if (SessionService.CurrentProject == null)
+        {
+            FSM.Clear();
+        }
+        else if (SessionService.ActiveFlowsheet != null)
+        {
+            FSM.LoadProjectAndFlowsheet(SessionService.CurrentProject, SessionService.ActiveFlowsheet);
+        }
+        else
+        {
+            FSM.Clear();
+        }
+
+        InvokeAsync(StateHasChanged);
+    }
+}

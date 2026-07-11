@@ -1,0 +1,84 @@
+<MudDialog>
+    <TitleContent>
+        <div class="dialog-title">Delete Project</div>
+    </TitleContent>
+
+    <DialogContent>
+        <div class="delete-content">
+            <p>
+                Are you sure you want to delete <strong>"@ProjectName"</strong>?
+            </p>
+            <p class="warning-text">
+                This action cannot be undone.
+            </p>
+        </div>
+    </DialogContent>
+
+    <DialogActions>
+        <button class="dialog-btn secondary" @onclick="Cancel">Cancel</button>
+        <button class="dialog-btn danger" @onclick="Confirm">Delete</button>
+    </DialogActions>
+</MudDialog>
+
+<style>
+    .dialog-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: #334155;
+    }
+
+    .delete-content {
+        padding: 8px 0;
+        min-width: 320px;
+    }
+
+    .delete-content p {
+        margin: 0 0 8px 0;
+        font-size: 13px;
+        color: #334155;
+        line-height: 1.5;
+    }
+
+    .warning-text {
+        color: #ef4444;
+        font-size: 12px;
+    }
+
+    .dialog-btn {
+        padding: 8px 16px;
+        border-radius: 4px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        border: 1px solid transparent;
+    }
+
+    .dialog-btn.secondary {
+        background: transparent;
+        color: #64748b;
+        border-color: #cbd5e1;
+    }
+
+    .dialog-btn.secondary:hover {
+        background: #f1f5f9;
+        color: #334155;
+    }
+
+    .dialog-btn.danger {
+        background: #ef4444;
+        color: #ffffff;
+    }
+
+    .dialog-btn.danger:hover {
+        background: #dc2626;
+    }
+</style>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
+    [Parameter] public string ProjectName { get; set; } = "";
+
+    private void Cancel() => MudDialog.Cancel();
+    private void Confirm() => MudDialog.Close(true);
+}

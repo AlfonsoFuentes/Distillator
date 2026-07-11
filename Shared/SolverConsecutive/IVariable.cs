@@ -3,7 +3,7 @@ using UnitSystem;
 
 namespace Shared.SolverConsecutive
 {
-    
+
 
     public interface IVariable
     {
@@ -122,6 +122,10 @@ namespace Shared.SolverConsecutive
             var newValue = solverValue * NormalizeValue;
 
             _value.SetValue(newValue, InternalUnit);
+            if ( _procedence == VariableDefinedBy.Undefined)
+            {
+
+            }
             DataProcedence = DataProcedence == VariableDefinedBy.Undefined ? _procedence : DataProcedence;
             OnAddVariableToList(this);
             if (ShouldTriggerRecalculation)
@@ -134,6 +138,9 @@ namespace Shared.SolverConsecutive
 
         public void Clear(VariableDefinedBy _procedence)
         {
+            if ( _procedence == VariableDefinedBy.Undefined)
+            {
+            }
             if (DataProcedence != _procedence) return;
 
             var oldIsSpecToEquilibrium = ShouldTriggerRecalculation;
@@ -163,7 +170,7 @@ namespace Shared.SolverConsecutive
         public bool IsDefinedByUI => DataProcedence == VariableDefinedBy.UserInput;
         public bool IsDefinedByStream => DataProcedence == VariableDefinedBy.StreamCalculated;
 
-       
+
 
         // Propiedad "Source" (string) que la UI usa para el tooltip ("Calculated by: ...")
         public string Source => DataProcedence switch

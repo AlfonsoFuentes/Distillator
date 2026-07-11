@@ -28,8 +28,8 @@
               fill="none"
               class="pipe-hitbox"
               @ondblclick="HandleDoubleClick" />
-   
 
+   
         @* LEYENDA TÉCNICA *@
         @if (Pipe.ShowTechnicalLabel)
         {
@@ -56,9 +56,17 @@
 
     private void CalculatePaths()
     {
-        // 1. Creamos la petición normalizada (A siempre a la izquierda)
-        RenderData = PipeRoutingFactory.GetRoute(Pipe, IsDraft, WM.DraftMouseLogicalX, WM.DraftMouseLogicalY, WM.Elements,WM.Pipes);
+        if (FSM.DraftMouseLogicalX <= 1)
+        {
+
+        }
+        RenderData = PipeRoutingFactory.GetRoute(Pipe, IsDraft, FSM.DraftMouseLogicalX, FSM.DraftMouseLogicalY, FSM.Elements, FSM.Pipes);
     }
+
+    /*
+    // --- CÓDIGO VIEJO (WM) PARA REFERENCIA ---
+    // RenderData = PipeRoutingFactory.GetRoute(Pipe, IsDraft, WM.DraftMouseLogicalX, WM.DraftMouseLogicalY, WM.Elements, WM.Pipes);
+    */
 
     private void HandleDoubleClick()
     {

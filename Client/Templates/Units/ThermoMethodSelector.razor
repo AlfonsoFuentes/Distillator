@@ -71,7 +71,8 @@
 
         if (Guid.TryParse(selectedIdString, out var selectedId))
         {
-            var result = await HttpServices.PostAsync<GetMethodFullRequest, Result<ThermodynamicMethodFullDto>>(new GetMethodFullRequest(selectedId));
+            // ❌ VIEJO: var result = await HttpServices.PostAsync<GetMethodFullRequest, Result<ThermodynamicMethodFullDto>>(new GetMethodFullRequest(selectedId));
+            var result = await HttpServices.PostAsync<GetMethodFullRequest, ThermodynamicMethodFullDto>(new GetMethodFullRequest(selectedId));
             if (result.Succeeded)
             {
                 var selectedMethod = result.Data;

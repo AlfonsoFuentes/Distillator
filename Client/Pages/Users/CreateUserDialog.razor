@@ -73,7 +73,8 @@
     {
         _isProcessing = true;
         
-        var response = await HttpServices.PostAsync<CreateUserRequest, Result>(_request);
+        // ❌ VIEJO: var response = await HttpServices.PostAsync<CreateUserRequest, Result>(_request);
+        var response = await HttpServices.PostAsync<CreateUserRequest>(_request);
 
         if (response != null && response.Succeeded)
         {

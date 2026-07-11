@@ -1,0 +1,278 @@
+@using Distillator.Domain.Models
+@implements IDisposable
+@inject ProjectSessionService SessionService
+@inject IDialogService DialogService
+
+<div class="flowsheet-explorer @(IsCollapsed ? "collapsed" : "expanded")">
+    <div class="explorer-header">
+        @if (!IsCollapsed)
+        {
+            <span>Diagrams</span>
+        }
+        <button class="toggle-btn"
+                @onclick="ToggleExplorer"
+                @onmouseenter="@(() => _hoveredTooltip = "toggle")"
+                @onmouseleave="@(() => _hoveredTooltip = null)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                @if (IsCollapsed)
+                {
+                    <path d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+                }
+                else
+                {
+                    <path d="M11 19l-7-7 7-7M19 19l-7-7 7-7" />
+                }
+            </svg>
+            @if (_hoveredTooltip == "toggle")
+            {
+                <span class="fe-tooltip fe-tooltip-bottom">@(IsCollapsed ? "Expand" : "Collapse")</span>
+            }
+        </button>
+    </div>
+
+    @if (!IsCollapsed)
+    {
+        <div class="explorer-body">
+        @if (SessionService.CurrentProject == null)
+        {
+            <div class="empty-state">No project selected</div>
+        }
+        else
+        {
+            @foreach (var type in SessionService.CurrentProject.FlowsheetTypes.AllTypes)
+            {
+                var flowsheets = GetFlowsheetsByType(type.Code);
+                var isExpanded = _expandedTypes.Contains(type.Code);
+
+                <div class="type-group">
+                    <div class="type-header" @onclick="() => ToggleType(type.Code)">
+                        <span class="type-chevron @(isExpanded ? "expanded" : "")">▶</span>
+                        <span class="type-name">@type.DisplayName</span>
+                        <span class="type-count">@flowsheets.Count()</span>
+                        <button class="type-add-btn"
+                                @onclick:stopPropagation="true"
+                                @onclick="() => CreateFlowsheet(type.Code)"
+                                @onmouseenter="@(() => _hoveredTooltip = $"add-{type.Code}")"
+                                @onmouseleave="@(() => _hoveredTooltip = null)">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                <line x1="12" y1="5" x2="12" y2="19"></line>
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                            </svg>
+                            @if (_hoveredTooltip == $"add-{type.Code}")
+                            {
+                                <span class="fe-tooltip fe-tooltip-bottom">Add @type.DisplayName</span>
+                            }
+                        </button>
+                    </div>
+
+                    @if (isExpanded)
+                    {
+                        <div class="type-items">
+                            @if (!flowsheets.Any())
+                            {
+                                <div class="no-items">No diagrams</div>
+                            }
+                            else
+                            {
+                                @foreach (var flowsheet in flowsheets)
+                                {
+                                    var isActive = SessionService.ActiveFlowsheet?.Id == flowsheet.Id;
+                                    <div class="flowsheet-item @(isActive ? "active" : "") @(flowsheet == _draggedFlowsheet ? "dragging" : "")"
+                                         draggable="true"
+                                         @onclick="() => SetActive(flowsheet)"
+                                         @ondragstart="() => HandleDragStart(flowsheet)"
+                                         @ondragover:preventDefault="true"
+                                         @ondragover="() => { }"
+                                         @ondrop="() => HandleDrop(flowsheet)">
+                                        <span class="flowsheet-name">@flowsheet.Name</span>
+                                        <div class="flowsheet-actions">
+                                            <button class="action-btn"
+                                                    @onclick:stopPropagation="true"
+                                                    @onclick="() => EditFlowsheet(flowsheet)"
+                                                    @onmouseenter="@(() => _hoveredTooltip = $"edit-{flowsheet.Id}")"
+                                                    @onmouseleave="@(() => _hoveredTooltip = null)">
+                                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                                </svg>
+                                                @if (_hoveredTooltip == $"edit-{flowsheet.Id}")
+                                                {
+                                                    <span class="fe-tooltip fe-tooltip-right">Edit</span>
+                                                }
+                                            </button>
+                                            <span class="action-btn-wrapper"
+                                                  @onmouseenter="@(() => _hoveredTooltip = $"delete-{flowsheet.Id}")"
+                                                  @onmouseleave="@(() => _hoveredTooltip = null)">
+                                                <button class="action-btn delete"
+                                                        disabled="@(!CanDeleteAnyFlowsheet)"
+                                                        @onclick:stopPropagation="true"
+                                                        @onclick="() => DeleteFlowsheet(flowsheet)">
+                                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                        <polyline points="3 6 5 6 21 6"></polyline>
+                                                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                                    </svg>
+                                                </button>
+                                                @if (_hoveredTooltip == $"delete-{flowsheet.Id}")
+                                                {
+                                                    <span class="fe-tooltip fe-tooltip-right">@(CanDeleteAnyFlowsheet ? "Delete" : "Cannot delete the last diagram")</span>
+                                                }
+                                            </span>
+                                        </div>
+                                    </div>
+                                }
+                            }
+                        </div>
+                    }
+                </div>
+            }
+        }
+        </div>
+    }
+</div>
+
+@code {
+    private readonly HashSet<string> _expandedTypes = new(StringComparer.OrdinalIgnoreCase);
+    private bool IsCollapsed { get; set; } = false;
+    private IFlowsheet? _draggedFlowsheet;
+    private string? _hoveredTooltip;
+    private bool _canDeleteAnyFlowsheet;
+
+    private bool CanDeleteAnyFlowsheet => _canDeleteAnyFlowsheet;
+
+    private void ToggleExplorer() => IsCollapsed = !IsCollapsed;
+
+    private void RefreshCanDeleteAnyFlowsheet()
+    {
+        _canDeleteAnyFlowsheet = SessionService.CurrentProject != null && SessionService.CurrentProject.Flowsheets.Count > 1;
+    }
+
+    private void HandleDragStart(IFlowsheet flowsheet)
+    {
+        _draggedFlowsheet = flowsheet;
+    }
+
+    private void HandleDrop(IFlowsheet targetFlowsheet)
+    {
+        if (_draggedFlowsheet == null || _draggedFlowsheet.Id == targetFlowsheet.Id)
+        {
+            _draggedFlowsheet = null;
+            return;
+        }
+
+        if (SessionService.CurrentProject == null)
+        {
+            _draggedFlowsheet = null;
+            return;
+        }
+
+        var typeFlowsheets = SessionService.CurrentProject.Flowsheets
+            .Where(f => f.TypeCode.Equals(_draggedFlowsheet.TypeCode, StringComparison.OrdinalIgnoreCase))
+            .ToList();
+
+        var targetIndex = typeFlowsheets.IndexOf(targetFlowsheet);
+        if (targetIndex < 0)
+        {
+            _draggedFlowsheet = null;
+            return;
+        }
+
+        var globalFlowsheets = SessionService.CurrentProject.Flowsheets.ToList();
+        var globalTarget = globalFlowsheets.IndexOf(targetFlowsheet);
+        SessionService.ReorderFlowsheet(_draggedFlowsheet, globalTarget);
+        _draggedFlowsheet = null;
+    }
+
+    protected override void OnInitialized()
+    {
+        SessionService.ProjectChanged += OnProjectChanged;
+        InitializeExpandedTypes();
+        RefreshCanDeleteAnyFlowsheet();
+    }
+
+    public void Dispose()
+    {
+        SessionService.ProjectChanged -= OnProjectChanged;
+    }
+
+    private void OnProjectChanged()
+    {
+        InitializeExpandedTypes();
+        RefreshCanDeleteAnyFlowsheet();
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void InitializeExpandedTypes()
+    {
+        _expandedTypes.Clear();
+        var project = SessionService.CurrentProject;
+        if (project == null) return;
+
+        foreach (var type in project.FlowsheetTypes.AllTypes)
+        {
+            if (GetFlowsheetsByType(type.Code).Any())
+            {
+                _expandedTypes.Add(type.Code);
+            }
+        }
+    }
+
+    private IEnumerable<IFlowsheet> GetFlowsheetsByType(string typeCode)
+    {
+        if (SessionService.CurrentProject == null) return Enumerable.Empty<IFlowsheet>();
+        return SessionService.CurrentProject.Flowsheets
+            .Where(f => f.TypeCode.Equals(typeCode, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private void ToggleType(string typeCode)
+    {
+        if (_expandedTypes.Contains(typeCode))
+            _expandedTypes.Remove(typeCode);
+        else
+            _expandedTypes.Add(typeCode);
+    }
+
+    private async Task SetActive(IFlowsheet flowsheet)
+    {
+        await SessionService.SetActiveFlowsheetAsync(flowsheet);
+    }
+
+    private async Task CreateFlowsheet(string typeCode)
+    {
+        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true };
+        var parameters = new DialogParameters
+        {
+            ["Project"] = SessionService.CurrentProject,
+            ["FixedTypeCode"] = typeCode
+        };
+        var dialog = await DialogService.ShowAsync<FlowsheetFormDialog>("New Diagram", parameters, options);
+        await dialog.Result;
+    }
+
+    private async Task EditFlowsheet(IFlowsheet flowsheet)
+    {
+        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true };
+        var parameters = new DialogParameters
+        {
+            ["Project"] = SessionService.CurrentProject,
+            ["Flowsheet"] = flowsheet
+        };
+        var dialog = await DialogService.ShowAsync<FlowsheetFormDialog>("Edit Diagram", parameters, options);
+        await dialog.Result;
+    }
+
+    private async Task DeleteFlowsheet(IFlowsheet flowsheet)
+    {
+        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.ExtraSmall };
+        var parameters = new DialogParameters { ["Flowsheet"] = flowsheet };
+        var dialog = await DialogService.ShowAsync<DeleteFlowsheetDialog>("Delete Diagram", parameters, options);
+        var result = await dialog.Result;
+
+        if (result != null && !result.Canceled && result.Data is true)
+        {
+            await SessionService.DeleteFlowsheetAsync(flowsheet.Id);
+        }
+
+        RefreshCanDeleteAnyFlowsheet();
+        await InvokeAsync(StateHasChanged);
+    }
+}

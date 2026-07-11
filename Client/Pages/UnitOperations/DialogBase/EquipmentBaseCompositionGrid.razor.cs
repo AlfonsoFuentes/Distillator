@@ -238,24 +238,7 @@ namespace Client.Pages.UnitOperations.DialogBase
                 }
             }
         }
-        private void HandleFocus2(IFacadeStream facade, ComponentFacade comp, bool isMass, bool isGL)
-        {
-            if (isGL && ShouldGlBeReadOnly(facade)) return;
-
-            var state = GetCellState(facade, comp, isMass);
-            if (IsCellReadOnly(state)) return;
-
-            _editingFacade = facade;
-            _editingComponent = comp;
-            _isEditingGL = isGL;
-            _isEditingMass = !isGL && isMass;
-            _isEditingMolar = !isGL && !isMass;
-
-            if (isGL)
-                _tempInputValue = comp.MassFraction.IsDefined ? GetGLEtanol(comp.MassFraction.GetDisplayValue()) : null;
-            else
-                _tempInputValue = isMass ? comp.MassFraction.GetDisplayValue() : comp.MolarFraction.GetDisplayValue();
-        }
+       
         private void HandleInput(ChangeEventArgs e)
         {
             // 🔥 SOLO guardamos lo que el usuario escribe, el parseo lo haremos al final
@@ -270,13 +253,7 @@ namespace Client.Pages.UnitOperations.DialogBase
             else
                 _tempInputValue = null;
         }
-        private void HandleInput2(ChangeEventArgs e)
-        {
-            if (double.TryParse(e.Value?.ToString(), NumberStyles.Any, CultureInfo.InvariantCulture, out var value))
-                _tempInputValue = value;
-            else
-                _tempInputValue = null;
-        }
+       
         private async Task HandleKeyDown(KeyboardEventArgs e, IFacadeStream facade, ComponentFacade comp, bool isMass, bool isGL)
         {
             if (e.Key == "Enter")
@@ -284,8 +261,10 @@ namespace Client.Pages.UnitOperations.DialogBase
                 ParseRawInput(); // Convertimos el string a double
                 await CommitValue(facade, comp, isMass, isGL);
             }
-            // 🔥 Ya no interceptamos el Delete aquí mientras editamos texto, 
-            // el blur se encargará de vaciar la celda si borras todo.
+            else if (e.Key == "Delete")
+            {
+                await ClearCell(facade, comp);
+            }
         }
 
         private async Task HandleBlur(IFacadeStream facade, ComponentFacade comp, bool isMass, bool isGL)
@@ -314,14 +293,7 @@ namespace Client.Pages.UnitOperations.DialogBase
             else if (e.Key == "Delete" || e.Key == "Backspace") await ClearCell(facade, comp);
         }
 
-        private async Task HandleBlur2(IFacadeStream facade, ComponentFacade comp, bool isMass, bool isGL)
-        {
-            if (_tempInputValue.HasValue || (isMass ? comp.MassFraction.IsDefined : comp.MolarFraction.IsDefined))
-                await CommitValue(facade, comp, isMass, isGL);
-            else
-                await ClearCell(facade, comp);
-        }
-
+       
         private async Task CommitValue(IFacadeStream facade, ComponentFacade comp, bool isMass, bool isGL)
         {
             if (!_tempInputValue.HasValue) return;
@@ -356,11 +328,12 @@ namespace Client.Pages.UnitOperations.DialogBase
 
             if (sum >= 99 && sum <= 101)
             {
-                WM.RunSimulation();
+                FSM.RunSimulation();
             }
 
             ResetEditingState();
             if (OnEquipmentUpdated.HasDelegate) await OnEquipmentUpdated.InvokeAsync();
+            await InvokeAsync(StateHasChanged);
         }
 
         private async Task ClearCell(IFacadeStream facade, ComponentFacade comp)
@@ -368,25 +341,13 @@ namespace Client.Pages.UnitOperations.DialogBase
             var composition = facade.Composition;
             if (composition == null) return;
 
-            if (IsEthanolWaterMixture(facade))
-            {
-                foreach (var c in composition.Components)
-                {
-                    c.MassFraction.ClearFromUI();
-                    c.MolarFraction.ClearFromUI();
-                }
-            }
-            else
-            {
-                comp.MassFraction.ClearFromUI();
-                comp.MolarFraction.ClearFromUI();
-            }
-
+            composition.Clear();
             composition.InputType = ComponentInputType.None;
-            WM.RunSimulation();
+            FSM.RunSimulation();
 
             ResetEditingState();
             if (OnEquipmentUpdated.HasDelegate) await OnEquipmentUpdated.InvokeAsync();
+            await InvokeAsync(StateHasChanged);
         }
 
         private void ResetEditingState()
@@ -403,58 +364,10 @@ namespace Client.Pages.UnitOperations.DialogBase
         private IFacadeStream? GetFacadeForPort(EquipmentPort port)
         {
             if (!port.ConnectedElementId.HasValue) return null;
-
-            Guid connectedId = port.ConnectedElementId.Value;
-            IVisualElement? connectedElement = null;
-
-            var pipe = WM.Areas.SelectMany(a => a.Pipes).FirstOrDefault(x => x.Id == connectedId);
-            if (pipe != null)
-            {
-                if (pipe.SourceElement?.Facade is IFacadeStream sf) return sf;
-                if (pipe.TargetElement?.Facade is IFacadeStream tf) return tf;
-
-                if (pipe.SourceElement is OffPageConnectorElement) connectedElement = pipe.SourceElement;
-                else if (pipe.TargetElement is OffPageConnectorElement) connectedElement = pipe.TargetElement;
-            }
-
-            if (connectedElement == null)
-            {
-                connectedElement = WM.Areas.SelectMany(a => a.Elements).FirstOrDefault(x => x.Id == connectedId);
-            }
-
-            if (connectedElement != null)
-            {
-                if (connectedElement.Facade is IFacadeStream directFacade)
-                {
-                    return directFacade;
-                }
-
-                if (connectedElement is OffPageConnectorElement opc)
-                {
-                    var targetArea = WM.Areas.FirstOrDefault(a => a.Id == opc.TargetAreaId);
-                    if (targetArea != null)
-                    {
-                        var twinOpc = targetArea.Elements.OfType<OffPageConnectorElement>().FirstOrDefault(e => e.Id == opc.TargetConnectorId);
-                        if (twinOpc != null)
-                        {
-                            var twinPipe = targetArea.Pipes.FirstOrDefault(p => p.SourceElementId == twinOpc.Id || p.TargetElementId == twinOpc.Id);
-                            if (twinPipe != null)
-                            {
-                                var realStreamId = twinPipe.SourceElementId == twinOpc.Id ? twinPipe.TargetElementId : twinPipe.SourceElementId;
-                                var realStream = targetArea.Elements.FirstOrDefault(e => e.Id == realStreamId);
-
-                                if (realStream?.Facade is IFacadeStream wormholeFacade)
-                                {
-                                    return wormholeFacade;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            return null;
+            return FSM.GetFacadeForConnectedId(port.ConnectedElementId.Value);
         }
+
+       
 
         private List<string> GetDistinctComponents()
         {

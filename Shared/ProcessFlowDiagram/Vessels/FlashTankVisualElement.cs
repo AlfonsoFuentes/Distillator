@@ -91,15 +91,15 @@ namespace Shared.ProcessFlowDiagram.Vessels
         {
             if (portName == PortFeedName)
             {
-                Drum.SetFeed(null!);
+                Drum.UnSetFeed();
             }
             else if (portName == PortVaporName)
             {
-                Drum.SetVaporOutlet(null!);
+                Drum.UnSetVaporOutlet();
             }
             else if (portName == PortLiquidName)
             {
-                Drum.SetLiquidOutlet(null!);
+                Drum.UnSetLiquidOutlet();
             }
         }
 

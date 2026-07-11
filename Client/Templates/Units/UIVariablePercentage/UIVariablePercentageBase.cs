@@ -1,4 +1,4 @@
-﻿using Client.Services.EquipmentManagers;
+﻿using Client.Services.ProjectWorkspace;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Shared.SolverConsecutive;
@@ -8,7 +8,7 @@ namespace Client.Templates.Units.UIVariablePercentage
 {
     public abstract class UIVariablePercentageBase : ComponentBase
     {
-        [Inject] protected WorkspaceManager _WM { get; set; } = null!;
+        [Inject] protected FlowsheetManager FlowsheetManager { get; set; } = null!;
 
         [Parameter] public string Label { get; set; } = string.Empty;
         [Parameter] public Variable<Percentage> Variable { get; set; } = default!;
@@ -76,9 +76,9 @@ namespace Client.Templates.Units.UIVariablePercentage
             if (e.Key == "Delete")
             {
                 Variable?.ClearFromUI();
-                if (_WM != null)
+                if (FlowsheetManager != null)
                 {
-                    _WM.RunSimulation();
+                    FlowsheetManager.RunSimulation();
                 }
                 _isEditing = false;
                 _tempInputValue = null;
@@ -133,9 +133,9 @@ namespace Client.Templates.Units.UIVariablePercentage
 
                 Variable.SetValueFromUI(newValue);
 
-                if (_WM != null)
+                if (FlowsheetManager != null)
                 {
-                    _WM.RunSimulation();
+                    FlowsheetManager.RunSimulation();
                 }
             }
 

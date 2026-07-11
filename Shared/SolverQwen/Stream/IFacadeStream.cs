@@ -2,6 +2,7 @@
 using Shared.ProcessFlowDiagram;
 using Shared.PropertiesDtos.Methods;
 using Shared.SolverConsecutive;
+using Shared.SolverConsecutive.Equipments;
 using Shared.SolverQwen.Variables;
 using Shared.Thermodynamics.Phases;
 using Shared.Thermodynamics.Strategies.Equlibriums;
@@ -27,6 +28,8 @@ namespace Shared.SolverQwen.Stream
     public interface IFacadeStream : IFacade
     {
 
+        ISolverEquipment EquipmentInlet { get; set; }
+        ISolverEquipment EquipmentOutlet { get; set; }
         LiquidPhaseMixture LiquidPhase { get; }
         VaporPhaseMixture VaporPhase { get; }
 
@@ -78,7 +81,8 @@ namespace Shared.SolverQwen.Stream
 
     public class FacadeStream : IFacadeStream
     {
-
+        public ISolverEquipment EquipmentInlet { get; set; } = null!;
+        public ISolverEquipment EquipmentOutlet { get; set; } = null!;
         public Guid Id { get; set; } = Guid.NewGuid();
         public ThermodynamicState EquilibriumState => _materialStream.CurrentState;
         public LiquidPhaseMixture LiquidPhase => _materialStream.LiquidPhase;

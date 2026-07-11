@@ -1,5 +1,7 @@
 ﻿@using Client.Layout.Shapes.SVGDrawings
+@using Distillator.Domain.Models
 @inherits EquipmentUIBase<OffPageConnectorElement>
+@inject Client.Services.ProjectSessionService SessionService
 
 <CanvasEquipmentWrapper Element="Element"
                         IsSelected="IsSelected"
@@ -21,33 +23,43 @@
     {
         if (Element.TargetAreaId.HasValue)
         {
+            var targetFlowsheet = FSM.CurrentProject?.GetFlowsheet(Element.TargetAreaId.Value);
+            return targetFlowsheet?.Name ?? "?";
+        }
+        return "?";
+    }
+
+    /*
+    // --- CÓDIGO VIEJO (WM) PARA REFERENCIA ---
+    private string GetTargetAreaName_Old()
+    {
+        if (Element.TargetAreaId.HasValue)
+        {
             var area = WM.Areas.FirstOrDefault(a => a.Id == Element.TargetAreaId.Value);
             return area?.Name ?? "?";
         }
         return "?";
     }
+    */
 
-    // 🚩 EL SALTO DIRECTO Y CENTRADO
     protected override async Task OpenPropertiesDialogAsync()
     {
-        if (Element.TargetAreaId.HasValue && Element.TargetConnectorId.HasValue)
+        if (Element.TargetAreaId.HasValue && Element.TargetAreaId != Guid.Empty)
         {
-            var targetArea = WM.Areas.FirstOrDefault(a => a.Id == Element.TargetAreaId.Value);
-            
-            if (targetArea != null)
+            var targetFlowsheet = FSM.CurrentProject?.GetFlowsheet(Element.TargetAreaId.Value);
+            if (targetFlowsheet != null)
             {
-                WM.SwitchToArea(targetArea);
-                await Task.Yield();
-
-                var twinOpc = targetArea.Elements.FirstOrDefault(e => e.Id == Element.TargetConnectorId.Value);
-
-                if (twinOpc != null)
-                {
-                    WM.PanX = -(twinOpc.X * WM.Zoom) + 300;
-                    WM.PanY = -(twinOpc.Y * WM.Zoom) + 300;
-                    WM.SelectElement(twinOpc);
-                }
+                await SessionService.SetActiveFlowsheetAsync(targetFlowsheet);
             }
         }
     }
+
+    /*
+    // --- CÓDIGO VIEJO (WM) PARA REFERENCIA ---
+    protected override Task OpenPropertiesDialogAsync_Old()
+    {
+        WM.NavigateToOpcTarget(Element.TargetAreaId ?? Guid.Empty, Element.TargetConnectorId);
+        return Task.CompletedTask;
+    }
+    */
 }

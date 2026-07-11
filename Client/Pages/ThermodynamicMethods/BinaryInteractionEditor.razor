@@ -113,7 +113,8 @@
     protected override async Task OnInitializedAsync()
     {
         // Cargar lista de componentes para el Autocomplete
-        var result = await HttpServices.PostAsync<GetAllComponents, Result<List<ChemicalComponentListDto>>>(new GetAllComponents());
+        // ❌ VIEJO: var result = await HttpServices.PostAsync<GetAllComponents, Result<List<ChemicalComponentListDto>>>(new GetAllComponents());
+        var result = await HttpServices.PostAsync<GetAllComponents, List<ChemicalComponentListDto>>(new GetAllComponents());
         if (result.Succeeded) _allComponents = result.Data;
     }
 

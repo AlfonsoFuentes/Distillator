@@ -1,6 +1,8 @@
 ﻿
 
 
+@implements IDisposable
+
 <div class="scrollable-container">
     <div class="data-grid composition-grid" style="grid-template-columns: 140px 160px repeat(@Ports.Count, minmax(140px, 1fr)) minmax(20px, 1fr);">
 
@@ -56,8 +58,8 @@
                                    placeholder="<Not defined>"
                                    @onfocus="@(e => HandleFocus(facade, comp, true, false))"
                                    @oninput="@(e => HandleInput(e))"
-                                   @onkeydown="@(e => HandleKeyDown(e, facade, comp, true, false))"
-                                   @onblur="@(e => HandleBlur(facade, comp, true, false))" />
+                                   @onkeydown="@(async (e) => await HandleKeyDown(e, facade, comp, true, false))"
+                                    @onblur="@(async (e) => await HandleBlur(facade, comp, true, false))" />
                         }
                         @if (HasTooltip(state))
                         {
@@ -96,8 +98,8 @@
                                    placeholder="<Not defined>"
                                    @onfocus="@(e => HandleFocus(facade, comp, false, false))"
                                    @oninput="@(e => HandleInput(e))"
-                                   @onkeydown="@(e => HandleKeyDown(e, facade, comp, false, false))"
-                                   @onblur="@(e => HandleBlur(facade, comp, false, false))" />
+                                   @onkeydown="@(async (e) => await HandleKeyDown(e, facade, comp, false, false))"
+                                    @onblur="@(async (e) => await HandleBlur(facade, comp, false, false))" />
                         }
                         @if (HasTooltip(state))
                         {
@@ -114,7 +116,7 @@
             {
                 var comp = GetFacadeForPort(port) != null ? GetComponent(GetFacadeForPort(port)!, compName) : null;
                 <div class="grid-cell value calculated has-tooltip">
-                    <span class="readonly-value">@FormatFlow(comp?.MolarFlow.GetDisplayValue())</span>
+                    <span class="readonly-value">@(comp?.MolarFlow.IsDefined == true ? FormatFlow(comp.MolarFlow.GetDisplayValue()) : "<Not defined>")</span>
                     <span class="tooltip-text">@GetFlowTooltip(comp?.MolarFlow)</span>
                 </div>
             }
@@ -126,7 +128,7 @@
             {
                 var comp = GetFacadeForPort(port) != null ? GetComponent(GetFacadeForPort(port)!, compName) : null;
                 <div class="grid-cell value calculated has-tooltip">
-                    <span class="readonly-value">@FormatFlow(comp?.MassFlow.GetDisplayValue())</span>
+                    <span class="readonly-value">@(comp?.MassFlow.IsDefined == true ? FormatFlow(comp.MassFlow.GetDisplayValue()) : "<Not defined>")</span>
                     <span class="tooltip-text">@GetFlowTooltip(comp?.MassFlow)</span>
                 </div>
             }
@@ -181,8 +183,8 @@
                                        placeholder="<Not defined>"
                                        @onfocus="@(e => HandleFocus(facade, comp, true, true))"
                                        @oninput="@(e => HandleInput(e))"
-                                       @onkeydown="@(e => HandleKeyDown(e, facade, comp, true, true))"
-                                       @onblur="@(e => HandleBlur(facade, comp, true, true))" />
+                                       @onkeydown="@(async (e) => await HandleKeyDown(e, facade, comp, true, true))"
+                                        @onblur="@(async (e) => await HandleBlur(facade, comp, true, true))" />
                             }
                         </div>
                     }
@@ -193,3 +195,19 @@
     </div>
 </div>
 
+@code {
+    protected override void OnInitialized()
+    {
+        FSM.OnNotifyUI += OnNotifyUIHandler;
+    }
+
+    public void Dispose()
+    {
+        FSM.OnNotifyUI -= OnNotifyUIHandler;
+    }
+
+    private void OnNotifyUIHandler()
+    {
+        _ = InvokeAsync(StateHasChanged);
+    }
+}

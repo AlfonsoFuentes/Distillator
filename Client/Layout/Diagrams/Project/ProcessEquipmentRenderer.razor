@@ -1,0 +1,258 @@
+@using Client.Layout.Diagrams.Project
+@using Client.Layout.Shapes.SVGDrawings
+@using Client.Pages.UnitOperations.Columns
+@using Client.Pages.UnitOperations.HeatExchangers
+@using Client.Pages.UnitOperations.MaterialStreams
+@using Client.Pages.UnitOperations.Mixers
+@using Client.Pages.UnitOperations.Splitters
+@using Client.Pages.UnitOperations.Valves
+@using Client.Pages.UnitOperations.Vessels
+@using Client.Services
+@using Shared.ProcessFlowDiagram
+@using Shared.ProcessFlowDiagram.Instruments
+@using Shared.ProcessFlowDiagram.Streams
+@inject IDialogService DialogService
+@inject ProjectSessionService ProjectSessionService
+
+<ProcessCanvasEquipmentWrapper Element="Element"
+                               IsSelected="IsSelected"
+                               IsDragging="IsDragging"
+                               OnSelect="OnSelect"
+                               OnDragStart="OnDragStart"
+                               OnOpenDetails="OpenDetails">
+    @switch (Element.Type)
+    {
+        case EquipmentType.Pump:
+            <PumpSvg Width="@Element.Width"
+                     Height="@Element.Height"
+                     StatusColor="@(Element.StatusColor ?? "#CBD5E0")"
+                     CssClass="pump-svg" />
+            break;
+
+        case EquipmentType.Column:
+            <ColumnSvg Width="@Element.Width"
+                       Height="@Element.Height"
+                       StatusColor="@(Element.StatusColor ?? "#CBD5E0")"
+                       CssClass="column-svg" />
+            break;
+
+        case EquipmentType.FlashDrum:
+            <FlashTankSvg Width="@Element.Width"
+                          Height="@Element.Height"
+                          StatusColor="@(Element.StatusColor ?? "#CBD5E0")"
+                          ElementId="@Element.Id.ToString()"
+                          CssClass="flash-svg" />
+            break;
+
+        case EquipmentType.Exchanger:
+            <HeatExchangerSvg Width="@Element.Width"
+                              Height="@Element.Height"
+                              StatusColor="@(Element.StatusColor ?? "#CBD5E0")"
+                              ElementId="@Element.Id.ToString()"
+                              CssClass="hx-svg" />
+            break;
+
+        case EquipmentType.PlateExchanger:
+            <PlateExchangerSvg Width="@Element.Width"
+                               Height="@Element.Height"
+                               StatusColor="@(Element.StatusColor ?? "#CBD5E0")"
+                               ElementId="@Element.Id.ToString()"
+                               CssClass="phe-svg" />
+            break;
+
+        case EquipmentType.Reboiler:
+            <ReboilerSvg Width="@Element.Width"
+                         Height="@Element.Height"
+                         StatusColor="@(Element.StatusColor ?? "#CBD5E0")"
+                         ElementId="@Element.Id.ToString()"
+                         CssClass="reb-svg" />
+            break;
+
+        case EquipmentType.ControlValve:
+            <ControlValveSvg Width="@Element.Width"
+                             Height="@Element.Height"
+                             StatusColor="@(Element.StatusColor ?? "#CBD5E0")"
+                             CssClass="valve-svg" />
+            break;
+
+        case EquipmentType.Splitter:
+            <SplitterSvg Width="@Element.Width"
+                         Height="@Element.Height"
+                         StatusColor="@(Element.StatusColor ?? "#CBD5E0")"
+                         CssClass="splitter-svg" />
+            break;
+
+        case EquipmentType.Mixer:
+            <StreamMixerSvg Width="@Element.Width"
+                            Height="@Element.Height"
+                            StatusColor="@(Element.StatusColor ?? "#CBD5E0")"
+                            CssClass="mixer-svg" />
+            break;
+
+        case EquipmentType.Tank:
+            <VesselSvg Width="@Element.Width"
+                       Height="@Element.Height"
+                       StatusColor="@(Element.StatusColor ?? "#CBD5E0")"
+                       ElementId="@Element.Id.ToString()"
+                       CssClass="vessel-svg" />
+            break;
+
+        case EquipmentType.MaterialStream:
+            <svg width="@Element.Width" height="@Element.Height" viewBox="0 0 @Element.Width @Element.Height" class="stream-svg">
+                <defs>
+                    <linearGradient id="streamGrad-@Element.Id" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" style="stop-color:white;stop-opacity:0.3" />
+                        <stop offset="50%" style="stop-color:white;stop-opacity:0" />
+                        <stop offset="100%" style="stop-color:black;stop-opacity:0.1" />
+                    </linearGradient>
+                </defs>
+                <g stroke="#334155" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="0" y1="15" x2="47" y2="15" />
+                    <path d="M 46 10 L 56 15 L 46 20 Z" />
+                </g>
+                <g stroke="@(Element.StatusColor ?? "#94A3B8")"
+                   stroke-width="2.5"
+                   fill="@(Element.StatusColor ?? "#94A3B8")"
+                   stroke-linecap="round"
+                   stroke-linejoin="round"
+                   class="stream-dynamic-fill">
+                    <line x1="0" y1="15" x2="47" y2="15" />
+                    <path d="M 46 10 L 56 15 L 46 20 Z" />
+                </g>
+                <g stroke="url(#streamGrad-@Element.Id)"
+                   stroke-width="2.5"
+                   fill="url(#streamGrad-@Element.Id)"
+                   stroke-linecap="round"
+                   stroke-linejoin="round"
+                   style="pointer-events: none;">
+                    <line x1="0" y1="15" x2="47" y2="15" />
+                    <path d="M 46 10 L 56 15 L 46 20 Z" />
+                </g>
+            </svg>
+            break;
+
+        case EquipmentType.Instrument:
+            <svg class="inst-svg" width="80" height="60" viewBox="-15 -45 80 60">
+                <line x1="0" y1="0" x2="0" y2="-15" class="inst-stem" />
+                <circle cx="0" cy="-30" r="13" class="inst-circle" />
+                <text x="0" y="-30" class="inst-tag-text">@Element.Label</text>
+                <g transform="translate(18, -40)">
+                    <rect width="45" height="16" rx="3" fill="white" fill-opacity="0.8" stroke="#CBD5E0" stroke-width="0.5" />
+                    <text x="4" y="12" class="inst-value-label">@Element.StatusText</text>
+                </g>
+            </svg>
+            break;
+
+        case EquipmentType.OffPageConnector:
+            @if (Element is OffPageConnectorElement opc)
+            {
+                <OffPageConnectorSvg Width="@Element.Width"
+                                     Height="@Element.Height"
+                                     IsOutlet="@opc.IsOutlet"
+                                     TargetAreaName="@opc.TargetAreaName"
+                                     CssClass="opc-svg" />
+            }
+            break;
+
+        default:
+            <div style="position: absolute; left: 0; top: 0; color: red; background: white; padding: 2px; border: 1px solid red; z-index: 9999;">
+                UI Missing: @Element.Type
+            </div>
+            break;
+    }
+</ProcessCanvasEquipmentWrapper>
+
+@code {
+    [Parameter, EditorRequired] public IVisualElement Element { get; set; } = default!;
+    [Parameter] public bool IsDragging { get; set; }
+    [Parameter] public bool IsSelected { get; set; }
+    [Parameter] public EventCallback<IVisualElement> OnSelect { get; set; }
+    [Parameter] public EventCallback<MouseEventArgs> OnDragStart { get; set; }
+
+    private async Task OpenDetails()
+    {
+        var parameters = new DialogParameters();
+        var options = new DialogOptions
+        {
+            MaxWidth = MaxWidth.False,
+            FullWidth = false,
+            NoHeader = true,
+            CloseOnEscapeKey = true,
+            BackdropClick = true
+        };
+
+        switch (Element.Type)
+        {
+            case EquipmentType.Pump:
+                parameters.Add("Equipment", Element);
+                await DialogService.ShowAsync<PumpDialog>("", parameters, options);
+                break;
+
+            case EquipmentType.Column:
+                parameters.Add("Equipment", Element);
+                await DialogService.ShowAsync<ColumnDialog>("", parameters, options);
+                break;
+
+            case EquipmentType.FlashDrum:
+                parameters.Add("Equipment", Element);
+                await DialogService.ShowAsync<FlashTankDialog>("", parameters, options);
+                break;
+
+            case EquipmentType.Exchanger:
+                parameters.Add("Equipment", Element);
+                await DialogService.ShowAsync<HeatExchangerDialog>("", parameters, options);
+                break;
+
+            case EquipmentType.PlateExchanger:
+                parameters.Add("Equipment", Element);
+                await DialogService.ShowAsync<PlateExchangerDialog>("", parameters, options);
+                break;
+
+            case EquipmentType.Reboiler:
+                parameters.Add("Equipment", Element);
+                await DialogService.ShowAsync<ReboilerDialog>("", parameters, options);
+                break;
+
+            case EquipmentType.ControlValve:
+                parameters.Add("Equipment", Element);
+                await DialogService.ShowAsync<ControlValveDialog>("", parameters, options);
+                break;
+
+            case EquipmentType.Splitter:
+                parameters.Add("Equipment", Element);
+                await DialogService.ShowAsync<SplitterDialog>("", parameters, options);
+                break;
+
+            case EquipmentType.Mixer:
+                parameters.Add("Equipment", Element);
+                await DialogService.ShowAsync<MixerDialog>("", parameters, options);
+                break;
+
+            case EquipmentType.Tank:
+                parameters.Add("Equipment", Element);
+                await DialogService.ShowAsync<VesselDialog>("", parameters, options);
+                break;
+
+            case EquipmentType.MaterialStream:
+                parameters.Add("Stream", Element);
+                await DialogService.ShowAsync<MaterialStreamDialog>("", parameters, options);
+                break;
+
+            case EquipmentType.OffPageConnector:
+                if (Element is OffPageConnectorElement opc && opc.TargetAreaId.HasValue)
+                {
+                    var targetFlowsheet = ProjectSessionService.CurrentProject?.GetFlowsheet(opc.TargetAreaId.Value);
+                    if (targetFlowsheet != null)
+                    {
+                        await ProjectSessionService.SetActiveFlowsheetAsync(targetFlowsheet);
+                    }
+                }
+                break;
+
+            case EquipmentType.Instrument:
+            default:
+                // No hay diálogo implementado para estos tipos
+                break;
+        }
+    }
+}

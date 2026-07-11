@@ -1,127 +1,46 @@
-﻿/* =========================================
-   SCOPED CSS: HOME (SISTEMA DE PESTAÑAS)
-   ========================================= */
-
-.area-tabs-container {
+.home-layout {
     display: flex;
-    align-items: flex-end;
-    background-color: #CBD5E1;
-    padding: 6px 6px 0 6px;
-    gap: 4px;
-    height: 40px;
-    /* 🚩 PUNTO 7 (A): Empujamos las pestañas a la derecha */
-    padding-left: 175px;
+    height: 100%;
+    min-height: calc(100vh - 64px);
+    background: #F4F5F7;
+    overflow: hidden;
 }
 
-.area-tab {
+.home-content {
+    flex: 1;
     display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    padding: 12px;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+.empty-state {
+    display: flex;
+    flex-direction: column;
     align-items: center;
+    justify-content: center;
+    height: 100%;
+    text-align: center;
     gap: 8px;
-    padding: 6px 16px;
-    background-color: #E2E8F0; /* Color inactivo */
-    color: #475569;
-    border-radius: 6px 6px 0 0;
-    cursor: pointer;
-    font-size: 0.85rem;
-    font-weight: 500;
-    transition: transform 0.2s, background-color 0.2s, opacity 0.2s;
-    min-width: 100px;
-    max-width: 200px;
+    color: #64748b;
 }
 
-    .area-tab:hover {
-        background-color: #F1F5F9;
-    }
-
-    /* Pestaña Activa (Se funde con el color del Canvas) */
-    .area-tab.active {
-        background-color: #E2E8F0;
-        color: #0F172A;
-        font-weight: 700;
-        box-shadow: 0 -2px 5px rgba(0,0,0,0.05);
-    }
-
-
-
-/* Input para cuando haces doble clic para renombrar */
-.tab-rename-input {
-    border: 1px solid #3B82F6;
-    border-radius: 4px;
-    padding: 2px 4px;
-    font-size: 0.85rem;
-    font-family: inherit;
-    outline: none;
-    width: 100%;
+.empty-icon {
+    font-size: 40px;
+    opacity: 0.4;
 }
 
-/* Botón de cerrar pestaña (X) */
-.delete-tab-btn {
-    background: transparent;
-    border: none;
-    color: #94A3B8;
-    font-size: 1.2rem;
-    line-height: 1;
-    cursor: pointer;
-    padding: 0 4px;
-    border-radius: 4px;
-}
-
-    .delete-tab-btn:hover {
-        color: #EF4444; /* Alerta en rojo al pasar el mouse */
-        background-color: #FEE2E2;
+    .empty-state h2 {
+        margin: 0;
+        font-size: 16px;
+        color: #334155;
     }
 
-/* Botón de agregar pestaña (+) */
-.add-tab-btn {
-    background: transparent;
-    border: none;
-    color: #475569;
-    font-size: 1.5rem;
-    cursor: pointer;
-    padding: 0 12px;
-    line-height: 1;
-}
-
-    .add-tab-btn:hover {
-        color: #0F172A;
+    .empty-state p {
+        margin: 0;
+        font-size: 12px;
     }
-/* ... (mismo contenido anterior) ... */
-
-
-
-    /* Estado mientras se arrastra la pestaña */
-    .area-tab.dragging {
-        opacity: 0.4;
-        cursor: move;
-        background-color: #94A3B8;
-    }
-
-    /* Indicador de que una pestaña puede recibir el drop */
-    .area-tab:not(.dragging):hover {
-        background-color: #F1F5F9;
-        border-bottom: 2px solid #3B82F6; /* Línea de guía visual */
-    }
-
-.tab-title {
-    pointer-events: none; /* Evita que el texto interfiera con el drag del div padre */
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    user-select: none;
-}
-/**nuevo*/
-/* --- Home.razor.css --- */
-
-
-
-/* Y EN TU PFD CANVAS CSS (PfdCanvas.razor.css) */
-.pfd-workspace {
-    position: relative;
-    width: 100%; /* Volvemos al 100% */
-    height: 85vh;
-    background-color: #E2E8F0;
-    overflow: hidden;
-    outline: none;
-    box-shadow: inset 0 0 40px rgba(0,0,0,0.02);
-    cursor: grab;
-}

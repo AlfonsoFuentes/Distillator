@@ -1,4 +1,4 @@
-﻿using Client.Services.EquipmentManagers;
+﻿using Client.Services.ProjectWorkspace;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Shared.SolverQwen.Stream;
@@ -10,7 +10,7 @@ namespace Client.Pages.UnitOperations.MaterialStreams.CompositionGrids
 {
     public abstract class UICompositionGridBase : ComponentBase
     {
-        [Inject] protected WorkspaceManager _WM { get; set; } = null!;
+        [Inject] protected FlowsheetManager FlowsheetManager { get; set; } = null!;
 
         [Parameter] public CompositionOrchestrator Variable { get; set; } = default!;
         [Parameter] public EventCallback<CompositionOrchestrator> VariableChanged { get; set; }
@@ -88,7 +88,7 @@ namespace Client.Pages.UnitOperations.MaterialStreams.CompositionGrids
 
             if (sum >= 99 && sum <= 101)
             {
-                _WM?.RunSimulation();
+                FlowsheetManager?.RunSimulation();
             }
 
             ResetEditingState();
@@ -99,7 +99,7 @@ namespace Client.Pages.UnitOperations.MaterialStreams.CompositionGrids
         {
             Variable.Clear();
             Variable.InputType = ComponentInputType.None; // 🔥 CRÍTICO: Resetea el InputType
-            _WM?.RunSimulation();
+            FlowsheetManager?.RunSimulation();
 
             ResetEditingState();
             if (VariableChanged.HasDelegate) await VariableChanged.InvokeAsync(Variable);

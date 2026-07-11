@@ -47,20 +47,20 @@ namespace Shared.ProcessFlowDiagram.Pumps
             };
         }
 
-        public override bool CanConnect(string myPortName, IVisualElement targetElement, string targetPortName)
-        {
-            if (!base.CanConnect(myPortName, targetElement, targetPortName)) return false;
+        //public override bool CanConnect(string myPortName, IVisualElement targetElement, string targetPortName)
+        //{
+        //    if (!base.CanConnect(myPortName, targetElement, targetPortName)) return false;
 
-            // 3. Usamos las constantes en la lógica de negocio también
-            if (myPortName == PortSuctionName || myPortName == PortDischargeName)
-            {
-                if (!(targetElement is StreamVisualElement)) return false;
-            }
+        //    // 3. Usamos las constantes en la lógica de negocio también
+        //    if (myPortName == PortSuctionName || myPortName == PortDischargeName)
+        //    {
+        //        if (!(targetElement is StreamVisualElement)) return false;
+        //    }
 
 
 
-            return true;
-        }
+        //    return true;
+        //}
         public override IEnumerable<string> GetPortNames()
         {
             yield return PortSuctionName;
@@ -92,11 +92,11 @@ namespace Shared.ProcessFlowDiagram.Pumps
         {
             if (portName == "Suction")
             {
-                Pump.SetInlet(null!);
+                Pump.UnSetInlet();
             }
             else if (portName == "Discharge")
             {
-                Pump.SetOutlet(null!);
+                Pump.UnSetOutlet();
             }
         }
 

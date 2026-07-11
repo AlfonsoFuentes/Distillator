@@ -60,16 +60,25 @@
 
     private bool CheckDuplicateName(string newName)
     {
-        return WM?.Elements?.Any(e => e.Name.Equals(newName, StringComparison.OrdinalIgnoreCase) && e.Id != Facade?.Id) == true;
+        return FSM?.Elements?.Any(e => e.Name.Equals(newName, StringComparison.OrdinalIgnoreCase) && e.Id != Facade?.Id) == true;
     }
 
-    // 2. Le decimos al componente qué hacer cuando pulse el botón 🔄
+    /*
+    // --- CÓDIGO VIEJO (WM) PARA REFERENCIA ---
+    // WM.Elements → FSM.Elements
+    */
+
     private async Task GenerateUniqueStreamName()
     {
-        if (NamingService == null || Facade == null) return;
+        if (FSM == null || Facade == null) return;
 
-        Facade.Name = NamingService.GenerateNextName("S");
+        Facade.Name = FSM.GenerateNextName("Stream");
         await NotifyUpdate();
         StateHasChanged();
     }
+
+    /*
+    // --- CÓDIGO VIEJO (NamingService) PARA REFERENCIA ---
+    // NamingService.GenerateNextName("S") → FSM.GenerateNextName("Stream")
+    */
 }
