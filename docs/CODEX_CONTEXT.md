@@ -713,3 +713,79 @@ Pruebas pendientes:
 6. Verificar consecutivo por diagrama + tipo de equipo.
 7. Verificar que `Diagram Prefix` aparezca en reportes/listados, pero no como rotulo grande en canvas.
 
+### Diseño Persistencia Y Colaboración En Tiempo Real (11/07/2026)
+
+Se creó la hoja de diseño:
+
+```text
+docs/PERSISTENCE_REALTIME_DESIGN.md
+```
+
+Decisiones funcionales acordadas:
+
+- Persistencia por fases:
+  1. Configuración básica del proyecto sin sistemas de unidades detallados, equipos ni corrientes.
+  2. Sistemas de unidades del proyecto.
+  3. Diagramas, equipos, corrientes, conexiones y specifications.
+- Guardado automático sin botón de guardar.
+- Colaboración por proyecto completo.
+- Permisos por usuario: solo edita quien tenga permiso.
+- Conflictos: último cambio gana.
+- Mostrar usuarios conectados y presencia por diagrama.
+- Guardar auditoría futura: quién cambió qué dato y cuándo.
+- Los resultados calculados del solver se recalculan al abrir; se guardan los datos definidos por usuario.
+
+Diseño técnico inicial:
+
+- Blazor WASM Client + ASP.NET Core Server + PostgreSQL.
+- HTTP para carga inicial.
+- SignalR para cambios en tiempo real.
+- Cambios granulares y versionados.
+- `ProjectStateService` en cliente como estado local.
+- Hub delgado: valida y delega en servicios de aplicación.
+
+Avance implementado:
+
+- Se agregó el esqueleto EF Core para persistencia colaborativa en `Server.Entities.Projects`.
+- `ApplicationDbContext` ahora expone:
+  - `Projects`
+  - `ProjectCollaborators`
+  - `ProjectDiagrams`
+  - `ProjectChangeLogs`
+- Las entidades son tenanted mediante `TenantId`.
+- `Projects` guarda configuración del proyecto en columnas `jsonb` para naming, unidades, cámara, reportes y diseño de equipos.
+- `ProjectCollaborators` prepara permisos `Owner`, `Editor`, `Viewer`.
+- `ProjectChangeLogs` prepara auditoría/versionado para autosave y colaboración.
+- Se agregó la migración EF `20260712024215_AddProjectPersistence`.
+- La migración fue aplicada a PostgreSQL con `dotnet-ef database update`.
+- Se instaló `dotnet-ef` como herramienta local del repo mediante `dotnet-tools.json`.
+- Se agregaron contratos mínimos en `Shared/Projects/ProjectPersistenceDtos.cs`.
+- Se agregó `ProjectEndPoint` con endpoints HTTP iniciales:
+  - `/Projects/GetUserProjects`
+  - `/Projects/GetProject`
+  - `/Projects/CreateProject`
+  - `/Projects/UpdateProjectConfiguration`
+- Se agregó un puente inicial de autosave en cliente:
+  - `HttpService` resuelve requests de `Shared.Projects` hacia `/Projects/...`.
+  - `ProjectSessionService` persiste creación de proyecto y cambios de configuración básica.
+  - El proyecto local conserva su `Guid` al crearse en base de datos.
+- Aún no se creó SignalR Hub.
+- Aún no se reemplazó la carga/listado de proyectos en memoria por carga desde PostgreSQL.
+- Aún no se persisten diagramas, equipos, corrientes ni conexiones.
+
+Verificación:
+
+```text
+dotnet build .\Distillator.slnx --nologo
+dotnet tool run dotnet-ef database update --project Server\Server.csproj --startup-project Server\Server.csproj --context ApplicationDbContext
+```
+
+Resultado:
+
+```text
+Compilación correcta.
+1 advertencia existente no relacionada: FlowsheetManager.NullSolver.OnSimulationCompleted nunca se usa.
+0 errores.
+Migración aplicada correctamente.
+```
+

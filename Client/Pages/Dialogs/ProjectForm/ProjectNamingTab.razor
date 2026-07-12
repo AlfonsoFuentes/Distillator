@@ -1,0 +1,122 @@
+@using Distillator.Domain.Configuration
+
+<div class="tab-content-form">
+
+    <!-- ==================== 1. LIVE NAME BUILDER ==================== -->
+    <div>
+        <div class="section-title">Live Name Builder</div>
+        <div class="naming-slots-container">
+            <button type="button" class="naming-slot @GetNamingSlotCss(ProjectFormDialog.NamingSlot.DiagramPrefix)" @onclick="() => OnSelectNamingSlot(ProjectFormDialog.NamingSlot.DiagramPrefix)">
+                <span class="slot-label">Diagram Prefix</span>
+                <span class="slot-value">@GetNamingSlotValue(ProjectFormDialog.NamingSlot.DiagramPrefix)</span>
+            </button>
+
+            <button type="button" class="naming-slot @GetNamingSlotCss(ProjectFormDialog.NamingSlot.SeparatorAfterDiagram)" @onclick="() => OnSelectNamingSlot(ProjectFormDialog.NamingSlot.SeparatorAfterDiagram)">
+                <span class="slot-label">Separator</span>
+                <span class="slot-value">@GetNamingSlotValue(ProjectFormDialog.NamingSlot.SeparatorAfterDiagram)</span>
+            </button>
+
+            <button type="button" class="naming-slot @GetNamingSlotCss(ProjectFormDialog.NamingSlot.EquipmentPrefix)" @onclick="() => OnSelectNamingSlot(ProjectFormDialog.NamingSlot.EquipmentPrefix)">
+                <span class="slot-label">Equipment Prefix</span>
+                <span class="slot-value">@GetNamingSlotValue(ProjectFormDialog.NamingSlot.EquipmentPrefix)</span>
+            </button>
+
+            <button type="button" class="naming-slot @GetNamingSlotCss(ProjectFormDialog.NamingSlot.SeparatorAfterPrefix)" @onclick="() => OnSelectNamingSlot(ProjectFormDialog.NamingSlot.SeparatorAfterPrefix)">
+                <span class="slot-label">Separator</span>
+                <span class="slot-value">@GetNamingSlotValue(ProjectFormDialog.NamingSlot.SeparatorAfterPrefix)</span>
+            </button>
+
+            <button type="button" class="naming-slot @GetNamingSlotCss(ProjectFormDialog.NamingSlot.Sequence)" @onclick="() => OnSelectNamingSlot(ProjectFormDialog.NamingSlot.Sequence)">
+                <span class="slot-label">Sequence</span>
+                <span class="slot-value">@GetNamingSlotValue(ProjectFormDialog.NamingSlot.Sequence)</span>
+            </button>
+        </div>
+        <div class="live-preview">
+            @BuildNamingPreview("Pump", Math.Max(NamingStartingNumber, 1))
+        </div>
+    </div>
+
+    <!-- ==================== 2. EXAMPLES BY DIAGRAM ==================== -->
+    <div>
+        <div class="section-title">Examples by Diagram</div>
+        <div class="examples-box">
+            @foreach (var diagram in GetDiagramNamingPreview())
+            {
+                <strong>@diagram.Name</strong>
+                @foreach (var item in diagram.Items)
+                {
+                    <div>@item.Type @item.Name</div>
+                }
+            }
+        </div>
+        <div class="rule-behavior">
+            <strong>How this rule behaves:</strong> @GetNamingEffectText()
+        </div>
+    </div>
+
+    <!-- ==================== 3. CONFIGURATION PANEL ==================== -->
+    <div>
+        <div class="section-title">@NamingSlotTitle(SelectedNamingSlot) Configuration</div>
+        <div style="font-size: 11px; color: #64748b; margin-bottom: 12px;">@NamingSlotDescription(SelectedNamingSlot)</div>
+
+        @if (SelectedNamingSlot == ProjectFormDialog.NamingSlot.DiagramPrefix)
+        {
+            <div class="options-grid">
+                <button type="button" class="option-card @GetOptionCardCss(!UseDiagramPrefix)" @onclick="() => SetUseDiagramPrefix.InvokeAsync(false)">
+                    <span class="option-title">Not used</span>
+                    <span class="option-desc">Equipment names do not include the diagram prefix.</span>
+                </button>
+                <button type="button" class="option-card @GetOptionCardCss(UseDiagramPrefix)" @onclick="() => SetUseDiagramPrefix.InvokeAsync(true)">
+                    <span class="option-title">Use diagram prefix</span>
+                    <span class="option-desc">Each diagram provides the prefix used in reports.</span>
+                </button>
+            </div>
+        }
+        else if (IsSeparatorSlot(SelectedNamingSlot))
+        {
+            <div class="options-grid">
+                @foreach (var separator in GetSeparatorOptions())
+                {
+                    <button type="button" class="option-card @GetOptionCardCss(GetSeparatorValue(SelectedNamingSlot) == separator.Value)" @onclick="() => SetSeparatorValue(SelectedNamingSlot, separator.Value)">
+                        <span class="option-title">@(string.IsNullOrEmpty(separator.Value) ? "None" : separator.Label)</span>
+                    </button>
+                }
+            </div>
+            <div class="form-group" style="max-width: 200px;">
+                <label class="form-label">Custom Separator</label>
+                <input type="text" class="form-input" value="@GetSeparatorValue(SelectedNamingSlot)" @onchange="e => SetSeparatorValue(SelectedNamingSlot, e.Value?.ToString())" maxlength="3" />
+            </div>
+        }
+        else if (SelectedNamingSlot == ProjectFormDialog.NamingSlot.EquipmentPrefix)
+        {
+            <div class="prefixes-grid">
+                @foreach (var item in GetNamingPrefixRows())
+                {
+                    <div class="form-group">
+                        <label class="form-label">@item.Type</label>
+                        <input type="text"
+                               class="form-input"
+                               value="@item.Prefix"
+                               @onchange="e => SetNamingPrefix(item.Type, e.Value?.ToString())" />
+                    </div>
+                }
+            </div>
+        }
+        else if (SelectedNamingSlot == ProjectFormDialog.NamingSlot.Sequence)
+        {
+            <div class="form-group" style="max-width: 200px; margin-bottom: 12px;">
+                <label class="form-label">Starting Number</label>
+                <input type="number" min="1" class="form-input" value="@NamingStartingNumber" @onchange="OnNamingStartingNumberChanged" />
+            </div>
+            <div class="options-grid">
+                @foreach (var scope in GetAvailableNamingCounterScopes())
+                {
+                    <button type="button" class="option-card @GetOptionCardCss(NamingCounterScope == scope)" @onclick="() => SetNamingCounterScope.InvokeAsync(scope)">
+                        <span class="option-title">@NamingCounterScopeLabel(scope)</span>
+                        <span class="option-desc">@NamingCounterScopeOptionText(scope)</span>
+                    </button>
+                }
+            </div>
+        }
+    </div>
+</div>

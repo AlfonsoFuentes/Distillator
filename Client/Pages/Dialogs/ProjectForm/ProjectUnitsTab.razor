@@ -1,0 +1,72 @@
+@using Distillator.Domain.Configuration
+@using UnitSystem
+
+<div class="tab-content-form">
+    <div class="unit-system-header">
+        <div class="form-group" style="flex-grow: 1;">
+            <label class="form-label">Unit System</label>
+            <select class="form-select" value="@ActiveUnitSystemName" @onchange="OnUnitSystemChanged">
+                @foreach (var system in UnitSystems)
+                {
+                    <option value="@system.Name">@system.Name</option>
+                }
+            </select>
+        </div>
+        <button type="button" class="tab-btn secondary" @onclick="() => StartCreateUnitSystem.InvokeAsync()">
+            Create Unit System
+        </button>
+    </div>
+
+    @if (IsCreatingUnitSystem)
+    {
+        <div class="new-unit-system-row">
+            <input type="text"
+                   class="form-input"
+                   style="flex-grow: 1;"
+                   value="@NewUnitSystemName"
+                   @oninput="OnNewUnitSystemNameInput"
+                   placeholder="New unit system name" />
+            <button type="button" class="tab-btn primary" @onclick="() => CreateUnitSystem.InvokeAsync()">Create</button>
+            <button type="button" class="tab-btn secondary" @onclick="() => CancelCreateUnitSystem.InvokeAsync()">Cancel</button>
+        </div>
+    }
+
+    @if (ActiveUnitSystem != null)
+    {
+        <div class="unit-system-note">
+            @(ActiveUnitSystem.IsBuiltIn
+                ? "Built-in unit systems are read-only. Create a new unit system to customize units."
+                : "Custom unit system. Select the dropdowns below to change units for this project.")
+        </div>
+
+        <div class="unit-editor">
+            @foreach (var row in UnitRows)
+            {
+                <div class="form-group">
+                    <label class="form-label">@row.Label</label>
+                    @if (ActiveUnitSystem.IsBuiltIn)
+                    {
+                        <div class="calculated-value">@UnitText(row.Unit)</div>
+                    }
+                    else
+                    {
+                        <select class="form-select"
+                                value="@row.Unit.Name"
+                                @onchange="e => SetUnit(row.Slot, e.Value?.ToString())">
+                            @foreach (var option in GetUnitOptions(row.Slot))
+                            {
+                                <option value="@option.Unit.Name">@option.Label</option>
+                            }
+                        </select>
+                    }
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="placeholder-box">
+            No unit system is available.
+        </div>
+    }
+</div>

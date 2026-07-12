@@ -199,7 +199,7 @@ public class ConnectionService : IConnectionService
         var element = _factory.Create(EquipmentType.MaterialStream, 0, 0, v => _placementRules.Snap(v, flowsheet.GridSize));
         if (element is not StreamVisualElement stream) return null;
 
-        var name = _namingService.GenerateNextName("Stream", flowsheet.Project);
+        var name = _namingService.GenerateNextName("Stream", flowsheet.Project, flowsheet);
         stream.Name = name;
         stream.Label = name;
         if (stream.Facade != null)

@@ -94,7 +94,7 @@ public class InterFlowsheetConnectionService : IInterFlowsheetConnectionService
         remoteOpc.RefreshPorts();
 
         // Asignar nombres
-        var opcName = _namingService.GenerateNextName("OffPageConnector", project);
+        var opcName = _namingService.GenerateNextName("OffPageConnector", project, sourceFlowsheet);
         localOpc.Name = opcName;
         localOpc.Label = opcName;
         remoteOpc.Name = opcName;

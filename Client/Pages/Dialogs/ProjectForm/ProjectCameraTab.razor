@@ -1,0 +1,50 @@
+<div class="tab-content two-columns">
+    <div class="form-group">
+        <label class="form-label">Default Zoom</label>
+        <input type="number" step="0.05" class="form-input"
+               @bind:get="DefaultZoom"
+               @bind:set="DefaultZoomChanged.InvokeAsync" />
+    </div>
+
+    <div class="form-group">
+        <label class="form-label">Global Scale</label>
+        <input type="number" step="0.05" class="form-input"
+               @bind:get="GlobalScale"
+               @bind:set="GlobalScaleChanged.InvokeAsync" />
+    </div>
+
+    <div class="form-group">
+        <label class="form-label">Default Pan X</label>
+        <input type="number" step="1" class="form-input"
+               @bind:get="DefaultPanX"
+               @bind:set="DefaultPanXChanged.InvokeAsync" />
+    </div>
+
+    <div class="form-group">
+        <label class="form-label">Default Pan Y</label>
+        <input type="number" step="1" class="form-input"
+               @bind:get="DefaultPanY"
+               @bind:set="DefaultPanYChanged.InvokeAsync" />
+    </div>
+
+    <div class="form-group">
+        <label class="form-label">Grid Size</label>
+        <input type="number" step="1" class="form-input"
+               @bind:get="GridSize"
+               @bind:set="GridSizeChanged.InvokeAsync" />
+    </div>
+
+    <div class="form-group">
+        <label class="form-label">Min Zoom</label>
+        <input type="number" step="0.05" class="form-input"
+               @bind:get="MinZoom"
+               @bind:set="MinZoomChanged.InvokeAsync" />
+    </div>
+
+    <div class="form-group">
+        <label class="form-label">Max Zoom</label>
+        <input type="number" step="0.05" class="form-input"
+               @bind:get="MaxZoom"
+               @bind:set="MaxZoomChanged.InvokeAsync" />
+    </div>
+</div>

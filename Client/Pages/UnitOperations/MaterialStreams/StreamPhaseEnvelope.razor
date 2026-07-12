@@ -144,19 +144,19 @@
 
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
                 @* Eje Y: Presión *@
-                <EditAmount T=Pressure Label="Min Pressure" Amount="@PMin" AmountChanged="OnPMinChanged" />
-                <EditAmount T=Pressure Label="Max Pressure" Amount="@PMax" AmountChanged="OnPMaxChanged" />
+                <AmountEdit T=Pressure Label="Min Pressure" Amount="@PMin" AmountChanged="OnPMinChanged" />
+                <AmountEdit T=Pressure Label="Max Pressure" Amount="@PMax" AmountChanged="OnPMaxChanged" />
 
                 @* Eje X: Condicional según el modo *@
                 @if (ChartMode == "PT")
                 {
-                    <EditAmount T=Temperature Label="Min Temperature" Amount="@TMin" AmountChanged="OnTMinChanged" />
-                    <EditAmount T=Temperature Label="Max Temperature" Amount="@TMax" AmountChanged="OnTMaxChanged" />
+                    <AmountEdit T=Temperature Label="Min Temperature" Amount="@TMin" AmountChanged="OnTMinChanged" />
+                    <AmountEdit T=Temperature Label="Max Temperature" Amount="@TMax" AmountChanged="OnTMaxChanged" />
                 }
                 else
                 {
-                    <EditAmount T=MassEnergy Label="Min Enthalpy" Amount="@HMin" AmountChanged="OnHMinChanged" />
-                    <EditAmount T=MassEnergy Label="Max Enthalpy" Amount="@HMax" AmountChanged="OnHMaxChanged" />
+                    <AmountEdit T=MassEnergy Label="Min Enthalpy" Amount="@HMin" AmountChanged="OnHMinChanged" />
+                    <AmountEdit T=MassEnergy Label="Max Enthalpy" Amount="@HMax" AmountChanged="OnHMaxChanged" />
                 }
             </div>
         </div>

@@ -14,12 +14,23 @@ namespace Distillator.Domain.Models
         public IVisualElement? GetByName(string name)
         {
             if (string.IsNullOrWhiteSpace(name)) return null;
-            return _byName.GetValueOrDefault(name);
+            var indexed = _byName.GetValueOrDefault(name);
+            if (indexed != null && string.Equals(indexed.Name, name, StringComparison.OrdinalIgnoreCase))
+            {
+                return indexed;
+            }
+
+            return _byId.Values.FirstOrDefault(e => string.Equals(e.Name, name, StringComparison.OrdinalIgnoreCase));
         }
 
         public void Register(IVisualElement equipment)
         {
             if (equipment == null) throw new ArgumentNullException(nameof(equipment));
+            if (_byId.TryGetValue(equipment.Id, out var previous) && !string.IsNullOrWhiteSpace(previous.Name))
+            {
+                _byName.Remove(previous.Name);
+            }
+
             _byId[equipment.Id] = equipment;
             _byName[equipment.Name] = equipment;
         }

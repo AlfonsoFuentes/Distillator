@@ -1,0 +1,21 @@
+<div class="tab-content two-columns">
+    <div class="form-group">
+        <label class="form-label">Standard</label>
+        <select class="form-select"
+                @bind:get="Standard"
+                @bind:set="StandardChanged.InvokeAsync">
+            <option value="API">API</option>
+            <option value="ASME">ASME</option>
+            <option value="TEMA">TEMA</option>
+        </select>
+    </div>
+    <div class="form-group">
+        <label class="form-label">Rating Basis</label>
+        <select class="form-select"
+                @bind:get="RatingBasis"
+                @bind:set="RatingBasisChanged.InvokeAsync">
+            <option value="normal">Normal</option>
+            <option value="maximum">Maximum</option>
+        </select>
+    </div>
+</div>

@@ -1,0 +1,159 @@
+﻿.migration-container {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 4px 0;
+    width: 480px;
+    max-width: 100%;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.migration-alert {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 12px;
+    background: #FFFBEB;
+    border: 1px solid #FCD34D;
+    border-radius: 6px;
+    color: #92400E;
+}
+
+    .migration-alert strong {
+        font-size: 13px;
+    }
+
+    .migration-alert span {
+        font-size: 12px;
+        line-height: 1.4;
+    }
+
+.diagram-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 250px;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+    .diagram-list::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    .diagram-list::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .diagram-list::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 3px;
+    }
+
+.diagram-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 120px;
+    gap: 12px;
+    align-items: center;
+    padding: 8px 12px;
+    background: #F8FAFC;
+    border: 1px solid #E2E8F0;
+    border-radius: 6px;
+}
+
+.diagram-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: #334155;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.form-input {
+    height: 32px;
+    padding: 0 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    font-size: 12px;
+    color: #334155;
+    background: #ffffff;
+    outline: none;
+    transition: border-color 0.15s ease;
+}
+
+    .form-input:focus {
+        border-color: #5D79AE;
+    }
+
+    .form-input.invalid {
+        border-color: #ef4444;
+        background-color: #fef2f2;
+    }
+
+.form-error {
+    padding: 8px 12px;
+    border: 1px solid #fecaca;
+    border-radius: 6px;
+    background: #fef2f2;
+    color: #991b1b;
+    font-size: 12px;
+}
+
+.migration-options {
+    margin-top: 8px;
+    padding-top: 16px;
+    border-top: 1px solid #E2E8F0;
+}
+
+.checkbox-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-size: 12px;
+    color: #334155;
+    cursor: pointer;
+}
+
+    .checkbox-row input {
+        margin-top: 2px;
+    }
+
+    .checkbox-row span {
+        line-height: 1.4;
+    }
+
+.dialog-btn {
+    padding: 6px 14px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    border: 1px solid transparent;
+}
+
+    .dialog-btn.secondary {
+        background: transparent;
+        color: #64748b;
+        border-color: #cbd5e1;
+    }
+
+        .dialog-btn.secondary:hover {
+            background: #f1f5f9;
+            color: #334155;
+        }
+
+    .dialog-btn.primary {
+        background: #5D79AE;
+        color: #ffffff;
+    }
+
+        .dialog-btn.primary:hover {
+            background: #4a6291;
+        }
+
+    .dialog-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }

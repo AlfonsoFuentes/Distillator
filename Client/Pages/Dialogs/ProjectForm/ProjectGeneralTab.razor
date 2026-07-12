@@ -1,0 +1,49 @@
+@using Shared.Helpers
+@using Shared.PropertiesDtos.Methods
+@using UnitSystem
+
+<div class="tab-content-form">
+    <div class="form-group">
+        <label class="form-label">Project Name</label>
+        <input type="text"
+               class="form-input @(NameError != null ? "invalid" : "")"
+               value="@ProjectName"
+               @oninput="OnNameInputChanged"
+               @onblur="OnNameBlur"
+               placeholder="Enter project name" />
+        @if (NameError != null)
+        {
+            <span class="field-error">@NameError</span>
+        }
+    </div>
+
+    <div class="form-group">
+        <label class="form-label">Thermodynamic Method</label>
+        <select class="form-select @(MethodError != null ? "invalid" : "")"
+                value="@SelectedMethodId"
+                @onchange="OnSelectedMethodChanged"
+                @onblur="OnMethodBlur">
+            <option value="">Select a method...</option>
+            @foreach (var method in Methods)
+            {
+                <option value="@method.Id">@method.Name</option>
+            }
+        </select>
+        @if (MethodError != null)
+        {
+            <span class="field-error">@MethodError</span>
+        }
+    </div>
+
+    <div class="form-group custom-edit-amount">
+        <label class="form-label">Plant Elevation</label>
+        <AmountEdit T="Length" Amount="PlantElevation" AmountChanged="PlantElevationChanged" Label="" />
+    </div>
+
+    <div class="form-group">
+        <label class="form-label">Atmospheric Pressure</label>
+        <div class="calculated-value">
+            @(AtmosphericPressure?.ToString() ?? "—")
+        </div>
+    </div>
+</div>

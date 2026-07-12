@@ -37,11 +37,13 @@ public class Project : IProject
         IUser owner,
         IProjectConfiguration? configuration = null,
         IFlowsheetTypeRegistry? flowsheetTypes = null,
-        ISimulationService? simulationService = null)
+        ISimulationService? simulationService = null,
+        Guid? id = null,
+        DateTime? createdAt = null)
     {
-        Id = Guid.NewGuid();
+        Id = id ?? Guid.NewGuid();
         Name = name;
-        CreatedAt = DateTime.UtcNow;
+        CreatedAt = createdAt ?? DateTime.UtcNow;
         Owner = owner ?? throw new ArgumentNullException(nameof(owner));
         Configuration = configuration ?? new ProjectConfiguration();
         FlowsheetTypes = flowsheetTypes ?? new FlowsheetTypeRegistry();
@@ -57,10 +59,10 @@ public class Project : IProject
         Raise(new ProjectConfigurationUpdatedEvent(Id));
     }
 
-    public IFlowsheet CreateFlowsheet(string name, string flowsheetTypeCode)
+    public IFlowsheet CreateFlowsheet(string name, string flowsheetTypeCode, Guid? id = null)
     {
         var factory = new FlowsheetFactory();
-        var flowsheet = factory.Create(name, flowsheetTypeCode, this);
+        var flowsheet = factory.Create(name, flowsheetTypeCode, this, id);
         _flowsheets.Add(flowsheet);
         Raise(new FlowsheetAddedEvent(Id, flowsheet.Id, flowsheet.Name, flowsheet.TypeCode));
         return flowsheet;

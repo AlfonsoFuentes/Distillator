@@ -9,6 +9,7 @@ public abstract class Flowsheet : IFlowsheet
 
     public Guid Id { get; }
     public string Name { get; set; }
+    public string DiagramNumber { get; set; } = string.Empty;
     public abstract string TypeCode { get; }
     public IFlowsheetType TypeDefinition { get; }
 
@@ -25,9 +26,9 @@ public abstract class Flowsheet : IFlowsheet
 
     public IProject Project { get; }
 
-    protected Flowsheet(string name, IFlowsheetType typeDefinition, IProject project)
+    protected Flowsheet(string name, IFlowsheetType typeDefinition, IProject project, Guid? id = null)
     {
-        Id = Guid.NewGuid();
+        Id = id ?? Guid.NewGuid();
         Name = name;
         TypeDefinition = typeDefinition ?? throw new ArgumentNullException(nameof(typeDefinition));
         Project = project ?? throw new ArgumentNullException(nameof(project));

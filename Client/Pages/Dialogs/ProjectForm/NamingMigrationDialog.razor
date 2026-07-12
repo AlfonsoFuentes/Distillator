@@ -1,0 +1,53 @@
+﻿@using Distillator.Domain.Models
+@using MudBlazor
+
+<MudDialog>
+    <DialogContent>
+        <div class="migration-container">
+            @if (_diagrams.Any())
+            {
+                <div class="migration-alert">
+                    <strong>Diagram Numbers Required</strong>
+                    <span>The new naming configuration requires all diagrams to have a unique number to avoid collisions. Please assign them below.</span>
+                </div>
+
+                <div class="diagram-list">
+                    @foreach (var item in _diagrams)
+                    {
+                        <div class="diagram-row">
+                            <span class="diagram-name">@item.Flowsheet.Name</span>
+                            <input type="text"
+                                   class="form-input @(item.HasError ? "invalid" : "")"
+                                   value="@item.DiagramNumber"
+                                   @oninput="(ChangeEventArgs args) => OnDiagramNumberChanged(item, args.Value?.ToString())"
+                                   placeholder="e.g. 100" />
+                        </div>
+                    }
+                </div>
+
+                @if (!string.IsNullOrEmpty(_validationError))
+                {
+                    <div class="form-error">@_validationError</div>
+                }
+            }
+            else
+            {
+                <div class="migration-alert" style="background: #E0F2FE; border-color: #7DD3FC; color: #0369A1;">
+                    <strong>Naming Rules Changed</strong>
+                    <span>You are updating the naming rules for this project. How would you like to handle existing equipment?</span>
+                </div>
+            }
+
+            <div class="migration-options" style="@(!_diagrams.Any() ? "border-top: none; padding-top: 0;" : "")">
+                <label class="checkbox-row">
+                    <input type="checkbox" @bind="_renameExisting" />
+                    <span>Automatically rename existing equipment in the project to match the new rules.</span>
+                </label>
+            </div>
+        </div>
+    </DialogContent>
+    <DialogActions>
+        <button class="dialog-btn secondary" @onclick="Cancel">Cancel</button>
+        <button class="dialog-btn primary" @onclick="Confirm" disabled="@(!IsValid)">Confirm & Save</button>
+    </DialogActions>
+</MudDialog>

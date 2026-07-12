@@ -46,7 +46,7 @@ public interface IProject
     IReadOnlyCollection<IDomainEvent> DomainEvents { get; }
 
     // CRUD Flowsheets
-    IFlowsheet CreateFlowsheet(string name, string flowsheetTypeCode);
+    IFlowsheet CreateFlowsheet(string name, string flowsheetTypeCode, Guid? id = null);
     void RemoveFlowsheet(Guid flowsheetId);
     IFlowsheet? GetFlowsheet(Guid id);
     void ReorderFlowsheet(IFlowsheet flowsheet, int newIndex);

@@ -1,0 +1,19 @@
+﻿@typeparam T where T : Amount
+@using System.Globalization
+
+<div class="edit-amount-wrapper">
+    <input type="number"
+           class="edit-amount-input"
+           value="@FormattedValue"
+           @onchange="OnInputChanged"
+           step="any" />
+
+    <select class="edit-amount-select" @onchange="HandleUnitChange">
+        @foreach (var _unit in Amount.UnitsList)
+        {
+            <option value="@_unit.Name" selected="@(_unit.Name == Amount.Unit.Name)">
+                @_unit.Symbol
+            </option>
+        }
+    </select>
+</div>

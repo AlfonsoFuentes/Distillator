@@ -481,7 +481,7 @@ public class FlowsheetManager
     public string GenerateNextName(string equipmentTypeCode)
     {
         if (_project == null) return string.Empty;
-        return _namingService.GenerateNextName(equipmentTypeCode, _project);
+        return _namingService.GenerateNextName(equipmentTypeCode, _project, _flowsheet);
     }
 
     public bool IsNameAvailable(string name)
@@ -746,12 +746,17 @@ public class FlowsheetManager
     {
         if (_project == null || _namingService == null) return;
         var typeCode = GetEquipmentTypeCode(element);
-        var name = _namingService.GenerateNextName(typeCode, _project);
-        element.Name = name;
-        element.Label = name;
+
+        // Usamos el nuevo método detallado
+        var names = _namingService.GenerateNextNameDetails(typeCode, _project, _flowsheet);
+
+        // Asignamos correctamente según tu regla de negocio
+        element.Name = names.FullName;  // Ej: "100-P-101" (Para el sistema y reportes)
+        element.Label = names.Label;    // Ej: "P-101" (Limpio para el canvas)
+
         if (element.Facade != null)
         {
-            element.Facade.Name = name;
+            element.Facade.Name = names.FullName;
         }
     }
 

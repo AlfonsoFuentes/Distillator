@@ -78,7 +78,7 @@ namespace Client.Services.HttpServices
         {
             try
             {
-                var endpoint = request.GetType().Name;
+                var endpoint = ResolveEndpoint(request);
                 var response = await _httpClient.PostAsJsonAsync(endpoint, request);
 
                 if (response.IsSuccessStatusCode)
@@ -122,7 +122,7 @@ namespace Client.Services.HttpServices
         {
             try
             {
-                var endpoint = request.GetType().Name;
+                var endpoint = ResolveEndpoint(request);
                 var response = await _httpClient.PostAsJsonAsync(endpoint, request);
 
                 if (response.IsSuccessStatusCode)
@@ -163,7 +163,7 @@ namespace Client.Services.HttpServices
         public async Task<bool> PostForValidationAsync<TRequest>(TRequest request)
             where TRequest : class
         {
-            var endpoint = request.GetType().Name;
+            var endpoint = ResolveEndpoint(request);
             var response = await _httpClient.PostAsJsonAsync(endpoint, request);
 
             // ✅ Solo 200 OK es éxito; cualquier otro código → false
@@ -174,6 +174,12 @@ namespace Client.Services.HttpServices
             }
 
             return false;
+        }
+
+        private static string ResolveEndpoint<TRequest>(TRequest request)
+            where TRequest : class
+        {
+            return request.GetType().Name;
         }
     }
 }

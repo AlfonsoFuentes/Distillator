@@ -1,0 +1,211 @@
+.tab-content-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding-top: 4px;
+}
+
+/* ==================== TÍTULOS DE SECCIÓN ==================== */
+.section-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: #475569;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+    border-bottom: 1px solid #e2e8f0;
+    padding-bottom: 4px;
+}
+
+/* ==================== LIVE NAME BUILDER ==================== */
+.naming-slots-container {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    gap: 12px;
+    padding: 14px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+    overflow-x: auto;
+}
+
+.naming-slot {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px 14px;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    cursor: pointer;
+    min-width: 90px;
+    text-align: center;
+    transition: all 0.2s ease;
+}
+
+    .naming-slot:hover:not(.disabled) {
+        border-color: #94a3b8;
+        background: #f1f5f9;
+    }
+
+    .naming-slot.selected {
+        border-color: #4674a6;
+        background: #eef5ff;
+        box-shadow: 0 0 0 1px #4674a6;
+    }
+
+    .naming-slot.disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        background: #f1f5f9;
+    }
+
+.slot-value {
+    font-size: 14px;
+    font-weight: 700;
+    color: #334155;
+}
+
+.slot-label {
+    font-size: 10px;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+}
+
+/* ==================== PREVIEWS Y TEXTOS ==================== */
+.live-preview {
+    font-size: 16px;
+    font-weight: 700;
+    color: #0f172a;
+    margin-top: 10px;
+    padding: 0 4px;
+    letter-spacing: 0.5px;
+}
+
+.examples-box {
+    font-family: "Segoe UI", Arial, sans-serif;
+    font-size: 12px;
+    line-height: 1.6;
+    color: #475569;
+    padding: 0 4px;
+}
+
+    .examples-box strong {
+        color: #1e293b;
+        display: block;
+        margin-top: 8px;
+        font-size: 12px;
+    }
+
+.rule-behavior {
+    font-size: 12px;
+    color: #334155;
+    line-height: 1.5;
+    background: #f8fafc;
+    padding: 10px 12px;
+    border-left: 3px solid #4674a6;
+    border-radius: 0 4px 4px 0;
+    margin-top: 12px;
+}
+
+/* ==================== OPTION CARDS ==================== */
+.options-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+}
+
+.option-card {
+    padding: 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    background: #ffffff;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    text-align: left;
+}
+
+    .option-card:hover {
+        border-color: #94a3b8;
+        background: #f8fafc;
+    }
+
+    .option-card.selected {
+        border-color: #4674a6;
+        background: #eef5ff;
+        box-shadow: 0 0 0 1px #4674a6;
+    }
+
+.option-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: #334155;
+}
+
+.option-desc {
+    font-size: 11px;
+    color: #64748b;
+    line-height: 1.4;
+}
+
+/* ==================== PREFIX INPUTS ==================== */
+.prefixes-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px 24px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.form-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #475569;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.form-input {
+    height: 32px;
+    padding: 0 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    font-size: 12px;
+    color: #334155;
+    background: #ffffff;
+    outline: none;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    width: 100%;
+    box-sizing: border-box;
+    font-family: "Segoe UI", Arial, sans-serif;
+}
+
+    .form-input:focus {
+        border-color: #4674a6;
+        box-shadow: 0 0 0 2px rgba(70, 116, 166, 0.15);
+    }
+
+/* Scrollbars industriales */
+.naming-slots-container::-webkit-scrollbar {
+    height: 6px;
+}
+
+.naming-slots-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+.naming-slots-container::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 3px;
+}

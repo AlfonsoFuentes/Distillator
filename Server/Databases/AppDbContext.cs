@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Server.Entities;
 using Server.Entities.BaseStructure.Components;
 using Server.Entities.BaseStructure.Components.Configurations;
+using Server.Entities.Projects;
 using Server.Entities.Thermodynamics.Methods;
 using Server.Entities.UserManagement;
 using Server.Services;
@@ -10,7 +11,7 @@ using System.Reflection;
 
 namespace Server.Databases
 {
-    public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
+    public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IAppDbContext
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
@@ -59,5 +60,13 @@ namespace Server.Databases
         public DbSet<ThermodynamicMethod> ThermodynamicMethods { get; set; }
         public DbSet<MethodComponent> MethodComponents { get; set; }
         public DbSet<BinaryInteractionParameter> BinaryInteractionParameters { get; set; }
+
+        // ==========================================
+        // PROJECT PERSISTENCE MODULE
+        // ==========================================
+        public DbSet<ProjectRecord> Projects { get; set; }
+        public DbSet<ProjectCollaborator> ProjectCollaborators { get; set; }
+        public DbSet<ProjectDiagramRecord> ProjectDiagrams { get; set; }
+        public DbSet<ProjectChangeLog> ProjectChangeLogs { get; set; }
     }
 }

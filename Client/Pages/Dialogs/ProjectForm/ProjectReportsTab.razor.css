@@ -1,0 +1,121 @@
+.tab-content-form {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.two-columns {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px 20px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.form-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #475569;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.form-input, .form-select {
+    height: 30px;
+    padding: 0 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 3px;
+    font-size: 12px;
+    color: #334155;
+    background: #ffffff;
+    outline: none;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+    .form-input:focus, .form-select:focus {
+        border-color: #4674a6;
+        box-shadow: 0 0 0 2px rgba(70, 116, 166, 0.1);
+    }
+
+    .form-input.invalid, .form-select.invalid {
+        border-color: #ef4444;
+        background-color: #fef2f2;
+    }
+
+.field-error {
+    color: #ef4444;
+    font-size: 11px;
+    margin-top: 2px;
+}
+
+.calculated-value {
+    height: 30px;
+    padding: 0 10px;
+    display: flex;
+    align-items: center;
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    border-radius: 3px;
+    font-size: 12px;
+    color: #334155;
+    font-weight: 500;
+}
+
+/* Específicos para Reports Tab */
+.checkbox-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: #334155;
+    margin-top: 8px;
+    cursor: pointer;
+}
+
+/* Específicos para Units Tab */
+.unit-system-header {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 10px;
+    align-items: end;
+    margin-bottom: 14px;
+}
+
+.new-unit-system-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 14px;
+}
+
+.unit-system-note {
+    padding: 8px 10px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+    font-size: 11px;
+    color: #64748b;
+    margin-bottom: 14px;
+}
+
+.unit-editor {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px 20px;
+}
+
+.placeholder-box {
+    padding: 10px;
+    background: #f8fafc;
+    border: 1px dashed #cbd5e1;
+    border-radius: 4px;
+    font-size: 11px;
+    color: #64748b;
+    text-align: center;
+}

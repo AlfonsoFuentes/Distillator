@@ -50,12 +50,12 @@
                                 <MudItem xs="12"><MudDivider Class="my-4" /></MudItem>
 
                                 @* Propiedades Físicas usando tu componente estrella *@
-                                <MudItem xs="12" md="6"><EditAmount Label="Critical Temperature" @bind-Amount="_model.CriticalTemperature"></EditAmount></MudItem>
-                                <MudItem xs="12" md="6"><EditAmount Label="Critical Pressure" @bind-Amount="_model.CriticalPressure" /></MudItem>
-                                <MudItem xs="12" md="6"><EditAmount Label="Boiling Point" @bind-Amount="_model.BoilingPoint" /></MudItem>
-                                <MudItem xs="12" md="6"><EditAmount Label="Melting Point" @bind-Amount="_model.MeltingPoint" /></MudItem>
-                                <MudItem xs="12" md="6"><EditAmount Label="Enthalpy of Formation" @bind-Amount="_model.EnthalpyForm" /></MudItem>
-                                <MudItem xs="12" md="6"><EditAmount Label="Gibbs Energy of Formation" @bind-Amount="_model.GibbsForm" /></MudItem>
+                                <MudItem xs="12" md="6"><AmountEdit Label="Critical Temperature" @bind-Amount="_model.CriticalTemperature"></AmountEdit></MudItem>
+                                <MudItem xs="12" md="6"><AmountEdit Label="Critical Pressure" @bind-Amount="_model.CriticalPressure" /></MudItem>
+                                <MudItem xs="12" md="6"><AmountEdit Label="Boiling Point" @bind-Amount="_model.BoilingPoint" /></MudItem>
+                                <MudItem xs="12" md="6"><AmountEdit Label="Melting Point" @bind-Amount="_model.MeltingPoint" /></MudItem>
+                                <MudItem xs="12" md="6"><AmountEdit Label="Enthalpy of Formation" @bind-Amount="_model.EnthalpyForm" /></MudItem>
+                                <MudItem xs="12" md="6"><AmountEdit Label="Gibbs Energy of Formation" @bind-Amount="_model.GibbsForm" /></MudItem>
                             </MudGrid>
                         </MudPaper>
                     </ChildContent>

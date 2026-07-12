@@ -216,24 +216,7 @@ public class ThermodynamicMethodEndPoint : IEndPoint
 
             return Results.Ok(Result.Success());
         }).RequireAuthorization(new AuthorizeAttribute { Roles = "Developer" });
-        group.MapPost("/EditThermodynamicMethod2", async ([FromBody] EditThermodynamicMethod request, ApplicationDbContext context, IWebHostEnvironment env) =>
-        {
-            var entity = await context.ThermodynamicMethods
-                .Include(m => m.MethodComponents)
-                .Include(m => m.BinaryParameters)
-                .FirstOrDefaultAsync(m => m.Id == request.Id);
-
-            if (entity == null) return Results.Ok(Result.Fail("Method not found"));
-
-            await MapDtoToEntity(request, entity, context);
-
-            context.ThermodynamicMethods.Update(entity);
-            await context.SaveChangesAsync();
-
-            await DatabaseSeeder.SyncMethodsToCsv(context, env.ContentRootPath);
-
-            return Results.Ok(Result.Success());
-        }).RequireAuthorization(new AuthorizeAttribute { Roles = "Developer" });
+        
 
         // ==========================================
         // 5. DELETE

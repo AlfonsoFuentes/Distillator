@@ -30,21 +30,21 @@ public interface IElectricalEquipmentFactory : IEquipmentFactory
 /// </summary>
 public interface IFlowsheetFactory
 {
-    IFlowsheet Create(string name, string flowsheetTypeCode, IProject project);
+    IFlowsheet Create(string name, string flowsheetTypeCode, IProject project, Guid? id = null);
 }
 
 public class FlowsheetFactory : IFlowsheetFactory
 {
-    public IFlowsheet Create(string name, string flowsheetTypeCode, IProject project)
+    public IFlowsheet Create(string name, string flowsheetTypeCode, IProject project, Guid? id = null)
     {
         var type = project.FlowsheetTypes.GetByCode(flowsheetTypeCode)
             ?? throw new ArgumentException($"Unknown flowsheet type code: {flowsheetTypeCode}", nameof(flowsheetTypeCode));
 
         return flowsheetTypeCode.ToUpperInvariant() switch
         {
-            "PFD" => new PfdFlowsheet(name, type, project),
-            "PANDID" => new PandidFlowsheet(name, type, project),
-            "ELECTRICAL" => new ElectricalFlowsheet(name, type, project),
+            "PFD" => new PfdFlowsheet(name, type, project, id),
+            "PANDID" => new PandidFlowsheet(name, type, project, id),
+            "ELECTRICAL" => new ElectricalFlowsheet(name, type, project, id),
             _ => throw new NotSupportedException($"Flowsheet type not supported: {flowsheetTypeCode}")
         };
     }

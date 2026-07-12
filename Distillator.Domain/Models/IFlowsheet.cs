@@ -13,6 +13,7 @@ public interface IFlowsheet
 {
     Guid Id { get; }
     string Name { get; set; }
+    string DiagramNumber { get; set; }
     string TypeCode { get; }
     IFlowsheetType TypeDefinition { get; }
 

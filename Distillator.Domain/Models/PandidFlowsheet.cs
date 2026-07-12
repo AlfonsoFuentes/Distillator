@@ -4,8 +4,8 @@ public class PandidFlowsheet : Flowsheet
 {
     public override string TypeCode => "PAndID";
 
-    public PandidFlowsheet(string name, IFlowsheetType typeDefinition, IProject project)
-        : base(name, typeDefinition, project)
+    public PandidFlowsheet(string name, IFlowsheetType typeDefinition, IProject project, Guid? id = null)
+        : base(name, typeDefinition, project, id)
     {
     }
 }

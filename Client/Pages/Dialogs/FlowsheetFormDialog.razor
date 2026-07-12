@@ -12,6 +12,18 @@
                           Immediate="true"
                           Class="mb-4" />
 
+            @if (RequiresDiagramNumber)
+            {
+                <MudTextField @bind-Value="_model.DiagramNumber"
+                              Label="Diagram Number"
+                              Required="true"
+                              RequiredError="Diagram number is required"
+                              Validation="@(new Func<string?, string?>(ValidateDiagramNumber))"
+                              Immediate="true"
+                              HelperText="Used by diagram-based naming rules. Example: 1 becomes prefix 100."
+                              Class="mb-4" />
+            }
+
             @if (IsTypeFixed)
             {
                 <MudTextField Value="EffectiveTypeName"
@@ -103,6 +115,7 @@
 
     private bool IsNew => Flowsheet == null;
     private bool IsTypeFixed => !string.IsNullOrWhiteSpace(FixedTypeCode);
+    private bool RequiresDiagramNumber => Project != null && ProjectSessionService.RequiresDiagramNumberForNaming(Project.Configuration.NamingConfig);
     private string EffectiveTypeCode => IsTypeFixed ? FixedTypeCode! : _model.TypeCode;
     private string EffectiveTypeName => Project?.FlowsheetTypes.GetByCode(EffectiveTypeCode)?.DisplayName ?? EffectiveTypeCode;
 
@@ -129,6 +142,7 @@
         if (Flowsheet != null)
         {
             _model.Name = Flowsheet.Name;
+            _model.DiagramNumber = Flowsheet.DiagramNumber;
             _model.TypeCode = Flowsheet.TypeCode;
             _model.DiagramWidth = Flowsheet.DiagramWidth;
             _model.DiagramHeight = Flowsheet.DiagramHeight;
@@ -141,6 +155,7 @@
         else
         {
             _model.Name = string.Empty;
+            _model.DiagramNumber = string.Empty;
             _model.TypeCode = FixedTypeCode ?? AvailableTypes.FirstOrDefault()?.Code ?? "PFD";
             _model.DiagramWidth = 5000;
             _model.DiagramHeight = 5000;
@@ -172,6 +187,28 @@
         return null;
     }
 
+    private string? ValidateDiagramNumber(string? diagramNumber)
+    {
+        if (!RequiresDiagramNumber)
+            return null;
+
+        if (string.IsNullOrWhiteSpace(diagramNumber))
+            return "Diagram number is required";
+
+        if (Project == null)
+            return null;
+
+        var normalized = diagramNumber.Trim();
+        var existing = Project.Flowsheets
+            .Where(f => IsNew || f.Id != Flowsheet!.Id)
+            .Any(f => string.Equals(f.DiagramNumber?.Trim(), normalized, StringComparison.OrdinalIgnoreCase));
+
+        if (existing)
+            return "A diagram with this number already exists";
+
+        return null;
+    }
+
     private void Cancel() => MudDialog.Cancel();
 
     private async Task Submit()
@@ -183,10 +220,11 @@
         {
             if (IsNew)
             {
-                var flowsheet = await SessionService.CreateFlowsheetAsync(EffectiveTypeCode, _model.Name);
+                var flowsheet = await SessionService.CreateFlowsheetAsync(EffectiveTypeCode, _model.Name, _model.DiagramNumber);
                 await SessionService.UpdateFlowsheetConfigurationAsync(
                     flowsheet,
                     null,
+                    _model.DiagramNumber,
                     _model.DiagramWidth,
                     _model.DiagramHeight,
                     _model.GlobalScale,
@@ -200,6 +238,7 @@
                 await SessionService.UpdateFlowsheetConfigurationAsync(
                     Flowsheet,
                     _model.Name,
+                    _model.DiagramNumber,
                     _model.DiagramWidth,
                     _model.DiagramHeight,
                     _model.GlobalScale,
@@ -220,6 +259,7 @@
     private class FlowsheetModel
     {
         public string Name { get; set; } = string.Empty;
+        public string DiagramNumber { get; set; } = string.Empty;
         public string TypeCode { get; set; } = "PFD";
         public double DiagramWidth { get; set; } = 5000;
         public double DiagramHeight { get; set; } = 5000;
