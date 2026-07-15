@@ -90,8 +90,37 @@
 
 .unit-editor {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 16px 24px;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    max-height: 430px;
+    overflow: auto;
+    padding-right: 4px;
+}
+
+.unit-group {
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+    padding: 8px;
+    background: #ffffff;
+}
+
+.unit-group-title {
+    margin-bottom: 8px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #334155;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+
+.unit-group-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px 10px;
+}
+
+.unit-row {
+    gap: 4px;
 }
 
 /* Botones locales para sortear el aislamiento del Scope */
@@ -129,3 +158,21 @@
         .tab-btn.primary:hover {
             background: #365c85;
         }
+
+@media (max-width: 900px) {
+    .unit-group-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 640px) {
+    .unit-system-header,
+    .new-unit-system-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .unit-group-grid {
+        grid-template-columns: 1fr;
+    }
+}

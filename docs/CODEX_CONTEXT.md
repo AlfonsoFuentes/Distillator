@@ -8,9 +8,196 @@ Ruta principal del proyecto: C:\Programas\Distillator\Distillator
 
 ## Contexto Reciente
 
-# Contexto Actual: Refactorización Fase D Completada
+# Contexto Actual: Persistencia, Realtime Y Specifications Formula - Vertical Principal Completada
 
-## Estado actual
+## Estado actual 2026-07-13
+
+- La vertical principal de experiencia tipo Google Sheets está funcionando para proyecto, configuración, diagramas, equipos/corrientes visuales, variables de Facade y specifications por formula.
+- App multiusuario probada con dos navegadores/usuarios:
+  - Owner;
+  - Editor;
+  - Viewer.
+- Realtime probado:
+  - crear/editar/eliminar diagramas;
+  - cambios de configuración del proyecto;
+  - cambios de permisos;
+  - presencia de usuarios;
+  - cambios visuales de equipos/corrientes;
+  - conexión/desconexión;
+  - creación/eliminación de equipos;
+  - variables de corriente/equipo;
+  - formulas/specifications.
+- Persistencia probada:
+  - cerrar y abrir conserva proyectos;
+  - conserva configuración;
+  - conserva sistemas de unidades personalizados y sistema activo;
+  - conserva equipos/corrientes/pipes;
+  - conserva variables definidas por usuario;
+  - conserva overrides de unidades;
+  - conserva composición definida por UI;
+  - conserva formulas/specifications.
+- El solver reconstruye resultados al abrir:
+  - no se guarda como verdad principal lo calculado;
+  - se guarda intención de usuario;
+  - se recalcula al hidratar el proyecto.
+- `dotnet build .\Distillator.slnx` reciente: correcto, 0 warnings, 0 errors.
+
+## Hitos Completados 2026-07-12 / 2026-07-13
+
+### Persistencia Y Endpoints
+
+- Endpoints de proyecto/configuración/diagramas corregidos por intención.
+- `SaveChangesAsync` conserva diagnóstico de concurrencia y se agregó patrón de resultado para guardados esperados.
+- Se evitó el patrón incorrecto de actualizar entidades hijas nuevas como si ya existieran.
+- Delete/create/update de diagramas probado.
+- Carga de proyecto con cambios persistidos probada.
+- Último proyecto/diagrama/estado de workspace quedó preparado para persistencia.
+
+### Unit Systems
+
+- UI de unidades completada y agrupada.
+- SI y English cargan primero.
+- Sistemas personalizados se guardan por proyecto.
+- Sistema activo se guarda/carga por proyecto.
+- Cambios de sistema de unidades se propagan a variables y diálogos abiertos.
+- `ProjectUnitSystemApplier` aplica defaults por `Variable<T>`.
+
+### Sharing Y Permisos
+
+- Dialogo de compartir proyecto implementado.
+- Lista de proyectos propios y compartidos separada.
+- Owner puede compartir/quitar acceso.
+- Viewer puede ver pero no editar.
+- Editor puede editar pero no borrar/compartir proyecto.
+- Cambios de permisos se actualizan en vivo.
+- Al quitar acceso, el usuario remoto deja de ver el proyecto sin refrescar.
+
+### Realtime
+
+- `ProjectCollaborationHub` y `ProjectRealtimeService`.
+- Realtime con recarga por HTTP tras evento aceptado.
+- Presencia mínima:
+  - usuario conectado;
+  - diagrama activo.
+- Autosave silencioso:
+  - sin snackbar por cada guardado;
+  - debounce para visual state;
+  - defer mientras solver está resolviendo.
+
+### Equipos, Corrientes Y Facade
+
+- Persistencia visual:
+  - elementos;
+  - pipes;
+  - cámara;
+  - rotación/flip/posición.
+- Persistencia de Facade con `FacadeStateSerializer`:
+  - variables `UserInput`;
+  - variables `Specification`;
+  - overrides de display unit;
+  - `CompositionOrchestrator.InputType`.
+- No se crean columnas/migraciones por cada nueva variable.
+- Cualquier nueva `Variable<T>` debe entrar en persistencia automáticamente si está definida por usuario.
+- Diálogos abiertos reciben actualizaciones en vivo.
+- Viewer no puede editar valores desde diálogos.
+
+### Thermodynamic Method
+
+- El proyecto guarda solo Id, pero al cargar consulta método completo.
+- `ThermodynamicMethodFullDto` se asigna al solver.
+- Corrientes creadas/cargadas reciben método termodinámico completo.
+
+### Solver
+
+- Filosofía de intención:
+  - limpiar calculados;
+  - intentar ecuaciones ordenadamente;
+  - retirar solo lo que converge.
+- Limpieza de variables calculadas por solver/equations corregida.
+- Caso bomba `DeltaP`: al desdefinir presión de descarga ya no debe conservar `DeltaP` viejo.
+- Autosave se evita durante ejecución del solver.
+
+### Specifications Por Formula
+
+- Nueva UI `EquipmentBaseFormulaSpecifications`.
+- Componente viejo `EquipmentBaseSpecifications` se conserva, pero no es la UI activa.
+- Formula parser tipado soporta:
+  - `Stream.MassFlow`;
+  - `Stream.Component.ComponentName.MassFlow`;
+  - `+`, `-`, `*`, `/`, parentesis;
+  - validación dimensional;
+  - división por cero/no evaluable como estado seguro.
+- Autocomplete en textarea:
+  - antes del `=` solo corrientes conectadas al equipo;
+  - después del `=` corrientes del flowsheet;
+  - usa nombres reales según `NamingConfiguration`.
+- Multiples formulas por equipo.
+- Confirmación explícita con botón `Confirm`.
+- Persistencia de formulas dentro del `CanvasStateJson`.
+- Pruebas reales:
+  - formula global de flujo másico;
+  - formula de flujo másico por componente;
+  - dos specifications en columna;
+  - persistencia al cerrar/abrir;
+  - realtime entre usuarios.
+
+### Auditoría Ligera De Inputs
+
+- `Variable<T>` ahora conserva:
+  - `DefinedByUserId`;
+  - `DefinedByUserName`;
+  - `DefinedAtUtc`.
+- Las variables definidas por usuario muestran tooltip:
+  - `Defined by: User`;
+  - fecha en segunda línea.
+- Valores calculados mantienen tooltip:
+  - `Calculated by: Stream`;
+  - `Calculated by: Solver`;
+  - `Calculated by: Equipment`.
+- `FormulaSpecification` conserva usuario y fecha de definición.
+
+### Routing De Corriente Automática
+
+- Al conectar equipo-equipo, la corriente intermedia ya no se ubica con offset hardcodeado.
+- `ConnectionService` usa boquillas origen/destino, dirección visual y orientación dominante.
+- La corriente se rota automáticamente según el flujo visual esperado.
+- Pendiente validación visual amplia.
+
+## Pendientes Actuales
+
+1. Probar equipo por equipo:
+   - columna;
+   - bomba;
+   - válvula;
+   - mixer;
+   - splitter;
+   - flash/vessel;
+   - intercambiadores.
+2. Validar routing automático en casos visuales:
+   - equipos alineados horizontalmente;
+   - alineados verticalmente;
+   - cruzados diagonalmente;
+   - boquillas invertidas por rotación/flip.
+3. Agregar pruebas de regresión del solver:
+   - limpieza de variables calculadas;
+   - bomba `DeltaP`;
+   - formula global;
+   - formula por componente;
+   - division por cero/no evaluable.
+4. Definir comportamiento futuro ante renombrado de corrientes usadas en formulas:
+   - opción simple: actualizar texto al renombrar;
+   - opción robusta: almacenar referencias por Id y renderizar texto.
+5. Decidir si la auditoría ligera en canvas debe evolucionar a change log histórico completo en servidor.
+6. Continuar regla de oro:
+   - persistir intención de usuario;
+   - recalcular resultados;
+   - no guardar resultados transitorios como verdad persistente.
+
+---
+
+# Contexto Histórico: Refactorización Fase D Completada
+
+## Estado histórico
 
 - `Distillator.Domain` compila y tiene **93 tests pasando**.
 - `Client` compila con **0 errores** y advertencias conocidas.
@@ -744,6 +931,15 @@ Diseño técnico inicial:
 - `ProjectStateService` en cliente como estado local.
 - Hub delgado: valida y delega en servicios de aplicación.
 
+Modo eficiente acordado:
+
+- Codex debe reducir ruido y consumo de tokens sin bajar calidad.
+- Leer archivos puntuales y ampliar búsqueda solo cuando el diagnóstico lo requiera.
+- Evitar `git diff` completo salvo antes de cerrar cambios importantes o si hay riesgo de modificaciones accidentales.
+- Preferir `rg`, lecturas por fragmento y verificaciones proporcionales.
+- Mantener cambios mínimos, reversibles y alineados con SOLID, KISS, DRY y YAGNI.
+- En respuestas finales, resumir solo hallazgo, cambio, verificación y pendiente.
+
 Avance implementado:
 
 - Se agregó el esqueleto EF Core para persistencia colaborativa en `Server.Entities.Projects`.
@@ -760,18 +956,56 @@ Avance implementado:
 - La migración fue aplicada a PostgreSQL con `dotnet-ef database update`.
 - Se instaló `dotnet-ef` como herramienta local del repo mediante `dotnet-tools.json`.
 - Se agregaron contratos mínimos en `Shared/Projects/ProjectPersistenceDtos.cs`.
-- Se agregó `ProjectEndPoint` con endpoints HTTP iniciales:
-  - `/Projects/GetUserProjects`
-  - `/Projects/GetProject`
-  - `/Projects/CreateProject`
-  - `/Projects/UpdateProjectConfiguration`
+- Se agregó `ProjectEndPoint` con endpoints HTTP basados en el nombre exacto de la clase request, porque `HttpService` resuelve la ruta con `request.GetType().Name`:
+  - `/GetUserProjectsRequest`
+  - `/GetProjectRequest`
+  - `/CreateProjectRequest`
+  - `/UpdateProjectConfigurationRequest`
+  - `/DeleteProjectRequest`
+  - `/CreateDiagramRequest`
+  - `/UpdateDiagramRequest`
+  - `/DeleteDiagramRequest`
 - Se agregó un puente inicial de autosave en cliente:
-  - `HttpService` resuelve requests de `Shared.Projects` hacia `/Projects/...`.
+  - `HttpService` resuelve requests de `Shared.Projects` usando el nombre de la clase request como endpoint.
   - `ProjectSessionService` persiste creación de proyecto y cambios de configuración básica.
   - El proyecto local conserva su `Guid` al crearse en base de datos.
 - Aún no se creó SignalR Hub.
-- Aún no se reemplazó la carga/listado de proyectos en memoria por carga desde PostgreSQL.
-- Aún no se persisten diagramas, equipos, corrientes ni conexiones.
+- La carga/listado de proyectos ya consulta PostgreSQL parcialmente.
+- Diagramas básicos ya tienen endpoints separados para crear, actualizar y borrar.
+- Aún no se persisten equipos, corrientes ni conexiones.
+
+Plan activo realtime fase 1:
+
+- Mantener HTTP como fuente de guardado y validación.
+- Agregar SignalR solo como capa de notificación de cambios aceptados por servidor.
+- Crear `ProjectCollaborationHub` y `ProjectRealtimeService`.
+- Al abrir/cambiar proyecto, cliente entra al grupo del proyecto.
+- Endpoints probados emiten `ProjectRealtimeEventDto` después de guardar correctamente.
+- Cliente ignora eventos del mismo usuario.
+- Cliente recarga proyecto activo por HTTP cuando recibe evento externo.
+- Alcance inicial: configuración de proyecto, diagramas y sharing/permisos.
+- No implementar todavía CRDT, OT, cola offline, cursores, locks ni patches granulares.
+
+Avance realtime fase 2:
+
+- Se agregó presencia mínima en vivo.
+- La presencia vive en memoria del `ProjectCollaborationHub` por `ConnectionId`; no se persiste y no requiere migración.
+- `ProjectPresenceDto` informa proyecto, usuario, nombre visible y diagrama activo.
+- `ProjectRealtimeService` recibe `ProjectPresenceChanged` y mantiene `CurrentPresence`.
+- `ProjectSessionService` publica el diagrama activo al entrar al proyecto y al cambiar de flowsheet.
+- `ProjectDiagram` muestra una lista compacta de otros usuarios conectados al proyecto activo.
+- Esta fase no incluye locks, cursores, selección remota, edición por campo ni resolución avanzada de conflictos.
+
+Avance realtime fase 3:
+
+- Se inició persistencia visual de equipos/corrientes sin botón de guardar.
+- Se decidió separar estrictamente visual y Facade/simulación.
+- El estado visual se guarda en `ProjectDiagram.CanvasStateJson`.
+- El snapshot visual incluye cámara, equipos visuales, referencias y pipes.
+- No se guardan todavía datos internos de Facade, especificaciones, resultados ni variables de simulación.
+- `FlowsheetManager` dispara autosave visual no bloqueante al crear, mover al soltar, rotar, flip, conectar, desconectar o borrar.
+- `ProjectSessionService` aplica debounce por diagrama y persiste usando `UpdateDiagramRequest`.
+- SignalR sigue notificando después del guardado aceptado por servidor.
 
 Verificación:
 
@@ -787,5 +1021,120 @@ Compilación correcta.
 1 advertencia existente no relacionada: FlowsheetManager.NullSolver.OnSimulationCompleted nunca se usa.
 0 errores.
 Migración aplicada correctamente.
+```
+
+## Cierre De Jornada 2026-07-13
+
+Objetivo logrado:
+
+- El sistema ya está preparado para guardar, abrir y sincronizar en vivo el estado visual y el estado mínimo de Facade de equipos/corrientes.
+- La persistencia de Facade se guarda dentro de `ProjectDiagram.CanvasStateJson`, sin migraciones por cada nueva `Variable<T>`.
+- La base de datos guarda intención mínima:
+  - variables definidas por usuario (`UserInput`);
+  - variables de `Specification`;
+  - overrides manuales de unidad;
+  - `CompositionOrchestrator.InputType`.
+- Los resultados calculados no se persisten como fuente de verdad; al cargar se reconstruye el grafo, se aplican unidades/método termodinámico/inputs y se recalcula.
+- Para refresco de diálogos abiertos se usa un estado transitorio completo, distinto al estado mínimo persistido, para que el usuario vea clears, resultados y cambios de unidades sin cerrar el diálogo.
+
+Unidades:
+
+- El sistema de unidades del proyecto se aplica automáticamente a cualquier `Variable<T>` encontrada en Facades.
+- Si el usuario cambia el sistema de unidades del proyecto, corrientes/equipos existentes actualizan sus unidades por defecto.
+- Si el usuario cambia manualmente una unidad en una variable, esa unidad queda como override y persiste.
+- Se probó con corriente: cambio de sistema de unidades y override manual funcionan y persisten.
+
+Realtime y permisos:
+
+- Owner/Editor pueden editar; Viewer queda en modo lectura.
+- El modo lectura se aplica por cascada a:
+  - filas de variables;
+  - composición;
+  - nombres;
+  - conectores de puertos;
+  - diálogos de corriente y equipos.
+- Corriente probada con dos usuarios:
+  - cambios de valores se ven en vivo;
+  - clears se ven en vivo;
+  - cambios de unidades se ven en vivo con diálogo abierto;
+  - resultados calculados se ven en vivo.
+
+Composición:
+
+- Se corrigió persistencia de `InputType` para que composición definida por UI no vuelva como calculada.
+- `°GL` ahora se muestra azul cuando deriva de una composición definida por usuario.
+- Viewer ve composición/°GL, pero no puede editar.
+
+Equipos:
+
+- Se corrigió el parámetro `CanEdit` en todos los diálogos abiertos por `ProcessEquipmentRenderer`.
+- Prueba puntual de bomba exitosa:
+  - abre diálogo sin error;
+  - permite editar parámetros propios cuando el usuario tiene permiso;
+  - calcula;
+  - al cerrar y reabrir, los datos particulares de bomba persisten.
+
+Pendiente para próxima sesión:
+
+- Quedó un error reportado al final de la jornada; revisar primero antes de ampliar pruebas.
+- Probar equipo por equipo:
+  - Pump;
+  - ControlValve;
+  - HeatExchanger;
+  - PlateExchanger;
+  - Reboiler;
+  - Column;
+  - FlashTank;
+  - Splitter;
+  - Mixer;
+  - Vessel.
+- En cada equipo verificar:
+  - abrir diálogo como Owner/Editor;
+  - abrir diálogo como Viewer;
+  - edición bloqueada para Viewer;
+  - persistencia de variables propias;
+  - cambio visible en tiempo real con diálogo abierto;
+  - cierre y reapertura de app conservan inputs de usuario;
+  - resultados calculados se regeneran.
+
+## Estado Actual 2026-07-14
+
+Este bloque reemplaza como estado vigente cualquier nota histórica anterior que diga que SignalR, equipos, Facades o conexiones todavía no se persisten.
+
+Realtime:
+
+- `ProjectCollaborationHub` está implementado y la presencia por proyecto/diagrama funciona.
+- Los cambios aceptados por endpoints se notifican con `ProjectChanged` y el cliente recarga por HTTP como fuente de verdad.
+- `ProjectChangedReceived` usa `Func<ProjectRealtimeEventDto, Task>`; no volver a manejar este recorrido con `async void`.
+- `ProjectSessionService` serializa recargas realtime y descarta versiones atrasadas del mismo proyecto.
+- Los autosaves visuales se serializan para evitar escrituras concurrentes del mismo proyecto.
+- La falla observada solo en producción se atribuyó al solapamiento de callbacks/recargas, no a una desconexión general del Hub: la presencia seguía funcionando.
+- Pendiente inmediato: volver a publicar y validar A -> B y B -> A en producción sin F5.
+
+Conexiones entre diagramas:
+
+- Los OPC guardan en `CanvasStateJson` su flowsheet/conector destino, nombre, equipo asociado y dirección.
+- Al cargar un proyecto se reconstruyen referencias OPC, `InterFlowsheetConnection` y la conexión lógica con el solver.
+- Crear una conexión interdiagrama usa `UpdateDiagramsRequest`: guarda ambos diagramas atómicamente en un solo `SaveChanges` y emite un único `ProjectChanged`.
+- `FlowsheetManager` entrega la colección de diagramas modificados en una sola tarea; no crea un `Task.Run` por cada extremo.
+- Los errores de autosave silencioso no muestran snackbar, pero quedan visibles en la consola del navegador.
+- Al borrar un diagrama, el dominio limpia conexiones interdiagrama, OPC, pipes, puertos, registro de equipos y solver.
+- Antes de borrar en servidor se persisten los diagramas sobrevivientes afectados para eliminar sus OPC.
+- Pendiente de prueba manual: conectar dos diagramas, borrar cualquiera, validar realtime y reabrir para confirmar persistencia.
+
+Puertos y diálogos:
+
+- `EquipmentPortConnector` ya ejecuta conexión, simulación y autosave. `OnConnChanged` solo se necesita cuando el equipo debe regenerar puertos dinámicos y repintar su diálogo.
+- Equipos dinámicos actuales: columna, mixer, splitter y vessel.
+- Los diálogos usan propiedades tipadas para puertos fijos; evitar `Ports.First(...)` con nombres literales.
+- Flash Tank coincide con `SolverDrum`: una entrada `Feed`, una salida `Vapor` y una salida `Liquid`; no tiene feeds ni side draws dinámicos.
+- `FlashTankDialog` usa una cuadrícula scoped estable, símbolo ampliado solo en el diálogo y los tres conectores visibles.
+- Pendiente de prueba visual: abrir todos los diálogos, con atención especial al layout de Flash Tank.
+
+Verificación más reciente:
+
+```text
+dotnet build Distillator.slnx --no-restore
+Compilación correcta: 0 advertencias, 0 errores.
 ```
 

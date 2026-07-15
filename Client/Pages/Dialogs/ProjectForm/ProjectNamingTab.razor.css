@@ -1,11 +1,11 @@
+/* ==================== ESTRUCTURA DE LA PESTAÑA ==================== */
 .tab-content-form {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 18px;
     padding-top: 4px;
 }
 
-/* ==================== TÍTULOS DE SECCIÓN ==================== */
 .section-title {
     font-size: 11px;
     font-weight: 700;
@@ -57,12 +57,6 @@
         box-shadow: 0 0 0 1px #4674a6;
     }
 
-    .naming-slot.disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-        background: #f1f5f9;
-    }
-
 .slot-value {
     font-size: 14px;
     font-weight: 700;
@@ -76,30 +70,38 @@
     text-transform: uppercase;
 }
 
-/* ==================== PREVIEWS Y TEXTOS ==================== */
-.live-preview {
-    font-size: 16px;
-    font-weight: 700;
-    color: #0f172a;
-    margin-top: 10px;
-    padding: 0 4px;
-    letter-spacing: 0.5px;
+/* ==================== EJEMPLOS POR DIAGRAMA ==================== */
+.examples-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    padding: 4px 0;
 }
 
-.examples-box {
-    font-family: "Segoe UI", Arial, sans-serif;
+.example-column {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+    padding: 10px 12px;
+}
+
+.diagram-header {
+    color: #1e293b;
     font-size: 12px;
-    line-height: 1.6;
-    color: #475569;
-    padding: 0 4px;
+    margin-bottom: 4px;
+    border-bottom: 1px solid #cbd5e1;
+    padding-bottom: 4px;
 }
 
-    .examples-box strong {
-        color: #1e293b;
-        display: block;
-        margin-top: 8px;
-        font-size: 12px;
-    }
+.equipment-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+}
 
 .rule-behavior {
     font-size: 12px;
@@ -112,10 +114,10 @@
     margin-top: 12px;
 }
 
-/* ==================== OPTION CARDS ==================== */
+/* ==================== CONFIGURACIÓN DE OPCIONES (2x2) ==================== */
 .options-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    grid-template-columns: repeat(2, 1fr);
     gap: 12px;
 }
 
@@ -125,11 +127,8 @@
     border-radius: 4px;
     background: #ffffff;
     cursor: pointer;
-    transition: all 0.2s ease;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
     text-align: left;
+    transition: all 0.2s ease;
 }
 
     .option-card:hover {
@@ -143,69 +142,43 @@
         box-shadow: 0 0 0 1px #4674a6;
     }
 
-.option-title {
-    font-size: 12px;
-    font-weight: 600;
-    color: #334155;
-}
-
-.option-desc {
-    font-size: 11px;
-    color: #64748b;
-    line-height: 1.4;
-}
-
-/* ==================== PREFIX INPUTS ==================== */
+/* ==================== PREFIXES (3 Columnas) ==================== */
 .prefixes-grid {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 12px 24px;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px 16px;
 }
 
-.form-group {
+.prefix-form-group {
     display: flex;
-    flex-direction: column;
-    gap: 4px;
+    align-items: center;
+    justify-content: space-between;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+    padding: 6px 10px;
 }
 
-.form-label {
-    font-size: 11px;
+.prefix-label {
+    font-size: 10px;
     font-weight: 600;
     color: #475569;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-right: 8px;
 }
 
-.form-input {
-    height: 32px;
-    padding: 0 10px;
+.prefix-input {
+    width: 48px;
+    height: 26px;
+    text-align: center;
     border: 1px solid #cbd5e1;
-    border-radius: 4px;
-    font-size: 12px;
-    color: #334155;
-    background: #ffffff;
-    outline: none;
-    transition: border-color 0.15s ease, box-shadow 0.15s ease;
-    width: 100%;
-    box-sizing: border-box;
-    font-family: "Segoe UI", Arial, sans-serif;
-}
-
-    .form-input:focus {
-        border-color: #4674a6;
-        box-shadow: 0 0 0 2px rgba(70, 116, 166, 0.15);
-    }
-
-/* Scrollbars industriales */
-.naming-slots-container::-webkit-scrollbar {
-    height: 6px;
-}
-
-.naming-slots-container::-webkit-scrollbar-track {
-    background: #f1f1f1;
-}
-
-.naming-slots-container::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
     border-radius: 3px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #0f172a;
+    text-transform: uppercase;
+    flex-shrink: 0;
 }

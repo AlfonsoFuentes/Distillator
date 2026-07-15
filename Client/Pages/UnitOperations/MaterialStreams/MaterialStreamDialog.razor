@@ -1,10 +1,12 @@
 ﻿@using Client.Pages.UnitOperations.MaterialStreams.CompositionGrids
 @using Shared.PhaseEnvelopes
+@using Distillator.Domain.Services
 @implements IDisposable
 
 
 <MudDialog Gutters="false" ContentClass="pa-0">
     <DialogContent>
+        <CascadingValue Name="IsProjectReadOnly" Value="@(!CanEdit)">
         @* 💡 Ya no necesitamos el div .modal-overlay *@
         <div class="stream-dialog">
 
@@ -75,6 +77,7 @@
                 <span class="status-text">@Stream.StatusText</span>
             </div>
         </div>
+        </CascadingValue>
     </DialogContent>
 </MudDialog>
 
@@ -84,6 +87,7 @@
 
     [Parameter]
     public StreamVisualElement Stream { get; set; } = default!;
+    [Parameter] public bool CanEdit { get; set; } = true;
     // 2. Tu parámetro del Facade que ya tenías
 
     private IFacadeStream Facade => Stream.Facade as IFacadeStream ?? throw new InvalidOperationException("Facade must be IFacadeStream");
@@ -140,7 +144,7 @@
 
     protected override void OnInitialized()
     {
-        FSM.OnNotifyUI += StateHasChanged;
+        FSM.OnNotifyUI += OnNotifyUIHandler;
     }
 
     /*
@@ -150,7 +154,21 @@
 
     public void Dispose()
     {
-        FSM.OnNotifyUI -= StateHasChanged;
+        FSM.OnNotifyUI -= OnNotifyUIHandler;
+    }
+
+    private void OnNotifyUIHandler()
+    {
+        var current = FSM.Elements.FirstOrDefault(element => element.Id == Stream.Id) as StreamVisualElement;
+        if (current?.Facade != null && Stream.Facade != null && !ReferenceEquals(current.Facade, Stream.Facade))
+        {
+            FacadeStateSerializer.Apply(
+                Stream.Facade,
+                FacadeStateSerializer.Serialize(current.Facade, includeTransientState: true),
+                restoreProjectDefaultDisplayUnits: true);
+        }
+
+        _ = InvokeAsync(StateHasChanged);
     }
 
    

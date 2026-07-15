@@ -9,8 +9,12 @@ using Distillator.Domain.Repositories.InMemory;
 using Distillator.Domain.Services;
 using Distillator.Domain.Session;
 using Shared.ProcessFlowDiagram;
+using Shared.PropertiesDtos.Methods;
 using Shared.Projects;
 using Shared.SolverConsecutive;
+using Shared.SolverConsecutive.Equipments;
+using Shared.SolverQwen.Stream;
+using Shared.UnitOperations.Basiss;
 using UnitSystem;
 
 namespace Client.Services;
@@ -30,15 +34,54 @@ public class ProjectSessionService
     private readonly IFlowsheetTypeRegistry _flowsheetTypeRegistry;
     private readonly IEquipmentNamingService _namingService;
     private readonly IHttpService? _httpService;
+    private readonly ProjectRealtimeService? _realtimeService;
+    private UserSessionState? _workspaceState;
+    private readonly Dictionary<Guid, string> _projectRoles = new();
+    private readonly Dictionary<Guid, CancellationTokenSource> _visualSaveDebounces = new();
+    private readonly object _visualSaveDebounceSync = new();
+    private readonly SemaphoreSlim _visualPersistenceLock = new(1, 1);
+    private readonly SemaphoreSlim _realtimeReloadLock = new(1, 1);
+    private long _lastAppliedRealtimeVersion;
+    private Guid? _lastAppliedRealtimeProjectId;
     private static readonly JsonSerializerOptions PersistenceJsonOptions = new(JsonSerializerDefaults.Web);
 
     public User? CurrentUser => _authProvider.CurrentUser;
     public Project? CurrentProject { get; private set; }
     public IFlowsheet? ActiveFlowsheet { get; private set; }
+    public bool IsProjectExplorerCollapsed => _workspaceState?.IsProjectExplorerCollapsed ?? false;
+    public bool IsDiagramExplorerCollapsed => _workspaceState?.IsDiagramExplorerCollapsed ?? false;
+    public IReadOnlyCollection<string>? ExpandedDiagramTypeCodes => _workspaceState?.ExpandedDiagramTypeCodes;
+    public IReadOnlyList<ProjectPresenceDto> ProjectPresence { get; private set; } = Array.Empty<ProjectPresenceDto>();
+    public bool IsProjectHydrating { get; private set; }
+    public string ProjectLoadingMessage { get; private set; } = string.Empty;
 
     public event Action? ProjectChanged;
+    public event Action<Project>? ProjectReloaded;
+    public event Action? ProjectListRefreshRequested;
+    public event Action? ProjectPresenceChanged;
+    public event Action? ProjectHydrationChanged;
 
     public void NotifyProjectChanged() => ProjectChanged?.Invoke();
+
+    private void SetProjectHydration(bool isHydrating, string message)
+    {
+        IsProjectHydrating = isHydrating;
+        ProjectLoadingMessage = message;
+        ProjectHydrationChanged?.Invoke();
+    }
+
+    public bool IsCurrentUserProjectOwner(Project project)
+    {
+        return CurrentUser != null && project.OwnerUserId == CurrentUser.Id;
+    }
+
+    public bool CanCurrentUserEditProject(Project project)
+    {
+        if (IsCurrentUserProjectOwner(project)) return true;
+
+        return _projectRoles.TryGetValue(project.Id, out var role) &&
+               role.Equals("Editor", StringComparison.OrdinalIgnoreCase);
+    }
 
     public ProjectSessionService(
         CustomAuthenticationStateProvider authProvider,
@@ -46,7 +89,8 @@ public class ProjectSessionService
         IUserSessionStateRepository userSessionStateRepository,
         IFlowsheetTypeRegistry? flowsheetTypeRegistry = null,
         IEquipmentNamingService? namingService = null,
-        IHttpService? httpService = null)
+        IHttpService? httpService = null,
+        ProjectRealtimeService? realtimeService = null)
     {
         _authProvider = authProvider;
         _projectRepository = projectRepository;
@@ -54,6 +98,13 @@ public class ProjectSessionService
         _flowsheetTypeRegistry = flowsheetTypeRegistry ?? new FlowsheetTypeRegistry();
         _namingService = namingService ?? new EquipmentNamingService();
         _httpService = httpService;
+        _realtimeService = realtimeService;
+
+        if (_realtimeService != null)
+        {
+            _realtimeService.ProjectChangedReceived += OnRealtimeProjectChanged;
+            _realtimeService.PresenceChangedReceived += OnRealtimePresenceChanged;
+        }
     }
 
     public async Task InitializeAsync()
@@ -65,19 +116,26 @@ public class ProjectSessionService
         if (CurrentUser == null)
             throw new InvalidOperationException("No current user available.");
 
-        // 2. Cargar sesión del usuario (último proyecto/flowsheet activo)
-        var session = await _userSessionStateRepository.GetByUserIdAsync(CurrentUser.Id);
-
-        // 3. Buscar proyectos del usuario
         var userProjects = await LoadUserProjectsAsync();
+        await InitializeFromProjectsAsync(userProjects);
+    }
+
+    public async Task InitializeFromProjectsAsync(IReadOnlyList<Project> userProjects)
+    {
+        await EnsureCurrentUserAsync();
+        if (CurrentUser == null)
+            throw new InvalidOperationException("No current user available.");
+
+        var session = await LoadWorkspaceStateAsync();
+        _workspaceState = session;
 
         if (userProjects.Count == 0)
         {
-            // 4a. Si no tiene proyectos, crear uno nuevo con un PFD por defecto
-            CurrentProject = (Project)CurrentUser.CreateProject("Main Project");
-            var defaultFlowsheet = CurrentProject.CreateFlowsheet("PFD 1", "PFD");
-            await PersistProjectCreatedAsync(CurrentProject);
-            await SaveSessionAsync(defaultFlowsheet.Id);
+            // 4a. Si no tiene proyectos, la UI debe mostrar estado vacío.
+            CurrentProject = null;
+            ActiveFlowsheet = null;
+            ProjectChanged?.Invoke();
+            return;
         }
         else if (userProjects.Count == 1)
         {
@@ -87,20 +145,27 @@ public class ProjectSessionService
         else
         {
             // 4c. Si tiene 2 o más, intentar cargar el último activo según la sesión
-            var lastProject = session?.LastProjectId != null
-                ? userProjects.FirstOrDefault(p => p.Id == session.LastProjectId.Value)
+            var lastProject = _workspaceState?.LastProjectId != null
+                ? userProjects.FirstOrDefault(p => p.Id == _workspaceState.LastProjectId.Value)
                 : null;
 
             CurrentProject = lastProject ?? userProjects.First();
         }
 
         // 5. Establecer el flowsheet activo
-        if (session?.LastFlowsheetId != null)
+        if (_workspaceState?.LastFlowsheetId != null)
         {
-            ActiveFlowsheet = CurrentProject.GetFlowsheet(session.LastFlowsheetId.Value);
+            ActiveFlowsheet = CurrentProject.GetFlowsheet(_workspaceState.LastFlowsheetId.Value);
         }
 
         ActiveFlowsheet ??= CurrentProject.Flowsheets.FirstOrDefault();
+        if (_workspaceState != null &&
+            (_workspaceState.LastProjectId != CurrentProject.Id || _workspaceState.LastFlowsheetId != ActiveFlowsheet?.Id))
+        {
+            await SaveSessionAsync(ActiveFlowsheet?.Id);
+        }
+
+        await JoinRealtimeProjectAsync(CurrentProject.Id);
         ProjectChanged?.Invoke();
     }
 
@@ -122,6 +187,7 @@ public class ProjectSessionService
         }
 
         await SaveSessionAsync(ActiveFlowsheet?.Id);
+        await JoinRealtimeProjectAsync(CurrentProject.Id);
         ProjectChanged?.Invoke();
     }
 
@@ -143,9 +209,11 @@ public class ProjectSessionService
             return localProjects.OrderByDescending(project => project.CreatedAt).Cast<Project>().ToList();
         }
 
+        _projectRoles.Clear();
         var projects = new List<Project>();
         foreach (var summary in summariesResult.Data.OrderByDescending(project => project.UpdatedOnUtc))
         {
+            _projectRoles[summary.Id] = summary.CurrentUserRole;
             var project = await LoadProjectAsync(summary.Id);
             if (project != null)
             {
@@ -167,17 +235,38 @@ public class ProjectSessionService
             return localProjects.Cast<Project>().FirstOrDefault(project => project.Id == projectId);
         }
 
-        var result = await _httpService.PostAsync<GetProjectRequest, ProjectDocumentDto>(new GetProjectRequest
-        {
-            ProjectId = projectId
-        });
-
-        if (!result.Succeeded || result.Data == null)
+        var document = await LoadProjectDocumentAsync(projectId);
+        if (document == null)
         {
             return null;
         }
 
-        return FromPersistenceDto(result.Data, CurrentUser);
+        return await FromPersistenceDtoAsync(document, CurrentUser);
+    }
+
+    public async Task<ProjectSharingDto?> GetProjectSharingAsync(Guid projectId)
+    {
+        if (_httpService == null) return null;
+
+        var result = await _httpService.PostAsync<GetProjectSharingRequest, ProjectSharingDto>(new GetProjectSharingRequest
+        {
+            ProjectId = projectId
+        });
+
+        return result.Succeeded ? result.Data : null;
+    }
+
+    public async Task<ProjectSharingDto?> UpdateProjectSharingAsync(Guid projectId, IEnumerable<ProjectCollaboratorDto> collaborators)
+    {
+        if (_httpService == null) return null;
+
+        var result = await _httpService.PostAsync<UpdateProjectSharingRequest, ProjectSharingDto>(new UpdateProjectSharingRequest
+        {
+            ProjectId = projectId,
+            Collaborators = collaborators.ToList()
+        });
+
+        return result.Succeeded ? result.Data : null;
     }
 
     public async Task PersistProjectCreatedAsync(Project project)
@@ -191,11 +280,19 @@ public class ProjectSessionService
         {
             ProjectId = project.Id,
             Name = project.Name,
-            Configuration = ToPersistenceDto(project.Configuration),
-            Diagrams = ToDiagramDtos(project)
+            Configuration = ToPersistenceDto(project.Configuration)
         };
 
-        await _httpService.PostAsync<CreateProjectRequest, ProjectDocumentDto>(request);
+        var result = await _httpService.PostAsync<CreateProjectRequest, ProjectDocumentDto>(request);
+        if (!result.Succeeded)
+        {
+            return;
+        }
+
+        foreach (var diagram in ToDiagramDtos(project))
+        {
+            await PersistDiagramCreatedAsync(project.Id, diagram);
+        }
     }
 
     public async Task SetActiveFlowsheetAsync(IFlowsheet flowsheet)
@@ -206,6 +303,7 @@ public class ProjectSessionService
         ActiveFlowsheet = flowsheet;
         ProjectChanged?.Invoke();
         await SaveSessionAsync(flowsheet.Id);
+        await UpdateRealtimeActiveDiagramAsync();
     }
 
     public async Task<IFlowsheet> CreateFlowsheetAsync(string typeCode, string? baseName = null, string? diagramNumber = null)
@@ -221,6 +319,8 @@ public class ProjectSessionService
         SetDiagramNumber(flowsheet, diagramNumber);
         ActiveFlowsheet = flowsheet;
         await SaveSessionAsync(flowsheet.Id);
+        await UpdateRealtimeActiveDiagramAsync();
+        await PersistDiagramCreatedAsync(CurrentProject.Id, ToDiagramDto(flowsheet, GetFlowsheetOrder(CurrentProject, flowsheet)));
         ProjectChanged?.Invoke();
         return flowsheet;
     }
@@ -243,7 +343,7 @@ public class ProjectSessionService
 
         flowsheet.Name = newName;
         await SaveSessionAsync(ActiveFlowsheet?.Id);
-        await PersistCurrentProjectConfigurationAsync();
+        await PersistDiagramUpdatedAsync(flowsheet);
         ProjectChanged?.Invoke();
     }
 
@@ -289,7 +389,7 @@ public class ProjectSessionService
         if (panY.HasValue) flowsheet.PanY = panY.Value;
 
         await SaveSessionAsync(ActiveFlowsheet?.Id);
-        await PersistCurrentProjectConfigurationAsync();
+        await PersistDiagramUpdatedAsync(flowsheet);
         ProjectChanged?.Invoke();
     }
 
@@ -308,6 +408,8 @@ public class ProjectSessionService
         }
 
         await SaveSessionAsync(ActiveFlowsheet?.Id);
+        await PersistCurrentProjectConfigurationAsync();
+        await PersistDiagramNumbersForNamingAsync(configuration);
         ProjectChanged?.Invoke();
     }
 
@@ -319,6 +421,16 @@ public class ProjectSessionService
         if (CurrentProject.Flowsheets.Count <= 1)
             return;
 
+        var affectedFlowsheetIds = CurrentProject.InterFlowsheetConnections
+            .Where(connection =>
+                connection.SourceFlowsheetId == flowsheetId ||
+                connection.TargetFlowsheetId == flowsheetId)
+            .Select(connection => connection.SourceFlowsheetId == flowsheetId
+                ? connection.TargetFlowsheetId
+                : connection.SourceFlowsheetId)
+            .Distinct()
+            .ToList();
+
         CurrentProject.RemoveFlowsheet(flowsheetId);
 
         if (ActiveFlowsheet?.Id == flowsheetId)
@@ -327,8 +439,32 @@ public class ProjectSessionService
         }
 
         await SaveSessionAsync(ActiveFlowsheet?.Id);
-        await PersistCurrentProjectConfigurationAsync();
+        foreach (var affectedFlowsheetId in affectedFlowsheetIds)
+        {
+            var affectedFlowsheet = CurrentProject.GetFlowsheet(affectedFlowsheetId);
+            if (affectedFlowsheet != null)
+            {
+                await PersistDiagramUpdatedAsync(affectedFlowsheet);
+            }
+        }
+
+        await PersistDiagramDeletedAsync(CurrentProject.Id, flowsheetId);
         ProjectChanged?.Invoke();
+    }
+
+    public async Task<bool> DeleteProjectAsync(Project project)
+    {
+        if (_httpService == null) return true;
+
+        await EnsureCurrentUserAsync();
+        if (CurrentUser == null) return false;
+
+        var result = await _httpService.PostAsync<DeleteProjectRequest>(new DeleteProjectRequest
+        {
+            ProjectId = project.Id
+        });
+
+        return result.Succeeded;
     }
 
     public void ReorderFlowsheet(IFlowsheet flowsheet, int newIndex)
@@ -344,14 +480,200 @@ public class ProjectSessionService
     {
         if (CurrentUser == null || CurrentProject == null) return;
 
-        var session = await _userSessionStateRepository.GetByUserIdAsync(CurrentUser.Id)
-            ?? new UserSessionState(CurrentUser.Id);
+        var session = await GetOrCreateWorkspaceStateAsync();
 
         session.LastProjectId = CurrentProject.Id;
         if (lastFlowsheetId != null)
             session.LastFlowsheetId = lastFlowsheetId;
+        session.LastAccessAt = DateTime.UtcNow;
 
-        await _userSessionStateRepository.SaveAsync(session);
+        await SaveWorkspaceStateAsync(session);
+    }
+
+    private Task OnRealtimeProjectChanged(ProjectRealtimeEventDto realtimeEvent)
+    {
+        return HandleRealtimeProjectChangedAsync(realtimeEvent);
+    }
+
+    private async Task HandleRealtimeProjectChangedAsync(ProjectRealtimeEventDto realtimeEvent)
+    {
+        await _realtimeReloadLock.WaitAsync();
+        try
+        {
+            if (CurrentUser == null) return;
+            if (CurrentProject == null)
+            {
+                if (IsProjectAccessChange(realtimeEvent))
+                {
+                    ProjectListRefreshRequested?.Invoke();
+                }
+
+                return;
+            }
+
+            if (realtimeEvent.ProjectId != CurrentProject.Id)
+            {
+                if (IsProjectAccessChange(realtimeEvent))
+                {
+                    ProjectListRefreshRequested?.Invoke();
+                }
+
+                return;
+            }
+
+            if (string.Equals(realtimeEvent.ChangedByUserId, CurrentUser.Id.ToString(), StringComparison.OrdinalIgnoreCase)) return;
+            if (_lastAppliedRealtimeProjectId == realtimeEvent.ProjectId &&
+                realtimeEvent.Version <= _lastAppliedRealtimeVersion)
+            {
+                return;
+            }
+
+            var activeFlowsheetId = ActiveFlowsheet?.Id;
+            var reloadedDocument = await LoadProjectDocumentAsync(realtimeEvent.ProjectId);
+            if (reloadedDocument == null)
+            {
+                _projectRoles.Remove(realtimeEvent.ProjectId);
+                CurrentProject = null;
+                ActiveFlowsheet = null;
+                ProjectListRefreshRequested?.Invoke();
+                ProjectChanged?.Invoke();
+                return;
+            }
+
+            var reloadedProject = await FromPersistenceDtoAsync(reloadedDocument, CurrentUser);
+            CurrentProject = reloadedProject;
+            _lastAppliedRealtimeVersion = reloadedDocument.Version;
+            _lastAppliedRealtimeProjectId = reloadedDocument.Id;
+            RefreshCurrentUserProjectRole(realtimeEvent.ProjectId, reloadedDocument);
+            ActiveFlowsheet = activeFlowsheetId.HasValue
+                ? CurrentProject.GetFlowsheet(activeFlowsheetId.Value)
+                : null;
+            ActiveFlowsheet ??= CurrentProject.Flowsheets.FirstOrDefault();
+            await UpdateRealtimeActiveDiagramAsync();
+
+            ProjectReloaded?.Invoke(CurrentProject);
+            if (IsProjectAccessChange(realtimeEvent))
+            {
+                ProjectListRefreshRequested?.Invoke();
+            }
+
+            ProjectChanged?.Invoke();
+        }
+        finally
+        {
+            _realtimeReloadLock.Release();
+        }
+    }
+
+    private static bool IsProjectAccessChange(ProjectRealtimeEventDto realtimeEvent)
+    {
+        return realtimeEvent.ChangeType is "SharingUpdated" or "ProjectDeleted";
+    }
+
+    private async Task<ProjectDocumentDto?> LoadProjectDocumentAsync(Guid projectId)
+    {
+        await EnsureCurrentUserAsync();
+        if (CurrentUser == null || _httpService == null) return null;
+
+        var result = await _httpService.PostAsync<GetProjectRequest, ProjectDocumentDto>(new GetProjectRequest
+        {
+            ProjectId = projectId
+        });
+
+        return result.Succeeded ? result.Data : null;
+    }
+
+    private void RefreshCurrentUserProjectRole(Guid projectId, ProjectDocumentDto document)
+    {
+        if (CurrentUser == null) return;
+
+        if (Guid.TryParse(document.OwnerUserId, out var ownerId) && ownerId == CurrentUser.Id)
+        {
+            _projectRoles[projectId] = "Owner";
+            return;
+        }
+
+        var role = document.Collaborators.FirstOrDefault(collaborator =>
+            collaborator.UserId.Equals(CurrentUser.Id.ToString(), StringComparison.OrdinalIgnoreCase))?.Role;
+
+        if (string.IsNullOrWhiteSpace(role))
+        {
+            _projectRoles.Remove(projectId);
+            return;
+        }
+
+        _projectRoles[projectId] = role;
+    }
+
+    private async Task JoinRealtimeProjectAsync(Guid projectId)
+    {
+        if (_realtimeService == null) return;
+
+        try
+        {
+            await _realtimeService.JoinProjectAsync(projectId, ActiveFlowsheet?.Id, ActiveFlowsheet?.Name);
+        }
+        catch
+        {
+            // La carga HTTP sigue siendo la fuente de verdad si SignalR no está disponible.
+        }
+    }
+
+    private async Task UpdateRealtimeActiveDiagramAsync()
+    {
+        if (_realtimeService == null) return;
+
+        try
+        {
+            await _realtimeService.UpdateActiveDiagramAsync(ActiveFlowsheet?.Id, ActiveFlowsheet?.Name);
+        }
+        catch
+        {
+            // La presencia no debe bloquear el flujo principal de la aplicación.
+        }
+    }
+
+    private void OnRealtimePresenceChanged(IReadOnlyList<ProjectPresenceDto> presence)
+    {
+        ProjectPresence = presence;
+        ProjectPresenceChanged?.Invoke();
+    }
+
+    public async Task SetProjectExplorerCollapsedAsync(bool isCollapsed)
+    {
+        await EnsureCurrentUserAsync();
+        if (CurrentUser == null) return;
+
+        var session = await GetOrCreateWorkspaceStateAsync();
+        session.IsProjectExplorerCollapsed = isCollapsed;
+        session.LastAccessAt = DateTime.UtcNow;
+        await SaveWorkspaceStateAsync(session);
+    }
+
+    public async Task SetDiagramExplorerCollapsedAsync(bool isCollapsed)
+    {
+        await EnsureCurrentUserAsync();
+        if (CurrentUser == null) return;
+
+        var session = await GetOrCreateWorkspaceStateAsync();
+        session.IsDiagramExplorerCollapsed = isCollapsed;
+        session.LastAccessAt = DateTime.UtcNow;
+        await SaveWorkspaceStateAsync(session);
+    }
+
+    public async Task SetExpandedDiagramTypeCodesAsync(IEnumerable<string> typeCodes)
+    {
+        await EnsureCurrentUserAsync();
+        if (CurrentUser == null) return;
+
+        var session = await GetOrCreateWorkspaceStateAsync();
+        session.ExpandedDiagramTypeCodes = typeCodes
+            .Where(typeCode => !string.IsNullOrWhiteSpace(typeCode))
+            .Select(typeCode => typeCode.Trim())
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+        session.LastAccessAt = DateTime.UtcNow;
+        await SaveWorkspaceStateAsync(session);
     }
 
     private string GenerateUniqueFlowsheetName(string typeCode, string baseName)
@@ -550,16 +872,99 @@ public class ProjectSessionService
         {
             ProjectId = CurrentProject.Id,
             Name = CurrentProject.Name,
-            Configuration = ToPersistenceDto(CurrentProject.Configuration),
-            Diagrams = ToDiagramDtos(CurrentProject)
+            Configuration = ToPersistenceDto(CurrentProject.Configuration)
         };
 
-        var result = await _httpService.PostAsync<UpdateProjectConfigurationRequest, ProjectDocumentDto>(request);
-        if (!result.Succeeded &&
-            result.Message.Contains("not found", StringComparison.OrdinalIgnoreCase))
+        await _httpService.PostAsync<UpdateProjectConfigurationRequest, ProjectDocumentDto>(request, showSnackbar: false);
+    }
+
+    private async Task PersistDiagramCreatedAsync(Guid projectId, ProjectDiagramDto diagram)
+    {
+        if (_httpService == null) return;
+
+        await _httpService.PostAsync<CreateDiagramRequest, ProjectDocumentDto>(new CreateDiagramRequest
         {
-            await PersistProjectCreatedAsync(CurrentProject);
+            ProjectId = projectId,
+            Diagram = diagram
+        }, showSnackbar: false);
+    }
+
+    private async Task PersistDiagramUpdatedAsync(IFlowsheet flowsheet)
+    {
+        if (_httpService == null || CurrentProject == null) return;
+
+        await _httpService.PostAsync<UpdateDiagramRequest, ProjectDocumentDto>(new UpdateDiagramRequest
+        {
+            ProjectId = CurrentProject.Id,
+            Diagram = ToDiagramDto(flowsheet, GetFlowsheetOrder(CurrentProject, flowsheet))
+        }, showSnackbar: false);
+    }
+
+    private async Task PersistDiagramDeletedAsync(Guid projectId, Guid diagramId)
+    {
+        if (_httpService == null) return;
+
+        await _httpService.PostAsync<DeleteDiagramRequest, ProjectDocumentDto>(new DeleteDiagramRequest
+        {
+            ProjectId = projectId,
+            DiagramId = diagramId
+        }, showSnackbar: false);
+    }
+
+    private async Task PersistDiagramNumbersForNamingAsync(IProjectConfiguration configuration)
+    {
+        if (_httpService == null || CurrentProject == null) return;
+        if (!RequiresDiagramNumberForNaming(configuration.NamingConfig)) return;
+
+        foreach (var flowsheet in CurrentProject.Flowsheets.Where(flowsheet => !string.IsNullOrWhiteSpace(flowsheet.DiagramNumber)))
+        {
+            await PersistDiagramUpdatedAsync(flowsheet);
         }
+    }
+
+    private async Task<UserSessionState> LoadWorkspaceStateAsync()
+    {
+        if (CurrentUser == null)
+            throw new InvalidOperationException("No current user available.");
+
+        if (_httpService != null)
+        {
+            var result = await _httpService.PostAsync<GetUserWorkspaceStateRequest, UserWorkspaceStateDto>(new GetUserWorkspaceStateRequest());
+            if (result.Succeeded && result.Data != null)
+            {
+                return FromWorkspaceStateDto(CurrentUser.Id, result.Data);
+            }
+        }
+
+        return (await _userSessionStateRepository.GetByUserIdAsync(CurrentUser.Id) as UserSessionState)
+            ?? new UserSessionState(CurrentUser.Id);
+    }
+
+    private async Task<UserSessionState> GetOrCreateWorkspaceStateAsync()
+    {
+        if (CurrentUser == null)
+            throw new InvalidOperationException("No current user available.");
+
+        if (_workspaceState != null)
+        {
+            return _workspaceState;
+        }
+
+        _workspaceState = await LoadWorkspaceStateAsync();
+        return _workspaceState;
+    }
+
+    private async Task SaveWorkspaceStateAsync(UserSessionState session)
+    {
+        _workspaceState = session;
+        await _userSessionStateRepository.SaveAsync(session);
+
+        if (_httpService == null) return;
+
+        await _httpService.PostAsync<UpdateUserWorkspaceStateRequest, UserWorkspaceStateDto>(new UpdateUserWorkspaceStateRequest
+        {
+            State = ToWorkspaceStateDto(session)
+        });
     }
 
     private async Task EnsureCurrentUserAsync()
@@ -570,55 +975,131 @@ public class ProjectSessionService
         }
     }
 
-    private static Project FromPersistenceDto(ProjectDocumentDto document, User owner)
+    private static UserSessionState FromWorkspaceStateDto(Guid userId, UserWorkspaceStateDto dto)
     {
-        var project = new Project(
-            document.Name,
-            owner,
-            FromPersistenceDto(document.Configuration),
-            id: document.Id,
-            createdAt: document.CreatedOn);
-
-        var diagrams = document.Diagrams.Count > 0
-            ? document.Diagrams.OrderBy(diagram => diagram.Order).ToList()
-            : new List<ProjectDiagramDto>
-            {
-                new()
-                {
-                    Id = Guid.NewGuid(),
-                    Name = "PFD 1",
-                    TypeCode = "PFD",
-                    Order = 0
-                }
-            };
-
-        foreach (var diagram in diagrams)
+        return new UserSessionState(userId)
         {
-            var flowsheet = project.CreateFlowsheet(
-                string.IsNullOrWhiteSpace(diagram.Name) ? "PFD 1" : diagram.Name,
-                string.IsNullOrWhiteSpace(diagram.TypeCode) ? "PFD" : diagram.TypeCode,
-                diagram.Id == Guid.Empty ? null : diagram.Id);
-
-            flowsheet.DiagramNumber = diagram.DiagramNumber?.Trim() ?? string.Empty;
-            flowsheet.DiagramWidth = flowsheet.DiagramWidth > 0 ? flowsheet.DiagramWidth : 5000;
-            flowsheet.DiagramHeight = flowsheet.DiagramHeight > 0 ? flowsheet.DiagramHeight : 5000;
-        }
-
-        return project;
+            LastProjectId = dto.LastProjectId,
+            LastFlowsheetId = dto.LastFlowsheetId,
+            IsProjectExplorerCollapsed = dto.IsProjectExplorerCollapsed,
+            IsDiagramExplorerCollapsed = dto.IsDiagramExplorerCollapsed,
+            ExpandedDiagramTypeCodes = dto.ExpandedDiagramTypeCodes,
+            LastAccessAt = dto.LastAccessAt
+        };
     }
 
-    private static IProjectConfiguration FromPersistenceDto(ProjectBasicConfigurationDto configuration)
+    private static UserWorkspaceStateDto ToWorkspaceStateDto(UserSessionState session)
     {
-        var unitSystems = Deserialize(configuration.UnitSystemsJson, new List<ProjectUnitSystemSnapshot>())
-            .Select(FromSnapshot)
-            .Cast<IProjectUnitSystem>()
-            .ToList();
-
-        if (unitSystems.Count == 0)
+        return new UserWorkspaceStateDto
         {
-            unitSystems.Add(ProjectUnitSystem.SI());
-            unitSystems.Add(ProjectUnitSystem.English());
+            LastProjectId = session.LastProjectId,
+            LastFlowsheetId = session.LastFlowsheetId,
+            IsProjectExplorerCollapsed = session.IsProjectExplorerCollapsed,
+            IsDiagramExplorerCollapsed = session.IsDiagramExplorerCollapsed,
+            ExpandedDiagramTypeCodes = session.ExpandedDiagramTypeCodes,
+            LastAccessAt = session.LastAccessAt
+        };
+    }
+
+    private async Task<Project> FromPersistenceDtoAsync(ProjectDocumentDto document, User currentUser)
+    {
+        var owner = CreateProjectOwner(document, currentUser);
+        try
+        {
+            SetProjectHydration(true, "Loading project...");
+            var thermodynamicMethod = await LoadThermodynamicMethodFullAsync(document.Configuration.ThermodynamicMethodId);
+            SetProjectHydration(true, "Applying unit system...");
+            var project = new Project(
+                document.Name,
+                owner,
+                FromPersistenceDto(document.Configuration, thermodynamicMethod),
+                id: document.Id,
+                createdAt: document.CreatedOn);
+
+            var diagrams = document.Diagrams.Count > 0
+                ? document.Diagrams.OrderBy(diagram => diagram.Order).ToList()
+                : new List<ProjectDiagramDto>
+                {
+                    new()
+                    {
+                        Id = Guid.NewGuid(),
+                        Name = "PFD 1",
+                        TypeCode = "PFD",
+                        Order = 0
+                    }
+                };
+
+            SetProjectHydration(true, "Restoring diagrams...");
+            foreach (var diagram in diagrams)
+            {
+                var flowsheet = project.CreateFlowsheet(
+                    string.IsNullOrWhiteSpace(diagram.Name) ? "PFD 1" : diagram.Name,
+                    string.IsNullOrWhiteSpace(diagram.TypeCode) ? "PFD" : diagram.TypeCode,
+                    diagram.Id == Guid.Empty ? null : diagram.Id);
+
+                flowsheet.DiagramNumber = diagram.DiagramNumber?.Trim() ?? string.Empty;
+                flowsheet.DiagramWidth = flowsheet.DiagramWidth > 0 ? flowsheet.DiagramWidth : 5000;
+                flowsheet.DiagramHeight = flowsheet.DiagramHeight > 0 ? flowsheet.DiagramHeight : 5000;
+                ApplyCanvasState(project, flowsheet, diagram.CanvasStateJson);
+            }
+
+            RestoreInterFlowsheetConnections(project);
+
+            SetProjectHydration(true, "Recalculating simulation...");
+            project.RunSimulation();
+
+            return project;
         }
+        finally
+        {
+            SetProjectHydration(false, string.Empty);
+        }
+    }
+
+    private async Task<ThermodynamicMethodFullDto?> LoadThermodynamicMethodFullAsync(Guid? methodId)
+    {
+        if (_httpService == null || methodId == null || methodId == Guid.Empty) return null;
+
+        var result = await _httpService.PostAsync<GetMethodFullRequest, ThermodynamicMethodFullDto>(
+            new GetMethodFullRequest(methodId.Value));
+
+        return result.Succeeded ? result.Data : null;
+    }
+
+    private static User CreateProjectOwner(ProjectDocumentDto document, User currentUser)
+    {
+        if (!Guid.TryParse(document.OwnerUserId, out var ownerId) || ownerId == currentUser.Id)
+        {
+            return currentUser;
+        }
+
+        var ownerCollaborator = document.Collaborators.FirstOrDefault(collaborator => collaborator.UserId == document.OwnerUserId);
+        var (firstName, lastName) = SplitDisplayName(ownerCollaborator?.DisplayName);
+        return new User(ownerId, ownerCollaborator?.Email ?? string.Empty, firstName, lastName, false, currentUser.DefaultPreferences);
+    }
+
+    private static (string FirstName, string LastName) SplitDisplayName(string? displayName)
+    {
+        if (string.IsNullOrWhiteSpace(displayName))
+        {
+            return (string.Empty, string.Empty);
+        }
+
+        var parts = displayName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length == 1)
+        {
+            return (parts[0], string.Empty);
+        }
+
+        return (parts[0], string.Join(" ", parts.Skip(1)));
+    }
+
+    private static IProjectConfiguration FromPersistenceDto(
+        ProjectBasicConfigurationDto configuration,
+        ThermodynamicMethodFullDto? thermodynamicMethod = null)
+    {
+        var unitSystems = BuildUnitSystemsFromSnapshots(
+            Deserialize(configuration.UnitSystemsJson, new List<ProjectUnitSystemSnapshot>()));
 
         return new ProjectConfiguration(
             unitSystems: unitSystems,
@@ -626,6 +1107,7 @@ public class ProjectSessionService
             cameraDefaults: FromSnapshot(Deserialize(configuration.CameraConfigurationJson, ToSnapshot(new CameraConfiguration()))),
             namingConfig: FromSnapshot(Deserialize(configuration.NamingConfigurationJson, ToSnapshot(new NamingConfiguration()))),
             thermodynamicMethodId: configuration.ThermodynamicMethodId,
+            thermodynamicMethod: thermodynamicMethod,
             reportConfig: FromSnapshot(Deserialize(configuration.ReportConfigurationJson, ToSnapshot(new ReportConfiguration()))),
             equipmentDesignConfig: FromSnapshot(Deserialize(configuration.EquipmentDesignConfigurationJson, ToSnapshot(new EquipmentDesignConfiguration()))),
             plantElevation: new UnitSystem.Length(
@@ -636,16 +1118,458 @@ public class ProjectSessionService
     private static List<ProjectDiagramDto> ToDiagramDtos(Project project)
     {
         return project.Flowsheets
-            .Select((flowsheet, index) => new ProjectDiagramDto
-            {
-                Id = flowsheet.Id,
-                Name = flowsheet.Name,
-                TypeCode = flowsheet.TypeCode,
-                DiagramNumber = string.IsNullOrWhiteSpace(flowsheet.DiagramNumber) ? null : flowsheet.DiagramNumber,
-                Order = index,
-                CanvasStateJson = "{}"
-            })
+            .Select(ToDiagramDto)
             .ToList();
+    }
+
+    private static ProjectDiagramDto ToDiagramDto(IFlowsheet flowsheet, int index)
+    {
+        return new ProjectDiagramDto
+        {
+            Id = flowsheet.Id,
+            Name = flowsheet.Name,
+            TypeCode = flowsheet.TypeCode,
+            DiagramNumber = string.IsNullOrWhiteSpace(flowsheet.DiagramNumber) ? null : flowsheet.DiagramNumber,
+            Order = index < 0 ? 0 : index,
+            CanvasStateJson = Serialize(ToCanvasState(flowsheet.Project, flowsheet))
+        };
+    }
+
+    public async Task PersistDiagramVisualStateAsync(IFlowsheet flowsheet)
+    {
+        if (_httpService == null || CurrentProject == null) return;
+        if (flowsheet.Project.Id != CurrentProject.Id) return;
+        if (!CanCurrentUserEditProject(CurrentProject)) return;
+
+        CancellationTokenSource debounce;
+        lock (_visualSaveDebounceSync)
+        {
+            if (_visualSaveDebounces.Remove(flowsheet.Id, out var previousDebounce))
+            {
+                previousDebounce.Cancel();
+                previousDebounce.Dispose();
+            }
+
+            debounce = new CancellationTokenSource();
+            _visualSaveDebounces[flowsheet.Id] = debounce;
+        }
+
+        try
+        {
+            await Task.Delay(250, debounce.Token);
+        }
+        catch (TaskCanceledException)
+        {
+            return;
+        }
+
+        lock (_visualSaveDebounceSync)
+        {
+            if (!_visualSaveDebounces.TryGetValue(flowsheet.Id, out var currentDebounce) || currentDebounce != debounce)
+            {
+                debounce.Dispose();
+                return;
+            }
+
+            _visualSaveDebounces.Remove(flowsheet.Id);
+        }
+
+        await _visualPersistenceLock.WaitAsync();
+        try
+        {
+            var result = await _httpService.PostAsync<UpdateDiagramRequest, ProjectDocumentDto>(new UpdateDiagramRequest
+            {
+                ProjectId = CurrentProject.Id,
+                Diagram = ToDiagramDto(flowsheet, GetFlowsheetOrder(CurrentProject, flowsheet))
+            }, showSnackbar: false);
+            LogVisualSaveFailure(result, flowsheet.Id.ToString());
+        }
+        finally
+        {
+            _visualPersistenceLock.Release();
+            debounce.Dispose();
+        }
+    }
+
+    public async Task PersistDiagramVisualStatesAsync(IReadOnlyCollection<IFlowsheet> flowsheets)
+    {
+        if (_httpService == null || CurrentProject == null) return;
+        if (!CanCurrentUserEditProject(CurrentProject)) return;
+
+        var changedFlowsheets = flowsheets
+            .Where(flowsheet => flowsheet.Project.Id == CurrentProject.Id)
+            .DistinctBy(flowsheet => flowsheet.Id)
+            .ToList();
+        if (changedFlowsheets.Count == 0) return;
+        if (changedFlowsheets.Count == 1)
+        {
+            await PersistDiagramVisualStateAsync(changedFlowsheets[0]);
+            return;
+        }
+
+        foreach (var flowsheet in changedFlowsheets)
+        {
+            CancelVisualSaveDebounce(flowsheet.Id);
+        }
+
+        await _visualPersistenceLock.WaitAsync();
+        try
+        {
+            var result = await _httpService.PostAsync<UpdateDiagramsRequest, ProjectDocumentDto>(
+                new UpdateDiagramsRequest
+                {
+                    ProjectId = CurrentProject.Id,
+                    Diagrams = changedFlowsheets
+                        .Select(flowsheet => ToDiagramDto(
+                            flowsheet,
+                            GetFlowsheetOrder(CurrentProject, flowsheet)))
+                        .ToList()
+                },
+                showSnackbar: false);
+            LogVisualSaveFailure(result, string.Join(", ", changedFlowsheets.Select(flowsheet => flowsheet.Id)));
+        }
+        finally
+        {
+            _visualPersistenceLock.Release();
+        }
+    }
+
+    private void CancelVisualSaveDebounce(Guid flowsheetId)
+    {
+        lock (_visualSaveDebounceSync)
+        {
+            if (!_visualSaveDebounces.Remove(flowsheetId, out var debounce)) return;
+
+            debounce.Cancel();
+            debounce.Dispose();
+        }
+    }
+
+    private static void LogVisualSaveFailure<T>(Shared.Results.Result<T> result, string diagramIds)
+    {
+        if (result.Succeeded) return;
+
+        Console.Error.WriteLine(
+            $"Visual autosave failed for diagram(s) {diagramIds}: {string.Join("; ", result.Messages)}");
+    }
+
+    private static DiagramCanvasStateSnapshot ToCanvasState(IProject project, IFlowsheet flowsheet)
+    {
+        return new DiagramCanvasStateSnapshot(
+            new DiagramCameraSnapshot(
+                flowsheet.Zoom,
+                flowsheet.PanX,
+                flowsheet.PanY,
+                flowsheet.DiagramWidth,
+                flowsheet.DiagramHeight,
+                flowsheet.GridSize,
+                flowsheet.GlobalScale),
+            flowsheet.Elements
+                .Select(reference =>
+                {
+                    var element = project.EquipmentRegistry.GetById(reference.ElementId);
+                    return element == null
+                        ? null
+                        : new DiagramElementSnapshot(
+                            element.Id,
+                            element.Type.ToString(),
+                            element.Name,
+                            element.Label,
+                            FacadeStateSerializer.Serialize(element.Facade),
+                            ToFormulaSpecificationSnapshots(element.Facade),
+                            reference.X,
+                            reference.Y,
+                            element.Width,
+                            element.Height,
+                            reference.RotationAngle,
+                            reference.ZIndex,
+                            reference.IsFlippedHorizontal,
+                            reference.IsFlippedVertical,
+                            element.ShowLabel,
+                            element.IsLocked,
+                            ToOffPageConnectorSnapshot(reference, element));
+                })
+                .Where(snapshot => snapshot != null)
+                .Cast<DiagramElementSnapshot>()
+                .ToList(),
+            flowsheet.Pipes
+                .Select(pipe => new DiagramPipeSnapshot(
+                    pipe.Id,
+                    pipe.SourceElementId,
+                    pipe.TargetElementId,
+                    pipe.SourcePortName,
+                    pipe.TargetPortName))
+                .ToList());
+    }
+
+    private static void ApplyCanvasState(Project project, IFlowsheet flowsheet, string? canvasStateJson)
+    {
+        var state = Deserialize(canvasStateJson ?? "{}", new DiagramCanvasStateSnapshot());
+        var pendingFormulaSpecifications = new List<(
+            SolverEquipmentBase Equipment,
+            List<FormulaSpecificationSnapshot> Specifications)>();
+        flowsheet.Zoom = state.Camera.Zoom <= 0 ? flowsheet.Zoom : state.Camera.Zoom;
+        flowsheet.PanX = state.Camera.PanX;
+        flowsheet.PanY = state.Camera.PanY;
+        flowsheet.DiagramWidth = state.Camera.DiagramWidth <= 0 ? flowsheet.DiagramWidth : state.Camera.DiagramWidth;
+        flowsheet.DiagramHeight = state.Camera.DiagramHeight <= 0 ? flowsheet.DiagramHeight : state.Camera.DiagramHeight;
+        flowsheet.GridSize = state.Camera.GridSize <= 0 ? flowsheet.GridSize : state.Camera.GridSize;
+        flowsheet.GlobalScale = state.Camera.GlobalScale <= 0 ? flowsheet.GlobalScale : state.Camera.GlobalScale;
+
+        foreach (var elementSnapshot in state.Elements)
+        {
+            if (!Enum.TryParse<EquipmentType>(elementSnapshot.Type, true, out var equipmentType))
+            {
+                continue;
+            }
+
+            var element = flowsheet.TypeDefinition.EquipmentFactory.Create(equipmentType, 0, 0, value => value);
+            if (element == null) continue;
+
+            element.Id = elementSnapshot.Id == Guid.Empty ? Guid.NewGuid() : elementSnapshot.Id;
+            element.X = elementSnapshot.X;
+            element.Y = elementSnapshot.Y;
+            element.Width = elementSnapshot.Width <= 0 ? element.Width : elementSnapshot.Width;
+            element.Height = elementSnapshot.Height <= 0 ? element.Height : elementSnapshot.Height;
+            element.RotationAngle = elementSnapshot.RotationAngle;
+            element.ZIndex = elementSnapshot.ZIndex;
+            element.IsFlippedHorizontal = elementSnapshot.IsFlippedHorizontal;
+            element.IsFlippedVertical = elementSnapshot.IsFlippedVertical;
+            element.ShowLabel = elementSnapshot.ShowLabel;
+            element.IsLocked = elementSnapshot.IsLocked;
+
+            if (!string.IsNullOrWhiteSpace(elementSnapshot.Name))
+            {
+                element.Name = elementSnapshot.Name;
+            }
+
+            if (!string.IsNullOrWhiteSpace(elementSnapshot.Label))
+            {
+                element.Label = elementSnapshot.Label;
+            }
+
+            if (element is OffPageConnectorElement offPageConnector && elementSnapshot.OffPageConnector != null)
+            {
+                offPageConnector.IsOutlet = elementSnapshot.OffPageConnector.IsOutlet;
+                offPageConnector.TargetAreaId = elementSnapshot.OffPageConnector.TargetFlowsheetId;
+                offPageConnector.TargetConnectorId = elementSnapshot.OffPageConnector.TargetConnectorId;
+                offPageConnector.TargetAreaName = elementSnapshot.OffPageConnector.TargetFlowsheetName;
+                offPageConnector.ConnectedEquipmentName = elementSnapshot.OffPageConnector.ConnectedEquipmentName;
+                offPageConnector.RefreshPorts();
+            }
+
+            RegisterCanvasElementInSolver(project, element);
+            project.AddEquipment(element);
+            FacadeStateSerializer.Apply(element.Facade, elementSnapshot.FacadeStateJson);
+            if (element.Facade is SolverEquipmentBase solverEquipment
+                && elementSnapshot.FormulaSpecifications is { Count: > 0 })
+            {
+                pendingFormulaSpecifications.Add((solverEquipment, elementSnapshot.FormulaSpecifications));
+            }
+
+            IFlowsheetElementReference reference = elementSnapshot.OffPageConnector == null
+                ? new FlowsheetElementReference(element.Id, element.X, element.Y)
+                : new OffPageConnectorReference(
+                    element.Id,
+                    element.X,
+                    element.Y,
+                    elementSnapshot.OffPageConnector.IsOutlet)
+                {
+                    TargetFlowsheetId = elementSnapshot.OffPageConnector.TargetFlowsheetId,
+                    TargetConnectorId = elementSnapshot.OffPageConnector.TargetConnectorId,
+                    TargetFlowsheetName = elementSnapshot.OffPageConnector.TargetFlowsheetName,
+                    ConnectedEquipmentName = elementSnapshot.OffPageConnector.ConnectedEquipmentName
+                };
+
+            reference.RotationAngle = element.RotationAngle;
+            reference.ZIndex = element.ZIndex;
+            reference.IsFlippedHorizontal = element.IsFlippedHorizontal;
+            reference.IsFlippedVertical = element.IsFlippedVertical;
+            flowsheet.AddElementReference(reference);
+        }
+
+        foreach (var pipeSnapshot in state.Pipes)
+        {
+            var source = project.EquipmentRegistry.GetById(pipeSnapshot.SourceElementId);
+            var target = project.EquipmentRegistry.GetById(pipeSnapshot.TargetElementId);
+            if (source == null || target == null) continue;
+            if (string.IsNullOrWhiteSpace(pipeSnapshot.SourcePortName) ||
+                string.IsNullOrWhiteSpace(pipeSnapshot.TargetPortName))
+            {
+                continue;
+            }
+
+            source.Connect(pipeSnapshot.SourcePortName, target, pipeSnapshot.TargetPortName);
+            flowsheet.AddPipe(new PipeReference(
+                pipeSnapshot.SourceElementId,
+                pipeSnapshot.TargetElementId,
+                pipeSnapshot.SourcePortName,
+                pipeSnapshot.TargetPortName,
+                pipeSnapshot.Id == Guid.Empty ? null : pipeSnapshot.Id));
+        }
+
+        foreach (var pending in pendingFormulaSpecifications)
+        {
+            RestoreFormulaSpecifications(project, pending.Equipment, pending.Specifications);
+        }
+    }
+
+    private static OffPageConnectorSnapshot? ToOffPageConnectorSnapshot(
+        IFlowsheetElementReference reference,
+        IVisualElement element)
+    {
+        if (reference is IOffPageConnectorReference connectorReference)
+        {
+            return new OffPageConnectorSnapshot(
+                connectorReference.TargetFlowsheetId,
+                connectorReference.TargetConnectorId,
+                connectorReference.TargetFlowsheetName,
+                connectorReference.ConnectedEquipmentName,
+                connectorReference.IsOutlet);
+        }
+
+        return element is OffPageConnectorElement connector
+            ? new OffPageConnectorSnapshot(
+                connector.TargetAreaId,
+                connector.TargetConnectorId,
+                connector.TargetAreaName,
+                connector.ConnectedEquipmentName,
+                connector.IsOutlet)
+            : null;
+    }
+
+    private static void RestoreInterFlowsheetConnections(Project project)
+    {
+        var restoredConnectorIds = new HashSet<Guid>();
+
+        foreach (var sourceFlowsheet in project.Flowsheets)
+        {
+            foreach (var sourceReference in sourceFlowsheet.Elements.OfType<IOffPageConnectorReference>())
+            {
+                if (!sourceReference.TargetFlowsheetId.HasValue ||
+                    !sourceReference.TargetConnectorId.HasValue ||
+                    !restoredConnectorIds.Add(sourceReference.ElementId))
+                {
+                    continue;
+                }
+
+                var targetFlowsheet = project.GetFlowsheet(sourceReference.TargetFlowsheetId.Value);
+                var targetReference = targetFlowsheet?.Elements
+                    .OfType<IOffPageConnectorReference>()
+                    .FirstOrDefault(reference => reference.ElementId == sourceReference.TargetConnectorId.Value);
+                if (targetFlowsheet == null || targetReference == null)
+                {
+                    continue;
+                }
+
+                restoredConnectorIds.Add(targetReference.ElementId);
+                project.AddInterFlowsheetConnection(new InterFlowsheetConnection(
+                    sourceFlowsheet.Id,
+                    targetFlowsheet.Id,
+                    sourceReference.ElementId,
+                    targetReference.ElementId));
+
+                RestoreInterFlowsheetSimulationConnection(
+                    project,
+                    sourceFlowsheet,
+                    sourceReference,
+                    targetFlowsheet,
+                    targetReference);
+            }
+        }
+    }
+
+    private static void RestoreInterFlowsheetSimulationConnection(
+        Project project,
+        IFlowsheet sourceFlowsheet,
+        IOffPageConnectorReference sourceConnector,
+        IFlowsheet targetFlowsheet,
+        IOffPageConnectorReference targetConnector)
+    {
+        var sourceEndpoint = GetConnectedEndpoint(project, sourceFlowsheet, sourceConnector.ElementId);
+        var targetEndpoint = GetConnectedEndpoint(project, targetFlowsheet, targetConnector.ElementId);
+        if (sourceEndpoint.Element == null || targetEndpoint.Element == null) return;
+
+        if (sourceEndpoint.Element.Facade is IEquipmentFacade &&
+            targetEndpoint.Element.Facade is IFacadeStream targetStream)
+        {
+            sourceEndpoint.Element.AttachConnection(sourceEndpoint.PortName, targetStream);
+        }
+        else if (targetEndpoint.Element.Facade is IEquipmentFacade &&
+                 sourceEndpoint.Element.Facade is IFacadeStream sourceStream)
+        {
+            targetEndpoint.Element.AttachConnection(targetEndpoint.PortName, sourceStream);
+        }
+    }
+
+    private static (IVisualElement? Element, string PortName) GetConnectedEndpoint(
+        Project project,
+        IFlowsheet flowsheet,
+        Guid connectorId)
+    {
+        var pipe = flowsheet.Pipes.FirstOrDefault(candidate =>
+            candidate.SourceElementId == connectorId || candidate.TargetElementId == connectorId);
+        if (pipe == null) return (null, string.Empty);
+
+        return pipe.SourceElementId == connectorId
+            ? (project.EquipmentRegistry.GetById(pipe.TargetElementId), pipe.TargetPortName)
+            : (project.EquipmentRegistry.GetById(pipe.SourceElementId), pipe.SourcePortName);
+    }
+
+    private static List<FormulaSpecificationSnapshot> ToFormulaSpecificationSnapshots(IFacade? facade)
+    {
+        return facade is not SolverEquipmentBase equipment
+            ? new List<FormulaSpecificationSnapshot>()
+            : equipment.Specifications
+                .OfType<FormulaSpecification>()
+                .Select(specification => new FormulaSpecificationSnapshot(
+                    specification.Id,
+                    specification.Formula,
+                    specification.DefinedByUserId,
+                    specification.DefinedByUserName,
+                    specification.DefinedAtUtc))
+                .ToList();
+    }
+
+    private static void RestoreFormulaSpecifications(
+        Project project,
+        SolverEquipmentBase equipment,
+        IEnumerable<FormulaSpecificationSnapshot> snapshots)
+    {
+        var streams = project.SimulationService.Solver.Streams;
+        foreach (var snapshot in snapshots)
+        {
+            var result = FormulaParser.Parse(snapshot.Formula, streams);
+            if (!result.Succeeded)
+            {
+                continue;
+            }
+
+            equipment.AddSpec(new FormulaSpecification(snapshot.Formula, result.Data)
+            {
+                Id = snapshot.Id == Guid.Empty ? Guid.NewGuid() : snapshot.Id,
+                DefinedByUserId = snapshot.DefinedByUserId,
+                DefinedByUserName = snapshot.DefinedByUserName,
+                DefinedAtUtc = snapshot.DefinedAtUtc
+            });
+        }
+    }
+
+    private static void RegisterCanvasElementInSolver(Project project, IVisualElement element)
+    {
+        if (element.Facade is IFacadeStream stream)
+        {
+            project.SimulationService.Solver.AddStream(stream);
+        }
+        else if (element.Facade is ISolverEquipment equipment)
+        {
+            project.SimulationService.Solver.AddEquipment(equipment);
+        }
+    }
+
+    private static int GetFlowsheetOrder(Project project, IFlowsheet flowsheet)
+    {
+        return project.Flowsheets.ToList().IndexOf(flowsheet);
     }
 
     private static ProjectBasicConfigurationDto ToPersistenceDto(IProjectConfiguration configuration)
@@ -684,9 +1608,34 @@ public class ProjectSessionService
             UnitName(units.DefaultEnergyUnit),
             UnitName(units.DefaultPowerUnit),
             UnitName(units.DefaultLengthUnit),
+            UnitName(units.DefaultDiameterUnit),
+            UnitName(units.DefaultSurfaceUnit),
+            UnitName(units.DefaultVolumeUnit),
+            UnitName(units.DefaultTimeUnit),
+            UnitName(units.DefaultVelocityUnit),
+            UnitName(units.DefaultMassUnit),
+            UnitName(units.DefaultForceUnit),
+            UnitName(units.DefaultElectricUnit),
+            UnitName(units.DefaultMotorVelocityUnit),
+            UnitName(units.DefaultAmountOfSubstanceUnit),
+            UnitName(units.DefaultHeatTransferCoefficientUnit),
             UnitName(units.DefaultDensityUnit),
+            UnitName(units.DefaultMolarDensityUnit),
+            UnitName(units.DefaultMassVolumeSpecificUnit),
+            UnitName(units.DefaultMolarVolumeSpecificUnit),
+            UnitName(units.DefaultPressureDropLengthUnit),
+            UnitName(units.DefaultPressureDropUnit),
             UnitName(units.DefaultViscosityUnit),
-            UnitName(units.DefaultThermalConductivityUnit));
+            UnitName(units.DefaultThermalConductivityUnit),
+            UnitName(units.DefaultVolumeEnergyUnit),
+            UnitName(units.DefaultMassEnergyUnit),
+            UnitName(units.DefaultMolarEnergyUnit),
+            UnitName(units.DefaultMassEntropyUnit),
+            UnitName(units.DefaultMolarEntropyUnit),
+            UnitName(units.DefaultHeatSurfaceFlowUnit),
+            UnitName(units.DefaultVolumetricFlowUnit),
+            UnitName(units.DefaultEnergyFlowUnit),
+            UnitName(units.DefaultSuperficialTensionUnit));
     }
 
     private static CameraConfigurationSnapshot ToSnapshot(ICameraConfiguration camera)
@@ -735,6 +1684,28 @@ public class ProjectSessionService
             snapshot.IsBuiltIn);
     }
 
+    private static List<IProjectUnitSystem> BuildUnitSystemsFromSnapshots(List<ProjectUnitSystemSnapshot> snapshots)
+    {
+        var systems = new List<IProjectUnitSystem>
+        {
+            ProjectUnitSystem.SI(),
+            ProjectUnitSystem.English()
+        };
+
+        foreach (var snapshot in snapshots.Where(item => !item.IsBuiltIn))
+        {
+            var name = string.IsNullOrWhiteSpace(snapshot.Name) ? "Custom" : snapshot.Name;
+            if (systems.Any(system => system.Name.Equals(name, StringComparison.OrdinalIgnoreCase)))
+            {
+                continue;
+            }
+
+            systems.Add(FromSnapshot(snapshot));
+        }
+
+        return systems;
+    }
+
     private static UnitConfiguration FromSnapshot(UnitConfigurationSnapshot snapshot)
     {
         return new UnitConfiguration(
@@ -747,7 +1718,32 @@ public class ProjectSessionService
             ResolveUnit(snapshot.Length, LengthUnits.Meter),
             ResolveUnit(snapshot.Density, MassDensityUnits.Kg_m3),
             ResolveUnit(snapshot.Viscosity, ViscosityUnits.cPoise),
-            ResolveUnit(snapshot.ThermalConductivity, ThermalConductivityUnits.W_m_K));
+            ResolveUnit(snapshot.ThermalConductivity, ThermalConductivityUnits.W_m_K),
+            ResolveUnit(snapshot.Diameter, DiameterUnits.MilliMeter),
+            ResolveUnit(snapshot.Surface, SurfaceUnits.Meter2),
+            ResolveUnit(snapshot.Volume, VolumeUnits.Meter3),
+            ResolveUnit(snapshot.Time, TimeUnits.Second),
+            ResolveUnit(snapshot.Velocity, VelocityUnits.MeterPerSecond),
+            ResolveUnit(snapshot.Mass, MassUnits.KiloGram),
+            ResolveUnit(snapshot.Force, ForceUnits.Newton),
+            ResolveUnit(snapshot.Electric, ElectricUnits.Ampere),
+            ResolveUnit(snapshot.MotorVelocity, MotorVelocityUnits.RPM),
+            ResolveUnit(snapshot.AmountOfSubstance, AmountOfSubstanceUnits.KMole),
+            ResolveUnit(snapshot.HeatTransferCoefficient, HeatTransferCoefficientUnits.Watt_m2_K),
+            ResolveUnit(snapshot.MolarDensity, MolarDensityUnits.Kgmol_m3),
+            ResolveUnit(snapshot.MassVolumeSpecific, MassVolumeSpecificUnits.m3_Kg),
+            ResolveUnit(snapshot.MolarVolumeSpecific, MolarVolumeSpecificUnits.m3_Kgmol),
+            ResolveUnit(snapshot.PressureDropLength, PressureDropLengthUnits.Kpa_m),
+            ResolveUnit(snapshot.PressureDrop, PressureDropUnits.KiloPascal),
+            ResolveUnit(snapshot.VolumeEnergy, VolumeEnergyUnits.KJ_m3),
+            ResolveUnit(snapshot.MassEnergy, MassEnergyUnits.KJ_Kg),
+            ResolveUnit(snapshot.MolarEnergy, MolarEnergyUnits.KJ_Kgmol),
+            ResolveUnit(snapshot.MassEntropy, MassEntropyUnits.KJ_Kg_C),
+            ResolveUnit(snapshot.MolarEntropy, MolarEntropyUnits.KJ_Kgmol_C),
+            ResolveUnit(snapshot.HeatSurfaceFlow, HeatSurfaceFlowUnits.W_m2),
+            ResolveUnit(snapshot.VolumetricFlow, VolumetricFlowUnits.m3_hr),
+            ResolveUnit(snapshot.EnergyFlow, EnergyFlowUnits.KJ_hr),
+            ResolveUnit(snapshot.SuperficialTension, SuperficialTensionUnits.N_m));
     }
 
     private static CameraConfiguration FromSnapshot(CameraConfigurationSnapshot snapshot)
@@ -834,19 +1830,190 @@ public class ProjectSessionService
         return string.IsNullOrWhiteSpace(unit?.Name) ? UnitMeasure.None.Name : unit.Name;
     }
 
+    private sealed record DiagramCanvasStateSnapshot(
+        DiagramCameraSnapshot Camera,
+        List<DiagramElementSnapshot> Elements,
+        List<DiagramPipeSnapshot> Pipes)
+    {
+        public DiagramCanvasStateSnapshot()
+            : this(new DiagramCameraSnapshot(), new List<DiagramElementSnapshot>(), new List<DiagramPipeSnapshot>())
+        {
+        }
+    }
+
+    private sealed record DiagramCameraSnapshot(
+        double Zoom,
+        double PanX,
+        double PanY,
+        double DiagramWidth,
+        double DiagramHeight,
+        double GridSize,
+        double GlobalScale)
+    {
+        public DiagramCameraSnapshot()
+            : this(1, 0, 0, 5000, 5000, 20, 0.7)
+        {
+        }
+    }
+
+    private sealed record DiagramElementSnapshot(
+        Guid Id,
+        string Type,
+        string Name,
+        string Label,
+        string? FacadeStateJson,
+        List<FormulaSpecificationSnapshot>? FormulaSpecifications,
+        double X,
+        double Y,
+        double Width,
+        double Height,
+        int RotationAngle,
+        int ZIndex,
+        bool IsFlippedHorizontal,
+        bool IsFlippedVertical,
+        bool ShowLabel,
+        bool IsLocked,
+        OffPageConnectorSnapshot? OffPageConnector = null);
+
+    private sealed record OffPageConnectorSnapshot(
+        Guid? TargetFlowsheetId,
+        Guid? TargetConnectorId,
+        string TargetFlowsheetName,
+        string ConnectedEquipmentName,
+        bool IsOutlet);
+
+    private sealed record FormulaSpecificationSnapshot(
+        Guid Id,
+        string Formula,
+        string? DefinedByUserId = null,
+        string? DefinedByUserName = null,
+        DateTime? DefinedAtUtc = null);
+
+    private sealed record DiagramPipeSnapshot(
+        Guid Id,
+        Guid SourceElementId,
+        Guid TargetElementId,
+        string SourcePortName,
+        string TargetPortName);
+
     private sealed record ProjectUnitSystemSnapshot(string Name, bool IsBuiltIn, UnitConfigurationSnapshot Units);
 
-    private sealed record UnitConfigurationSnapshot(
-        string Pressure,
-        string Temperature,
-        string MassFlow,
-        string MolarFlow,
-        string Energy,
-        string Power,
-        string Length,
-        string Density,
-        string Viscosity,
-        string ThermalConductivity);
+    private sealed class UnitConfigurationSnapshot
+    {
+        public UnitConfigurationSnapshot()
+        {
+        }
+
+        public UnitConfigurationSnapshot(
+            string pressure,
+            string temperature,
+            string massFlow,
+            string molarFlow,
+            string energy,
+            string power,
+            string length,
+            string diameter,
+            string surface,
+            string volume,
+            string time,
+            string velocity,
+            string mass,
+            string force,
+            string electric,
+            string motorVelocity,
+            string amountOfSubstance,
+            string heatTransferCoefficient,
+            string density,
+            string molarDensity,
+            string massVolumeSpecific,
+            string molarVolumeSpecific,
+            string pressureDropLength,
+            string pressureDrop,
+            string viscosity,
+            string thermalConductivity,
+            string volumeEnergy,
+            string massEnergy,
+            string molarEnergy,
+            string massEntropy,
+            string molarEntropy,
+            string heatSurfaceFlow,
+            string volumetricFlow,
+            string energyFlow,
+            string superficialTension)
+        {
+            Pressure = pressure;
+            Temperature = temperature;
+            MassFlow = massFlow;
+            MolarFlow = molarFlow;
+            Energy = energy;
+            Power = power;
+            Length = length;
+            Diameter = diameter;
+            Surface = surface;
+            Volume = volume;
+            Time = time;
+            Velocity = velocity;
+            Mass = mass;
+            Force = force;
+            Electric = electric;
+            MotorVelocity = motorVelocity;
+            AmountOfSubstance = amountOfSubstance;
+            HeatTransferCoefficient = heatTransferCoefficient;
+            Density = density;
+            MolarDensity = molarDensity;
+            MassVolumeSpecific = massVolumeSpecific;
+            MolarVolumeSpecific = molarVolumeSpecific;
+            PressureDropLength = pressureDropLength;
+            PressureDrop = pressureDrop;
+            Viscosity = viscosity;
+            ThermalConductivity = thermalConductivity;
+            VolumeEnergy = volumeEnergy;
+            MassEnergy = massEnergy;
+            MolarEnergy = molarEnergy;
+            MassEntropy = massEntropy;
+            MolarEntropy = molarEntropy;
+            HeatSurfaceFlow = heatSurfaceFlow;
+            VolumetricFlow = volumetricFlow;
+            EnergyFlow = energyFlow;
+            SuperficialTension = superficialTension;
+        }
+
+        public string Pressure { get; set; } = UnitName(PressureUnits.Bara);
+        public string Temperature { get; set; } = UnitName(TemperatureUnits.DegreeCelcius);
+        public string MassFlow { get; set; } = UnitName(MassFlowUnits.Kg_hr);
+        public string MolarFlow { get; set; } = UnitName(MolarFlowUnits.Kgmol_hr);
+        public string Energy { get; set; } = UnitName(EnergyUnits.KiloJoule);
+        public string Power { get; set; } = UnitName(PowerUnits.KiloWatt);
+        public string Length { get; set; } = UnitName(LengthUnits.Meter);
+        public string Diameter { get; set; } = UnitName(DiameterUnits.MilliMeter);
+        public string Surface { get; set; } = UnitName(SurfaceUnits.Meter2);
+        public string Volume { get; set; } = UnitName(VolumeUnits.Meter3);
+        public string Time { get; set; } = UnitName(TimeUnits.Second);
+        public string Velocity { get; set; } = UnitName(VelocityUnits.MeterPerSecond);
+        public string Mass { get; set; } = UnitName(MassUnits.KiloGram);
+        public string Force { get; set; } = UnitName(ForceUnits.Newton);
+        public string Electric { get; set; } = UnitName(ElectricUnits.Ampere);
+        public string MotorVelocity { get; set; } = UnitName(MotorVelocityUnits.RPM);
+        public string AmountOfSubstance { get; set; } = UnitName(AmountOfSubstanceUnits.KMole);
+        public string HeatTransferCoefficient { get; set; } = UnitName(HeatTransferCoefficientUnits.Watt_m2_K);
+        public string Density { get; set; } = UnitName(MassDensityUnits.Kg_m3);
+        public string MolarDensity { get; set; } = UnitName(MolarDensityUnits.Kgmol_m3);
+        public string MassVolumeSpecific { get; set; } = UnitName(MassVolumeSpecificUnits.m3_Kg);
+        public string MolarVolumeSpecific { get; set; } = UnitName(MolarVolumeSpecificUnits.m3_Kgmol);
+        public string PressureDropLength { get; set; } = UnitName(PressureDropLengthUnits.Kpa_m);
+        public string PressureDrop { get; set; } = UnitName(PressureDropUnits.KiloPascal);
+        public string Viscosity { get; set; } = UnitName(ViscosityUnits.cPoise);
+        public string ThermalConductivity { get; set; } = UnitName(ThermalConductivityUnits.W_m_K);
+        public string VolumeEnergy { get; set; } = UnitName(VolumeEnergyUnits.KJ_m3);
+        public string MassEnergy { get; set; } = UnitName(MassEnergyUnits.KJ_Kg);
+        public string MolarEnergy { get; set; } = UnitName(MolarEnergyUnits.KJ_Kgmol);
+        public string MassEntropy { get; set; } = UnitName(MassEntropyUnits.KJ_Kg_C);
+        public string MolarEntropy { get; set; } = UnitName(MolarEntropyUnits.KJ_Kgmol_C);
+        public string HeatSurfaceFlow { get; set; } = UnitName(HeatSurfaceFlowUnits.W_m2);
+        public string VolumetricFlow { get; set; } = UnitName(VolumetricFlowUnits.m3_hr);
+        public string EnergyFlow { get; set; } = UnitName(EnergyFlowUnits.KJ_hr);
+        public string SuperficialTension { get; set; } = UnitName(SuperficialTensionUnits.N_m);
+    }
 
     private sealed record CameraConfigurationSnapshot(
         double DefaultZoom,

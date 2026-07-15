@@ -129,7 +129,7 @@
     text-align: center;
     padding: 5px 10px;
     border-radius: 4px;
-    white-space: nowrap;
+    white-space: pre-line;
     z-index: 1001;
     bottom: 110%;
     right: 10%;

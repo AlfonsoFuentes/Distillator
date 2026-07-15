@@ -3,7 +3,7 @@
 
 
 
-<EquipmentBaseDialog Equipment="Equipment">
+<EquipmentBaseDialog Equipment="Equipment" CanEdit="CanEdit">
     <MainSlot>
         <div class="column-canvas-layout">
 
@@ -19,7 +19,7 @@
             <div class="center-zone">
                 <div class="static-port-container top-port">
                     <div class="port-label">Overhead</div>
-                    <EquipmentPortConnector Port="@Equipment.Ports.First(p => p.Name == "Overhead")"
+                    <EquipmentPortConnector Port="@Equipment.OverheadPort"
                                             ParentEquipment="Equipment"
                                             OnConnChanged="HandleTopologyChanged" />
                 </div>
@@ -29,7 +29,7 @@
                 </div>
 
                 <div class="static-port-container bottom-port">
-                    <EquipmentPortConnector Port="@Equipment.Ports.First(p => p.Name == "Bottoms")"
+                    <EquipmentPortConnector Port="@Equipment.BottomsPort"
                                             ParentEquipment="Equipment"
                                             OnConnChanged="HandleTopologyChanged" />
                     <div class="port-label">Bottoms</div>
@@ -42,7 +42,7 @@
                 @* 3A. Reflux (Tope) *@
                 <div class="static-right-port">
                     <div class="port-label">Reflux</div>
-                    <EquipmentPortConnector Port="@Equipment.Ports.First(p => p.Name == "Reflux")"
+                    <EquipmentPortConnector Port="@Equipment.RefluxPort"
                                             ParentEquipment="Equipment"
                                             OnConnChanged="HandleTopologyChanged" />
                 </div>
@@ -58,7 +58,7 @@
                 @* 3C. Reboiler Return (Fondo) *@
                 <div class="static-right-port">
                     <div class="port-label">Reboiler Return</div>
-                    <EquipmentPortConnector Port="@Equipment.Ports.First(p => p.Name == "ReboilerReturn")"
+                    <EquipmentPortConnector Port="@Equipment.ReboilerReturnPort"
                                             ParentEquipment="Equipment"
                                             OnConnChanged="HandleTopologyChanged" />
                 </div>
@@ -129,6 +129,7 @@
 
 @code {
     [Parameter] public Shared.ProcessFlowDiagram.Columns.ColumnVisualElement Equipment { get; set; } = default!;
+    [Parameter] public bool CanEdit { get; set; } = true;
 
     protected override void OnParametersSet()
     {

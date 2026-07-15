@@ -1,8 +1,8 @@
 ﻿@page "/login"
 @layout AuthLayout
 
-<MudContainer MaxWidth="MaxWidth.Small" Class="mt-10">
-    <MudCard Elevation="3" Class="pa-8">
+<MudContainer MaxWidth="MaxWidth.Small">
+    <MudCard Elevation="3" Class="auth-card">
         <MudText Typo="Typo.h4" Align="Align.Center" Class="mb-6">
             <b>System Login</b>
         </MudText>
@@ -153,7 +153,7 @@
         if (response != null && response.Succeeded)
         {
             // Login normal exitoso
-            ((CustomAuthenticationStateProvider)AuthStateProvider).NotifyAuthenticationStateChanged();
+            await ((CustomAuthenticationStateProvider)AuthStateProvider).RefreshAuthenticationStateAsync();
             NavigationManager.NavigateTo("/");
         }
         else if (response != null && response.Messages.Contains("REQUIRE_PASSWORD_CHANGE"))

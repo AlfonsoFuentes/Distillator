@@ -1,0 +1,517 @@
+@implements IAsyncDisposable
+@inject Client.Services.Security.CustomAuthenticationStateProvider AuthProvider
+
+<div class="formula-specifications">
+    <div class="specifications-toolbar">
+        <div>
+            <h4>Formula Specifications</h4>
+            <span class="specification-count">@FormulaSpecifications.Count</span>
+        </div>
+        <button type="button"
+                class="add-specification-button"
+                disabled="@(IsProjectReadOnly || _isEditorOpen)"
+                @onclick="StartNewFormula">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            Add Specification
+        </button>
+    </div>
+
+    @if (_isEditorOpen)
+    {
+        <section class="formula-editor-section">
+            <div class="section-header">
+                <h4>@(_editingSpecification == null ? "New Formula" : "Edit Formula")</h4>
+                <span class="mode-badge">Formula</span>
+            </div>
+
+            <div class="formula-editor">
+                <label for="formula-input">Equation</label>
+                <textarea id="formula-input"
+                          @ref="_formulaInput"
+                          class="formula-input"
+                          value="@_formulaText"
+                          @oninput="HandleFormulaInput"
+                          @onkeyup="HandleCaretChanged"
+                          @onclick="HandleCaretChanged"
+                          placeholder="@FormulaPlaceholder"
+                          rows="3"
+                          disabled="@IsProjectReadOnly"></textarea>
+
+                @if (_suggestions.Count > 0 && !IsProjectReadOnly)
+                {
+                    <div class="suggestions" role="listbox" aria-label="Formula suggestions">
+                        @for (var index = 0; index < _suggestions.Count; index++)
+                        {
+                            var suggestion = _suggestions[index];
+                            <button type="button"
+                                    class="suggestion-item @(index == 0 ? "active" : "")"
+                                    role="option"
+                                    @onclick="() => ApplySuggestion(suggestion)">
+                                @GetSuggestionLabel(suggestion)
+                            </button>
+                        }
+                    </div>
+                }
+
+                @if (!string.IsNullOrWhiteSpace(_validationMessage))
+                {
+                    <div class="validation-message @ValidationCssClass" role="status">
+                        @_validationMessage
+                    </div>
+                }
+
+                <div class="editor-actions">
+                    <button type="button"
+                            class="secondary-button"
+                            @onclick="CheckFormula"
+                            disabled="@(IsProjectReadOnly || string.IsNullOrWhiteSpace(_formulaText))">
+                        Check Formula
+                    </button>
+                    <button type="button"
+                            class="primary-button"
+                            @onclick="CalculateFormula"
+                            disabled="@(IsProjectReadOnly || !_isFormulaValid)">
+                        Confirm
+                    </button>
+                    <button type="button"
+                            class="clear-button"
+                            @onclick="CancelEditor"
+                            disabled="@IsProjectReadOnly">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </section>
+    }
+
+    @if (FormulaSpecifications.Count > 0)
+    {
+        <section class="formula-list-section">
+            <div class="formula-list">
+                @foreach (var specification in FormulaSpecifications)
+                {
+                    <div class="formula-row" @key="specification.Id">
+                        <code title="@GetFormulaTooltip(specification)">@specification.Formula</code>
+                        <span class="formula-state @(specification.CanEvaluate ? "ready" : "pending")">
+                            @(specification.CanEvaluate ? "Ready" : "Pending")
+                        </span>
+                        <div class="row-actions">
+                            <button type="button"
+                                    class="icon-button edit-button"
+                                    title="Edit formula"
+                                    disabled="@IsProjectReadOnly"
+                                    @onclick="() => EditFormula(specification)">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                </svg>
+                            </button>
+                            <button type="button"
+                                    class="icon-button remove-button"
+                                    title="Remove formula"
+                                    disabled="@IsProjectReadOnly"
+                                    @onclick="() => RemoveFormula(specification)">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="3 6 5 6 21 6"></polyline>
+                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                }
+            </div>
+        </section>
+    }
+    else if (!_isEditorOpen)
+    {
+        <div class="empty-formulas">No formula specifications</div>
+    }
+</div>
+
+@code {
+    [CascadingParameter(Name = "IsProjectReadOnly")] public bool IsProjectReadOnly { get; set; }
+    [Parameter, EditorRequired] public IVisualElement Equipment { get; set; } = default!;
+    [Parameter] public EventCallback OnSpecificationsChanged { get; set; }
+
+    private readonly List<string> _suggestions = new();
+    private ElementReference _formulaInput;
+    private IJSObjectReference? _editorModule;
+    private string _formulaText = string.Empty;
+    private string _validationMessage = string.Empty;
+    private bool _isEditorOpen;
+    private bool _editorNeedsInitialization;
+    private bool _isFormulaValid;
+    private bool _isValidationSuccessful;
+    private int _fragmentStart;
+    private int _fragmentEnd;
+    private FormulaSpecification? _editingSpecification;
+
+    private SolverEquipmentBase? SolverEquipment => Equipment.Facade as SolverEquipmentBase;
+
+    private List<FormulaSpecification> FormulaSpecifications => SolverEquipment?.Specifications
+        .OfType<FormulaSpecification>()
+        .ToList() ?? new List<FormulaSpecification>();
+
+    private List<IFacadeStream> AvailableStreams => FSM.Elements
+        .OfType<StreamVisualElement>()
+        .Select(element => element.Facade)
+        .OfType<IFacadeStream>()
+        .Distinct()
+        .ToList();
+
+    private List<IFacadeStream> LocalStreams
+    {
+        get
+        {
+            var connectedStreamIds = FSM.Pipes
+                .Where(pipe => pipe.SourceElementId == Equipment.Id || pipe.TargetElementId == Equipment.Id)
+                .Select(pipe => pipe.SourceElementId == Equipment.Id
+                    ? pipe.TargetElementId
+                    : pipe.SourceElementId)
+                .ToHashSet();
+
+            return connectedStreamIds
+                .Select(FSM.GetFacadeForConnectedId)
+                .OfType<IFacadeStream>()
+                .Distinct()
+                .ToList();
+        }
+    }
+
+    private string ValidationCssClass => _isValidationSuccessful ? "valid" : "invalid";
+
+    private string FormulaPlaceholder
+    {
+        get
+        {
+            var localStream = LocalStreams.FirstOrDefault();
+            var sourceStream = AvailableStreams.FirstOrDefault(stream => !ReferenceEquals(stream, localStream));
+            var destinationName = localStream?.Name ?? FSM.SuggestName("Stream") ?? "Stream";
+            var sourceName = sourceStream?.Name ?? destinationName;
+            return $"{destinationName}.MassFlow = 5 * {sourceName}.MassFlow";
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_isEditorOpen && _editorNeedsInitialization)
+        {
+            _editorModule ??= await JS.InvokeAsync<IJSObjectReference>(
+                "import",
+                "./js/formulaEditor.js");
+            await _editorModule.InvokeVoidAsync("attach", _formulaInput);
+            await _formulaInput.FocusAsync();
+            _editorNeedsInitialization = false;
+        }
+
+        if (_isEditorOpen && _suggestions.Count > 0 && _editorModule != null)
+        {
+            await _editorModule.InvokeVoidAsync("positionSuggestions", _formulaInput);
+        }
+    }
+
+    private void StartNewFormula()
+    {
+        ClearEditorState();
+        _isEditorOpen = true;
+        _editorNeedsInitialization = true;
+    }
+
+    private async Task HandleFormulaInput(ChangeEventArgs args)
+    {
+        _formulaText = args.Value?.ToString() ?? string.Empty;
+        ResetValidation();
+        await RefreshSuggestionsAtCaretAsync();
+    }
+
+    private async Task HandleCaretChanged()
+    {
+        await RefreshSuggestionsAtCaretAsync();
+    }
+
+    private void CheckFormula()
+    {
+        var result = ParseAndValidateFormula();
+        _isFormulaValid = result.Succeeded;
+        _isValidationSuccessful = result.Succeeded;
+
+        if (!result.Succeeded)
+        {
+            _validationMessage = result.Message;
+            return;
+        }
+
+        _validationMessage = result.Data.TryGetResidual(out _)
+            ? "Formula is valid and ready to confirm."
+            : "Formula is valid and will remain pending until its required values are available.";
+    }
+
+    private async Task CalculateFormula()
+    {
+        var result = ParseAndValidateFormula();
+        if (!result.Succeeded || SolverEquipment == null)
+        {
+            _isFormulaValid = false;
+            _isValidationSuccessful = false;
+            _validationMessage = result.Message;
+            return;
+        }
+
+        if (_editingSpecification != null)
+        {
+            SolverEquipment.RemoveSpec(_editingSpecification);
+        }
+
+        var user = AuthProvider.CurrentUser;
+        SolverEquipment.AddSpec(new FormulaSpecification(_formulaText.Trim(), result.Data)
+        {
+            Id = _editingSpecification?.Id ?? Guid.NewGuid(),
+            DefinedByUserId = user?.Id.ToString() ?? _editingSpecification?.DefinedByUserId,
+            DefinedByUserName = user?.DisplayName ?? _editingSpecification?.DefinedByUserName,
+            DefinedAtUtc = DateTime.UtcNow
+        });
+
+        if (OnSpecificationsChanged.HasDelegate)
+        {
+            await OnSpecificationsChanged.InvokeAsync();
+        }
+
+        ClearEditorState();
+        _isEditorOpen = false;
+        FSM.RunSimulation();
+    }
+
+    private void EditFormula(FormulaSpecification specification)
+    {
+        ClearEditorState();
+        _editingSpecification = specification;
+        _formulaText = specification.Formula;
+        _validationMessage = "Check the formula before calculating the changes.";
+        _isEditorOpen = true;
+        _editorNeedsInitialization = true;
+    }
+
+    private static string GetFormulaTooltip(FormulaSpecification specification)
+    {
+        var userName = string.IsNullOrWhiteSpace(specification.DefinedByUserName)
+            ? "User"
+            : specification.DefinedByUserName;
+
+        if (!specification.DefinedAtUtc.HasValue)
+        {
+            return $"Defined by: {userName}";
+        }
+
+        var localDate = specification.DefinedAtUtc.Value.ToLocalTime().ToString("yyyy-MM-dd HH:mm");
+        return $"Defined by: {userName}\n{localDate}";
+    }
+
+    private async Task RemoveFormula(FormulaSpecification specification)
+    {
+        if (SolverEquipment == null)
+        {
+            return;
+        }
+
+        SolverEquipment.RemoveSpec(specification);
+        if (ReferenceEquals(_editingSpecification, specification))
+        {
+            CancelEditor();
+        }
+
+        if (OnSpecificationsChanged.HasDelegate)
+        {
+            await OnSpecificationsChanged.InvokeAsync();
+        }
+
+        FSM.RunSimulation();
+    }
+
+    private void CancelEditor()
+    {
+        ClearEditorState();
+        _isEditorOpen = false;
+    }
+
+    private void ClearEditorState()
+    {
+        _formulaText = string.Empty;
+        _validationMessage = string.Empty;
+        _isFormulaValid = false;
+        _isValidationSuccessful = false;
+        _editingSpecification = null;
+        _suggestions.Clear();
+        _fragmentStart = 0;
+        _fragmentEnd = 0;
+    }
+
+    private void ResetValidation()
+    {
+        _isFormulaValid = false;
+        _isValidationSuccessful = false;
+        _validationMessage = string.Empty;
+    }
+
+    private Result<FormulaEquationExpression> ParseAndValidateFormula()
+    {
+        var result = FormulaParser.Parse(_formulaText, AvailableStreams);
+        if (!result.Succeeded)
+        {
+            return result;
+        }
+
+        var localStreams = LocalStreams.ToHashSet();
+        if (result.Data.LeftStreams.Any(stream => !localStreams.Contains(stream)))
+        {
+            return Result<FormulaEquationExpression>.Fail(
+                "The left side can only use streams connected to this equipment.");
+        }
+
+        return result;
+    }
+
+    private async Task RefreshSuggestionsAtCaretAsync()
+    {
+        if (_editorModule == null || !_isEditorOpen)
+        {
+            return;
+        }
+
+        var caret = await _editorModule.InvokeAsync<int>("getCaret", _formulaInput);
+        caret = Math.Clamp(caret, 0, _formulaText.Length);
+        var fragment = GetFragmentAtCaret(_formulaText, caret, out _fragmentStart);
+        _fragmentEnd = caret;
+
+        _suggestions.Clear();
+        if (string.IsNullOrWhiteSpace(fragment))
+        {
+            return;
+        }
+
+        var equalPosition = _formulaText.IndexOf('=');
+        var streams = equalPosition < 0 || caret <= equalPosition
+            ? LocalStreams
+            : AvailableStreams;
+
+        AddSuggestions(fragment, streams);
+    }
+
+    private void AddSuggestions(string fragment, IEnumerable<IFacadeStream> availableStreams)
+    {
+        var streams = availableStreams.OrderBy(stream => stream.Name).ToList();
+        if (!fragment.Contains('.'))
+        {
+            _suggestions.AddRange(streams
+                .Where(stream => stream.Name.StartsWith(fragment, StringComparison.OrdinalIgnoreCase))
+                .Select(stream => stream.Name));
+            return;
+        }
+
+        var stream = streams
+            .OrderByDescending(candidate => candidate.Name.Length)
+            .FirstOrDefault(candidate => fragment.StartsWith(
+                candidate.Name + ".",
+                StringComparison.OrdinalIgnoreCase));
+        if (stream == null)
+        {
+            return;
+        }
+
+        var propertyPath = fragment[(stream.Name.Length + 1)..];
+        AddPropertySuggestions(stream, propertyPath);
+    }
+
+    private void AddPropertySuggestions(IFacadeStream stream, string propertyPath)
+    {
+        var massFlowReference = $"{stream.Name}.MassFlow";
+        var componentPrefix = $"{stream.Name}.Component.";
+
+        if ("MassFlow".StartsWith(propertyPath, StringComparison.OrdinalIgnoreCase))
+        {
+            _suggestions.Add(massFlowReference);
+        }
+
+        if ("Component".StartsWith(propertyPath, StringComparison.OrdinalIgnoreCase))
+        {
+            _suggestions.Add(componentPrefix);
+        }
+
+        if (!propertyPath.StartsWith("Component.", StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        var componentPath = propertyPath["Component.".Length..];
+        foreach (var component in stream.Composition.Components.OrderBy(component => component.Name))
+        {
+            var completeReference = $"{componentPrefix}{component.Name}.MassFlow";
+            if (component.Name.StartsWith(componentPath, StringComparison.OrdinalIgnoreCase)
+                || completeReference.StartsWith(
+                    $"{stream.Name}.{propertyPath}",
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                _suggestions.Add(completeReference);
+            }
+        }
+    }
+
+    private async Task ApplySuggestion(string suggestion)
+    {
+        if (_editorModule == null)
+        {
+            return;
+        }
+
+        _formulaText = await _editorModule.InvokeAsync<string>(
+            "replaceRange",
+            _formulaInput,
+            _fragmentStart,
+            _fragmentEnd,
+            suggestion);
+        ResetValidation();
+        await RefreshSuggestionsAtCaretAsync();
+    }
+
+    private static string GetFragmentAtCaret(string formula, int caret, out int start)
+    {
+        start = caret;
+        while (start > 0 && !IsFragmentDelimiter(formula[start - 1]))
+        {
+            start--;
+        }
+
+        return formula[start..caret];
+    }
+
+    private static bool IsFragmentDelimiter(char character) =>
+        char.IsWhiteSpace(character) || character is '(' or ')' or '+' or '*' or '/' or '=';
+
+    private static string GetSuggestionLabel(string suggestion)
+    {
+        if (suggestion.EndsWith(".Component.", StringComparison.OrdinalIgnoreCase))
+        {
+            return "Component";
+        }
+
+        var parts = suggestion.Split('.');
+        if (parts.Length >= 4
+            && string.Equals(parts[^3], "Component", StringComparison.OrdinalIgnoreCase))
+        {
+            return $"{parts[^2]}.MassFlow";
+        }
+
+        var lastSeparator = suggestion.LastIndexOf('.');
+        return lastSeparator >= 0 ? suggestion[(lastSeparator + 1)..] : suggestion;
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_editorModule != null)
+        {
+            await _editorModule.DisposeAsync();
+        }
+    }
+}

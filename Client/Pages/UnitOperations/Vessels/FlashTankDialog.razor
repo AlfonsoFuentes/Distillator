@@ -2,57 +2,37 @@
 @using Client.Pages.UnitOperations.DialogBase
 @using Shared.UnitOperations.Helpers
 
-<EquipmentBaseDialog Equipment="Equipment">
+<EquipmentBaseDialog Equipment="Equipment" CanEdit="CanEdit">
     <MainSlot>
         <div class="flash-canvas-layout">
 
-            @* 1. ZONA IZQUIERDA: Alimentaciones (Feeds + ExtraFeeds) *@
+            @* 1. ZONA IZQUIERDA: Alimentación única *@
             <div class="port-zone left-zone">
-                <DynamicPortList Title="Feeds"
-                                 ParentEquipment="Equipment"
-                                 Ports="@(Equipment.Ports.Where(p => p.Name.StartsWith("Feed") || p.Name.StartsWith("ExtraFeed")))"
-                                 OnPortConnectionChanged="HandleTopologyChanged" />
+                <EquipmentPortConnector Port="@Equipment.FeedPort"
+                                        ParentEquipment="Equipment" />
             </div>
 
             @* 2. ZONA CENTRAL: Vapor (Top) -> SVG -> Líquidos (Bottom) *@
             <div class="center-zone">
                 <div class="static-port-container top-port">
-                    <div class="port-label">Vapor</div>
-                    <EquipmentPortConnector Port="@Equipment.Ports.First(p => p.Name == "Vapor")"
-                                            ParentEquipment="Equipment"
-                                            OnConnectionChanged="HandleTopologyChanged" />
+                    <EquipmentPortConnector Port="@Equipment.VaporPort"
+                                            ParentEquipment="Equipment" />
                 </div>
 
                 <div class="equipment-drawing-zone">
-                    <FlashTankSvg Width="@Equipment.Width"
-                                  Height="@Equipment.Height"
+                    <FlashTankSvg Width="180"
+                                  Height="90"
                                   StatusColor="@(Equipment.StatusColor ?? "#CBD5E0")"
                                   ElementId="@Equipment.Id.ToString()" />
                 </div>
 
-                @* Contenedor horizontal para los dos puertos de líquidos *@
+                @* Salida líquida inferior *@
                 <div class="bottom-ports-container">
                     <div class="static-port-container">
-                        <EquipmentPortConnector Port="@Equipment.Ports.First(p => p.Name == "Liquid_1")"
-                                                ParentEquipment="Equipment"
-                                                OnConnectionChanged="HandleTopologyChanged" />
-                        <div class="port-label">Heavy Liquid</div>
-                    </div>
-                    <div class="static-port-container">
-                        <EquipmentPortConnector Port="@Equipment.Ports.First(p => p.Name == "Liquid_2")"
-                                                ParentEquipment="Equipment"
-                                                OnConnectionChanged="HandleTopologyChanged" />
-                        <div class="port-label">Light Liquid</div>
+                        <EquipmentPortConnector Port="@Equipment.LiquidPort"
+                                                ParentEquipment="Equipment" />
                     </div>
                 </div>
-            </div>
-
-            @* 3. ZONA DERECHA: Productos Extra *@
-            <div class="port-zone right-zone">
-                <DynamicPortList Title="Side Draws"
-                                 ParentEquipment="Equipment"
-                                 Ports="@(Equipment.Ports.Where(p => p.Name.StartsWith("ExtraProduct")))"
-                                 OnPortConnectionChanged="HandleTopologyChanged" />
             </div>
 
         </div>
@@ -63,16 +43,5 @@
 
 @code {
     [Parameter] public Shared.ProcessFlowDiagram.Vessels.FlashTankVisualElement Equipment { get; set; } = default!;
-
-    protected override void OnParametersSet()
-    {
-        base.OnParametersSet();
-        Equipment.RefreshDynamicPorts();
-    }
-
-    private void HandleTopologyChanged()
-    {
-        Equipment.RefreshDynamicPorts();
-        StateHasChanged();
-    }
+    [Parameter] public bool CanEdit { get; set; } = true;
 }

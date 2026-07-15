@@ -36,17 +36,23 @@
         </div>
     </div>
 
+  
     <!-- ==================== 2. EXAMPLES BY DIAGRAM ==================== -->
     <div>
         <div class="section-title">Examples by Diagram</div>
-        <div class="examples-box">
+        <div class="examples-grid">
             @foreach (var diagram in GetDiagramNamingPreview())
             {
-                <strong>@diagram.Name</strong>
-                @foreach (var item in diagram.Items)
-                {
-                    <div>@item.Type @item.Name</div>
-                }
+                <div class="example-column">
+                    <strong class="diagram-header">@diagram.Name</strong>
+                    @foreach (var item in diagram.Items)
+                    {
+                        <div class="equipment-row">
+                            <span class="equipment-type">@item.Type</span>
+                            <span class="equipment-name">@item.Name</span>
+                        </div>
+                    }
+                </div>
             }
         </div>
         <div class="rule-behavior">
@@ -92,11 +98,12 @@
             <div class="prefixes-grid">
                 @foreach (var item in GetNamingPrefixRows())
                 {
-                    <div class="form-group">
-                        <label class="form-label">@item.Type</label>
+                    <div class="prefix-form-group">
+                        <span class="prefix-label">@item.Type</span>
                         <input type="text"
-                               class="form-input"
+                               class="prefix-input"
                                value="@item.Prefix"
+                               maxlength="3"
                                @onchange="e => SetNamingPrefix(item.Type, e.Value?.ToString())" />
                     </div>
                 }

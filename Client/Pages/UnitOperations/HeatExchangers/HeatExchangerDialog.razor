@@ -2,7 +2,7 @@
 @using Client.Pages.UnitOperations.DialogBase
 @using Shared.UnitOperations.Helpers
 
-<EquipmentBaseDialog Equipment="Equipment">
+<EquipmentBaseDialog Equipment="Equipment" CanEdit="CanEdit">
     <MainSlot>
         <div class="hx-canvas-layout">
 
@@ -10,11 +10,11 @@
             <div class="tube-side-zone">
                 <div class="port-label">Tube Side</div>
                 <div class="static-port-container">
-                    <EquipmentPortConnector Port="@Equipment.Ports.First(p => p.Name == "TubeIn")" ParentEquipment="Equipment" />
+                    <EquipmentPortConnector Port="@Equipment.TubeInPort" ParentEquipment="Equipment" />
                     <span class="sub-label">Inlet</span>
                 </div>
                 <div class="static-port-container" style="margin-top: 30px;">
-                    <EquipmentPortConnector Port="@Equipment.Ports.First(p => p.Name == "TubeOut")" ParentEquipment="Equipment" />
+                    <EquipmentPortConnector Port="@Equipment.TubeOutPort" ParentEquipment="Equipment" />
                     <span class="sub-label">Outlet</span>
                 </div>
             </div>
@@ -26,7 +26,7 @@
                 <div class="top-ports">
                     <div class="static-port-container">
                         <span class="sub-label">Shell In</span>
-                        <EquipmentPortConnector Port="@Equipment.Ports.First(p => p.Name == "ShellIn")" ParentEquipment="Equipment" />
+                        <EquipmentPortConnector Port="@Equipment.ShellInPort" ParentEquipment="Equipment" />
                     </div>
                
                 </div>
@@ -42,7 +42,7 @@
                 @* Puerto Inferior (Condensate Out) *@
                 <div class="bottom-ports">
                     <div class="static-port-container">
-                        <EquipmentPortConnector Port="@Equipment.Ports.First(p => p.Name == "CondensateOut")" ParentEquipment="Equipment" />
+                        <EquipmentPortConnector Port="@Equipment.CondensateOutPort" ParentEquipment="Equipment" />
                         <span class="sub-label">Condensate Out</span>
                     </div>
                 </div> 
@@ -72,4 +72,5 @@
 
 @code {
     [Parameter] public Shared.ProcessFlowDiagram.HeatExchangers.HeatExchangerVisualElement Equipment { get; set; } = default!;
+    [Parameter] public bool CanEdit { get; set; } = true;
 }

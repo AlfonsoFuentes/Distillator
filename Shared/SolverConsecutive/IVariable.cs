@@ -27,6 +27,22 @@ namespace Shared.SolverConsecutive
         void SetName(string name);
         string Name { get; }
         double NormalizeValue { get; }
+        bool HasDisplayUnitOverride { get; }
+        string? DefinedByUserId { get; }
+        string? DefinedByUserName { get; }
+        DateTime? DefinedAtUtc { get; }
+        void SetProjectDefaultDisplayUnit(UnitMeasure unit);
+        void RestorePersistedState(
+            bool isDefined,
+            double value,
+            UnitMeasure valueUnit,
+            VariableDefinedBy dataProcedence,
+            UnitMeasure? displayUnit,
+            bool hasDisplayUnitOverride,
+            bool restoreProjectDefaultDisplayUnit = false,
+            string? definedByUserId = null,
+            string? definedByUserName = null,
+            DateTime? definedAtUtc = null);
     }
 
     public interface IVariable<T> : IVariable where T : Amount
@@ -53,6 +69,10 @@ namespace Shared.SolverConsecutive
         }
         public bool IsCleareable { get; } = false;
         public bool HasChanged { get; private set; } = false;
+        public bool HasDisplayUnitOverride { get; private set; }
+        public string? DefinedByUserId { get; private set; }
+        public string? DefinedByUserName { get; private set; }
+        public DateTime? DefinedAtUtc { get; private set; }
         public bool IsDefined => DataProcedence != VariableDefinedBy.Undefined;
 
         public bool ShouldTriggerRecalculation =>
@@ -96,6 +116,10 @@ namespace Shared.SolverConsecutive
             HasChanged = true;
             _value = value;
             DataProcedence = _procedence;
+            if (_procedence != VariableDefinedBy.UserInput && _procedence != VariableDefinedBy.Specification)
+            {
+                ClearDefinitionAudit();
+            }
 
             OnAddVariableToList(this);
 
@@ -145,6 +169,7 @@ namespace Shared.SolverConsecutive
 
             var oldIsSpecToEquilibrium = ShouldTriggerRecalculation;
             DataProcedence = VariableDefinedBy.Undefined;
+            ClearDefinitionAudit();
 
             if (oldIsSpecToEquilibrium)
             {
@@ -153,7 +178,54 @@ namespace Shared.SolverConsecutive
             ClearSpecificationChanged?.Invoke();
         }
 
-        public void SetDisplayUnit(UnitMeasure unit) => DisplayUnit = unit;
+        public void SetDisplayUnit(UnitMeasure unit)
+        {
+            DisplayUnit = unit;
+            HasDisplayUnitOverride = true;
+        }
+
+        public void SetProjectDefaultDisplayUnit(UnitMeasure unit)
+        {
+            if (HasDisplayUnitOverride) return;
+            DisplayUnit = unit;
+        }
+
+        public void RestorePersistedState(
+            bool isDefined,
+            double value,
+            UnitMeasure valueUnit,
+            VariableDefinedBy dataProcedence,
+            UnitMeasure? displayUnit,
+            bool hasDisplayUnitOverride,
+            bool restoreProjectDefaultDisplayUnit = false,
+            string? definedByUserId = null,
+            string? definedByUserName = null,
+            DateTime? definedAtUtc = null)
+        {
+            HasDisplayUnitOverride = false;
+
+            if (displayUnit != null && hasDisplayUnitOverride)
+            {
+                SetDisplayUnit(displayUnit);
+            }
+            else if (displayUnit != null && restoreProjectDefaultDisplayUnit)
+            {
+                SetProjectDefaultDisplayUnit(displayUnit);
+            }
+
+            if (!isDefined || dataProcedence == VariableDefinedBy.Undefined)
+            {
+                DataProcedence = VariableDefinedBy.Undefined;
+                ClearDefinitionAudit();
+                return;
+            }
+
+            var persistedValue = (T)Activator.CreateInstance(typeof(T), value, valueUnit)!;
+            SetValue(persistedValue, dataProcedence);
+            DefinedByUserId = string.IsNullOrWhiteSpace(definedByUserId) ? null : definedByUserId;
+            DefinedByUserName = string.IsNullOrWhiteSpace(definedByUserName) ? null : definedByUserName;
+            DefinedAtUtc = definedAtUtc;
+        }
 
         public string ToUiString(string format = "F2")
         {
@@ -185,6 +257,28 @@ namespace Shared.SolverConsecutive
         // Métodos puente que la UI llama (sin alterar la lógica original de SetValue/Clear)
         public void ClearFromUI() => Clear(VariableDefinedBy.UserInput);
         public void SetValueFromUI(T value) => SetValue(value, VariableDefinedBy.UserInput);
+        public void SetValueFromUI(T value, string? userId, string? userName)
+        {
+            SetValue(value, VariableDefinedBy.UserInput);
+            DefinedByUserId = string.IsNullOrWhiteSpace(userId) ? null : userId;
+            DefinedByUserName = string.IsNullOrWhiteSpace(userName) ? null : userName;
+            DefinedAtUtc = DateTime.UtcNow;
+        }
+
+        public void SetDefinitionAudit(string? userId, string? userName, DateTime? definedAtUtc = null)
+        {
+            DefinedByUserId = string.IsNullOrWhiteSpace(userId) ? null : userId;
+            DefinedByUserName = string.IsNullOrWhiteSpace(userName) ? null : userName;
+            DefinedAtUtc = definedAtUtc ?? DateTime.UtcNow;
+        }
+
+        private void ClearDefinitionAudit()
+        {
+            DefinedByUserId = null;
+            DefinedByUserName = null;
+            DefinedAtUtc = null;
+        }
+
         public double GetDisplayValue() => _value.GetValue(DisplayUnit);
         public string GetDisplayUnit() => DisplayUnit.Symbol;
         public UnitMeasure UnitForUI => DisplayUnit;

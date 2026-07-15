@@ -1,4 +1,5 @@
 ﻿using Client.Services.ProjectWorkspace;
+using Client.Services.Security;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Shared.SolverConsecutive;
@@ -9,11 +10,13 @@ namespace Client.Templates.Units.UIVariableUnitLess
     public abstract class UIVariableUnitLessBase : ComponentBase
     {
         [Inject] protected FlowsheetManager FlowsheetManager { get; set; } = null!;
+        [Inject] protected CustomAuthenticationStateProvider UserAuthProvider { get; set; } = null!;
 
         [Parameter] public string Label { get; set; } = string.Empty;
         [Parameter] public Variable<UnitLess> Variable { get; set; } = default!;
         [Parameter] public EventCallback<Variable<UnitLess>> VariableChanged { get; set; }
         [Parameter] public bool IsReadOnly { get; set; } = false;
+        [CascadingParameter(Name = "IsProjectReadOnly")] public bool IsProjectReadOnly { get; set; }
 
         // Estado interno del componente
         protected string? _tempInputValue;
@@ -21,7 +24,7 @@ namespace Client.Templates.Units.UIVariableUnitLess
         protected ElementReference _inputRef;
 
         // Determinar si es readonly basado en flags del nuevo sistema
-        protected bool IsEffectivelyReadOnly => IsReadOnly || Variable?.IsCalculated == true;
+        protected bool IsEffectivelyReadOnly => IsProjectReadOnly || IsReadOnly || Variable?.IsCalculated == true;
 
         // Obtener clase CSS basada en fuente
         protected string GetSourceClass()
@@ -54,8 +57,7 @@ namespace Client.Templates.Units.UIVariableUnitLess
         {
             if (Variable == null || !Variable.IsDefined) return false;
 
-            // Mostrar tooltip cuando NO fue definido por UI (fue calculado)
-            return !Variable.IsDefinedByUI;
+            return Variable.IsDefinedByUI || Variable.IsCalculated;
         }
 
         // 🔥 NUEVO: Obtener texto del tooltip basado en la fuente
@@ -68,8 +70,24 @@ namespace Client.Templates.Units.UIVariableUnitLess
                 VariableDefinedBy.StreamCalculated => "Calculated by: Stream",
                 VariableDefinedBy.Solver => "Calculated by: Solver",
                 VariableDefinedBy.Specification => "Calculated by: Equipment",
+                VariableDefinedBy.UserInput => GetUserDefinitionTooltip(),
                 _ => ""
             };
+        }
+
+        protected string GetUserDefinitionTooltip()
+        {
+            var userName = string.IsNullOrWhiteSpace(Variable.DefinedByUserName)
+                ? "User"
+                : Variable.DefinedByUserName;
+
+            if (!Variable.DefinedAtUtc.HasValue)
+            {
+                return $"Defined by: {userName}";
+            }
+
+            var localDate = Variable.DefinedAtUtc.Value.ToLocalTime().ToString("yyyy-MM-dd HH:mm");
+            return $"Defined by: {userName}\n{localDate}";
         }
 
         // ========== MÉTODOS DE INTERACCIÓN ==========
@@ -139,7 +157,8 @@ namespace Client.Templates.Units.UIVariableUnitLess
                 var newValue = Variable.Value;
                 newValue.SetValue(newVal.Value, currentUnit);
 
-                Variable.SetValueFromUI(newValue);
+                var user = UserAuthProvider.CurrentUser;
+                Variable.SetValueFromUI(newValue, user?.Id.ToString(), user?.DisplayName);
 
                 if (FlowsheetManager != null)
                 {

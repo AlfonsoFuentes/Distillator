@@ -1,6 +1,7 @@
 @using Client.Layout.Diagrams.Project
 @using Client.Services.ProjectWorkspace
 @using Distillator.Domain.Models
+@using Shared.Projects
 @implements IDisposable
 @inject ProjectSessionService SessionService
 @inject FlowsheetManager FSM
@@ -11,6 +12,22 @@
             <h1>@SessionService.CurrentProject?.Name</h1>
             <span class="flowsheet-name">@SessionService.ActiveFlowsheet?.Name</span>
         </div>
+        @if (VisiblePresence.Count > 0)
+        {
+            <div class="project-presence" aria-label="Project collaborators online">
+                @foreach (var presence in VisiblePresence)
+                {
+                    <div class="presence-user" title="@PresenceTitle(presence)">
+                        <span class="presence-dot"></span>
+                        <span class="presence-name">@presence.DisplayName</span>
+                        @if (!string.IsNullOrWhiteSpace(presence.ActiveDiagramName))
+                        {
+                            <span class="presence-diagram">@presence.ActiveDiagramName</span>
+                        }
+                    </div>
+                }
+            </div>
+        }
     </div>
 
     <div class="project-body">
@@ -19,6 +36,13 @@
         </div>
 
         <div class="project-canvas">
+            @if (SessionService.IsProjectHydrating)
+            {
+                <div class="project-loading-banner" role="status" aria-live="polite">
+                    <span class="loading-dot"></span>
+                    <span>@SessionService.ProjectLoadingMessage</span>
+                </div>
+            }
             <ProcessFlowsheetCanvas />
             <ProcessEquipmentPalette />
         </div>
@@ -28,15 +52,25 @@
 @code {
     [Parameter] public Project Project { get; set; } = default!;
     private Project? _lastProject;
+    private IReadOnlyList<ProjectPresenceDto> VisiblePresence =>
+        SessionService.ProjectPresence
+            .Where(presence => !presence.UserId.Equals(SessionService.CurrentUser?.Id.ToString(), StringComparison.OrdinalIgnoreCase))
+            .ToList();
 
     protected override void OnInitialized()
     {
         SessionService.ProjectChanged += OnProjectChanged;
+        SessionService.ProjectPresenceChanged += OnProjectPresenceChanged;
+        SessionService.ProjectHydrationChanged += OnProjectHydrationChanged;
+        FSM.OnVisualStatesChangedAsync += PersistVisualStatesAsync;
     }
 
     public void Dispose()
     {
         SessionService.ProjectChanged -= OnProjectChanged;
+        SessionService.ProjectPresenceChanged -= OnProjectPresenceChanged;
+        SessionService.ProjectHydrationChanged -= OnProjectHydrationChanged;
+        FSM.OnVisualStatesChangedAsync -= PersistVisualStatesAsync;
     }
 
     protected override async Task OnParametersSetAsync()
@@ -64,5 +98,27 @@
         }
 
         InvokeAsync(StateHasChanged);
+    }
+
+    private void OnProjectPresenceChanged()
+    {
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void OnProjectHydrationChanged()
+    {
+        InvokeAsync(StateHasChanged);
+    }
+
+    private static string PresenceTitle(ProjectPresenceDto presence)
+    {
+        return string.IsNullOrWhiteSpace(presence.ActiveDiagramName)
+            ? $"{presence.DisplayName} is online"
+            : $"{presence.DisplayName} is viewing {presence.ActiveDiagramName}";
+    }
+
+    private Task PersistVisualStatesAsync(IReadOnlyCollection<IFlowsheet> flowsheets)
+    {
+        return SessionService.PersistDiagramVisualStatesAsync(flowsheets);
     }
 }

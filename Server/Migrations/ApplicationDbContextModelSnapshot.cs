@@ -529,6 +529,68 @@ namespace Server.Migrations
                     b.ToTable("Projects", (string)null);
                 });
 
+            modelBuilder.Entity("Server.Entities.Projects.ProjectUserWorkspaceState", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("CreatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("DeletedOnUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ExpandedDiagramTypeCodesJson")
+                        .HasColumnType("jsonb");
+
+                    b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
+                    b.Property<bool>("IsDiagramExplorerCollapsed")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsProjectExplorerCollapsed")
+                        .HasColumnType("boolean");
+
+                    b.Property<Guid?>("LastFlowsheetId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("LastProjectId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Order")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
+
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime>("UpdatedOnUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TenantId", "UserId")
+                        .IsUnique();
+
+                    b.ToTable("ProjectUserWorkspaceStates", (string)null);
+                });
+
             modelBuilder.Entity("Server.Entities.Thermodynamics.Methods.BinaryInteractionParameter", b =>
                 {
                     b.Property<Guid>("Id")

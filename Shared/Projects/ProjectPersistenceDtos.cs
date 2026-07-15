@@ -14,7 +14,6 @@ namespace Shared.Projects
         public Guid? ProjectId { get; set; }
         public string Name { get; set; } = string.Empty;
         public ProjectBasicConfigurationDto Configuration { get; set; } = new();
-        public List<ProjectDiagramDto> Diagrams { get; set; } = new();
     }
 
     public class UpdateProjectConfigurationRequest
@@ -22,7 +21,55 @@ namespace Shared.Projects
         public Guid ProjectId { get; set; }
         public string Name { get; set; } = string.Empty;
         public ProjectBasicConfigurationDto Configuration { get; set; } = new();
+    }
+
+    public class DeleteProjectRequest
+    {
+        public Guid ProjectId { get; set; }
+    }
+
+    public class CreateDiagramRequest
+    {
+        public Guid ProjectId { get; set; }
+        public ProjectDiagramDto Diagram { get; set; } = new();
+    }
+
+    public class UpdateDiagramRequest
+    {
+        public Guid ProjectId { get; set; }
+        public ProjectDiagramDto Diagram { get; set; } = new();
+    }
+
+    public class UpdateDiagramsRequest
+    {
+        public Guid ProjectId { get; set; }
         public List<ProjectDiagramDto> Diagrams { get; set; } = new();
+    }
+
+    public class DeleteDiagramRequest
+    {
+        public Guid ProjectId { get; set; }
+        public Guid DiagramId { get; set; }
+    }
+
+    public class GetProjectSharingRequest
+    {
+        public Guid ProjectId { get; set; }
+    }
+
+    public class UpdateProjectSharingRequest
+    {
+        public Guid ProjectId { get; set; }
+        public List<ProjectCollaboratorDto> Collaborators { get; set; } = new();
+    }
+
+    public class GetUserWorkspaceStateRequest
+    {
+    }
+
+    public class UpdateUserWorkspaceStateRequest
+    {
+        public UserWorkspaceStateDto State { get; set; } = new();
     }
 
     public class ProjectSummaryDto
@@ -30,6 +77,7 @@ namespace Shared.Projects
         public Guid Id { get; set; }
         public string Name { get; set; } = string.Empty;
         public string OwnerUserId { get; set; } = string.Empty;
+        public string CurrentUserRole { get; set; } = string.Empty;
         public long Version { get; set; }
         public DateTime CreatedOn { get; set; }
         public DateTime UpdatedOnUtc { get; set; }
@@ -69,6 +117,53 @@ namespace Shared.Projects
     {
         public string UserId { get; set; } = string.Empty;
         public string DisplayName { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
         public string Role { get; set; } = string.Empty;
+    }
+
+    public class ProjectSharingDto
+    {
+        public Guid ProjectId { get; set; }
+        public string OwnerUserId { get; set; } = string.Empty;
+        public List<ProjectCollaboratorDto> Collaborators { get; set; } = new();
+        public List<ProjectShareUserDto> AvailableUsers { get; set; } = new();
+    }
+
+    public class ProjectShareUserDto
+    {
+        public string UserId { get; set; } = string.Empty;
+        public string DisplayName { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+    }
+
+    public class UserWorkspaceStateDto
+    {
+        public Guid? LastProjectId { get; set; }
+        public Guid? LastFlowsheetId { get; set; }
+        public bool IsProjectExplorerCollapsed { get; set; }
+        public bool IsDiagramExplorerCollapsed { get; set; }
+        public List<string>? ExpandedDiagramTypeCodes { get; set; }
+        public DateTime LastAccessAt { get; set; } = DateTime.UtcNow;
+    }
+
+    public class ProjectRealtimeEventDto
+    {
+        public Guid ProjectId { get; set; }
+        public long Version { get; set; }
+        public string ChangeType { get; set; } = string.Empty;
+        public string EntityType { get; set; } = string.Empty;
+        public string EntityId { get; set; } = string.Empty;
+        public string ChangedByUserId { get; set; } = string.Empty;
+        public DateTime OccurredOnUtc { get; set; } = DateTime.UtcNow;
+    }
+
+    public class ProjectPresenceDto
+    {
+        public Guid ProjectId { get; set; }
+        public string UserId { get; set; } = string.Empty;
+        public string DisplayName { get; set; } = string.Empty;
+        public Guid? ActiveDiagramId { get; set; }
+        public string ActiveDiagramName { get; set; } = string.Empty;
+        public DateTime ConnectedAtUtc { get; set; } = DateTime.UtcNow;
     }
 }

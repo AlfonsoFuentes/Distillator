@@ -54,7 +54,9 @@ namespace Client.Services.Security
 
         private async Task<UserInfoResponse?> LoadCurrentUserInfoAsync()
         {
-            var response = await _httpServices.PostAsync<GetUserInfoRequest, UserInfoResponse>(new GetUserInfoRequest());
+            var response = await _httpServices.PostAsync<GetUserInfoRequest, UserInfoResponse>(
+                new GetUserInfoRequest(),
+                showSnackbar: false);
             if (response?.Succeeded == true && response.Data != null)
             {
                 return response.Data;
@@ -128,6 +130,13 @@ namespace Client.Services.Security
         public void NotifyAuthenticationStateChanged()
         {
             NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
+        }
+
+        public async Task RefreshAuthenticationStateAsync()
+        {
+            ClearUserInfo();
+            var authState = await GetAuthenticationStateAsync();
+            NotifyAuthenticationStateChanged(Task.FromResult(authState));
         }
 
         public void ClearUserInfo()

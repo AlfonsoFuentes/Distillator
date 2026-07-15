@@ -11,6 +11,7 @@
                 <input type="text" class="std-input name-input"
                        value="@_tempValue"
                        placeholder="Enter name..."
+                       disabled="@IsProjectReadOnly"
                        @oninput="HandleInput"
                        @onkeyup="HandleKeyUp"
                        @onblur="CommitValue" />
@@ -36,6 +37,7 @@
                 <input type="text" class="compact-input name-input"
                        value="@_tempValue"
                        placeholder="Enter name..."
+                       disabled="@IsProjectReadOnly"
                        @oninput="HandleInput"
                        @onkeyup="HandleKeyUp"
                        @onblur="CommitValue" />
@@ -63,6 +65,7 @@
     [Parameter] public EventCallback OnGenerate { get; set; }
 
     [Parameter] public VariableMode Mode { get; set; } = VariableMode.Standard;
+    [CascadingParameter(Name = "IsProjectReadOnly")] public bool IsProjectReadOnly { get; set; }
 
     private string _tempValue = "";
 
@@ -84,17 +87,20 @@
 
     private void HandleInput(ChangeEventArgs e)
     {
+        if (IsProjectReadOnly) return;
         _tempValue = e.Value?.ToString() ?? "";
     }
 
     private async Task HandleKeyUp(KeyboardEventArgs e)
     {
+        if (IsProjectReadOnly) return;
         if (e.Key == "Enter" || e.Key == "NumpadEnter") await CommitValue();
         if (e.Key == "Escape") { _tempValue = Value; StateHasChanged(); }
     }
 
     private async Task CommitValue()
     {
+        if (IsProjectReadOnly) return;
         var trimmed = _tempValue?.Trim() ?? "";
 
         // Si está vacío o es duplicado, restauramos el valor original y cancelamos
@@ -115,6 +121,7 @@
 
     private async Task GenerateName()
     {
+        if (IsProjectReadOnly) return;
         if (OnGenerate.HasDelegate)
         {
             await OnGenerate.InvokeAsync();

@@ -33,6 +33,18 @@ Trabajar con Alfonso de forma precisa, ordenada y costo-beneficio: diagnosticar 
   - tiempo estimado;
   - mantenibilidad.
 
+## Modo Eficiente De Codex
+
+- Priorizar bajo consumo de tokens sin sacrificar calidad de diagnostico, codigo ni verificacion.
+- Leer solo archivos directamente relacionados con la tarea; ampliar busqueda solo si el error lo exige.
+- Preferir `rg` y lecturas puntuales por rangos antes que imprimir archivos completos grandes.
+- Evitar `git diff` completo salvo antes de cerrar cambios importantes o cuando exista riesgo real de haber tocado de mas.
+- Preferir `git status --short` cuando solo haga falta saber que archivos cambiaron.
+- Hacer cambios minimos, reversibles y enfocados; no hacer refactors colaterales sin autorizacion.
+- Mantener verificacion proporcional: build para cambios de codigo, prueba puntual para persistencia o solver, pruebas mas amplias solo si el riesgo lo justifica.
+- Responder con avances y cierres breves: hallazgo, cambio, verificacion y pendiente.
+- No reducir el analisis necesario por ahorrar tokens; reducir solo ruido, salidas largas y exploracion de bajo valor.
+
 ## Reglas Para Codigo
 
 - Seguir los patrones existentes del proyecto.
@@ -63,6 +75,17 @@ Trabajar con Alfonso de forma precisa, ordenada y costo-beneficio: diagnosticar 
 - No sobrearquitecturar ni introducir capas, patrones o abstracciones sin necesidad clara.
 - El servidor usa PostgreSQL, EF Core e Identity; evitar repetir secretos o credenciales en respuestas.
 - Antes de proponer cambios en seguridad/configuracion, considerar impacto en base de datos, autenticacion y despliegue.
+- Contexto activo de persistencia/realtime: el objetivo es experiencia tipo Google Sheets. Guardar intención de usuario, sincronizar por SignalR, autosave silencioso, permisos Owner/Editor/Viewer, y recalcular resultados del solver al cargar. No guardar resultados calculados como verdad principal.
+- La persistencia de Facade debe seguir siendo genérica: nuevas `Variable<T>` definidas por usuario deben persistir sin agregar columnas ni migraciones por variable.
+- Las specifications activas se definen por formula. El componente viejo de specifications se conserva por seguridad, pero la UI nueva es `EquipmentBaseFormulaSpecifications`.
+- En cambios multiusuario, conservar auditoría ligera de inputs: usuario y fecha para valores definidos por UI y formulas.
+- Los callbacks SignalR que realizan trabajo asíncrono deben devolver `Task`; no usar `async void` para `ProjectChanged`.
+- Serializar recargas realtime y autosaves que puedan competir por el mismo proyecto; descartar versiones atrasadas sin ocultar el estado más reciente.
+- Una conexión interdiagrama modifica dos diagramas: persistir ambos extremos y reconstruir OPC/conexión lógica al cargar.
+- Borrar un diagrama debe limpiar primero conexiones interdiagrama, OPC, pipes, puertos, registro y solver, y persistir los diagramas sobrevivientes.
+- En diálogos de equipos, usar propiedades tipadas para puertos fijos en lugar de buscar nombres mediante `Ports.First(...)`.
+- `OnConnChanged` se usa para refrescar topología dinámica; no duplicar en cada diálogo la simulación o persistencia que ya ejecuta `EquipmentPortConnector`.
+- Flash Tank tiene un contrato fijo de tres puertos: `Feed`, `Vapor` y `Liquid`.
 
 ## Arquitectura Y Mantenibilidad
 

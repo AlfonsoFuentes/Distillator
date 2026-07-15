@@ -8,6 +8,9 @@
      @onclick:stopPropagation="true"
      @ondblclick="HandleDoubleClick"
      @ondblclick:stopPropagation="true" @onmousedown="HandleMouseDown"
+     @oncontextmenu="HandleContextMenu"
+     @oncontextmenu:preventDefault="true"
+     @oncontextmenu:stopPropagation="true"
      @onmousedown:stopPropagation="true" @onkeydown="HandleKeyDown"
      @onmouseenter="ShowTooltip"
      @onmouseleave="HideTooltip">
@@ -87,26 +90,41 @@
         </span>
     }
 
-    <div class="mini-toolbar" style="top: @(Element.ToolbarOffsetY)px;">
-        @if (Element.AllowFlipHorizontal)
-        {
-            <button data-title="Flip Horizontal"
-                    @onclick:stopPropagation="true"
-                    @onmousedown:stopPropagation="true"
-                    @onclick="HandleFlipHorizontal">
-                ↔
+    @if (CanEdit)
+    {
+        <div class="mini-toolbar" style="top: @(Element.ToolbarOffsetY)px;">
+            @if (Element.AllowFlipHorizontal)
+            {
+                <button data-title="Flip Horizontal"
+                        @onclick:stopPropagation="true"
+                        @onmousedown:stopPropagation="true"
+                        @onclick="HandleFlipHorizontal">
+                    ↔
+                </button>
+            }
+            @if (Element.AllowFreeRotation)
+            {
+                <button data-title="Rotate 90°"
+                        @onclick:stopPropagation="true"
+                        @onmousedown:stopPropagation="true"
+                        @onclick="HandleRotate">
+                    ↻
+                </button>
+            }
+        </div>
+    }
+
+    @if (showContextMenu && CanEdit)
+    {
+        <div class="equipment-context-menu"
+             style="@ContextMenuStyle"
+             @onclick:stopPropagation="true"
+             @onmousedown:stopPropagation="true">
+            <button class="danger" @onclick="HandleDelete">
+                Delete
             </button>
-        }
-        @if (Element.AllowFreeRotation)
-        {
-            <button data-title="Rotate 90°"
-                    @onclick:stopPropagation="true"
-                    @onmousedown:stopPropagation="true"
-                    @onclick="HandleRotate">
-                ↻
-            </button>
-        }
-    </div>
+        </div>
+    }
 
     @if (showTooltip && !IsDragging)
     {
@@ -141,16 +159,22 @@
 
     [Parameter] public bool IsSelected { get; set; }
     [Parameter] public bool IsDragging { get; set; }
+    [Parameter] public bool CanEdit { get; set; } = true;
 
     [Parameter] public EventCallback<IVisualElement> OnSelect { get; set; }
     [Parameter] public EventCallback<IVisualElement> OnOpenDetails { get; set; }
     [Parameter] public EventCallback<MouseEventArgs> OnDragStart { get; set; }
 
     private bool showTooltip = false;
+    private bool showContextMenu;
+    private double contextMenuX;
+    private double contextMenuY;
     private string? HoveredPortName;
+    private string ContextMenuStyle => $"left: {Math.Round(contextMenuX)}px; top: {Math.Round(contextMenuY)}px;";
 
     private async Task HandleSingleClick()
     {
+        showContextMenu = false;
         await OnSelect.InvokeAsync(Element);
     }
 
@@ -159,23 +183,54 @@
         await OnOpenDetails.InvokeAsync(Element);
     }
 
-    private async Task HandleMouseDown(MouseEventArgs e) => await OnDragStart.InvokeAsync(e);
+    private async Task HandleMouseDown(MouseEventArgs e)
+    {
+        showContextMenu = false;
+        if (!CanEdit) return;
+
+        await OnDragStart.InvokeAsync(e);
+    }
+
+    private async Task HandleContextMenu(MouseEventArgs e)
+    {
+        if (!CanEdit) return;
+
+        showTooltip = false;
+        showContextMenu = true;
+        contextMenuX = Math.Max(0, e.OffsetX);
+        contextMenuY = Math.Max(0, e.OffsetY);
+        await OnSelect.InvokeAsync(Element);
+    }
 
     private void ShowTooltip() => showTooltip = true;
     private void HideTooltip() => showTooltip = false;
 
     private void HandleFlipHorizontal()
     {
+        if (!CanEdit) return;
+        showContextMenu = false;
         FSM.FlipElementHorizontal(Element);
     }
 
     private void HandleRotate()
     {
+        if (!CanEdit) return;
+        showContextMenu = false;
         FSM.RotateElement(Element);
+    }
+
+    private void HandleDelete()
+    {
+        if (!CanEdit) return;
+
+        showContextMenu = false;
+        FSM.DeleteElement(Element);
     }
 
     private void HandleKeyDown(KeyboardEventArgs e)
     {
+        if (!CanEdit) return;
+
         if (e.Key.Equals("h", StringComparison.OrdinalIgnoreCase)) HandleFlipHorizontal();
         if (e.Key.Equals("r", StringComparison.OrdinalIgnoreCase)) HandleRotate();
     }
@@ -196,6 +251,8 @@
 
     private void HandlePortMouseDown(EquipmentPort port)
     {
+        if (!CanEdit) return;
+
         if (FSM.IsConnectionModeActive &&
             port.ConnectedElementId == null &&
             FSM.CurrentDraftPipe == null)
@@ -206,6 +263,8 @@
 
     private void HandlePortMouseUp(EquipmentPort port)
     {
+        if (!CanEdit) return;
+
         if (FSM.CurrentDraftPipe != null)
         {
             FSM.CompleteConnection(Element, port.Name, 0, 0);

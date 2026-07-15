@@ -11,9 +11,10 @@
         <div class="grid-header sticky-header">Type</div>
         <div class="grid-header sticky-header">Destination (Local)</div>
         <div class="grid-header sticky-header math-col"></div>
-        <div class="grid-header sticky-header">Value</div>
+        <div class="grid-header sticky-header">Factor / Recovery</div>
         <div class="grid-header sticky-header math-col"></div>
         <div class="grid-header sticky-header">Source (Global)</div>
+        <div class="grid-header sticky-header">Component</div>
         <div class="grid-header sticky-header">Variable</div>
         <div class="grid-header sticky-header action-col">Actions</div>
 
@@ -33,7 +34,7 @@
                         {
                             if (type != SpecificationType.None)
                             {
-                                <option value="@type">@type</option>
+                                <option value="@type">@GetSpecificationTypeLabel(type)</option>
                             }
                         }
                     </select>
@@ -52,14 +53,23 @@
 
                 <div class="grid-cell math-cell"><span class="math-symbol">=</span></div>
 
-                @* 4. Multiplicador/Valor *@
+                @* 4. Multiplicador o recuperación *@
                 <div class="grid-cell editable-cell value-cell">
-                    <input type="number" class="std-input" @bind="row.TempValue" step="0.1" />
+                    <input type="number"
+                           class="std-input"
+                           @bind="row.TempValue"
+                           step="0.1"
+                           min="@(IsComponentSpecification(row.TempSpecType) ? "0" : null)"
+                           max="@(IsComponentSpecification(row.TempSpecType) ? "100" : null)" />
+                    @if (IsComponentSpecification(row.TempSpecType))
+                    {
+                        <span class="input-suffix">%</span>
+                    }
                 </div>
 
                 <div class="grid-cell math-cell">
                     <span class="math-symbol">
-                        @(row.TempSpecType == SpecificationType.Multiplier ? "×" : "?")
+                        ×
                     </span>
                 </div>
 
@@ -74,14 +84,39 @@
                     </datalist>
                 </div>
 
-                @* 6. Variable Termodinámica (Dropdown ligado al Enum) *@
+                @* 6. Componente para especificaciones por componente *@
                 <div class="grid-cell editable-cell">
-                    <select class="std-input type-selector" @bind="row.TempVarType">
-                        @foreach (SpecVariableType varType in Enum.GetValues(typeof(SpecVariableType)))
-                        {
-                            <option value="@varType">@varType</option>
-                        }
-                    </select>
+                    @if (IsComponentSpecification(row.TempSpecType))
+                    {
+                        <select class="std-input type-selector" @bind="row.TempComponentId">
+                            <option value="@Guid.Empty">Select component...</option>
+                            @foreach (var component in GetCommonComponents(row.TempSource, row.TempDest))
+                            {
+                                <option value="@component.Id">@component.Name</option>
+                            }
+                        </select>
+                    }
+                    else
+                    {
+                        <span class="not-applicable">—</span>
+                    }
+                </div>
+
+                @* 7. Variable termodinámica *@
+                <div class="grid-cell editable-cell">
+                    @if (IsComponentSpecification(row.TempSpecType))
+                    {
+                        <span class="fixed-value">Mass Flow</span>
+                    }
+                    else
+                    {
+                        <select class="std-input type-selector" @bind="row.TempVarType">
+                            @foreach (SpecVariableType varType in Enum.GetValues(typeof(SpecVariableType)))
+                            {
+                                <option value="@varType">@varType</option>
+                            }
+                        </select>
+                    }
                 </div>
 
                 <div class="grid-cell action-cell editing-actions">
@@ -96,18 +131,23 @@
             else
             {
                 <div class="grid-cell value-text-cell font-bold">Spec: @row.DestinationName</div>
-                <div class="grid-cell value-text-cell source-none" style="font-size: 10px; font-weight: bold;">@row.SpecType.ToString().ToUpper()</div>
+                <div class="grid-cell value-text-cell source-none spec-type-label">@GetSpecificationTypeLabel(row.SpecType)</div>
                 <div class="grid-cell value-text-cell source-userinterface">@row.DestinationName</div>
                 <div class="grid-cell math-cell"><span class="math-symbol">=</span></div>
-                <div class="grid-cell value-text-cell font-mono text-right pr-2">@row.Value.ToString("0.0###")</div>
+                <div class="grid-cell value-text-cell font-mono text-right pr-2">
+                    @row.Value.ToString("0.0###")@(IsComponentSpecification(row.SpecType) ? "%" : "")
+                </div>
                 <div class="grid-cell math-cell">
                     <span class="math-symbol">
-                        @(row.SpecType == SpecificationType.Multiplier ? "×" : "?")
+                        ×
                     </span>
                 </div>
                 <div class="grid-cell value-text-cell source-other">@row.SourceName</div>
+                <div class="grid-cell value-text-cell component-name">@(row.ComponentName ?? "—")</div>
                 <div class="grid-cell badge-cell">
-                    <span class="type-badge mass-flow">@row.VarType.ToString().Replace("Total", "")</span>
+                    <span class="type-badge mass-flow">
+                        @(IsComponentSpecification(row.SpecType) ? "Mass Flow" : row.VarType.ToString().Replace("Total", ""))
+                    </span>
                 </div>
 
                 <div class="grid-cell action-cell read-actions">
@@ -147,6 +187,8 @@
 
         public string DestinationName { get; set; } = "";
         public string SourceName { get; set; } = "";
+        public Guid ComponentId { get; set; }
+        public string? ComponentName { get; set; }
         public double Value { get; set; } = 1.0;
 
         public bool IsEditing { get; set; } = false;
@@ -154,6 +196,7 @@
 
         public string TempDest { get; set; } = "";
         public string TempSource { get; set; } = "";
+        public Guid TempComponentId { get; set; }
         public double TempValue { get; set; } = 1.0;
 
         public ISpecification BackendSpec { get; set; } = null!;
@@ -179,8 +222,17 @@
                 var destVisual = FSM.Elements.FirstOrDefault(e => e.Facade == streamSpec.Destination) as StreamVisualElement;
 
                 double specValue = 1.0;
+                Guid componentId = Guid.Empty;
+                string? componentName = null;
 
                 if (streamSpec is MultiplierSpecification multSpec) { specValue = multSpec.Multiplier; }
+                if (streamSpec is ComponentMassFlowMultiplierSpecification componentSpec)
+                {
+                    componentId = componentSpec.ComponentId;
+                    componentName = streamSpec.Source.Composition.Components
+                        .FirstOrDefault(component => component.Id == componentId)?.Name;
+                    specValue = componentSpec.Recovery.GetValue(PercentageUnits.Percentage);
+                }
 
                 Specs.Add(new SpecRowModel
                 {
@@ -189,6 +241,8 @@
                     VarType = streamSpec.VariableType,
                     SourceName = sourceVisual?.Label ?? "Unknown",
                     DestinationName = destVisual?.Label ?? "Unknown",
+                    ComponentId = componentId,
+                    ComponentName = componentName,
                     Value = specValue,
                     BackendSpec = spec,
                     IsEditing = false,
@@ -264,6 +318,7 @@
         row.TempVarType = row.VarType;
         row.TempDest = row.DestinationName;
         row.TempSource = row.SourceName;
+        row.TempComponentId = row.ComponentId;
         row.TempValue = row.Value;
         row.IsEditing = true;
     }
@@ -275,12 +330,12 @@
         var solverEq = Equipment.Facade as SolverEquipmentBase;
         if (solverEq == null) return;
 
-        var sourceStream = FSM.Elements.OfType<StreamVisualElement>()
-                             .FirstOrDefault(s => string.Equals(s.Label, row.TempSource, StringComparison.OrdinalIgnoreCase))?.Facade as IFacadeStream;
-        var destStream = FSM.Elements.OfType<StreamVisualElement>()
-                             .FirstOrDefault(s => string.Equals(s.Label, row.TempDest, StringComparison.OrdinalIgnoreCase))?.Facade as IFacadeStream;
+        var sourceStream = FindStream(row.TempSource);
+        var destStream = FindStream(row.TempDest);
 
         if (sourceStream == null || destStream == null) return;
+        if (IsComponentSpecification(row.TempSpecType)
+            && !GetCommonComponents(sourceStream, destStream).Any(component => component.Id == row.TempComponentId)) return;
 
         if (!row.IsNew && row.BackendSpec != null) { solverEq.RemoveSpec(row.BackendSpec); }
 
@@ -298,6 +353,15 @@
                     Multiplier = row.TempValue
                 };
                 break;
+            case SpecificationType.ComponentMassFlowMultiplier:
+                newSpec = new ComponentMassFlowMultiplierSpecification
+                {
+                    Source = sourceStream,
+                    Destination = destStream,
+                    ComponentId = row.TempComponentId,
+                    Recovery = new Percentage(row.TempValue, PercentageUnits.Percentage)
+                };
+                break;
             default:
                 throw new InvalidOperationException($"Tipo no soportado: {row.TempSpecType}");
         }
@@ -308,6 +372,9 @@
         row.VarType = row.TempVarType;
         row.DestinationName = row.TempDest;
         row.SourceName = row.TempSource;
+        row.ComponentId = IsComponentSpecification(row.TempSpecType) ? row.TempComponentId : Guid.Empty;
+        row.ComponentName = GetCommonComponents(sourceStream, destStream)
+            .FirstOrDefault(component => component.Id == row.ComponentId)?.Name;
         row.Value = row.TempValue;
         row.BackendSpec = newSpec;
         row.IsEditing = false; row.IsNew = false;
@@ -331,4 +398,41 @@
         if (OnSpecificationsChanged.HasDelegate) await OnSpecificationsChanged.InvokeAsync();
         FSM.RunSimulation();
     }
+
+    private IFacadeStream? FindStream(string streamName) =>
+        FSM.Elements.OfType<StreamVisualElement>()
+            .FirstOrDefault(stream => string.Equals(stream.Label, streamName, StringComparison.OrdinalIgnoreCase))?.Facade
+            as IFacadeStream;
+
+    private IEnumerable<ComponentFacade> GetCommonComponents(string sourceName, string destinationName)
+    {
+        var source = FindStream(sourceName);
+        var destination = FindStream(destinationName);
+        return source == null || destination == null
+            ? Enumerable.Empty<ComponentFacade>()
+            : GetCommonComponents(source, destination);
+    }
+
+    private static IEnumerable<ComponentFacade> GetCommonComponents(
+        IFacadeStream source,
+        IFacadeStream destination)
+    {
+        var destinationComponentIds = destination.Composition.Components
+            .Select(component => component.Id)
+            .ToHashSet();
+
+        return source.Composition.Components
+            .Where(component => destinationComponentIds.Contains(component.Id))
+            .OrderBy(component => component.Name);
+    }
+
+    private static bool IsComponentSpecification(SpecificationType type) =>
+        type == SpecificationType.ComponentMassFlowMultiplier;
+
+    private static string GetSpecificationTypeLabel(SpecificationType type) => type switch
+    {
+        SpecificationType.Multiplier => "Flow Multiplier",
+        SpecificationType.ComponentMassFlowMultiplier => "Component Recovery",
+        _ => type.ToString()
+    };
 }

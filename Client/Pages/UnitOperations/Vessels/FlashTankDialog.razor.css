@@ -1,62 +1,62 @@
-﻿.flash-canvas-layout {
-    display: flex;
-    justify-content: space-between;
-    align-items: stretch;
+.flash-canvas-layout {
+    display: grid;
+    grid-template-columns: minmax(220px, 1fr) minmax(280px, 340px) minmax(220px, 1fr);
+    align-items: center;
+    gap: 24px;
     width: 100%;
-    min-height: 400px;
+    min-height: 420px;
+    padding: 28px;
+    overflow-x: auto;
     background-color: #f8fafc;
     border-radius: 4px;
-    padding: 20px;
-    overflow-x: auto;
 }
 
 .port-zone {
-    flex: 1 1 200px;
     display: flex;
     flex-direction: column;
     justify-content: center;
 }
 
 .left-zone {
-    padding-right: 20px;
-}
-
-.right-zone {
-    padding-left: 20px;
-    align-items: flex-end;
+    grid-column: 1;
+    width: min(100%, 280px);
+    justify-self: end;
 }
 
 .center-zone {
-    flex: 0 0 auto;
+    grid-column: 2;
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: space-between;
+    justify-content: center;
+    gap: 24px;
+    width: 100%;
 }
 
 .equipment-drawing-zone {
-    margin: 20px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 110px;
 }
 
 .static-port-container {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 4px;
+    width: min(100%, 280px);
 }
 
-/* Espaciado para los dos líquidos de abajo */
 .bottom-ports-container {
     display: flex;
-    justify-content: space-around;
+    justify-content: center;
     width: 100%;
-    margin-top: 5px;
 }
 
-.port-label {
-    font-size: 0.75rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    color: #64748b;
-    letter-spacing: 0.05em;
+@media (max-width: 900px) {
+    .flash-canvas-layout {
+        grid-template-columns: minmax(200px, 1fr) minmax(260px, 1fr);
+        gap: 18px;
+        padding: 20px;
+    }
 }

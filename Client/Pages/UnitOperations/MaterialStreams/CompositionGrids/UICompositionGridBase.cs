@@ -1,6 +1,8 @@
 ﻿using Client.Services.ProjectWorkspace;
+using Client.Services.Security;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
+using Shared.SolverConsecutive;
 using Shared.SolverQwen.Stream;
 using Shared.Thermodynamics.ControlledVariables;
 using System.Globalization;
@@ -11,9 +13,11 @@ namespace Client.Pages.UnitOperations.MaterialStreams.CompositionGrids
     public abstract class UICompositionGridBase : ComponentBase
     {
         [Inject] protected FlowsheetManager FlowsheetManager { get; set; } = null!;
+        [Inject] protected CustomAuthenticationStateProvider UserAuthProvider { get; set; } = null!;
 
         [Parameter] public CompositionOrchestrator Variable { get; set; } = default!;
         [Parameter] public EventCallback<CompositionOrchestrator> VariableChanged { get; set; }
+        [CascadingParameter(Name = "IsProjectReadOnly")] public bool IsProjectReadOnly { get; set; }
 
         protected ComponentFacade? _editingComponent;
         protected bool _isEditingMass;
@@ -30,6 +34,11 @@ namespace Client.Pages.UnitOperations.MaterialStreams.CompositionGrids
             var source = Variable.Source;
 
             if (source == CompositionSource.Solver)
+            {
+                return hasValue ? "calculated" : "empty";
+            }
+
+            if (IsProjectReadOnly)
             {
                 return hasValue ? "calculated" : "empty";
             }
@@ -57,10 +66,15 @@ namespace Client.Pages.UnitOperations.MaterialStreams.CompositionGrids
         protected string? GetCellTooltip(ComponentFacade comp, bool isMass)
         {
             var state = GetCellState(comp, isMass);
+            var variable = isMass ? comp.MassFraction : comp.MolarFraction;
+
+            if (variable.IsDefinedByUI)
+            {
+                return GetUserDefinitionTooltip(variable);
+            }
 
             if (state == "calculated")
             {
-                var variable = isMass ? comp.MassFraction : comp.MolarFraction;
                 if (!string.IsNullOrWhiteSpace(variable.Source) && variable.Source != "Undefined")
                     return $"Calculated by: {variable.Source}";
                 return "Calculated from mixture composition";
@@ -72,14 +86,31 @@ namespace Client.Pages.UnitOperations.MaterialStreams.CompositionGrids
             return null;
         }
 
+        protected static string GetUserDefinitionTooltip<T>(Variable<T> variable) where T : Amount
+        {
+            var userName = string.IsNullOrWhiteSpace(variable.DefinedByUserName)
+                ? "User"
+                : variable.DefinedByUserName;
+
+            if (!variable.DefinedAtUtc.HasValue)
+            {
+                return $"Defined by: {userName}";
+            }
+
+            var localDate = variable.DefinedAtUtc.Value.ToLocalTime().ToString("yyyy-MM-dd HH:mm");
+            return $"Defined by: {userName}\n{localDate}";
+        }
+
         protected async Task CommitValue(ComponentFacade comp, bool isMass)
         {
+            if (IsProjectReadOnly) return;
             if (!_tempInputValue.HasValue) return;
 
+            var user = UserAuthProvider.CurrentUser;
             if (isMass)
-                comp.MassFraction.SetValueFromUI(new Percentage(_tempInputValue.Value, PercentageUnits.Percentage));
+                comp.MassFraction.SetValueFromUI(new Percentage(_tempInputValue.Value, PercentageUnits.Percentage), user?.Id.ToString(), user?.DisplayName);
             else
-                comp.MolarFraction.SetValueFromUI(new Percentage(_tempInputValue.Value, PercentageUnits.Percentage));
+                comp.MolarFraction.SetValueFromUI(new Percentage(_tempInputValue.Value, PercentageUnits.Percentage), user?.Id.ToString(), user?.DisplayName);
 
             Variable.InputType = isMass ? ComponentInputType.MassFraction : ComponentInputType.MolarFraction;
 
@@ -97,6 +128,7 @@ namespace Client.Pages.UnitOperations.MaterialStreams.CompositionGrids
 
         protected async Task ClearCell()
         {
+            if (IsProjectReadOnly) return;
             Variable.Clear();
             Variable.InputType = ComponentInputType.None; // 🔥 CRÍTICO: Resetea el InputType
             FlowsheetManager?.RunSimulation();
@@ -147,6 +179,7 @@ namespace Client.Pages.UnitOperations.MaterialStreams.CompositionGrids
 
         protected void HandleFocus(ComponentFacade comp, bool isMass)
         {
+            if (IsProjectReadOnly) return;
             if (IsCellReadOnly(comp, isMass)) return;
 
             _editingComponent = comp;
@@ -170,6 +203,7 @@ namespace Client.Pages.UnitOperations.MaterialStreams.CompositionGrids
 
         protected async Task HandleBlur(ComponentFacade comp, bool isMass)
         {
+            if (IsProjectReadOnly) return;
             if (_editingComponent != comp) return;
 
             ParseRawInput();
@@ -193,6 +227,7 @@ namespace Client.Pages.UnitOperations.MaterialStreams.CompositionGrids
 
         protected void HandleInput(ChangeEventArgs e, ComponentFacade comp, bool isMass)
         {
+            if (IsProjectReadOnly) return;
             _rawInput = e.Value?.ToString();
         }
 
@@ -207,6 +242,7 @@ namespace Client.Pages.UnitOperations.MaterialStreams.CompositionGrids
         // 🔥 CAMBIADO DE HandleKeyDown A HandleKeyUp
         protected async Task HandleKeyUp(KeyboardEventArgs e, ComponentFacade comp, bool isMass)
         {
+            if (IsProjectReadOnly) return;
             if (e.Key == "Enter")
             {
                 ParseRawInput();

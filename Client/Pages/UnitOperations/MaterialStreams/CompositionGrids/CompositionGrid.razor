@@ -88,10 +88,12 @@
     <div class="gl-input-container">
         <EthanolWaterGlInput GLValue="@GetGlValue()"
                              GlValueChanged="OnGlValueChanged"
-                             IsComponentReadOnly="false"
+                             IsComponentReadOnly="@IsProjectReadOnly"
                              IsGlInputReadOnly="@(ShouldGlBeReadOnly())"
                              IsMassFractionDefined="@(DetectInputType() == ComponentInputType.MassFraction || DetectInputType() == ComponentInputType.MolarFraction)"
-                             SourceId="@GetGlSourceId()" />
+                             IsUserDefined="@IsCompositionUserDefined()"
+                             SourceId="@GetGlSourceId()"
+                             TooltipText="@GetGlTooltipText()" />
     </div>
 }
 
@@ -99,7 +101,8 @@
     private bool HasTooltip(ComponentFacade comp, bool isMass)
     {
         var state = GetCellState(comp, isMass);
-        return state == "calculated" || state == "blocked";
+        var variable = isMass ? comp.MassFraction : comp.MolarFraction;
+        return variable.IsDefinedByUI || state == "calculated" || state == "blocked";
     }
 
     private string GetFlowTooltip<T>(Variable<T> variable) where T : Amount
@@ -127,6 +130,22 @@
         return null;
     }
 
+    private string? GetGlTooltipText()
+    {
+        var ethanol = Variable.Components
+            .FirstOrDefault(c => c.Name.Equals("Ethanol", StringComparison.OrdinalIgnoreCase));
+
+        return ethanol?.MassFraction.IsDefinedByUI == true
+            ? GetUserDefinitionTooltip(ethanol.MassFraction)
+            : null;
+    }
+
+    private bool IsCompositionUserDefined()
+    {
+        return Variable.InputType == ComponentInputType.MassFraction
+            || Variable.InputType == ComponentInputType.MolarFraction;
+    }
+
     private bool IsEthanolWaterMixture()
     {
         if (Variable?.Components == null || Variable.Components.Count != 2) return false;
@@ -152,6 +171,8 @@
 
     private async Task OnGlValueChanged(double? glValue)
     {
+        if (IsProjectReadOnly) return;
+
         if (!glValue.HasValue)
         {
             await ClearCell();
@@ -169,8 +190,9 @@
 
         if (ethanol != null && water != null)
         {
-            ethanol.MassFraction.SetValueFromUI(new Percentage(massFraction, PercentageUnits.Percentage));
-            water.MassFraction.SetValueFromUI(new Percentage(100 - massFraction, PercentageUnits.Percentage));
+            var user = AuthProvider.CurrentUser;
+            ethanol.MassFraction.SetValueFromUI(new Percentage(massFraction, PercentageUnits.Percentage), user?.Id.ToString(), user?.DisplayName);
+            water.MassFraction.SetValueFromUI(new Percentage(100 - massFraction, PercentageUnits.Percentage), user?.Id.ToString(), user?.DisplayName);
 
             Variable.InputType = ComponentInputType.MassFraction;
 

@@ -2,7 +2,7 @@
 @using Client.Pages.UnitOperations.DialogBase
 
 
-<EquipmentBaseDialog Equipment="Equipment">
+<EquipmentBaseDialog Equipment="Equipment" CanEdit="CanEdit">
     <MainSlot>
         <div class="vessel-canvas-layout">
 
@@ -24,7 +24,7 @@
                 </div>
 
                 <div class="static-port-container bottom-port">
-                    <EquipmentPortConnector Port="@Equipment.Ports.First(p => p.Name == "Outlet_1")"
+                    <EquipmentPortConnector Port="@Equipment.MainOutletPort"
                                             ParentEquipment="Equipment"
                                             OnConnChanged="HandleTopologyChanged" />
                     <div class="port-label">Main Bottoms</div>
@@ -47,6 +47,7 @@
 
 @code {
     [Parameter] public Shared.ProcessFlowDiagram.Vessels.VesselVisualElement Equipment { get; set; } = default!;
+    [Parameter] public bool CanEdit { get; set; } = true;
 
     protected override void OnParametersSet()
     {

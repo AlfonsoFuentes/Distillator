@@ -130,7 +130,8 @@ public class ConnectionService : IConnectionService
         if (sourcePort == null || targetPort == null || sourcePort.Type == targetPort.Type)
             return null;
 
-        var newStream = CreateStream(flowsheet, source, sourcePort);
+        var placement = CalculateIntermediateStreamPlacement(source, sourcePort, target, targetPort, flowsheet.GridSize);
+        var newStream = CreateStream(flowsheet, source, sourcePort, placement.X, placement.Y, placement.RotationAngle);
         if (newStream == null) return null;
 
         var streamPortForSource = sourcePort.Type == PortType.Inlet ? "Outlet" : "Inlet";
@@ -194,7 +195,13 @@ public class ConnectionService : IConnectionService
         return pipe;
     }
 
-    private StreamVisualElement? CreateStream(IFlowsheet flowsheet, IVisualElement source, EquipmentPort sourcePort, double? overrideX = null, double? overrideY = null)
+    private StreamVisualElement? CreateStream(
+        IFlowsheet flowsheet,
+        IVisualElement source,
+        EquipmentPort sourcePort,
+        double? overrideX = null,
+        double? overrideY = null,
+        int? rotationAngle = null)
     {
         var element = _factory.Create(EquipmentType.MaterialStream, 0, 0, v => _placementRules.Snap(v, flowsheet.GridSize));
         if (element is not StreamVisualElement stream) return null;
@@ -211,6 +218,10 @@ public class ConnectionService : IConnectionService
         {
             stream.X = _placementRules.Snap(overrideX.Value, flowsheet.GridSize);
             stream.Y = _placementRules.Snap(overrideY.Value, flowsheet.GridSize);
+            if (rotationAngle.HasValue)
+            {
+                stream.RotationAngle = NormalizeRotation(rotationAngle.Value);
+            }
         }
         else
         {
@@ -240,6 +251,92 @@ public class ConnectionService : IConnectionService
 
         return stream;
     }
+
+    private StreamPlacement CalculateIntermediateStreamPlacement(
+        IVisualElement source,
+        EquipmentPort sourcePort,
+        IVisualElement target,
+        EquipmentPort targetPort,
+        double gridSize)
+    {
+        var sourcePoint = source.GetAbsolutePortCoordinates(sourcePort.Name);
+        var targetPoint = target.GetAbsolutePortCoordinates(targetPort.Name);
+
+        var upstreamPoint = sourcePort.Type == PortType.Outlet ? sourcePoint : targetPoint;
+        var downstreamPoint = sourcePort.Type == PortType.Outlet ? targetPoint : sourcePoint;
+
+        const double nozzleClearance = 72;
+        var upstreamLane = ProjectFromPort(upstreamPoint, nozzleClearance);
+        var downstreamLane = ProjectFromPort(downstreamPoint, nozzleClearance);
+
+        var dx = downstreamLane.X - upstreamLane.X;
+        var dy = downstreamLane.Y - upstreamLane.Y;
+        var rotationAngle = Math.Abs(dx) >= Math.Abs(dy)
+            ? (dx >= 0 ? 0 : 180)
+            : (dy >= 0 ? 90 : 270);
+
+        var centerX = (upstreamLane.X + downstreamLane.X) / 2.0;
+        var centerY = (upstreamLane.Y + downstreamLane.Y) / 2.0;
+
+        if (rotationAngle is 0 or 180)
+        {
+            centerY = ChooseLane(upstreamPoint.Y, downstreamPoint.Y, upstreamPoint.Direction, downstreamPoint.Direction, true);
+        }
+        else
+        {
+            centerX = ChooseLane(upstreamPoint.X, downstreamPoint.X, upstreamPoint.Direction, downstreamPoint.Direction, false);
+        }
+
+        var x = centerX - (60 / 2.0);
+        var y = centerY - (30 / 2.0);
+
+        return new StreamPlacement(
+            _placementRules.Snap(x, gridSize),
+            _placementRules.Snap(y, gridSize),
+            rotationAngle);
+    }
+
+    private static double ChooseLane(
+        double upstreamCoordinate,
+        double downstreamCoordinate,
+        PortDirection upstreamDirection,
+        PortDirection downstreamDirection,
+        bool horizontalStream)
+    {
+        var upstreamAligned = horizontalStream
+            ? upstreamDirection is PortDirection.Left or PortDirection.Right
+            : upstreamDirection is PortDirection.Top or PortDirection.Bottom;
+        var downstreamAligned = horizontalStream
+            ? downstreamDirection is PortDirection.Left or PortDirection.Right
+            : downstreamDirection is PortDirection.Top or PortDirection.Bottom;
+
+        if (upstreamAligned && !downstreamAligned) return upstreamCoordinate;
+        if (!upstreamAligned && downstreamAligned) return downstreamCoordinate;
+        return (upstreamCoordinate + downstreamCoordinate) / 2.0;
+    }
+
+    private static (double X, double Y) ProjectFromPort(AbsoluteCoordinates point, double distance)
+    {
+        var (nx, ny) = DirectionVector(point.Direction);
+        return (point.X + nx * distance, point.Y + ny * distance);
+    }
+
+    private static (double X, double Y) DirectionVector(PortDirection direction) => direction switch
+    {
+        PortDirection.Right => (1, 0),
+        PortDirection.Left => (-1, 0),
+        PortDirection.Bottom => (0, 1),
+        PortDirection.Top => (0, -1),
+        _ => (0, 0)
+    };
+
+    private static int NormalizeRotation(int angle)
+    {
+        var normalized = angle % 360;
+        return normalized < 0 ? normalized + 360 : normalized;
+    }
+
+    private sealed record StreamPlacement(double X, double Y, int RotationAngle);
 
     private void RemoveStream(IFlowsheet flowsheet, StreamVisualElement stream)
     {

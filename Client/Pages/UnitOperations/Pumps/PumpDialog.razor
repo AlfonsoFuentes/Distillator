@@ -2,7 +2,7 @@
 
 
 
-<EquipmentBaseDialog Equipment="Equipment">
+<EquipmentBaseDialog Equipment="Equipment" CanEdit="CanEdit">
 
     @* TOPOLOGÍA, DIBUJO Y PARÁMETROS FLOTANTES (ESTILO HYSYS) *@
     <MainSlot>
@@ -51,4 +51,5 @@
 
 @code {
     [Parameter] public PumpVisualElement Equipment { get; set; } = default!;
+    [Parameter] public bool CanEdit { get; set; } = true;
 }

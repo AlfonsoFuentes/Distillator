@@ -2,7 +2,7 @@
 @using Client.Pages.UnitOperations.DialogBase
 @using Shared.UnitOperations.Helpers
 
-<EquipmentBaseDialog Equipment="Equipment">
+<EquipmentBaseDialog Equipment="Equipment" CanEdit="CanEdit">
     <MainSlot>
         <div class="phe-canvas-layout">
 
@@ -10,12 +10,12 @@
             <div class="side-zone left-zone">
                 <div class="static-port-container top-align">
                     <span class="sub-label hot-label">Hot Inlet</span>
-                    <EquipmentPortConnector Port="@Equipment.Ports.First(p => p.Name == "HotIn")" ParentEquipment="Equipment" />
+                    <EquipmentPortConnector Port="@Equipment.HotInPort" ParentEquipment="Equipment" />
                 </div>
 
                 <div class="static-port-container bottom-align">
                     <span class="sub-label cold-label">Cold Inlet</span>
-                    <EquipmentPortConnector Port="@Equipment.Ports.First(p => p.Name == "ColdIn")" ParentEquipment="Equipment" />
+                    <EquipmentPortConnector Port="@Equipment.ColdInPort" ParentEquipment="Equipment" />
                 </div>
             </div>
 
@@ -34,12 +34,12 @@
             @* 3. ZONA DERECHA: Salidas (Cold Out arriba, Hot Out abajo) *@
             <div class="side-zone right-zone">
                 <div class="static-port-container top-align">
-                    <EquipmentPortConnector Port="@Equipment.Ports.First(p => p.Name == "ColdOut")" ParentEquipment="Equipment" />
+                    <EquipmentPortConnector Port="@Equipment.ColdOutPort" ParentEquipment="Equipment" />
                     <span class="sub-label cold-label">Cold Outlet</span>
                 </div>
 
                 <div class="static-port-container bottom-align">
-                    <EquipmentPortConnector Port="@Equipment.Ports.First(p => p.Name == "HotOut")" ParentEquipment="Equipment" />
+                    <EquipmentPortConnector Port="@Equipment.HotOutPort" ParentEquipment="Equipment" />
                     <span class="sub-label hot-label">Hot Outlet</span>
                 </div>
             </div>
@@ -68,4 +68,5 @@
 
 @code {
     [Parameter] public Shared.ProcessFlowDiagram.HeatExchangers.PlateExchangerVisualElement Equipment { get; set; } = default!;
+    [Parameter] public bool CanEdit { get; set; } = true;
 }

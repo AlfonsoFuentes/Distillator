@@ -12,7 +12,13 @@
     </div>
 
     <div class="palette-body">
-        @if (!IsThermoDefined)
+        @if (SessionService.CurrentProject == null)
+        {
+            <div class="thermo-warning">
+                <span>No project selected</span>
+            </div>
+        }
+        else if (!IsThermoDefined)
         {
             <div class="thermo-warning" title="Configure the thermodynamic method in Project Configuration">
                 <span>⚠</span>
@@ -80,7 +86,9 @@
 @code {
     private string? _hoveredName;
 
-    private bool IsThermoDefined => FSM.CurrentProject?.Configuration.ThermodynamicMethodId != Guid.Empty;
+    private bool IsThermoDefined => SessionService.CurrentProject?.Configuration.ThermodynamicMethodId != Guid.Empty;
+    private bool CanEditCurrentProject => SessionService.CurrentProject != null &&
+                                          SessionService.CanCurrentUserEditProject(SessionService.CurrentProject);
 
     private HashSet<EquipmentType> AllowedTypes
     {
@@ -108,8 +116,16 @@
 
     private void HandleDragStart(EquipmentType type)
     {
+        if (!CanEditCurrentProject)
+        {
+            DragState.CurrentDraggedType = EquipmentType.None;
+            _hoveredName = "Read-only access";
+            return;
+        }
+
         if (!IsThermoDefined)
         {
+            DragState.CurrentDraggedType = EquipmentType.None;
             _hoveredName = "Configure thermodynamic method first";
             return;
         }

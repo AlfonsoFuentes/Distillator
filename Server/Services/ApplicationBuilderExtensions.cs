@@ -1,5 +1,7 @@
 ﻿using Server.Services;
 
+using Server.Entities.Projects.Hubs;
+
 namespace Server.Services
 {
     public static class AppBuilder
@@ -29,6 +31,7 @@ namespace Server.Services
             app.UseAuthorization();  // <-- Valida permisos
 
             app.MapEndPoint();
+            app.MapHub<ProjectCollaborationHub>("/projectCollaborationHub");
             app.MapRazorPages();
             app.MapControllers();
             app.MapFallbackToFile("index.html"); // Debe ir al final

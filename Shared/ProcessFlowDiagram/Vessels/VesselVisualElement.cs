@@ -8,6 +8,8 @@ namespace Shared.ProcessFlowDiagram.Vessels
 
     public class VesselVisualElement : VisualElementBase
     {
+        public const string PortMainOutletName = "Outlet_1";
+
         private SolverVessel Vessel => Facade as SolverVessel ?? throw new InvalidOperationException("Facade must be SolverVessel");
         public override EquipmentType Type => EquipmentType.Tank;
         public override string Prefix => "V";
@@ -15,6 +17,7 @@ namespace Shared.ProcessFlowDiagram.Vessels
         public VesselOrientation Orientation { get; set; } = VesselOrientation.Vertical;
         public VesselHeadType TopHead { get; set; } = VesselHeadType.Torispherical;
         public VesselHeadType BottomHead { get; set; } = VesselHeadType.Torispherical;
+        public EquipmentPort MainOutletPort => Ports.First(port => port.Name == PortMainOutletName);
 
         public VesselVisualElement()
         {
@@ -26,7 +29,7 @@ namespace Shared.ProcessFlowDiagram.Vessels
             AddPort("Inlet_1", PortType.Inlet, 0, 40, PortDirection.Left);
 
             // 🚩 Ajustado a Height + 10 para que dibuje hacia arriba y quede a ras del fondo
-            AddPort("Outlet_1", PortType.Outlet, Width / 2, Height + 10, PortDirection.Bottom);
+            AddPort(PortMainOutletName, PortType.Outlet, Width / 2, Height + 10, PortDirection.Bottom);
 
             RefreshDynamicPorts();
             Facade = new SolverVessel("V-102")

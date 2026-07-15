@@ -10,5 +10,6 @@ namespace Server.Databases
         DbSet<ProjectCollaborator> ProjectCollaborators { get; set; }
         DbSet<ProjectDiagramRecord> ProjectDiagrams { get; set; }
         DbSet<ProjectChangeLog> ProjectChangeLogs { get; set; }
+        DbSet<ProjectUserWorkspaceState> ProjectUserWorkspaceStates { get; set; }
     }
 }

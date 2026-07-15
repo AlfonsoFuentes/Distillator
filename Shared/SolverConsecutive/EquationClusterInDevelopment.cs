@@ -31,6 +31,8 @@ namespace Shared.SolverConsecutive
 
         public SolverEquationTypeModifier EquationTypeModifer { get; }
 
+        public bool CanEvaluate => _equations.All(equation => equation.CanEvaluate);
+
         public List<double> Residuals => _equations
             .SelectMany(equation => equation.Residuals)
             .ToList();

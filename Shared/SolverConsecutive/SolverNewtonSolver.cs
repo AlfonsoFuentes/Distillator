@@ -19,6 +19,11 @@ namespace Shared.SolverConsecutive
             _adjustableVariables = equation.AdjustableVariables().ToList();
 
             var F_old = equation.Residuals.ToArray();
+            if (F_old.Any(residual => !double.IsFinite(residual)))
+            {
+                return new SolverResult(false, 0, double.MaxValue);
+            }
+
             var x_old = _adjustableVariables.Select(v => v.GetSolverValue()).ToArray();
             int nEquations = F_old.Length;
             int nUnknowns = x_old.Length;
@@ -54,7 +59,12 @@ namespace Shared.SolverConsecutive
 
             while (iter < MaxIterations)
             {
-                double[,] J = CalculateJacobian(x_old, F_old);
+                double[,]? J = CalculateJacobian(x_old, F_old);
+                if (J == null)
+                {
+                    return new SolverResult(false, iter, double.MaxValue);
+                }
+
                 double[] dx = LinearSystemSolver.Solve(J, F_old.Select(v => -v).ToArray(), SingularityTolerance);
 
                 if (dx == null)
@@ -76,6 +86,10 @@ namespace Shared.SolverConsecutive
 
                 x_old = stepResult.XNew;
                 F_old = equation.Residuals.ToArray();
+                if (F_old.Any(residual => !double.IsFinite(residual)))
+                {
+                    return new SolverResult(false, iter, double.MaxValue);
+                }
 
                 double normF_new = GetNorm(F_old);
 #if DEBUG
@@ -121,7 +135,7 @@ namespace Shared.SolverConsecutive
 
         private double GetNorm(double[] v) => Math.Sqrt(v.Sum(x => x * x));
 
-        private double[,] CalculateJacobian(double[] x_base, double[] F_base)
+        private double[,]? CalculateJacobian(double[] x_base, double[] F_base)
         {
             int n = x_base.Length, m = F_base.Length;
             double[,] J = new double[m, n];
@@ -133,6 +147,12 @@ namespace Shared.SolverConsecutive
 
                 _adjustableVariables[j].SetValueFromSolver(originalValue + h, VariableDefinedBy.Undefined);
                 double[] F_pert = equation.Residuals.ToArray();
+
+                if (F_pert.Any(residual => !double.IsFinite(residual)))
+                {
+                    _adjustableVariables[j].SetValueFromSolver(originalValue, VariableDefinedBy.Undefined);
+                    return null;
+                }
 
                 for (int i = 0; i < m; i++)
                 {
@@ -171,6 +191,11 @@ namespace Shared.SolverConsecutive
                 }
 
                 var residuals = equation.Residuals.ToArray();
+                if (residuals.Any(residual => !double.IsFinite(residual)))
+                {
+                    currentAlpha *= 0.5;
+                    continue;
+                }
                 double error = GetNorm(residuals);
 
 #if DEBUG

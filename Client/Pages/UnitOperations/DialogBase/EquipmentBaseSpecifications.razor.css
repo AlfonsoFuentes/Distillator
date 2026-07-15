@@ -12,11 +12,12 @@
 
 .spec-grid {
     display: grid;
-    /* Columnas: Name | Type | Dest | = | Value | x | Source | VarType | Actions */
-    grid-template-columns: 1.2fr 110px 1.5fr 24px 80px 24px 1.5fr 130px 70px;
+    /* Columnas: Name | Type | Dest | = | Value | x | Source | Component | VarType | Actions */
+    grid-template-columns: 1.1fr 135px 1.3fr 24px 105px 24px 1.3fr 120px 110px 70px;
     grid-auto-rows: minmax(32px, auto);
     gap: 0;
     width: 100%;
+    min-width: 1100px;
     background-color: var(--border-color, #b0b0b0);
 }
 
@@ -101,6 +102,28 @@
     text-align: right;
 }
 
+.input-suffix {
+    flex: 0 0 auto;
+    padding-right: 7px;
+    color: #64748b;
+    font-family: 'Consolas', monospace;
+    font-size: 11px;
+}
+
+.fixed-value,
+.not-applicable {
+    width: 100%;
+    padding: 0 8px;
+    color: #64748b;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.not-applicable {
+    text-align: center;
+}
+
 /* Menú desplegable para los Enums */
 .type-selector {
     cursor: pointer;
@@ -151,6 +174,17 @@
 
 .source-none {
     color: #64748b !important;
+}
+
+.spec-type-label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.component-name {
+    color: #334155;
+    font-weight: 600;
 }
 
 /* =================================================

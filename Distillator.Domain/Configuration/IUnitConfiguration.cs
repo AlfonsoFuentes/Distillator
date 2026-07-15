@@ -30,14 +30,42 @@ namespace Distillator.Domain.Configuration
         /// <summary>Unidad por defecto para longitud/diámetro (ej: m, mm, in).</summary>
         UnitMeasure DefaultLengthUnit { get; set; }
 
+        UnitMeasure DefaultDiameterUnit { get; set; }
+        UnitMeasure DefaultSurfaceUnit { get; set; }
+        UnitMeasure DefaultVolumeUnit { get; set; }
+        UnitMeasure DefaultTimeUnit { get; set; }
+        UnitMeasure DefaultVelocityUnit { get; set; }
+        UnitMeasure DefaultMassUnit { get; set; }
+        UnitMeasure DefaultForceUnit { get; set; }
+        UnitMeasure DefaultElectricUnit { get; set; }
+        UnitMeasure DefaultMotorVelocityUnit { get; set; }
+        UnitMeasure DefaultAmountOfSubstanceUnit { get; set; }
+        UnitMeasure DefaultHeatTransferCoefficientUnit { get; set; }
+
         /// <summary>Unidad por defecto para densidad (ej: kg/m³, lb/ft³).</summary>
         UnitMeasure DefaultDensityUnit { get; set; }
+
+        UnitMeasure DefaultMolarDensityUnit { get; set; }
+        UnitMeasure DefaultMassVolumeSpecificUnit { get; set; }
+        UnitMeasure DefaultMolarVolumeSpecificUnit { get; set; }
+        UnitMeasure DefaultPressureDropLengthUnit { get; set; }
+        UnitMeasure DefaultPressureDropUnit { get; set; }
 
         /// <summary>Unidad por defecto para viscosidad (ej: cP, Pa·s).</summary>
         UnitMeasure DefaultViscosityUnit { get; set; }
 
         /// <summary>Unidad por defecto para conductividad térmica.</summary>
         UnitMeasure DefaultThermalConductivityUnit { get; set; }
+
+        UnitMeasure DefaultVolumeEnergyUnit { get; set; }
+        UnitMeasure DefaultMassEnergyUnit { get; set; }
+        UnitMeasure DefaultMolarEnergyUnit { get; set; }
+        UnitMeasure DefaultMassEntropyUnit { get; set; }
+        UnitMeasure DefaultMolarEntropyUnit { get; set; }
+        UnitMeasure DefaultHeatSurfaceFlowUnit { get; set; }
+        UnitMeasure DefaultVolumetricFlowUnit { get; set; }
+        UnitMeasure DefaultEnergyFlowUnit { get; set; }
+        UnitMeasure DefaultSuperficialTensionUnit { get; set; }
     }
 
     public interface IProjectUnitSystem

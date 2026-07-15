@@ -8,9 +8,9 @@ public class PipeReference : IPipeReference
     public string SourcePortName { get; }
     public string TargetPortName { get; }
 
-    public PipeReference(Guid sourceElementId, Guid targetElementId, string sourcePortName, string targetPortName)
+    public PipeReference(Guid sourceElementId, Guid targetElementId, string sourcePortName, string targetPortName, Guid? id = null)
     {
-        Id = Guid.NewGuid();
+        Id = id ?? Guid.NewGuid();
         SourceElementId = sourceElementId;
         TargetElementId = targetElementId;
         SourcePortName = sourcePortName ?? throw new ArgumentNullException(nameof(sourcePortName));

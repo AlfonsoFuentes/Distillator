@@ -9,6 +9,7 @@ namespace Shared.SolverConsecutive
         SolverEquationType EquationType { get; }
         List<double> Residuals { get; }
         List<IVariable> Variables { get; }
+        bool CanEvaluate => true;
 
         List<IVariable> AdjustableVariables() => Variables.Where(x => !x.IsDefined).ToList();
 

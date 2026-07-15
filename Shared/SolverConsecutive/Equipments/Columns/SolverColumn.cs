@@ -389,15 +389,15 @@ namespace Shared.SolverConsecutive.Equipments.Columns
         {
             var residuals = new List<double>();
 
-            if (_column.VaporOutlet == null ||
-                _column.BottomOutlet == null ||
-                _column.RefluxInlet == null ||
-                _column.VaporInlet == null ||
-                _column.Feeds == null ||
-                _column.Feeds.Count == 0)
-            {
-                return residuals; // Retorna vacío, el solver ignora esta ecuación
-            }
+            //if (_column.VaporOutlet == null ||
+            //    _column.BottomOutlet == null ||
+            //    _column.RefluxInlet == null ||
+            //    _column.VaporInlet == null ||
+            //    _column.Feeds == null ||
+            //    _column.Feeds.Count == 0)
+            //{
+            //    return residuals; // Retorna vacío, el solver ignora esta ecuación
+            //}
 
             double totalEnergyIn = 0;
             double totalEnergyOut = 0;
@@ -413,11 +413,13 @@ namespace Shared.SolverConsecutive.Equipments.Columns
                 double HVaporOutlet = _column.VaporOutlet.MassEnthalpy.GetSolverValue();
                 totalmassOut += mVaporOutlet;
                 totalEnergyOut += mVaporOutlet * HVaporOutlet;
-
-                for (int i = 0; i < _column.VaporOutlet.Composition.Components.Count - 1; i++)
+               if(_column.VaporOutlet.Composition!=null)
                 {
-                    var compo = _column.VaporOutlet.Composition.Components[i];
-                    massCompoOut += compo.MassFraction.GetSolverValue() * mVaporOutlet;
+                    for (int i = 0; i < _column.VaporOutlet.Composition.Components.Count - 1; i++)
+                    {
+                        var compo = _column.VaporOutlet.Composition.Components[i];
+                        massCompoOut += compo.MassFraction.GetSolverValue() * mVaporOutlet;
+                    }
                 }
 
 
@@ -429,10 +431,13 @@ namespace Shared.SolverConsecutive.Equipments.Columns
                 double HBottomOutlet = _column.BottomOutlet.MassEnthalpy.GetSolverValue();
                 totalmassOut += mBottomOutlet;
                 totalEnergyOut += mBottomOutlet * HBottomOutlet;
-                for (int i = 0; i < _column.BottomOutlet.Composition.Components.Count - 1; i++)
+                if (_column.BottomOutlet.Composition != null)
                 {
-                    var compo = _column.BottomOutlet.Composition.Components[i];
-                    massCompoOut += compo.MassFraction.GetSolverValue() * mBottomOutlet;
+                    for (int i = 0; i < _column.BottomOutlet.Composition.Components.Count - 1; i++)
+                    {
+                        var compo = _column.BottomOutlet.Composition.Components[i];
+                        massCompoOut += compo.MassFraction.GetSolverValue() * mBottomOutlet;
+                    }
                 }
 
             }
@@ -443,10 +448,13 @@ namespace Shared.SolverConsecutive.Equipments.Columns
                 totalmassIn += mVaporInlet;
                 totalEnergyIn += mVaporInlet * HVaporInlet;
 
-                for (int i = 0; i < _column.VaporInlet.Composition.Components.Count - 1; i++)
+                if (_column.VaporInlet.Composition != null)
                 {
-                    var compo = _column.VaporInlet.Composition.Components[i];
-                    massCompIn += compo.MassFraction.GetSolverValue() * mVaporInlet;
+                    for (int i = 0; i < _column.VaporInlet.Composition.Components.Count - 1; i++)
+                    {
+                        var compo = _column.VaporInlet.Composition.Components[i];
+                        massCompIn += compo.MassFraction.GetSolverValue() * mVaporInlet;
+                    }
                 }
             }
 
@@ -457,10 +465,13 @@ namespace Shared.SolverConsecutive.Equipments.Columns
                 totalmassIn += mRefluxInlet;
                 totalEnergyIn += mRefluxInlet * HRefluxInlet;
 
-                for (int i = 0; i < _column.RefluxInlet.Composition.Components.Count - 1; i++)
+                if (_column.RefluxInlet.Composition != null)
                 {
-                    var compo = _column.RefluxInlet.Composition.Components[i];
-                    massCompIn += compo.MassFraction.GetSolverValue() * mRefluxInlet;
+                    for (int i = 0; i < _column.RefluxInlet.Composition.Components.Count - 1; i++)
+                    {
+                        var compo = _column.RefluxInlet.Composition.Components[i];
+                        massCompIn += compo.MassFraction.GetSolverValue() * mRefluxInlet;
+                    }
                 }
             }
 
@@ -471,10 +482,13 @@ namespace Shared.SolverConsecutive.Equipments.Columns
                 double Hsidedraw = sidedraw.MassEnthalpy.GetSolverValue();
                 totalmassOut += msidedraw;
                 totalEnergyOut += msidedraw * Hsidedraw;
-                for (int i = 0; i < sidedraw.Composition.Components.Count - 1; i++)
+                if (sidedraw.Composition != null)
                 {
-                    var compo = sidedraw.Composition.Components[i];
-                    massCompoOut += compo.MassFraction.GetSolverValue() * msidedraw;
+                    for (int i = 0; i < sidedraw.Composition.Components.Count - 1; i++)
+                    {
+                        var compo = sidedraw.Composition.Components[i];
+                        massCompoOut += compo.MassFraction.GetSolverValue() * msidedraw;
+                    }
                 }
             }
             foreach (var feed in _column.Feeds)
@@ -483,10 +497,13 @@ namespace Shared.SolverConsecutive.Equipments.Columns
                 double Hfeed = feed.MassEnthalpy.GetSolverValue();
                 totalmassIn += mfeed;
                 totalEnergyIn += mfeed * Hfeed;
-                for (int i = 0; i < feed.Composition.Components.Count - 1; i++)
+                if (feed.Composition != null)
                 {
-                    var compo = feed.Composition.Components[i];
-                    massCompIn += compo.MassFraction.GetSolverValue() * mfeed;
+                    for (int i = 0; i < feed.Composition.Components.Count - 1; i++)
+                    {
+                        var compo = feed.Composition.Components[i];
+                        massCompIn += compo.MassFraction.GetSolverValue() * mfeed;
+                    }
                 }
             }
 

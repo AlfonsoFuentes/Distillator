@@ -2,7 +2,7 @@
 @using Client.Pages.UnitOperations.DialogBase
 @using Shared.UnitOperations.Helpers
 
-<EquipmentBaseDialog Equipment="Equipment">
+<EquipmentBaseDialog Equipment="Equipment" CanEdit="CanEdit">
     <MainSlot>
         <div class="reb-canvas-layout">
 
@@ -10,7 +10,7 @@
             <div class="side-zone left-zone">
                 <div class="static-port-container top-align">
                     <span class="sub-label">Vapor/Mix Out</span>
-                    <EquipmentPortConnector Port="@Equipment.Ports.First(p => p.Name == "TubeOut")" ParentEquipment="Equipment" />
+                    <EquipmentPortConnector Port="@Equipment.TubeOutPort" ParentEquipment="Equipment" />
                 </div>
             </div>
 
@@ -26,7 +26,7 @@
                 </div>
 
                 <div class="static-port-container bottom-align">
-                    <EquipmentPortConnector Port="@Equipment.Ports.First(p => p.Name == "TubeIn")" ParentEquipment="Equipment" />
+                    <EquipmentPortConnector Port="@Equipment.TubeInPort" ParentEquipment="Equipment" />
                     <span class="sub-label">Liquid Feed</span>
                 </div>
             </div>
@@ -36,12 +36,12 @@
                 <div class="port-label">Utility Side</div>
 
                 <div class="static-port-container top-align">
-                    <EquipmentPortConnector Port="@Equipment.Ports.First(p => p.Name == "ShellIn")" ParentEquipment="Equipment" />
+                    <EquipmentPortConnector Port="@Equipment.ShellInPort" ParentEquipment="Equipment" />
                     <span class="sub-label">Steam In</span>
                 </div>
 
                 <div class="static-port-container bottom-align">
-                    <EquipmentPortConnector Port="@Equipment.Ports.First(p => p.Name == "CondensateOut")" ParentEquipment="Equipment" />
+                    <EquipmentPortConnector Port="@Equipment.CondensateOutPort" ParentEquipment="Equipment" />
                     <span class="sub-label">Condensate Out</span>
                 </div>
             </div>
@@ -70,4 +70,5 @@
 
 @code {
     [Parameter] public Shared.ProcessFlowDiagram.HeatExchangers.ReboilerVisualElement Equipment { get; set; } = default!;
+    [Parameter] public bool CanEdit { get; set; } = true;
 }

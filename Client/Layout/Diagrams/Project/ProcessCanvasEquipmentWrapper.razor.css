@@ -112,6 +112,45 @@
         visibility: visible;
     }
 
+.equipment-context-menu {
+    position: absolute;
+    z-index: 12000;
+    min-width: 112px;
+    padding: 4px;
+    background: #FFFFFF;
+    border: 1px solid #CBD5E1;
+    border-radius: 6px;
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.16);
+}
+
+.equipment-context-menu button {
+    width: 100%;
+    border: none;
+    background: transparent;
+    color: #334155;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 6px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    text-align: left;
+}
+
+.equipment-context-menu button:hover {
+    background: #F1F5F9;
+}
+
+.equipment-context-menu button.danger {
+    color: #B91C1C;
+}
+
+.equipment-context-menu button.danger:hover {
+    background: #FEE2E2;
+}
+
 .equipment-tooltip {
     position: absolute;
     left: 50%;

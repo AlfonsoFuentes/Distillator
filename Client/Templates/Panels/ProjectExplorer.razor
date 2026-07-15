@@ -5,6 +5,8 @@
 @using Client.Services.Helpers
 @using Client.Pages.Dialogs
 @using Shared.Helpers
+@using Shared.Projects
+@implements IDisposable
 
 @inject IProjectRepository ProjectRepository
 @inject ProjectSessionService SessionService
@@ -58,34 +60,22 @@
             else
             {
                 <div class="project-list">
-                    @foreach (var project in _projects)
+                    @if (OwnedProjects.Any())
                     {
-                        <div class="project-item @(IsSelected(project) ? "selected" : "")"
-                             @onclick="() => SelectProject(project)">
+                        <div class="project-section-title">My Projects</div>
+                        @foreach (var project in OwnedProjects)
+                        {
+                            @ProjectRow(project)
+                        }
+                    }
 
-                            <div class="project-icon">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
-                                </svg>
-                            </div>
-
-                            <span class="project-name">@project.Name</span>
-
-                            <div class="project-actions" @onclick:stopPropagation="true">
-                                <button class="action-btn" @onclick="() => EditProject(project)" title="Edit">
-                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                                    </svg>
-                                </button>
-                                <button class="action-btn delete" @onclick="() => DeleteProject(project)" title="Delete">
-                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <polyline points="3 6 5 6 21 6"></polyline>
-                                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                                    </svg>
-                                </button>
-                            </div>
-                        </div>
+                    @if (SharedProjects.Any())
+                    {
+                        <div class="project-section-title">Shared With Me</div>
+                        @foreach (var project in SharedProjects)
+                        {
+                            @ProjectRow(project)
+                        }
                     }
                 </div>
             }
@@ -94,20 +84,125 @@
 </div>
 
 @code {
+    private RenderFragment<Project> ProjectRow => project => @<div class="project-item @(IsSelected(project) ? "selected" : "")"
+                                                                 @onclick="() => SelectProject(project)">
+        <div class="project-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+            </svg>
+        </div>
+
+        <span class="project-name">@project.Name</span>
+
+        <div class="project-actions" @onclick:stopPropagation="true">
+            @if (SessionService.CanCurrentUserEditProject(project))
+            {
+                <button class="action-btn"
+                        @onclick="() => EditProject(project)"
+                        @onmouseenter="@(() => _hoveredTooltip = $"edit-{project.Id}")"
+                        @onmouseleave="@(() => _hoveredTooltip = null)">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                    </svg>
+                    @if (_hoveredTooltip == $"edit-{project.Id}")
+                    {
+                        <span class="pe-tooltip">Edit</span>
+                    }
+                </button>
+            }
+
+            @if (SessionService.IsCurrentUserProjectOwner(project))
+            {
+                <button class="action-btn"
+                        @onclick="() => ShareProject(project)"
+                        @onmouseenter="@(() => _hoveredTooltip = $"share-{project.Id}")"
+                        @onmouseleave="@(() => _hoveredTooltip = null)">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="9" cy="7" r="4"></circle>
+                        <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                    </svg>
+                    @if (_hoveredTooltip == $"share-{project.Id}")
+                    {
+                        <span class="pe-tooltip">Share</span>
+                    }
+                </button>
+
+                <button class="action-btn delete"
+                        @onclick="() => DeleteProject(project)"
+                        @onmouseenter="@(() => _hoveredTooltip = $"delete-{project.Id}")"
+                        @onmouseleave="@(() => _hoveredTooltip = null)">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="3 6 5 6 21 6"></polyline>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    </svg>
+                    @if (_hoveredTooltip == $"delete-{project.Id}")
+                    {
+                        <span class="pe-tooltip">Delete</span>
+                    }
+                </button>
+            }
+        </div>
+    </div>;
+}
+
+@code {
     [Parameter] public EventCallback<Project> OnProjectSelected { get; set; }
 
     private bool IsCollapsed { get; set; } = false;
     private bool _isLoading = true;
     private List<Project> _projects = new();
     private Guid? _selectedProjectId;
+    private string? _hoveredTooltip;
+    private bool _isReloadingProjects;
+    private bool _reloadProjectsAgain;
+    private IEnumerable<Project> OwnedProjects => _projects.Where(SessionService.IsCurrentUserProjectOwner);
+    private IEnumerable<Project> SharedProjects => _projects.Where(project => !SessionService.IsCurrentUserProjectOwner(project));
 
     protected override async Task OnInitializedAsync()
     {
+        SessionService.ProjectReloaded += OnProjectReloaded;
+        SessionService.ProjectListRefreshRequested += OnProjectListRefreshRequested;
         await LoadProjectsAsync();
     }
 
-    private async Task LoadProjectsAsync()
+    public void Dispose()
     {
+        SessionService.ProjectReloaded -= OnProjectReloaded;
+        SessionService.ProjectListRefreshRequested -= OnProjectListRefreshRequested;
+    }
+
+    private async void OnProjectListRefreshRequested()
+    {
+        await InvokeAsync(() => LoadProjectsAsync(force: true));
+    }
+
+    private void OnProjectReloaded(Project project)
+    {
+        var index = _projects.FindIndex(item => item.Id == project.Id);
+        if (index >= 0)
+        {
+            _projects[index] = project;
+        }
+        else
+        {
+            _projects.Insert(0, project);
+        }
+
+        InvokeAsync(StateHasChanged);
+    }
+
+    private async Task LoadProjectsAsync(bool force = false)
+    {
+        if (_isReloadingProjects)
+        {
+            _reloadProjectsAgain = true;
+            return;
+        }
+
+        _isReloadingProjects = true;
         _isLoading = true;
         StateHasChanged();
 
@@ -126,21 +221,21 @@
                 return;
             }
 
-            _projects = await SessionService.LoadUserProjectsAsync();
+            var projects = await SessionService.LoadUserProjectsAsync();
+            _projects = projects;
+            await SessionService.InitializeFromProjectsAsync(_projects);
 
-            if (_projects.Count == 0)
+            IsCollapsed = SessionService.IsProjectExplorerCollapsed;
+
+            if (SessionService.CurrentProject != null)
             {
-                var defaultProject = (Project)user.CreateProject("Main Project");
-                defaultProject.CreateFlowsheet("PFD 1", "PFD");
-                await SessionService.PersistProjectCreatedAsync(defaultProject);
-                _projects.Add(defaultProject);
+                _selectedProjectId = SessionService.CurrentProject.Id;
+                await OnProjectSelected.InvokeAsync(SessionService.CurrentProject);
             }
-
-            // Select the first project (most recent) by default
-            if (_projects.Count > 0)
+            else
             {
-                var mostRecent = _projects.First();
-                await SelectProject(mostRecent);
+                _selectedProjectId = null;
+                await OnProjectSelected.InvokeAsync(null);
             }
         }
         catch (Exception ex)
@@ -150,21 +245,43 @@
         finally
         {
             _isLoading = false;
+            _isReloadingProjects = false;
+            StateHasChanged();
+        }
+
+        if (_reloadProjectsAgain)
+        {
+            _reloadProjectsAgain = false;
+            await LoadProjectsAsync(force: true);
         }
     }
 
-    private void ToggleExplorer()
+    private async Task ToggleExplorer()
     {
         IsCollapsed = !IsCollapsed;
+        await SessionService.SetProjectExplorerCollapsedAsync(IsCollapsed);
     }
 
     private bool IsSelected(Project project) => _selectedProjectId == project.Id;
 
     private async Task SelectProject(Project project)
     {
-        _selectedProjectId = project.Id;
-        await SessionService.SetCurrentProjectAsync(project);
-        await OnProjectSelected.InvokeAsync(project);
+        var latestProject = await SessionService.LoadProjectAsync(project.Id);
+        if (latestProject == null)
+        {
+            await LoadProjectsAsync(force: true);
+            return;
+        }
+
+        var index = _projects.FindIndex(item => item.Id == latestProject.Id);
+        if (index >= 0)
+        {
+            _projects[index] = latestProject;
+        }
+
+        _selectedProjectId = latestProject.Id;
+        await SessionService.SetCurrentProjectAsync(latestProject);
+        await OnProjectSelected.InvokeAsync(latestProject);
     }
 
     private async Task CreateProject()
@@ -189,17 +306,29 @@
             await ProjectRepository.SaveAsync(newProject);
             await SessionService.PersistProjectCreatedAsync(newProject);
             _projects.Insert(0, newProject);
-            _selectedProjectId = newProject.Id;
-            await OnProjectSelected.InvokeAsync(newProject);
+            await SelectProject(newProject);
             SnackbarService?.ShowSuccess($"Project '{newProject.Name}' created.");
         }
     }
 
     private async Task EditProject(Project project)
     {
+        var projectToEdit = await SessionService.LoadProjectAsync(project.Id);
+        if (projectToEdit == null)
+        {
+            await LoadProjectsAsync(force: true);
+            return;
+        }
+
+        var index = _projects.FindIndex(item => item.Id == projectToEdit.Id);
+        if (index >= 0)
+        {
+            _projects[index] = projectToEdit;
+        }
+
         var parameters = new DialogParameters
         {
-            { "Project", project },
+            { "Project", projectToEdit },
             { "ExistingProjects", _projects }
         };
         var options = new DialogOptions
@@ -216,8 +345,44 @@
         if (result?.Canceled == false && result.Data is Project updatedProject)
         {
             await ProjectRepository.SaveAsync(updatedProject);
+            var updatedIndex = _projects.FindIndex(item => item.Id == updatedProject.Id);
+            if (updatedIndex >= 0)
+            {
+                _projects[updatedIndex] = updatedProject;
+            }
+
             await SelectProject(updatedProject);
             SnackbarService?.ShowSuccess($"Project '{updatedProject.Name}' updated.");
+        }
+    }
+
+    private async Task ShareProject(Project project)
+    {
+        var sharing = await SessionService.GetProjectSharingAsync(project.Id);
+        if (sharing == null)
+        {
+            return;
+        }
+
+        var parameters = new DialogParameters
+        {
+            { "AvailableUsers", sharing.AvailableUsers },
+            { "Collaborators", sharing.Collaborators }
+        };
+        var options = new DialogOptions
+        {
+            MaxWidth = MaxWidth.False,
+            FullWidth = false,
+            CloseOnEscapeKey = true,
+            BackdropClick = true
+        };
+
+        var dialog = await DialogService.ShowAsync<ShareProjectDialog>("", parameters, options);
+        var result = await dialog.Result;
+
+        if (result?.Canceled == false && result.Data is List<ProjectCollaboratorDto> collaborators)
+        {
+            await SessionService.UpdateProjectSharingAsync(project.Id, collaborators);
         }
     }
 
@@ -233,14 +398,19 @@
 
         if (result?.Canceled == false)
         {
+            var deleted = await SessionService.DeleteProjectAsync(project);
+            if (!deleted)
+            {
+                return;
+            }
+
             await ProjectRepository.DeleteAsync(project.Id);
             _projects.Remove(project);
 
             if (_selectedProjectId == project.Id && _projects.Count > 0)
             {
                 var next = _projects.First();
-                _selectedProjectId = next.Id;
-                await OnProjectSelected.InvokeAsync(next);
+                await SelectProject(next);
             }
             else if (_projects.Count == 0)
             {

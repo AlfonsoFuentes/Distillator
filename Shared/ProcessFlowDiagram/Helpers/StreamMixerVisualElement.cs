@@ -5,6 +5,8 @@ namespace Shared.ProcessFlowDiagram.Helpers
 {
     public class StreamMixerVisualElement : VisualElementBase
     {
+        public const string PortOutletName = "Outlet";
+
         private SolverStreamMixer StreamMixer => Facade as SolverStreamMixer ?? throw new InvalidOperationException("Facade must be SolverStreamMixer");
         public override EquipmentType Type => EquipmentType.Mixer;
         public override string Prefix => "MIX";
@@ -13,6 +15,7 @@ namespace Shared.ProcessFlowDiagram.Helpers
         public override bool AllowFlipHorizontal => true;
         public override bool AllowFlipVertical => true;
         public override bool IsResizable => false;
+        public EquipmentPort OutletPort => Ports.First(port => port.Name == PortOutletName);
 
         public StreamMixerVisualElement()
         {
@@ -21,7 +24,7 @@ namespace Shared.ProcessFlowDiagram.Helpers
 
             // 1. Salida estática (Punta del triángulo a la derecha). 
             // 🚩 Se dibuja desde Width - 10 hasta Width
-            AddPort("Outlet", PortType.Outlet, Width, Height / 2, PortDirection.Right);
+            AddPort(PortOutletName, PortType.Outlet, Width, Height / 2, PortDirection.Right);
 
             // 2. Primera entrada dinámica (Base plana a la izquierda)
             // 🚩 Se dibuja desde 0 hasta 10

@@ -32,6 +32,7 @@ public class PfdEquipmentFactory : IEquipmentFactory, IPfdEquipmentFactory
             EquipmentType.Splitter => new SplitterVisualElement(),
             EquipmentType.Mixer => new StreamMixerVisualElement(),
             EquipmentType.Tank => new VesselVisualElement(),
+            EquipmentType.OffPageConnector => new OffPageConnectorElement(),
             _ => null
         };
 

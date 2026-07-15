@@ -1,19 +1,19 @@
 ﻿
 
 
-<EquipmentBaseDialog Equipment="Equipment">
+<EquipmentBaseDialog Equipment="Equipment" CanEdit="CanEdit">
     
     <MainSlot>
         <div class="cv-canvas-layout">
             
             @* 1. PUERTO DE ENTRADA (IZQUIERDA) *@
             <div class="port-selector inlet-pos">
-                <EquipmentPortConnector Port='Equipment.Ports.First(p => p.Name == "Inlet")' ParentEquipment="Equipment" />
+                <EquipmentPortConnector Port="Equipment.InletPort" ParentEquipment="Equipment" />
             </div>
 
             @* 2. PUERTO DE SALIDA (DERECHA) *@
             <div class="port-selector outlet-pos">
-                <EquipmentPortConnector Port='Equipment.Ports.First(p => p.Name == "Outlet")' ParentEquipment="Equipment" />
+                <EquipmentPortConnector Port="Equipment.OutletPort" ParentEquipment="Equipment" />
             </div>
 
             @* 3. DIBUJO CENTRAL *@
@@ -37,4 +37,5 @@
 
 @code {
     [Parameter] public ControlValveVisualElement Equipment { get; set; } = default!;
+    [Parameter] public bool CanEdit { get; set; } = true;
 }

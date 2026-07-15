@@ -8,7 +8,7 @@
     <div class="entry-input">
         @if (IsReadOnly)
         {
-            <span class="gl-value-readonly @(IsCalculated ? "calculated" : "") @(ShouldShowTooltip() ? "has-tooltip" : "")">
+            <span class="gl-value-readonly @(IsCalculated ? "calculated" : "") @(IsUserDefined ? "user-defined" : "") @(ShouldShowTooltip() ? "has-tooltip" : "")">
                 @GetReadonlyDisplayValue()
                 @if (!string.IsNullOrWhiteSpace(SourceId))
                 {
@@ -22,7 +22,7 @@
         }
         else
         {
-            <div class="editable-wrapper @(ShouldShowTooltip() ? "has-tooltip" : "")">
+            <div class="editable-wrapper @(IsUserDefined ? "user-defined" : "") @(ShouldShowTooltip() ? "has-tooltip" : "")">
                 <input type="text"
                        value="@GetInputValue()"
                        placeholder="@Placeholder"
@@ -48,7 +48,9 @@
     [Parameter] public bool IsComponentReadOnly { get; set; }
     [Parameter] public bool IsGlInputReadOnly { get; set; }
     [Parameter] public bool IsMassFractionDefined { get; set; }
+    [Parameter] public bool IsUserDefined { get; set; }
     [Parameter] public string? SourceId { get; set; }
+    [Parameter] public string? TooltipText { get; set; }
 
     private double? _tempValue;
     private bool _isEditing;
@@ -61,8 +63,10 @@
     private const string Placeholder = "<Not defined>";
     private bool HasPlaceholder => !IsMassFractionDefined && !_hasUserTyped;
 
-    private bool ShouldShowTooltip() => !string.IsNullOrWhiteSpace(SourceId);
-    private string? GetTooltipText() => !string.IsNullOrWhiteSpace(SourceId) ? $"Calculated by: {SourceId}" : null;
+    private bool ShouldShowTooltip() => !string.IsNullOrWhiteSpace(TooltipText) || !string.IsNullOrWhiteSpace(SourceId);
+    private string? GetTooltipText() => !string.IsNullOrWhiteSpace(TooltipText)
+        ? TooltipText
+        : !string.IsNullOrWhiteSpace(SourceId) ? $"Calculated by: {SourceId}" : null;
 
     private string GetInfoText()
     {

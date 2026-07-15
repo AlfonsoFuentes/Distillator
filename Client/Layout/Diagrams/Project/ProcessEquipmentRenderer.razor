@@ -17,6 +17,7 @@
 <ProcessCanvasEquipmentWrapper Element="Element"
                                IsSelected="IsSelected"
                                IsDragging="IsDragging"
+                               CanEdit="CanEditCurrentProject"
                                OnSelect="OnSelect"
                                OnDragStart="OnDragStart"
                                OnOpenDetails="OpenDetails">
@@ -169,9 +170,13 @@
     [Parameter] public EventCallback<IVisualElement> OnSelect { get; set; }
     [Parameter] public EventCallback<MouseEventArgs> OnDragStart { get; set; }
 
+    private bool CanEditCurrentProject => ProjectSessionService.CurrentProject != null &&
+                                          ProjectSessionService.CanCurrentUserEditProject(ProjectSessionService.CurrentProject);
+
     private async Task OpenDetails()
     {
         var parameters = new DialogParameters();
+        parameters.Add("CanEdit", CanEditCurrentProject);
         var options = new DialogOptions
         {
             MaxWidth = MaxWidth.False,

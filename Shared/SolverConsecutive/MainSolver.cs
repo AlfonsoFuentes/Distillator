@@ -185,7 +185,7 @@ namespace Shared.SolverConsecutive
 
             foreach (var equipment in Equipments.Where(equipment => equipment.Specifications.Any()))
             {
-                foreach (var specification in equipment.Specifications.OfType<StreamSpecificationBase>())
+                foreach (var specification in equipment.Specifications)
                 {
                     clusters.Add(BuildSeedEquipmentSpecificationCluster(equipment, specification));
                 }
@@ -196,15 +196,10 @@ namespace Shared.SolverConsecutive
 
         private EquationClusterInDevelopment BuildSeedEquipmentSpecificationCluster(
             ISolverEquipment seedEquipment,
-            StreamSpecificationBase specification)
+            ISpecification specification)
         {
             var clusterStreams = GetSpecificationClusterStreams(seedEquipment, specification);
-            var clusterVariables = GetSpecificationClusterVariables(clusterStreams, specification.VariableType);
-
-            foreach (var variable in specification.GetVariables())
-            {
-                clusterVariables.Add(variable);
-            }
+            var clusterVariables = GetSpecificationClusterVariables(clusterStreams, specification);
 
             var cluster = new EquationClusterInDevelopment(
                 SolverEquationType.Specification,
@@ -248,7 +243,7 @@ namespace Shared.SolverConsecutive
 
             foreach (var equipment in Equipments.Where(equipment => equipment.Specifications.Any()))
             {
-                foreach (var specification in equipment.Specifications.OfType<StreamSpecificationBase>())
+                foreach (var specification in equipment.Specifications)
                 {
                     var clusterStreams = GetSpecificationClusterStreams(equipment, specification);
                     var clusterEquipments = GetEquipmentsConnectedTo(clusterStreams, equipment);
@@ -266,16 +261,11 @@ namespace Shared.SolverConsecutive
 
         private EquationClusterInDevelopment BuildSpecificationCluster(
             ISolverEquipment seedEquipment,
-            StreamSpecificationBase specification,
+            ISpecification specification,
             HashSet<IFacadeStream> clusterStreams,
             HashSet<ISolverEquipment> clusterEquipments)
         {
-            var clusterVariables = GetSpecificationClusterVariables(clusterStreams, specification.VariableType);
-
-            foreach (var variable in specification.GetVariables())
-            {
-                clusterVariables.Add(variable);
-            }
+            var clusterVariables = GetSpecificationClusterVariables(clusterStreams, specification);
 
             var cluster = new EquationClusterInDevelopment(
                 SolverEquationType.Specification,
@@ -299,7 +289,7 @@ namespace Shared.SolverConsecutive
 
         private static bool IsRelevantForSpecificationCluster(
             ISolverEquation equation,
-            StreamSpecificationBase specification)
+            ISpecification specification)
         {
             if (equation.EquationType == specification.TargetEquationType)
             {
@@ -312,12 +302,12 @@ namespace Shared.SolverConsecutive
 
         private static HashSet<IFacadeStream> GetSpecificationClusterStreams(
             ISolverEquipment seedEquipment,
-            StreamSpecificationBase specification)
+            ISpecification specification)
         {
             return new HashSet<IFacadeStream>(
                 seedEquipment.Inlets
                     .Concat(seedEquipment.Outlets)
-                    .Concat([specification.Source, specification.Destination]));
+                    .Concat(specification.AssociatedStreams));
         }
 
         private static HashSet<ISolverEquipment> GetEquipmentsConnectedTo(
@@ -344,13 +334,18 @@ namespace Shared.SolverConsecutive
 
         private static HashSet<IVariable> GetSpecificationClusterVariables(
             IEnumerable<IFacadeStream> streams,
-            SpecVariableType variableType)
+            ISpecification specification)
         {
-            var variables = new HashSet<IVariable>();
+            var variables = specification.GetVariables().ToHashSet();
+
+            if (specification is not StreamSpecificationBase streamSpecification)
+            {
+                return variables;
+            }
 
             foreach (var stream in streams)
             {
-                var variable = GetStreamVariable(stream, variableType);
+                var variable = GetStreamVariable(stream, streamSpecification.VariableType);
                 if (variable != null)
                 {
                     variables.Add(variable);
@@ -419,6 +414,12 @@ namespace Shared.SolverConsecutive
                 for (var index = 0; index < clusteredEquations.Count;)
                 {
                     var equation = clusteredEquations[index];
+                    if (!equation.CanEvaluate)
+                    {
+                        index++;
+                        continue;
+                    }
+
                     equation.RefreshEquation();
                     var result = _solver.Solve(equation);
 
@@ -540,8 +541,9 @@ namespace Shared.SolverConsecutive
 
         private void ClearCalculatedBySolver()
         {
-            var variables = Streams
-                .SelectMany(GetStreamVariables)
+            var variables = Equipments
+                .SelectMany(equipment => equipment.Equations)
+                .SelectMany(equation => equation.Variables)
                 .Where(variable => variable.DataProcedence == VariableDefinedBy.Solver)
                 .Distinct()
                 .ToList();

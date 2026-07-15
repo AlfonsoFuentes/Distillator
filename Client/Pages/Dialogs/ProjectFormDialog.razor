@@ -13,11 +13,12 @@
 
             <div class="tabs-header">
                 <div class="tab @(_activeTab == "General" ? "active" : "")" @onclick='() => SetTab("General")'>General</div>
+                <div class="tab @(_activeTab == "Naming" ? "active" : "")" @onclick='() => SetTab("Naming")'>Naming</div>
                 <div class="tab @(_activeTab == "Units" ? "active" : "")" @onclick='() => SetTab("Units")'>Units</div>
                 <div class="tab @(_activeTab == "Camera" ? "active" : "")" @onclick='() => SetTab("Camera")'>Camera</div>
                 <div class="tab @(_activeTab == "Reports" ? "active" : "")" @onclick='() => SetTab("Reports")'>Reports</div>
                 <div class="tab @(_activeTab == "Equipment Design" ? "active" : "")" @onclick='() => SetTab("Equipment Design")'>Design</div>
-                <div class="tab @(_activeTab == "Naming" ? "active" : "")" @onclick='() => SetTab("Naming")'>Naming</div>
+                
             </div>
 
             <div class="tab-content" style="background-color: #ffffff;">

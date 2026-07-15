@@ -7,7 +7,9 @@ using Distillator.Domain.Services;
 using Shared.ProcessFlowDiagram;
 using Shared.PropertiesDtos.Methods;
 using Shared.SolverConsecutive;
+using Shared.SolverConsecutive.Equipments;
 using Shared.SolverQwen.Stream;
+using Shared.UnitOperations.Basiss;
 
 namespace Distillator.Domain.Models;
 
@@ -56,6 +58,7 @@ public class Project : IProject
     public void UpdateConfiguration(IProjectConfiguration configuration)
     {
         Configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+        ProjectUnitSystemApplier.ApplyToProject(this);
         Raise(new ProjectConfigurationUpdatedEvent(Id));
     }
 
@@ -73,8 +76,78 @@ public class Project : IProject
         var fs = _flowsheets.FirstOrDefault(f => f.Id == flowsheetId);
         if (fs == null) return;
 
+        var interFlowsheetConnections = _interFlowsheetConnections
+            .Where(connection =>
+                connection.SourceFlowsheetId == flowsheetId ||
+                connection.TargetFlowsheetId == flowsheetId)
+            .ToList();
+
+        foreach (var connection in interFlowsheetConnections)
+        {
+            RemoveInterFlowsheetConnectionArtifacts(connection);
+        }
+
+        foreach (var elementId in fs.Elements.Select(reference => reference.ElementId).Distinct().ToList())
+        {
+            RemoveEquipment(elementId);
+        }
+
         _flowsheets.Remove(fs);
         Raise(new FlowsheetRemovedEvent(Id, flowsheetId));
+    }
+
+    private void RemoveInterFlowsheetConnectionArtifacts(IInterFlowsheetConnection connection)
+    {
+        var sourceFlowsheet = GetFlowsheet(connection.SourceFlowsheetId);
+        var targetFlowsheet = GetFlowsheet(connection.TargetFlowsheetId);
+
+        if (!TryDisconnectConnector(sourceFlowsheet, connection.SourceConnectorId))
+        {
+            TryDisconnectConnector(targetFlowsheet, connection.TargetConnectorId);
+        }
+
+        RemoveConnectorArtifacts(sourceFlowsheet, connection.SourceConnectorId);
+        RemoveConnectorArtifacts(targetFlowsheet, connection.TargetConnectorId);
+        RemoveEquipment(connection.SourceConnectorId);
+        RemoveEquipment(connection.TargetConnectorId);
+        RemoveInterFlowsheetConnection(connection.Id);
+    }
+
+    private bool TryDisconnectConnector(IFlowsheet? flowsheet, Guid connectorId)
+    {
+        if (flowsheet == null) return false;
+
+        var pipe = flowsheet.Pipes.FirstOrDefault(candidate =>
+            candidate.SourceElementId == connectorId || candidate.TargetElementId == connectorId);
+        if (pipe == null) return false;
+
+        var endpointId = pipe.SourceElementId == connectorId
+            ? pipe.TargetElementId
+            : pipe.SourceElementId;
+        var endpointPortName = pipe.SourceElementId == connectorId
+            ? pipe.TargetPortName
+            : pipe.SourcePortName;
+        var endpoint = EquipmentRegistry.GetById(endpointId);
+        if (endpoint == null) return false;
+
+        SimulationService.DisconnectPort(this, flowsheet, endpoint, endpointPortName);
+        return true;
+    }
+
+    private static void RemoveConnectorArtifacts(IFlowsheet? flowsheet, Guid connectorId)
+    {
+        if (flowsheet == null) return;
+
+        foreach (var pipe in flowsheet.Pipes
+                     .Where(candidate =>
+                         candidate.SourceElementId == connectorId ||
+                         candidate.TargetElementId == connectorId)
+                     .ToList())
+        {
+            flowsheet.RemovePipe(pipe.Id);
+        }
+
+        flowsheet.RemoveElementReference(connectorId);
     }
 
     public IFlowsheet? GetFlowsheet(Guid id) => _flowsheets.FirstOrDefault(f => f.Id == id);
@@ -95,11 +168,16 @@ public class Project : IProject
         if (equipment == null) throw new ArgumentNullException(nameof(equipment));
 
         // Asignar el método termodinámico del proyecto a las nuevas corrientes.
-        if (equipment.Facade is IFacadeStream streamFacade && Configuration.ThermodynamicMethod != null)
+        if (Configuration.ThermodynamicMethod != null)
         {
-            streamFacade.SetThermodynamicMethod(Configuration.ThermodynamicMethod);
+            SimulationService.Solver.ThermoMethod = Configuration.ThermodynamicMethod;
+            if (equipment.Facade is IFacadeStream streamFacade)
+            {
+                streamFacade.SetThermodynamicMethod(Configuration.ThermodynamicMethod);
+            }
         }
 
+        ProjectUnitSystemApplier.ApplyToFacade(equipment.Facade, Configuration.UnitDefaults);
         EquipmentRegistry.Register(equipment);
         Raise(new EquipmentAddedEvent(Id, Guid.Empty, equipment.Id, equipment.Type.ToString()));
     }
@@ -108,6 +186,15 @@ public class Project : IProject
     {
         var equipment = EquipmentRegistry.GetById(equipmentId);
         if (equipment == null) return;
+
+        if (equipment.Facade is IFacadeStream stream)
+        {
+            SimulationService.Solver.RemoveStream(stream);
+        }
+        else if (equipment.Facade is ISolverEquipment solverEquipment)
+        {
+            SimulationService.Solver.RemoveEquipment(solverEquipment);
+        }
 
         EquipmentRegistry.Unregister(equipmentId);
         Raise(new EquipmentRemovedEvent(Id, Guid.Empty, equipmentId));
@@ -130,6 +217,7 @@ public class Project : IProject
             plantElevation: Configuration.PlantElevation);
 
         SimulationService.PropagateThermodynamicMethod(this);
+        ProjectUnitSystemApplier.ApplyToProject(this);
     }
 
     public void AddInterFlowsheetConnection(IInterFlowsheetConnection connection)

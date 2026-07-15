@@ -41,7 +41,7 @@
     gap: 8px;
     font-weight: 600;
     color: #4674a6;
-    white-space: nowrap;
+    white-space: pre-line;
     flex-shrink: 0;
 }
 
@@ -188,6 +188,17 @@
     background: #f1f5f9;
     padding: 0.25rem 0.5rem;
     border-radius: 4px;
+}
+
+.gl-value-readonly.user-defined {
+    color: #2563eb !important;
+    background: #eff6ff;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+}
+
+.editable-wrapper.user-defined input {
+    color: #2563eb !important;
 }
 
 .quick-entry-panel.state-editable input {

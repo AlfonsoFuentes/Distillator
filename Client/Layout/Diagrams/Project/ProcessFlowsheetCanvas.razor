@@ -68,13 +68,15 @@
 
     protected override void OnInitialized()
     {
-        FSM.OnNotifyUI += StateHasChanged;
+        FSM.OnNotifyUI += OnNotifyUI;
     }
 
     public void Dispose()
     {
-        FSM.OnNotifyUI -= StateHasChanged;
+        FSM.OnNotifyUI -= OnNotifyUI;
     }
+
+    private void OnNotifyUI() => _ = InvokeAsync(StateHasChanged);
 
     private void HandleSelect(IVisualElement element) => FSM.SelectElement(element);
     private void HandleWorkspaceClick() => FSM.SelectElement(null);
@@ -91,12 +93,18 @@
 
     private async Task HandleDrop(DragEventArgs e)
     {
+        if (DragState.CurrentDraggedType == EquipmentType.None)
+        {
+            return;
+        }
+
         var offset = await JS.InvokeAsync<Offset>("canvasInterop.getCanvasOffset", workspaceRef);
         canvasX = offset.X;
         canvasY = offset.Y;
 
         var pos = GetRelativeMousePosition(e);
         FSM.AddFromToolbox(DragState.CurrentDraggedType, pos.X, pos.Y);
+        DragState.CurrentDraggedType = EquipmentType.None;
     }
 
     private async Task HandleMouseDown(MouseEventArgs e)

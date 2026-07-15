@@ -1,0 +1,328 @@
+.formula-specifications {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    max-height: 560px;
+    overflow: auto;
+    padding: 2px;
+    color: #333333;
+}
+
+.specifications-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 38px;
+    padding: 6px 10px;
+    border: 1px solid var(--border-color, #b0b0b0);
+    border-radius: 4px;
+    background: #e4e4e4;
+}
+
+.specifications-toolbar > div {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+
+.specifications-toolbar h4 {
+    margin: 0;
+    color: #333333;
+    font-size: 11px;
+    text-transform: uppercase;
+}
+
+.specification-count {
+    min-width: 20px;
+    border-radius: 10px;
+    background: #ffffff;
+    color: #64748b;
+    padding: 1px 6px;
+    text-align: center;
+    font-size: 10px;
+    font-weight: 700;
+}
+
+.add-specification-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    min-height: 27px;
+    border: 1px dashed #4674a6;
+    border-radius: 3px;
+    background: transparent;
+    color: #4674a6;
+    padding: 4px 9px;
+    cursor: pointer;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.add-specification-button:hover:not(:disabled) {
+    border-style: solid;
+    background: #eef5ff;
+}
+
+.formula-editor-section,
+.formula-list-section {
+    border: 1px solid var(--border-color, #b0b0b0);
+    border-radius: 4px;
+    background: #f8fafc;
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--border-color, #b0b0b0);
+    background: #e4e4e4;
+}
+
+.section-header h4 {
+    margin: 0;
+    color: #333333;
+    font-size: 12px;
+    text-transform: uppercase;
+}
+
+.section-header span:not(.mode-badge) {
+    display: block;
+    margin-top: 2px;
+    color: #64748b;
+    font-size: 10px;
+}
+
+.mode-badge,
+.formula-state {
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    background: #e2e8f0;
+    color: #475569;
+    padding: 2px 7px;
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.formula-editor {
+    position: relative;
+    padding: 12px;
+}
+
+.formula-editor label,
+.section-title {
+    display: block;
+    color: #475569;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.formula-input {
+    width: 100%;
+    min-height: 64px;
+    margin-top: 5px;
+    resize: vertical;
+    border: 1px solid #b0b0b0;
+    border-radius: 3px;
+    outline: none;
+    background: #ffffff;
+    color: #0056b3;
+    padding: 8px 10px;
+    font-family: 'Consolas', monospace;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.formula-input:focus {
+    border-color: #4674a6;
+    box-shadow: 0 0 0 1px rgba(70, 116, 166, 0.15);
+}
+
+.formula-input:disabled {
+    background: #f1f5f9;
+    color: #64748b;
+}
+
+.suggestions {
+    position: absolute;
+    z-index: 60;
+    display: block;
+    width: min(280px, calc(100% - 24px));
+    max-height: 180px;
+    overflow-y: auto;
+    padding: 6px;
+    border: 1px solid #cbd5e1;
+    border-radius: 3px;
+    background: #ffffff;
+    box-shadow: 0 5px 14px rgba(30, 41, 59, 0.16);
+}
+
+.suggestion-item {
+    display: block;
+    width: 100%;
+    border: 0;
+    border-radius: 2px;
+    background: #ffffff;
+    color: #334155;
+    padding: 5px 7px;
+    cursor: pointer;
+    font-family: 'Consolas', monospace;
+    text-align: left;
+    font-size: 10px;
+}
+
+.suggestion-item:hover,
+.suggestion-item.active {
+    background: #eef5ff;
+    color: #0056b3;
+}
+
+.validation-message {
+    margin-top: 7px;
+    border-left: 3px solid;
+    padding: 5px 8px;
+    font-size: 11px;
+}
+
+.validation-message.valid {
+    border-color: #10b981;
+    background: #ecfdf5;
+    color: #047857;
+}
+
+.validation-message.invalid {
+    border-color: #ef4444;
+    background: #fef2f2;
+    color: #b91c1c;
+}
+
+.editor-actions {
+    display: flex;
+    gap: 7px;
+    margin-top: 10px;
+}
+
+.primary-button,
+.secondary-button,
+.clear-button,
+.icon-button {
+    min-height: 28px;
+    border-radius: 3px;
+    padding: 5px 11px;
+    cursor: pointer;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.empty-formulas {
+    border: 1px dashed #cbd5e1;
+    border-radius: 4px;
+    background: #f8fafc;
+    color: #94a3b8;
+    padding: 18px;
+    text-align: center;
+    font-size: 11px;
+}
+
+.primary-button {
+    border: 1px solid #4674a6;
+    background: #4674a6;
+    color: #ffffff;
+}
+
+.secondary-button {
+    border: 1px solid #4674a6;
+    background: #ffffff;
+    color: #4674a6;
+}
+
+.clear-button {
+    border: 1px solid #cbd5e1;
+    background: transparent;
+    color: #64748b;
+}
+
+button:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.section-title {
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--border-color, #b0b0b0);
+    background: #e4e4e4;
+}
+
+.formula-list {
+    display: grid;
+}
+
+.formula-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 70px auto;
+    align-items: center;
+    gap: 8px;
+    min-height: 36px;
+    padding: 5px 9px;
+    border-bottom: 1px solid #d7dde5;
+    background: #ffffff;
+}
+
+.formula-row:last-child {
+    border-bottom: 0;
+}
+
+.formula-row code {
+    overflow: hidden;
+    color: #1e293b;
+    font-size: 11px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.formula-state.ready {
+    border-color: #a7f3d0;
+    background: #ecfdf5;
+    color: #047857;
+}
+
+.formula-state.pending {
+    border-color: #fde68a;
+    background: #fffbeb;
+    color: #a16207;
+}
+
+.row-actions {
+    display: flex;
+    gap: 4px;
+}
+
+.icon-button {
+    border: 0;
+    background: transparent;
+    padding: 4px 6px;
+}
+
+.edit-button {
+    color: #4674a6;
+}
+
+.remove-button {
+    color: #dc2626;
+}
+
+@media (max-width: 760px) {
+    .formula-row {
+        grid-template-columns: minmax(0, 1fr) auto;
+    }
+
+    .formula-state {
+        display: none;
+    }
+
+    .editor-actions {
+        flex-wrap: wrap;
+    }
+}

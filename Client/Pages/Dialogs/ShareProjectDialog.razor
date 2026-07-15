@@ -1,0 +1,148 @@
+@using Shared.Projects
+
+<MudDialog>
+    <TitleContent>
+        <div class="share-title">Share Project</div>
+    </TitleContent>
+
+    <DialogContent>
+        <div class="share-dialog">
+            <div class="add-row">
+                <MudSelect T="string" @bind-Value="_selectedUserId" Label="User" Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true">
+                    @foreach (var user in AvailableUsers)
+                    {
+                        <MudSelectItem Value="@user.UserId">@UserText(user)</MudSelectItem>
+                    }
+                </MudSelect>
+
+                <MudSelect T="string" @bind-Value="_selectedRole" Label="Role" Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true">
+                    <MudSelectItem Value="@EditorRole">Editor</MudSelectItem>
+                    <MudSelectItem Value="@ViewerRole">Viewer</MudSelectItem>
+                </MudSelect>
+
+                <button class="share-btn primary" @onclick="AddOrUpdateCollaborator" disabled="@string.IsNullOrWhiteSpace(_selectedUserId)">Add</button>
+            </div>
+
+            <div class="collaborator-list">
+                @if (_collaborators.Count == 0)
+                {
+                    <div class="empty-share">This project is not shared yet.</div>
+                }
+                else
+                {
+                    @foreach (var collaborator in _collaborators)
+                    {
+                        <div class="collaborator-row">
+                            <div class="collaborator-user">
+                                <span class="collaborator-name">@collaborator.DisplayName</span>
+                                <span class="collaborator-email">@collaborator.Email</span>
+                            </div>
+
+                            <MudSelect T="string"
+                                       Value="@collaborator.Role"
+                                       ValueChanged="role => SetRole(collaborator, role)"
+                                       Variant="Variant.Outlined"
+                                       Margin="Margin.Dense"
+                                       Dense="true"
+                                       Class="role-select">
+                                <MudSelectItem Value="@EditorRole">Editor</MudSelectItem>
+                                <MudSelectItem Value="@ViewerRole">Viewer</MudSelectItem>
+                            </MudSelect>
+
+                            <button class="icon-btn danger" title="Remove" @onclick="() => RemoveCollaborator(collaborator)">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="3 6 5 6 21 6"></polyline>
+                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    </DialogContent>
+
+    <DialogActions>
+        <button class="share-btn secondary" @onclick="Cancel">Cancel</button>
+        <button class="share-btn primary" @onclick="Save">Save</button>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    private const string EditorRole = "Editor";
+    private const string ViewerRole = "Viewer";
+
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
+    [Parameter] public List<ProjectShareUserDto> AvailableUsers { get; set; } = new();
+    [Parameter] public List<ProjectCollaboratorDto> Collaborators { get; set; } = new();
+
+    private readonly List<ProjectCollaboratorDto> _collaborators = new();
+    private string? _selectedUserId;
+    private string _selectedRole = ViewerRole;
+
+    protected override void OnInitialized()
+    {
+        _collaborators.Clear();
+        _collaborators.AddRange(Collaborators.Select(CloneCollaborator));
+    }
+
+    private void AddOrUpdateCollaborator()
+    {
+        var user = AvailableUsers.FirstOrDefault(item => item.UserId == _selectedUserId);
+        if (user == null) return;
+
+        var existing = _collaborators.FirstOrDefault(item => item.UserId == user.UserId);
+        if (existing == null)
+        {
+            _collaborators.Add(new ProjectCollaboratorDto
+            {
+                UserId = user.UserId,
+                DisplayName = user.DisplayName,
+                Email = user.Email,
+                Role = _selectedRole
+            });
+        }
+        else
+        {
+            existing.Role = _selectedRole;
+        }
+
+        _selectedUserId = null;
+        _selectedRole = ViewerRole;
+    }
+
+    private void SetRole(ProjectCollaboratorDto collaborator, string role)
+    {
+        collaborator.Role = role;
+    }
+
+    private void RemoveCollaborator(ProjectCollaboratorDto collaborator)
+    {
+        _collaborators.Remove(collaborator);
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private void Save()
+    {
+        MudDialog.Close(_collaborators.Select(CloneCollaborator).ToList());
+    }
+
+    private static ProjectCollaboratorDto CloneCollaborator(ProjectCollaboratorDto collaborator)
+    {
+        return new ProjectCollaboratorDto
+        {
+            UserId = collaborator.UserId,
+            DisplayName = collaborator.DisplayName,
+            Email = collaborator.Email,
+            Role = collaborator.Role
+        };
+    }
+
+    private static string UserText(ProjectShareUserDto user)
+    {
+        return string.IsNullOrWhiteSpace(user.DisplayName)
+            ? user.Email
+            : $"{user.DisplayName} ({user.Email})";
+    }
+}

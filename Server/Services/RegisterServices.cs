@@ -24,6 +24,7 @@ namespace Server.Services
 
             builder.Services.AddDatabase(builder.Configuration);
             builder.Services.AddMemoryCache();
+            builder.Services.AddSignalR();
          
 
            
@@ -67,21 +68,21 @@ namespace Server.Services
 
                     }
                 });
-
-                services.AddCors(options =>
-                {
-                    // Le asignamos el nombre que estás llamando en UseApp
-                    options.AddPolicy("AllowBlazorWasm",
-                        builder =>
-                        {
-                            builder
-                                .AllowCredentials() // Vital para que viajen las Cookies
-                                .AllowAnyHeader()
-                                .AllowAnyMethod()
-                                .WithOrigins(config.ApplicationUrl.TrimEnd('/'));
-                        });
-                });
             }
+
+            services.AddCors(options =>
+            {
+                // Le asignamos el nombre que estás llamando en UseApp
+                options.AddPolicy("AllowBlazorWasm",
+                    builder =>
+                    {
+                        builder
+                            .AllowCredentials() // Vital para que viajen las Cookies
+                            .AllowAnyHeader()
+                            .AllowAnyMethod()
+                            .WithOrigins(config.ApplicationUrl.TrimEnd('/'));
+                    });
+            });
 
             return services;
         }

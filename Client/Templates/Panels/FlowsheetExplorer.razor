@@ -49,20 +49,23 @@
                         <span class="type-chevron @(isExpanded ? "expanded" : "")">▶</span>
                         <span class="type-name">@type.DisplayName</span>
                         <span class="type-count">@flowsheets.Count()</span>
-                        <button class="type-add-btn"
-                                @onclick:stopPropagation="true"
-                                @onclick="() => CreateFlowsheet(type.Code)"
-                                @onmouseenter="@(() => _hoveredTooltip = $"add-{type.Code}")"
-                                @onmouseleave="@(() => _hoveredTooltip = null)">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                                <line x1="12" y1="5" x2="12" y2="19"></line>
-                                <line x1="5" y1="12" x2="19" y2="12"></line>
-                            </svg>
-                            @if (_hoveredTooltip == $"add-{type.Code}")
-                            {
-                                <span class="fe-tooltip fe-tooltip-bottom">Add @type.DisplayName</span>
-                            }
-                        </button>
+                        @if (CanEditCurrentProject)
+                        {
+                            <button class="type-add-btn"
+                                    @onclick:stopPropagation="true"
+                                    @onclick="() => CreateFlowsheet(type.Code)"
+                                    @onmouseenter="@(() => _hoveredTooltip = $"add-{type.Code}")"
+                                    @onmouseleave="@(() => _hoveredTooltip = null)">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                                </svg>
+                                @if (_hoveredTooltip == $"add-{type.Code}")
+                                {
+                                    <span class="fe-tooltip fe-tooltip-bottom">Add @type.DisplayName</span>
+                                }
+                            </button>
+                        }
                     </div>
 
                     @if (isExpanded)
@@ -78,46 +81,49 @@
                                 {
                                     var isActive = SessionService.ActiveFlowsheet?.Id == flowsheet.Id;
                                     <div class="flowsheet-item @(isActive ? "active" : "") @(flowsheet == _draggedFlowsheet ? "dragging" : "")"
-                                         draggable="true"
+                                         draggable="@CanEditCurrentProject"
                                          @onclick="() => SetActive(flowsheet)"
                                          @ondragstart="() => HandleDragStart(flowsheet)"
                                          @ondragover:preventDefault="true"
                                          @ondragover="() => { }"
                                          @ondrop="() => HandleDrop(flowsheet)">
                                         <span class="flowsheet-name">@flowsheet.Name</span>
-                                        <div class="flowsheet-actions">
-                                            <button class="action-btn"
-                                                    @onclick:stopPropagation="true"
-                                                    @onclick="() => EditFlowsheet(flowsheet)"
-                                                    @onmouseenter="@(() => _hoveredTooltip = $"edit-{flowsheet.Id}")"
-                                                    @onmouseleave="@(() => _hoveredTooltip = null)">
-                                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                                                </svg>
-                                                @if (_hoveredTooltip == $"edit-{flowsheet.Id}")
-                                                {
-                                                    <span class="fe-tooltip fe-tooltip-right">Edit</span>
-                                                }
-                                            </button>
-                                            <span class="action-btn-wrapper"
-                                                  @onmouseenter="@(() => _hoveredTooltip = $"delete-{flowsheet.Id}")"
-                                                  @onmouseleave="@(() => _hoveredTooltip = null)">
-                                                <button class="action-btn delete"
-                                                        disabled="@(!CanDeleteAnyFlowsheet)"
+                                        @if (CanEditCurrentProject)
+                                        {
+                                            <div class="flowsheet-actions">
+                                                <button class="action-btn"
                                                         @onclick:stopPropagation="true"
-                                                        @onclick="() => DeleteFlowsheet(flowsheet)">
+                                                        @onclick="() => EditFlowsheet(flowsheet)"
+                                                        @onmouseenter="@(() => _hoveredTooltip = $"edit-{flowsheet.Id}")"
+                                                        @onmouseleave="@(() => _hoveredTooltip = null)">
                                                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                        <polyline points="3 6 5 6 21 6"></polyline>
-                                                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
                                                     </svg>
+                                                    @if (_hoveredTooltip == $"edit-{flowsheet.Id}")
+                                                    {
+                                                        <span class="fe-tooltip fe-tooltip-right">Edit</span>
+                                                    }
                                                 </button>
-                                                @if (_hoveredTooltip == $"delete-{flowsheet.Id}")
-                                                {
-                                                    <span class="fe-tooltip fe-tooltip-right">@(CanDeleteAnyFlowsheet ? "Delete" : "Cannot delete the last diagram")</span>
-                                                }
-                                            </span>
-                                        </div>
+                                                <span class="action-btn-wrapper"
+                                                      @onmouseenter="@(() => _hoveredTooltip = $"delete-{flowsheet.Id}")"
+                                                      @onmouseleave="@(() => _hoveredTooltip = null)">
+                                                    <button class="action-btn delete"
+                                                            disabled="@(!CanDeleteAnyFlowsheet)"
+                                                            @onclick:stopPropagation="true"
+                                                            @onclick="() => DeleteFlowsheet(flowsheet)">
+                                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                            <polyline points="3 6 5 6 21 6"></polyline>
+                                                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                                        </svg>
+                                                    </button>
+                                                    @if (_hoveredTooltip == $"delete-{flowsheet.Id}")
+                                                    {
+                                                        <span class="fe-tooltip fe-tooltip-right">@(CanDeleteAnyFlowsheet ? "Delete" : "Cannot delete the last diagram")</span>
+                                                    }
+                                                </span>
+                                            </div>
+                                        }
                                     </div>
                                 }
                             }
@@ -138,8 +144,14 @@
     private bool _canDeleteAnyFlowsheet;
 
     private bool CanDeleteAnyFlowsheet => _canDeleteAnyFlowsheet;
+    private bool CanEditCurrentProject => SessionService.CurrentProject != null &&
+                                          SessionService.CanCurrentUserEditProject(SessionService.CurrentProject);
 
-    private void ToggleExplorer() => IsCollapsed = !IsCollapsed;
+    private async Task ToggleExplorer()
+    {
+        IsCollapsed = !IsCollapsed;
+        await SessionService.SetDiagramExplorerCollapsedAsync(IsCollapsed);
+    }
 
     private void RefreshCanDeleteAnyFlowsheet()
     {
@@ -148,11 +160,14 @@
 
     private void HandleDragStart(IFlowsheet flowsheet)
     {
+        if (!CanEditCurrentProject) return;
         _draggedFlowsheet = flowsheet;
     }
 
     private void HandleDrop(IFlowsheet targetFlowsheet)
     {
+        if (!CanEditCurrentProject) return;
+
         if (_draggedFlowsheet == null || _draggedFlowsheet.Id == targetFlowsheet.Id)
         {
             _draggedFlowsheet = null;
@@ -185,6 +200,7 @@
     protected override void OnInitialized()
     {
         SessionService.ProjectChanged += OnProjectChanged;
+        IsCollapsed = SessionService.IsDiagramExplorerCollapsed;
         InitializeExpandedTypes();
         RefreshCanDeleteAnyFlowsheet();
     }
@@ -207,6 +223,16 @@
         var project = SessionService.CurrentProject;
         if (project == null) return;
 
+        if (SessionService.ExpandedDiagramTypeCodes != null)
+        {
+            foreach (var typeCode in SessionService.ExpandedDiagramTypeCodes)
+            {
+                _expandedTypes.Add(typeCode);
+            }
+
+            return;
+        }
+
         foreach (var type in project.FlowsheetTypes.AllTypes)
         {
             if (GetFlowsheetsByType(type.Code).Any())
@@ -223,12 +249,14 @@
             .Where(f => f.TypeCode.Equals(typeCode, StringComparison.OrdinalIgnoreCase));
     }
 
-    private void ToggleType(string typeCode)
+    private async Task ToggleType(string typeCode)
     {
         if (_expandedTypes.Contains(typeCode))
             _expandedTypes.Remove(typeCode);
         else
             _expandedTypes.Add(typeCode);
+
+        await SessionService.SetExpandedDiagramTypeCodesAsync(_expandedTypes);
     }
 
     private async Task SetActive(IFlowsheet flowsheet)
@@ -238,6 +266,8 @@
 
     private async Task CreateFlowsheet(string typeCode)
     {
+        if (!CanEditCurrentProject) return;
+
         var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true };
         var parameters = new DialogParameters
         {
@@ -250,6 +280,8 @@
 
     private async Task EditFlowsheet(IFlowsheet flowsheet)
     {
+        if (!CanEditCurrentProject) return;
+
         var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true };
         var parameters = new DialogParameters
         {
@@ -262,6 +294,8 @@
 
     private async Task DeleteFlowsheet(IFlowsheet flowsheet)
     {
+        if (!CanEditCurrentProject) return;
+
         var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.ExtraSmall };
         var parameters = new DialogParameters { ["Flowsheet"] = flowsheet };
         var dialog = await DialogService.ShowAsync<DeleteFlowsheetDialog>("Delete Diagram", parameters, options);

@@ -25,6 +25,11 @@ namespace Client.Services.HttpServices
 
         public void ShowMessage(Result result)
         {
+            if (string.IsNullOrWhiteSpace(result.Message))
+            {
+                return;
+            }
+
             if (result.Succeeded)
             {
                

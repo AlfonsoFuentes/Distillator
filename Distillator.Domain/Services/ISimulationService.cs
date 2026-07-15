@@ -67,6 +67,7 @@ public class SimulationService : ISimulationService
         var method = project.Configuration.ThermodynamicMethod;
         if (method == null) return;
 
+        Solver.ThermoMethod = method;
         foreach (var stream in Solver.Streams)
         {
             stream.SetThermodynamicMethod(method);
@@ -128,6 +129,12 @@ public class SimulationService : ISimulationService
 
         if (stream.Facade is IFacadeStream facadeStream)
         {
+            if (project.Configuration.ThermodynamicMethod != null)
+            {
+                facadeStream.SetThermodynamicMethod(project.Configuration.ThermodynamicMethod);
+                Solver.ThermoMethod = project.Configuration.ThermodynamicMethod;
+            }
+
             if (!Solver.Streams.Contains(facadeStream))
             {
                 Solver.AddStream(facadeStream);

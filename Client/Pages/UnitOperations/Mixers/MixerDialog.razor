@@ -2,7 +2,7 @@
 @using Client.Pages.UnitOperations.DialogBase
 
 
-<EquipmentBaseDialog Equipment="Equipment">
+<EquipmentBaseDialog Equipment="Equipment" CanEdit="CanEdit">
     <MainSlot>
         <div class="mixer-canvas-layout">
 
@@ -25,7 +25,7 @@
             @* 3. PRODUCT (Una sola salida fija) *@
             <div class="port-zone outlet-zone">
                 <div class="port-list-title">Product (Outlet)</div>
-                <EquipmentPortConnector Port="@Equipment.Ports.First(p => p.Name == "Outlet")"
+                <EquipmentPortConnector Port="@Equipment.OutletPort"
                                         ParentEquipment="Equipment"
                                         OnConnChanged="HandleTopologyChanged" />
             </div>
@@ -38,6 +38,7 @@
 
 @code {
     [Parameter] public StreamMixerVisualElement Equipment { get; set; } = default!;
+    [Parameter] public bool CanEdit { get; set; } = true;
 
     // 🚩 Nos suscribimos a los cambios de la UI para refrescar la topología dinámica
     protected override void OnParametersSet()

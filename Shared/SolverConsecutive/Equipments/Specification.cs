@@ -1,5 +1,7 @@
 ﻿using Shared.SolverQwen.Stream;
 
+using UnitSystem;
+
 namespace Shared.SolverConsecutive.Equipments
 {
     public interface ISpecification
@@ -8,6 +10,8 @@ namespace Shared.SolverConsecutive.Equipments
         string Name { get; } // 🔥 NUEVO
         SpecificationType Type { get; }
         SolverEquationType TargetEquationType { get; }
+        bool CanEvaluate { get; }
+        IReadOnlyCollection<IFacadeStream> AssociatedStreams { get; }
 
         double GetResidual();
         List<IVariable> GetVariables();
@@ -16,6 +20,8 @@ namespace Shared.SolverConsecutive.Equipments
     {
         None,
         Multiplier,
+        ComponentMassFlowMultiplier,
+        Formula,
     }
     public abstract class StreamSpecificationBase : ISpecification
     {
@@ -25,6 +31,11 @@ namespace Shared.SolverConsecutive.Equipments
         public IFacadeStream Source { get; set; } = null!;
         public IFacadeStream Destination { get; set; } = null!;
         public SpecVariableType VariableType { get; set; }
+        public virtual IReadOnlyCollection<IFacadeStream> AssociatedStreams => [Source, Destination];
+        public virtual bool CanEvaluate =>
+            Source != null &&
+            Destination != null &&
+            !ReferenceEquals(Source, Destination);
 
         // Obligamos al hijo a definir cómo se calcula su residual matemático
         public abstract double GetResidual();
@@ -84,6 +95,81 @@ namespace Shared.SolverConsecutive.Equipments
         }
     }
 
+    public class ComponentMassFlowMultiplierSpecification : StreamSpecificationBase
+    {
+        public ComponentMassFlowMultiplierSpecification()
+        {
+            VariableType = SpecVariableType.TotalMassFlow;
+        }
+
+        public override SpecificationType Type => SpecificationType.ComponentMassFlowMultiplier;
+        public Guid ComponentId { get; set; }
+        public Percentage Recovery { get; set; } = new(100, PercentageUnits.Percentage);
+        public override bool CanEvaluate
+        {
+            get
+            {
+                if (!base.CanEvaluate || ComponentId == Guid.Empty)
+                {
+                    return false;
+                }
+
+                var recovery = Recovery.GetValue(PercentageUnits.Percentage);
+                if (!double.IsFinite(recovery) || recovery < 0 || recovery > 100)
+                {
+                    return false;
+                }
+
+                var sourceComponent = FindComponent(Source);
+                var destinationComponent = FindComponent(Destination);
+                if (sourceComponent == null || destinationComponent == null)
+                {
+                    return false;
+                }
+
+                return IsUsableMassFraction(sourceComponent)
+                    && IsUsableMassFraction(destinationComponent, requirePositiveValue: true);
+            }
+        }
+
+        public override double GetResidual()
+        {
+            var sourceComponent = FindComponent(Source)!;
+            var destinationComponent = FindComponent(Destination)!;
+
+            var sourceMassFraction = GetMassFraction(sourceComponent);
+            var destinationMassFraction = GetMassFraction(destinationComponent);
+            var recoveryFraction = Recovery.GetValue(PercentageUnits.Percentage) / 100.0;
+
+            var sourceComponentMassFlow = Source.MassFlow.GetSolverValue() * sourceMassFraction;
+            var destinationComponentMassFlow = Destination.MassFlow.GetSolverValue() * destinationMassFraction;
+
+            return destinationComponentMassFlow - (sourceComponentMassFlow * recoveryFraction);
+        }
+
+        private ComponentFacade? FindComponent(IFacadeStream stream) =>
+            stream.Composition.Components.SingleOrDefault(component => component.Id == ComponentId);
+
+        private static double GetMassFraction(ComponentFacade component)
+            => component.MassFraction.Value.GetValue(PercentageUnits.Percentage) / 100.0;
+
+        private static bool IsUsableMassFraction(
+            ComponentFacade component,
+            bool requirePositiveValue = false)
+        {
+            if (!component.MassFraction.IsDefined)
+            {
+                return false;
+            }
+
+            var value = component.MassFraction.Value.GetValue(PercentageUnits.Percentage);
+            return double.IsFinite(value)
+                && value >= 0
+                && value <= 100
+                && (!requirePositiveValue || value > 0);
+        }
+    }
+
     public class SpecificationEquation : ISolverEquation
     {
         private readonly ISpecification _spec; // 🔥 AHORA ACEPTA LA INTERFAZ PURA
@@ -96,6 +182,7 @@ namespace Shared.SolverConsecutive.Equipments
         public string Name => _spec.Name; // 🔥 USA EL NOMBRE DE LA INTERFAZ
 
         public SolverEquationType EquationType => SolverEquationType.MassBalance;
+        public bool CanEvaluate => _spec.CanEvaluate;
         public List<double> Residuals => new List<double> { _spec.GetResidual() };
         public List<IVariable> Variables => _spec.GetVariables();
         public SolverEquationTypeModifier EquationTypeModifer => SolverEquationTypeModifier.Spec;

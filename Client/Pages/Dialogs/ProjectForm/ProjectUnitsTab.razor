@@ -40,26 +40,34 @@
         </div>
 
         <div class="unit-editor">
-            @foreach (var row in UnitRows)
+            @foreach (var group in UnitRows.GroupBy(row => row.Group))
             {
-                <div class="form-group">
-                    <label class="form-label">@row.Label</label>
-                    @if (ActiveUnitSystem.IsBuiltIn)
-                    {
-                        <div class="calculated-value">@UnitText(row.Unit)</div>
-                    }
-                    else
-                    {
-                        <select class="form-select"
-                                value="@row.Unit.Name"
-                                @onchange="e => SetUnit(row.Slot, e.Value?.ToString())">
-                            @foreach (var option in GetUnitOptions(row.Slot))
-                            {
-                                <option value="@option.Unit.Name">@option.Label</option>
-                            }
-                        </select>
-                    }
-                </div>
+                <section class="unit-group">
+                    <div class="unit-group-title">@group.Key</div>
+                    <div class="unit-group-grid">
+                        @foreach (var row in group)
+                        {
+                            <div class="form-group unit-row">
+                                <label class="form-label">@row.Label</label>
+                                @if (ActiveUnitSystem.IsBuiltIn)
+                                {
+                                    <div class="calculated-value">@UnitText(row.Unit)</div>
+                                }
+                                else
+                                {
+                                    <select class="form-select"
+                                            value="@row.Unit.Name"
+                                            @onchange="e => SetUnit(row.Slot, e.Value?.ToString())">
+                                        @foreach (var option in GetUnitOptions(row.Slot))
+                                        {
+                                            <option value="@option.Unit.Name">@option.Label</option>
+                                        }
+                                    </select>
+                                }
+                            </div>
+                        }
+                    </div>
+                </section>
             }
         </div>
     }

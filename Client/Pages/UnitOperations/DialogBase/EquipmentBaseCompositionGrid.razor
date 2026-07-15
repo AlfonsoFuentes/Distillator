@@ -44,7 +44,8 @@
                 else
                 {
                     var state = GetCellState(facade, comp, true);
-                    <div class="grid-cell value editable-cell @(HasTooltip(state) ? "has-tooltip" : "")" data-state="@state">
+                    var tooltip = GetCellTooltip(facade, comp, true);
+                    <div class="grid-cell value editable-cell @(!string.IsNullOrWhiteSpace(tooltip) ? "has-tooltip" : "")" data-state="@state">
                         @if (IsCellReadOnly(state))
                         {
                             <span class="readonly-value">
@@ -61,9 +62,9 @@
                                    @onkeydown="@(async (e) => await HandleKeyDown(e, facade, comp, true, false))"
                                     @onblur="@(async (e) => await HandleBlur(facade, comp, true, false))" />
                         }
-                        @if (HasTooltip(state))
+                        @if (!string.IsNullOrWhiteSpace(tooltip))
                         {
-                            <span class="tooltip-text">@GetCellTooltip(facade, comp, true)</span>
+                            <span class="tooltip-text">@tooltip</span>
                         }
                     </div>
                 }
@@ -84,7 +85,8 @@
                 else
                 {
                     var state = GetCellState(facade, comp, false);
-                    <div class="grid-cell value editable-cell @(HasTooltip(state) ? "has-tooltip" : "")" data-state="@state">
+                    var tooltip = GetCellTooltip(facade, comp, false);
+                    <div class="grid-cell value editable-cell @(!string.IsNullOrWhiteSpace(tooltip) ? "has-tooltip" : "")" data-state="@state">
                         @if (IsCellReadOnly(state))
                         {
                             <span class="readonly-value">
@@ -101,9 +103,9 @@
                                    @onkeydown="@(async (e) => await HandleKeyDown(e, facade, comp, false, false))"
                                     @onblur="@(async (e) => await HandleBlur(facade, comp, false, false))" />
                         }
-                        @if (HasTooltip(state))
+                        @if (!string.IsNullOrWhiteSpace(tooltip))
                         {
-                            <span class="tooltip-text">@GetCellTooltip(facade, comp, false)</span>
+                            <span class="tooltip-text">@tooltip</span>
                         }
                     </div>
                 }
@@ -165,8 +167,9 @@
                     {
                         bool isGLReadOnly = ShouldGlBeReadOnly(facade);
                         double? glValue = GetGlValue(facade, comp);
+                        var glTooltip = GetGlTooltip(facade);
 
-                        <div class="grid-cell value editable-cell special-gl-value @(isGLReadOnly ? "has-tooltip" : "")"
+                        <div class="grid-cell value editable-cell special-gl-value @(!string.IsNullOrWhiteSpace(glTooltip) ? "has-tooltip" : "")"
                              data-state="@(isGLReadOnly ? "calculated" : "editable")">
 
                             @if (isGLReadOnly)
@@ -174,7 +177,7 @@
                                 <span class="readonly-value">
                                     @(glValue.HasValue ? glValue.Value.ToString("F1") : "<Not defined>")
                                 </span>
-                                <span class="tooltip-text">@GetGlTooltip(facade)</span>
+                                <span class="tooltip-text">@glTooltip</span>
                             }
                             else
                             {
@@ -185,6 +188,10 @@
                                        @oninput="@(e => HandleInput(e))"
                                        @onkeydown="@(async (e) => await HandleKeyDown(e, facade, comp, true, true))"
                                         @onblur="@(async (e) => await HandleBlur(facade, comp, true, true))" />
+                                @if (!string.IsNullOrWhiteSpace(glTooltip))
+                                {
+                                    <span class="tooltip-text">@glTooltip</span>
+                                }
                             }
                         </div>
                     }

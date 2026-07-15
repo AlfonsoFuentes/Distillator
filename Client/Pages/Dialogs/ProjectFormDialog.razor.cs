@@ -985,89 +985,51 @@ public partial class ProjectFormDialog
         var units = ActiveUnitSystem?.Units;
         if (units == null) yield break;
 
-        yield return new("Pressure", UnitSlot.Pressure, units.DefaultPressureUnit);
-        yield return new("Temperature", UnitSlot.Temperature, units.DefaultTemperatureUnit);
-        yield return new("Mass Flow", UnitSlot.MassFlow, units.DefaultMassFlowUnit);
-        yield return new("Molar Flow", UnitSlot.MolarFlow, units.DefaultMolarFlowUnit);
-        yield return new("Energy", UnitSlot.Energy, units.DefaultEnergyUnit);
-        yield return new("Power", UnitSlot.Power, units.DefaultPowerUnit);
-        yield return new("Length", UnitSlot.Length, units.DefaultLengthUnit);
-        yield return new("Density", UnitSlot.Density, units.DefaultDensityUnit);
-        yield return new("Viscosity", UnitSlot.Viscosity, units.DefaultViscosityUnit);
-        yield return new("Thermal Conductivity", UnitSlot.ThermalConductivity, units.DefaultThermalConductivityUnit);
+        yield return new("Geometry", "Length", UnitSlot.Length, units.DefaultLengthUnit);
+        yield return new("Geometry", "Diameter", UnitSlot.Diameter, units.DefaultDiameterUnit);
+        yield return new("Geometry", "Surface", UnitSlot.Surface, units.DefaultSurfaceUnit);
+        yield return new("Geometry", "Volume", UnitSlot.Volume, units.DefaultVolumeUnit);
+        yield return new("Time & Motion", "Time", UnitSlot.Time, units.DefaultTimeUnit);
+        yield return new("Time & Motion", "Velocity", UnitSlot.Velocity, units.DefaultVelocityUnit);
+        yield return new("Time & Motion", "Motor Velocity", UnitSlot.MotorVelocity, units.DefaultMotorVelocityUnit);
+        yield return new("Mechanical", "Mass", UnitSlot.Mass, units.DefaultMassUnit);
+        yield return new("Mechanical", "Force", UnitSlot.Force, units.DefaultForceUnit);
+        yield return new("Mechanical", "Pressure", UnitSlot.Pressure, units.DefaultPressureUnit);
+        yield return new("Mechanical", "Pressure Drop", UnitSlot.PressureDrop, units.DefaultPressureDropUnit);
+        yield return new("Mechanical", "Pressure Drop / Length", UnitSlot.PressureDropLength, units.DefaultPressureDropLengthUnit);
+        yield return new("Electrical", "Electric", UnitSlot.Electric, units.DefaultElectricUnit);
+        yield return new("Thermal", "Temperature", UnitSlot.Temperature, units.DefaultTemperatureUnit);
+        yield return new("Thermal", "Energy", UnitSlot.Energy, units.DefaultEnergyUnit);
+        yield return new("Thermal", "Power", UnitSlot.Power, units.DefaultPowerUnit);
+        yield return new("Thermal", "Thermal Conductivity", UnitSlot.ThermalConductivity, units.DefaultThermalConductivityUnit);
+        yield return new("Thermal", "Heat Transfer Coefficient", UnitSlot.HeatTransferCoefficient, units.DefaultHeatTransferCoefficientUnit);
+        yield return new("Thermal", "Heat Surface Flow", UnitSlot.HeatSurfaceFlow, units.DefaultHeatSurfaceFlowUnit);
+        yield return new("Amount & Density", "Amount of Substance", UnitSlot.AmountOfSubstance, units.DefaultAmountOfSubstanceUnit);
+        yield return new("Amount & Density", "Mass Density", UnitSlot.Density, units.DefaultDensityUnit);
+        yield return new("Amount & Density", "Molar Density", UnitSlot.MolarDensity, units.DefaultMolarDensityUnit);
+        yield return new("Specific Properties", "Mass Specific Volume", UnitSlot.MassVolumeSpecific, units.DefaultMassVolumeSpecificUnit);
+        yield return new("Specific Properties", "Molar Specific Volume", UnitSlot.MolarVolumeSpecific, units.DefaultMolarVolumeSpecificUnit);
+        yield return new("Specific Properties", "Volume Energy", UnitSlot.VolumeEnergy, units.DefaultVolumeEnergyUnit);
+        yield return new("Specific Properties", "Mass Energy", UnitSlot.MassEnergy, units.DefaultMassEnergyUnit);
+        yield return new("Specific Properties", "Molar Energy", UnitSlot.MolarEnergy, units.DefaultMolarEnergyUnit);
+        yield return new("Specific Properties", "Mass Entropy", UnitSlot.MassEntropy, units.DefaultMassEntropyUnit);
+        yield return new("Specific Properties", "Molar Entropy", UnitSlot.MolarEntropy, units.DefaultMolarEntropyUnit);
+        yield return new("Flow", "Mass Flow", UnitSlot.MassFlow, units.DefaultMassFlowUnit);
+        yield return new("Flow", "Molar Flow", UnitSlot.MolarFlow, units.DefaultMolarFlowUnit);
+        yield return new("Flow", "Volumetric Flow", UnitSlot.VolumetricFlow, units.DefaultVolumetricFlowUnit);
+        yield return new("Flow", "Energy Flow", UnitSlot.EnergyFlow, units.DefaultEnergyFlowUnit);
+        yield return new("Transport", "Viscosity", UnitSlot.Viscosity, units.DefaultViscosityUnit);
+        yield return new("Transport", "Superficial Tension", UnitSlot.SuperficialTension, units.DefaultSuperficialTensionUnit);
     }
 
     private IEnumerable<UnitOption> GetUnitOptions(UnitSlot slot)
     {
-        return slot switch
-        {
-            UnitSlot.Pressure => new[]
-            {
-                Option(PressureUnits.Bara),
-                Option(PressureUnits.Barg),
-                Option(PressureUnits.Psia),
-                Option(PressureUnits.Psig),
-                Option(PressureUnits.KiloPascala),
-                Option(PressureUnits.KiloPascalg)
-            },
-            UnitSlot.Temperature => new[]
-            {
-                Option(TemperatureUnits.DegreeCelcius),
-                Option(TemperatureUnits.DegreeFahrenheit),
-                Option(TemperatureUnits.Kelvin)
-            },
-            UnitSlot.MassFlow => new[]
-            {
-                Option(MassFlowUnits.Kg_hr),
-                Option(MassFlowUnits.Kg_sg),
-                Option(MassFlowUnits.Ton_hr),
-                Option(MassFlowUnits.lb_hr)
-            },
-            UnitSlot.MolarFlow => new[]
-            {
-                Option(MolarFlowUnits.Kgmol_hr),
-                Option(MolarFlowUnits.Kgmol_sg),
-                Option(MolarFlowUnits.gmol_hr)
-            },
-            UnitSlot.Energy => new[]
-            {
-                Option(EnergyUnits.KiloJoule),
-                Option(EnergyUnits.KiloCalorie),
-                Option(EnergyUnits.BTU)
-            },
-            UnitSlot.Power => new[]
-            {
-                Option(PowerUnits.KiloWatt),
-                Option(PowerUnits.MegaWatt),
-                Option(PowerUnits.HorsePower)
-            },
-            UnitSlot.Length => new[]
-            {
-                Option(LengthUnits.Meter),
-                Option(LengthUnits.MilliMeter),
-                Option(LengthUnits.Foot),
-                Option(LengthUnits.Inch)
-            },
-            UnitSlot.Density => new[]
-            {
-                Option(MassDensityUnits.Kg_m3),
-                Option(MassDensityUnits.g_L),
-                Option(MassDensityUnits.lb_ft3)
-            },
-            UnitSlot.Viscosity => new[]
-            {
-                Option(ViscosityUnits.cPoise),
-                Option(ViscosityUnits.Pa_s),
-                Option(ViscosityUnits.lb_ft_hr)
-            },
-            UnitSlot.ThermalConductivity => new[]
-            {
-                Option(ThermalConductivityUnits.W_m_K),
-                Option(ThermalConductivityUnits.kW_m_K),
-                Option(ThermalConductivityUnits.BTU_ft_hr_ft2_m_F)
-            },
-            _ => Array.Empty<UnitOption>()
-        };
+        return GetUnitClass(slot)
+            .GetFields(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)
+            .Where(field => field.FieldType == typeof(UnitMeasure))
+            .Select(field => field.GetValue(null))
+            .OfType<UnitMeasure>()
+            .Select(Option);
     }
 
     private static UnitOption Option(UnitMeasure unit)
@@ -1106,8 +1068,56 @@ public partial class ProjectFormDialog
             case UnitSlot.Length:
                 system.Units.DefaultLengthUnit = option.Unit;
                 break;
+            case UnitSlot.Diameter:
+                system.Units.DefaultDiameterUnit = option.Unit;
+                break;
+            case UnitSlot.Surface:
+                system.Units.DefaultSurfaceUnit = option.Unit;
+                break;
+            case UnitSlot.Volume:
+                system.Units.DefaultVolumeUnit = option.Unit;
+                break;
+            case UnitSlot.Time:
+                system.Units.DefaultTimeUnit = option.Unit;
+                break;
+            case UnitSlot.Velocity:
+                system.Units.DefaultVelocityUnit = option.Unit;
+                break;
+            case UnitSlot.Mass:
+                system.Units.DefaultMassUnit = option.Unit;
+                break;
+            case UnitSlot.Force:
+                system.Units.DefaultForceUnit = option.Unit;
+                break;
+            case UnitSlot.Electric:
+                system.Units.DefaultElectricUnit = option.Unit;
+                break;
+            case UnitSlot.MotorVelocity:
+                system.Units.DefaultMotorVelocityUnit = option.Unit;
+                break;
+            case UnitSlot.AmountOfSubstance:
+                system.Units.DefaultAmountOfSubstanceUnit = option.Unit;
+                break;
+            case UnitSlot.HeatTransferCoefficient:
+                system.Units.DefaultHeatTransferCoefficientUnit = option.Unit;
+                break;
             case UnitSlot.Density:
                 system.Units.DefaultDensityUnit = option.Unit;
+                break;
+            case UnitSlot.MolarDensity:
+                system.Units.DefaultMolarDensityUnit = option.Unit;
+                break;
+            case UnitSlot.MassVolumeSpecific:
+                system.Units.DefaultMassVolumeSpecificUnit = option.Unit;
+                break;
+            case UnitSlot.MolarVolumeSpecific:
+                system.Units.DefaultMolarVolumeSpecificUnit = option.Unit;
+                break;
+            case UnitSlot.PressureDropLength:
+                system.Units.DefaultPressureDropLengthUnit = option.Unit;
+                break;
+            case UnitSlot.PressureDrop:
+                system.Units.DefaultPressureDropUnit = option.Unit;
                 break;
             case UnitSlot.Viscosity:
                 system.Units.DefaultViscosityUnit = option.Unit;
@@ -1115,7 +1125,77 @@ public partial class ProjectFormDialog
             case UnitSlot.ThermalConductivity:
                 system.Units.DefaultThermalConductivityUnit = option.Unit;
                 break;
+            case UnitSlot.VolumeEnergy:
+                system.Units.DefaultVolumeEnergyUnit = option.Unit;
+                break;
+            case UnitSlot.MassEnergy:
+                system.Units.DefaultMassEnergyUnit = option.Unit;
+                break;
+            case UnitSlot.MolarEnergy:
+                system.Units.DefaultMolarEnergyUnit = option.Unit;
+                break;
+            case UnitSlot.MassEntropy:
+                system.Units.DefaultMassEntropyUnit = option.Unit;
+                break;
+            case UnitSlot.MolarEntropy:
+                system.Units.DefaultMolarEntropyUnit = option.Unit;
+                break;
+            case UnitSlot.HeatSurfaceFlow:
+                system.Units.DefaultHeatSurfaceFlowUnit = option.Unit;
+                break;
+            case UnitSlot.VolumetricFlow:
+                system.Units.DefaultVolumetricFlowUnit = option.Unit;
+                break;
+            case UnitSlot.EnergyFlow:
+                system.Units.DefaultEnergyFlowUnit = option.Unit;
+                break;
+            case UnitSlot.SuperficialTension:
+                system.Units.DefaultSuperficialTensionUnit = option.Unit;
+                break;
         }
+    }
+
+    private static Type GetUnitClass(UnitSlot slot)
+    {
+        return slot switch
+        {
+            UnitSlot.Length => typeof(LengthUnits),
+            UnitSlot.Diameter => typeof(DiameterUnits),
+            UnitSlot.Surface => typeof(SurfaceUnits),
+            UnitSlot.Volume => typeof(VolumeUnits),
+            UnitSlot.Time => typeof(TimeUnits),
+            UnitSlot.Velocity => typeof(VelocityUnits),
+            UnitSlot.Mass => typeof(MassUnits),
+            UnitSlot.Force => typeof(ForceUnits),
+            UnitSlot.Electric => typeof(ElectricUnits),
+            UnitSlot.Power => typeof(PowerUnits),
+            UnitSlot.Energy => typeof(EnergyUnits),
+            UnitSlot.Temperature => typeof(TemperatureUnits),
+            UnitSlot.Pressure => typeof(PressureUnits),
+            UnitSlot.MotorVelocity => typeof(MotorVelocityUnits),
+            UnitSlot.AmountOfSubstance => typeof(AmountOfSubstanceUnits),
+            UnitSlot.HeatTransferCoefficient => typeof(HeatTransferCoefficientUnits),
+            UnitSlot.Density => typeof(MassDensityUnits),
+            UnitSlot.MolarDensity => typeof(MolarDensityUnits),
+            UnitSlot.MassVolumeSpecific => typeof(MassVolumeSpecificUnits),
+            UnitSlot.MolarVolumeSpecific => typeof(MolarVolumeSpecificUnits),
+            UnitSlot.PressureDropLength => typeof(PressureDropLengthUnits),
+            UnitSlot.PressureDrop => typeof(PressureDropUnits),
+            UnitSlot.ThermalConductivity => typeof(ThermalConductivityUnits),
+            UnitSlot.VolumeEnergy => typeof(VolumeEnergyUnits),
+            UnitSlot.MassEnergy => typeof(MassEnergyUnits),
+            UnitSlot.MolarEnergy => typeof(MolarEnergyUnits),
+            UnitSlot.MassEntropy => typeof(MassEntropyUnits),
+            UnitSlot.MolarEntropy => typeof(MolarEntropyUnits),
+            UnitSlot.MassFlow => typeof(MassFlowUnits),
+            UnitSlot.MolarFlow => typeof(MolarFlowUnits),
+            UnitSlot.HeatSurfaceFlow => typeof(HeatSurfaceFlowUnits),
+            UnitSlot.VolumetricFlow => typeof(VolumetricFlowUnits),
+            UnitSlot.EnergyFlow => typeof(EnergyFlowUnits),
+            UnitSlot.Viscosity => typeof(ViscosityUnits),
+            UnitSlot.SuperficialTension => typeof(SuperficialTensionUnits),
+            _ => typeof(LengthUnits)
+        };
     }
 
     private static string UnitText(UnitMeasure unit)
@@ -1128,19 +1208,44 @@ public partial class ProjectFormDialog
 
     public enum UnitSlot
     {
-        Pressure,
+        Length,
+        Diameter,
+        Surface,
+        Volume,
+        Time,
+        Velocity,
+        Mass,
+        Force,
+        Electric,
+        Power,
+        Energy,
         Temperature,
+        Pressure,
+        MotorVelocity,
+        AmountOfSubstance,
+        HeatTransferCoefficient,
+        Density,
+        MolarDensity,
+        MassVolumeSpecific,
+        MolarVolumeSpecific,
+        PressureDropLength,
+        PressureDrop,
+        ThermalConductivity,
+        VolumeEnergy,
+        MassEnergy,
+        MolarEnergy,
+        MassEntropy,
+        MolarEntropy,
         MassFlow,
         MolarFlow,
-        Energy,
-        Power,
-        Length,
-        Density,
+        HeatSurfaceFlow,
+        VolumetricFlow,
+        EnergyFlow,
         Viscosity,
-        ThermalConductivity
+        SuperficialTension
     }
 
-    public sealed record UnitRow(string Label, UnitSlot Slot, UnitMeasure Unit);
+    public sealed record UnitRow(string Group, string Label, UnitSlot Slot, UnitMeasure Unit);
 
     public sealed record UnitOption(string Label, UnitMeasure Unit);
 }

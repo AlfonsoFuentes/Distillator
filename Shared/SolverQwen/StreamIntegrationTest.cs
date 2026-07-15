@@ -44,7 +44,7 @@ namespace Shared.SolverQwen
         public void SetThermoMethod(ThermodynamicMethodFullDto thermoMethod)
         {
             ThermoMethod = thermoMethod;
-            MainSolver.ThermoMethod = thermoMethod;
+         
 
         }
 

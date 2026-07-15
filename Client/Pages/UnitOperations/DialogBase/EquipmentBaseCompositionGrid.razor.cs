@@ -13,6 +13,7 @@ namespace Client.Pages.UnitOperations.DialogBase
     {
         [Parameter] public List<EquipmentPort> Ports { get; set; } = new();
         [Parameter] public EventCallback OnEquipmentUpdated { get; set; }
+        [CascadingParameter(Name = "IsProjectReadOnly")] public bool IsProjectReadOnly { get; set; }
 
 
 
@@ -79,6 +80,13 @@ namespace Client.Pages.UnitOperations.DialogBase
             if (composition.Source == CompositionSource.Solver && composition.InputType == ComponentInputType.None)
                 return "Calculated by: Solver";
 
+            var ethanol = facade.Composition.Components
+                .FirstOrDefault(component => component.Name.Equals("Ethanol", StringComparison.OrdinalIgnoreCase));
+            if (ethanol?.MassFraction.IsDefinedByUI == true)
+            {
+                return GetUserDefinitionTooltip(ethanol.MassFraction);
+            }
+
             return "";
         }
 
@@ -116,6 +124,11 @@ namespace Client.Pages.UnitOperations.DialogBase
                 return hasValue ? "calculated" : "empty";
             }
 
+            if (IsProjectReadOnly)
+            {
+                return hasValue ? "calculated" : "empty";
+            }
+
             if (inputType == ComponentInputType.None)
                 return hasValue ? "editable" : "empty";
 
@@ -139,10 +152,15 @@ namespace Client.Pages.UnitOperations.DialogBase
             if (composition == null) return null;
 
             var state = GetCellState(facade, comp, isMass);
+            var variable = isMass ? comp.MassFraction : comp.MolarFraction;
+
+            if (variable.IsDefinedByUI)
+            {
+                return GetUserDefinitionTooltip(variable);
+            }
 
             if (state == "calculated")
             {
-                var variable = isMass ? comp.MassFraction : comp.MolarFraction;
                 if (!string.IsNullOrWhiteSpace(variable.Source) && variable.Source != "Undefined")
                     return $"Calculated by: {variable.Source}";
                 return "Calculated from mixture composition";
@@ -152,6 +170,21 @@ namespace Client.Pages.UnitOperations.DialogBase
                 return "Blocked: Define via " + (isMass ? "Mole %" : "Mass %");
 
             return null;
+        }
+
+        private static string GetUserDefinitionTooltip<T>(Variable<T> variable) where T : Amount
+        {
+            var userName = string.IsNullOrWhiteSpace(variable.DefinedByUserName)
+                ? "User"
+                : variable.DefinedByUserName;
+
+            if (!variable.DefinedAtUtc.HasValue)
+            {
+                return $"Defined by: {userName}";
+            }
+
+            var localDate = variable.DefinedAtUtc.Value.ToLocalTime().ToString("yyyy-MM-dd HH:mm");
+            return $"Defined by: {userName}\n{localDate}";
         }
 
         private string FormatFraction(double? fraction)
@@ -204,6 +237,7 @@ namespace Client.Pages.UnitOperations.DialogBase
         }
         private void HandleFocus(IFacadeStream facade, ComponentFacade comp, bool isMass, bool isGL)
         {
+            if (IsProjectReadOnly) return;
             if (isGL && ShouldGlBeReadOnly(facade)) return;
 
             var state = GetCellState(facade, comp, isMass);
@@ -241,6 +275,7 @@ namespace Client.Pages.UnitOperations.DialogBase
        
         private void HandleInput(ChangeEventArgs e)
         {
+            if (IsProjectReadOnly) return;
             // 🔥 SOLO guardamos lo que el usuario escribe, el parseo lo haremos al final
             _rawInput = e.Value?.ToString();
         }
@@ -256,6 +291,7 @@ namespace Client.Pages.UnitOperations.DialogBase
        
         private async Task HandleKeyDown(KeyboardEventArgs e, IFacadeStream facade, ComponentFacade comp, bool isMass, bool isGL)
         {
+            if (IsProjectReadOnly) return;
             if (e.Key == "Enter")
             {
                 ParseRawInput(); // Convertimos el string a double
@@ -269,6 +305,7 @@ namespace Client.Pages.UnitOperations.DialogBase
 
         private async Task HandleBlur(IFacadeStream facade, ComponentFacade comp, bool isMass, bool isGL)
         {
+            if (IsProjectReadOnly) return;
             // 🔥 FIX: Evita el bug donde borrar la edición limpiaba todo. 
             // Si la celda ya no es la activa (porque el Enter ya reseteó el estado), cancelamos.
             if (_editingFacade != facade || _editingComponent != comp) return;
@@ -289,6 +326,7 @@ namespace Client.Pages.UnitOperations.DialogBase
         }
         private async Task HandleKeyDown2(KeyboardEventArgs e, IFacadeStream facade, ComponentFacade comp, bool isMass, bool isGL)
         {
+            if (IsProjectReadOnly) return;
             if (e.Key == "Enter") await CommitValue(facade, comp, isMass, isGL);
             else if (e.Key == "Delete" || e.Key == "Backspace") await ClearCell(facade, comp);
         }
@@ -296,6 +334,7 @@ namespace Client.Pages.UnitOperations.DialogBase
        
         private async Task CommitValue(IFacadeStream facade, ComponentFacade comp, bool isMass, bool isGL)
         {
+            if (IsProjectReadOnly) return;
             if (!_tempInputValue.HasValue) return;
             var composition = facade.Composition;
             if (composition == null) return;
@@ -306,17 +345,19 @@ namespace Client.Pages.UnitOperations.DialogBase
                 var water = composition.Components.FirstOrDefault(c => c.Name.Equals("Water", StringComparison.OrdinalIgnoreCase));
                 if (water != null)
                 {
-                    comp.MassFraction.SetValueFromUI(new Percentage(massFraction, PercentageUnits.Percentage));
-                    water.MassFraction.SetValueFromUI(new Percentage(100 - massFraction, PercentageUnits.Percentage));
+                    var user = AuthProvider.CurrentUser;
+                    comp.MassFraction.SetValueFromUI(new Percentage(massFraction, PercentageUnits.Percentage), user?.Id.ToString(), user?.DisplayName);
+                    water.MassFraction.SetValueFromUI(new Percentage(100 - massFraction, PercentageUnits.Percentage), user?.Id.ToString(), user?.DisplayName);
                     composition.InputType = ComponentInputType.MassFraction;
                 }
             }
             else
             {
+                var user = AuthProvider.CurrentUser;
                 if (isMass)
-                    comp.MassFraction.SetValueFromUI(new Percentage(_tempInputValue.Value, PercentageUnits.Percentage));
+                    comp.MassFraction.SetValueFromUI(new Percentage(_tempInputValue.Value, PercentageUnits.Percentage), user?.Id.ToString(), user?.DisplayName);
                 else
-                    comp.MolarFraction.SetValueFromUI(new Percentage(_tempInputValue.Value, PercentageUnits.Percentage));
+                    comp.MolarFraction.SetValueFromUI(new Percentage(_tempInputValue.Value, PercentageUnits.Percentage), user?.Id.ToString(), user?.DisplayName);
 
                 composition.InputType = isMass ? ComponentInputType.MassFraction : ComponentInputType.MolarFraction;
             }
@@ -338,6 +379,7 @@ namespace Client.Pages.UnitOperations.DialogBase
 
         private async Task ClearCell(IFacadeStream facade, ComponentFacade comp)
         {
+            if (IsProjectReadOnly) return;
             var composition = facade.Composition;
             if (composition == null) return;
 

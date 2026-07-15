@@ -11,9 +11,9 @@ namespace Client.Services.HttpServices
         //     where TResponse : class;
 
         // ✅ NUEVO: Solo acepta Result<T> — fuerza el patrón del proyecto
-        Task<Result<T>> PostAsync<TRequest, T>(TRequest request) where TRequest : class;
+        Task<Result<T>> PostAsync<TRequest, T>(TRequest request, bool showSnackbar = true) where TRequest : class;
         // ✅ NUEVO: Para endpoints que devuelven Result sin datos
-        Task<Result> PostAsync<TRequest>(TRequest request) where TRequest : class;
+        Task<Result> PostAsync<TRequest>(TRequest request, bool showSnackbar = true) where TRequest : class;
 
         Task<bool> PostForValidationAsync<TRequest>(TRequest request) where TRequest : class;
     }
@@ -74,7 +74,7 @@ namespace Client.Services.HttpServices
         // }
 
         // ✅ NUEVO: PostAsync que devuelve Result<T>
-        public async Task<Result<T>> PostAsync<TRequest, T>(TRequest request) where TRequest : class
+        public async Task<Result<T>> PostAsync<TRequest, T>(TRequest request, bool showSnackbar = true) where TRequest : class
         {
             try
             {
@@ -86,7 +86,7 @@ namespace Client.Services.HttpServices
                     var result = await response.Content.ReadFromJsonAsync<Result<T>>();
                     if (result != null)
                     {
-                        if (result is Result generalDto)
+                        if (showSnackbar && result is Result generalDto)
                             _snackbarService.ShowMessage(generalDto);
                         return result;
                     }
@@ -96,29 +96,33 @@ namespace Client.Services.HttpServices
                 var errorContent = await response.Content.ReadAsStringAsync();
                 var message = $"Error {response.StatusCode}: {errorContent}".Truncate(200);
 
-                _snackbarService.ShowError(message);
+                if (showSnackbar)
+                    _snackbarService.ShowError(message);
                 return Result<T>.Fail(message);
             }
             catch (HttpRequestException ex)
             {
                 var message = ex.InnerException?.Message ?? ex.Message;
-                _snackbarService.ShowError($"Connection error: {message}");
+                if (showSnackbar)
+                    _snackbarService.ShowError($"Connection error: {message}");
                 return Result<T>.Fail($"Connection error: {message}");
             }
             catch (TaskCanceledException)
             {
-                _snackbarService.ShowError("Request timed out. Please try again.");
+                if (showSnackbar)
+                    _snackbarService.ShowError("Request timed out. Please try again.");
                 return Result<T>.Fail("Request timed out. Please try again.");
             }
             catch (Exception ex)
             {
-                _snackbarService.ShowError($"Unexpected error: {ex.Message}");
+                if (showSnackbar)
+                    _snackbarService.ShowError($"Unexpected error: {ex.Message}");
                 return Result<T>.Fail($"Unexpected error: {ex.Message}");
             }
         }
 
         // ✅ NUEVO: PostAsync que devuelve Result (sin tipo de datos)
-        public async Task<Result> PostAsync<TRequest>(TRequest request) where TRequest : class
+        public async Task<Result> PostAsync<TRequest>(TRequest request, bool showSnackbar = true) where TRequest : class
         {
             try
             {
@@ -130,7 +134,8 @@ namespace Client.Services.HttpServices
                     var result = await response.Content.ReadFromJsonAsync<Result>();
                     if (result != null)
                     {
-                        _snackbarService.ShowMessage(result);
+                        if (showSnackbar)
+                            _snackbarService.ShowMessage(result);
                         return result;
                     }
                     return new Result { Succeeded = false, Messages = new List<string> { "Empty response" } };
@@ -139,23 +144,27 @@ namespace Client.Services.HttpServices
                 var errorContent = await response.Content.ReadAsStringAsync();
                 var message = $"Error {response.StatusCode}: {errorContent}".Truncate(200);
 
-                _snackbarService.ShowError(message);
+                if (showSnackbar)
+                    _snackbarService.ShowError(message);
                 return new Result { Succeeded = false, Messages = new List<string> { message } };
             }
             catch (HttpRequestException ex)
             {
                 var message = ex.InnerException?.Message ?? ex.Message;
-                _snackbarService.ShowError($"Connection error: {message}");
+                if (showSnackbar)
+                    _snackbarService.ShowError($"Connection error: {message}");
                 return new Result { Succeeded = false, Messages = new List<string> { $"Connection error: {message}" } };
             }
             catch (TaskCanceledException)
             {
-                _snackbarService.ShowError("Request timed out. Please try again.");
+                if (showSnackbar)
+                    _snackbarService.ShowError("Request timed out. Please try again.");
                 return new Result { Succeeded = false, Messages = new List<string> { "Request timed out. Please try again." } };
             }
             catch (Exception ex)
             {
-                _snackbarService.ShowError($"Unexpected error: {ex.Message}");
+                if (showSnackbar)
+                    _snackbarService.ShowError($"Unexpected error: {ex.Message}");
                 return new Result { Succeeded = false, Messages = new List<string> { $"Unexpected error: {ex.Message}" } };
             }
         }

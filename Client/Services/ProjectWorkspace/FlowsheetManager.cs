@@ -8,6 +8,7 @@ using Shared.SolverConsecutive.Equipments;
 using Shared.SolverQwen.Stream;
 using Shared.UnitOperations.Basiss;
 using Shared.WorkSpaceManagers;
+using System.Threading;
 using UnitSystem;
 using Distillator.Domain.Factories;
 using Distillator.Domain.Models;
@@ -34,10 +35,16 @@ public class FlowsheetManager
     private IFlowsheet? _flowsheet;
     private IConnectionService? _connectionService;
     private IMainSolver? _subscribedSolver;
+    private Action? _solverCompletionHandler;
+    private long _solverSubscriptionVersion;
     private List<IVisualElement> _elements = new();
     private List<PipeVisualElement> _pipes = new();
 
     private bool _isPanning;
+    private int _runningSimulations;
+    private bool _visualSavePendingAfterSimulation;
+    private readonly Dictionary<Guid, IFlowsheet> _pendingVisualSaveFlowsheets = new();
+    private readonly object _visualSaveSync = new();
     private double _lastPanMouseX;
     private double _lastPanMouseY;
 
@@ -90,6 +97,7 @@ public class FlowsheetManager
     public double DraftMouseLogicalY { get; private set; }
 
     public Action? OnNotifyUI;
+    public Func<IReadOnlyCollection<IFlowsheet>, Task>? OnVisualStatesChangedAsync;
 
     // ==============================================================================
     // CARGA DE PROYECTO / FLOWSHEET
@@ -224,6 +232,7 @@ public class FlowsheetManager
         UpdateDiagramSize();
         RunSimulation();
         NotifyStateChanged();
+        QueueVisualStateChanged();
     }
 
     public void SelectElement(IVisualElement? element)
@@ -256,6 +265,7 @@ public class FlowsheetManager
             SyncElementReferences();
             UpdateDiagramSize();
             NotifyStateChanged();
+            QueueVisualStateChanged();
         }
     }
 
@@ -272,6 +282,7 @@ public class FlowsheetManager
         element.Rotate90();
         SyncElementReference(element);
         NotifyStateChanged();
+        QueueVisualStateChanged();
     }
 
     public void FlipElementHorizontal(IVisualElement element)
@@ -279,6 +290,7 @@ public class FlowsheetManager
         element.ToggleFlipHorizontal();
         SyncElementReference(element);
         NotifyStateChanged();
+        QueueVisualStateChanged();
     }
 
     public void FlipElementVertical(IVisualElement element)
@@ -286,6 +298,7 @@ public class FlowsheetManager
         element.ToggleFlipVertical();
         SyncElementReference(element);
         NotifyStateChanged();
+        QueueVisualStateChanged();
     }
 
     public void DeleteElement(IVisualElement element)
@@ -312,6 +325,7 @@ public class FlowsheetManager
         UpdateDiagramSize();
         RunSimulation();
         NotifyStateChanged();
+        QueueVisualStateChanged();
     }
 
     // ==============================================================================
@@ -440,6 +454,7 @@ public class FlowsheetManager
 
         RunSimulation();
         NotifyStateChanged();
+        QueueVisualStateChanged();
     }
 
     public bool IsValidTarget(IVisualElement target, string targetPortName)
@@ -456,23 +471,104 @@ public class FlowsheetManager
     public void RunSimulation()
     {
         if (_project == null) return;
+
+        _visualSavePendingAfterSimulation = true;
+        Interlocked.Increment(ref _runningSimulations);
         _project.RunSimulation();
         NotifyStateChanged();
     }
 
     public void NotifyStateChanged() => OnNotifyUI?.Invoke();
 
+    private void QueueVisualStateChanged(params IFlowsheet[] changedFlowsheets)
+    {
+        if (_flowsheet == null || OnVisualStatesChangedAsync == null) return;
+        var flowsheets = changedFlowsheets.Length == 0 ? new[] { _flowsheet } : changedFlowsheets;
+
+        if (Interlocked.CompareExchange(ref _runningSimulations, 0, 0) > 0)
+        {
+            _visualSavePendingAfterSimulation = true;
+            lock (_visualSaveSync)
+            {
+                foreach (var flowsheet in flowsheets)
+                {
+                    _pendingVisualSaveFlowsheets[flowsheet.Id] = flowsheet;
+                }
+            }
+            return;
+        }
+
+        var changed = flowsheets
+            .DistinctBy(candidate => candidate.Id)
+            .ToArray();
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                foreach (Func<IReadOnlyCollection<IFlowsheet>, Task> handler in
+                         OnVisualStatesChangedAsync.GetInvocationList())
+                {
+                    await handler(changed);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine($"Visual autosave failed: {ex.Message}");
+            }
+        });
+    }
+
     private void SubscribeToSolver(IMainSolver solver)
     {
         if (_subscribedSolver == solver) return;
 
-        if (_subscribedSolver != null)
+        if (_subscribedSolver != null && _solverCompletionHandler != null)
         {
-            _subscribedSolver.OnSimulationCompleted -= NotifyStateChanged;
+            _subscribedSolver.OnSimulationCompleted -= _solverCompletionHandler;
+        }
+
+        Interlocked.Exchange(ref _runningSimulations, 0);
+        _visualSavePendingAfterSimulation = false;
+        lock (_visualSaveSync)
+        {
+            _pendingVisualSaveFlowsheets.Clear();
         }
 
         _subscribedSolver = solver;
-        _subscribedSolver.OnSimulationCompleted += NotifyStateChanged;
+        var subscriptionVersion = Interlocked.Increment(ref _solverSubscriptionVersion);
+        _solverCompletionHandler = () => OnSolverSimulationCompleted(solver, subscriptionVersion);
+        _subscribedSolver.OnSimulationCompleted += _solverCompletionHandler;
+    }
+
+    private void OnSolverSimulationCompleted(IMainSolver solver, long subscriptionVersion)
+    {
+        if (!ReferenceEquals(_subscribedSolver, solver) ||
+            subscriptionVersion != Interlocked.Read(ref _solverSubscriptionVersion))
+        {
+            return;
+        }
+
+        var runningSimulations = Interlocked.Decrement(ref _runningSimulations);
+        if (runningSimulations < 0)
+        {
+            Interlocked.Exchange(ref _runningSimulations, 0);
+            runningSimulations = 0;
+        }
+
+        if (runningSimulations == 0 && _visualSavePendingAfterSimulation)
+        {
+            _visualSavePendingAfterSimulation = false;
+            IFlowsheet[] pendingFlowsheets;
+            lock (_visualSaveSync)
+            {
+                pendingFlowsheets = _pendingVisualSaveFlowsheets.Values.ToArray();
+                _pendingVisualSaveFlowsheets.Clear();
+            }
+
+            QueueVisualStateChanged(pendingFlowsheets);
+        }
+
+        NotifyStateChanged();
     }
 
     // ==============================================================================
@@ -482,6 +578,12 @@ public class FlowsheetManager
     {
         if (_project == null) return string.Empty;
         return _namingService.GenerateNextName(equipmentTypeCode, _project, _flowsheet);
+    }
+
+    public string? SuggestName(string equipmentTypeCode)
+    {
+        if (_project == null) return null;
+        return _namingService.SuggestName(equipmentTypeCode, _project, _flowsheet);
     }
 
     public bool IsNameAvailable(string name)
@@ -526,6 +628,22 @@ public class FlowsheetManager
         return stream;
     }
 
+    public StreamVisualElement? CreateAndConnectStreamFromPort(IVisualElement equipment, string portName, string streamName)
+    {
+        if (_project == null || _flowsheet == null) return null;
+
+        var port = equipment.Ports.FirstOrDefault(item => item.Name == portName);
+        if (port == null) return null;
+
+        var stream = CreateStreamProgrammatically(streamName);
+        if (stream == null) return null;
+
+        PositionStreamFromPort(equipment, port, stream);
+        SyncElementReference(stream);
+        ConnectEquipmentToProjectStream(equipment, portName, stream);
+        return stream;
+    }
+
     /// <summary>
     /// Conecta un equipo a un stream existente usando el SimulationService del dominio.
     /// </summary>
@@ -536,6 +654,7 @@ public class FlowsheetManager
         RebuildPipes();
         RunSimulation();
         NotifyStateChanged();
+        QueueVisualStateChanged();
     }
 
     /// <summary>
@@ -578,6 +697,42 @@ public class FlowsheetManager
         UpdateDiagramSize();
         RunSimulation();
         NotifyStateChanged();
+        QueueVisualStateChanged(_flowsheet, streamFlowsheet);
+    }
+
+    private void PositionStreamFromPort(IVisualElement equipment, EquipmentPort port, StreamVisualElement stream)
+    {
+        if (_flowsheet == null) return;
+
+        var absCoords = equipment.GetAbsolutePortCoordinates(port.Name);
+        const double spawnDistance = 80;
+        double dx = 0;
+        double dy = 0;
+
+        switch (port.Direction)
+        {
+            case PortDirection.Top: dy = -spawnDistance; break;
+            case PortDirection.Bottom: dy = spawnDistance; break;
+            case PortDirection.Left: dx = -spawnDistance; break;
+            case PortDirection.Right: dx = spawnDistance; break;
+        }
+
+        var isInlet = port.Type == PortType.Inlet;
+        stream.RotationAngle = port.Direction switch
+        {
+            PortDirection.Left => isInlet ? 0 : 180,
+            PortDirection.Right => isInlet ? 180 : 0,
+            PortDirection.Top => isInlet ? 90 : 270,
+            PortDirection.Bottom => isInlet ? 270 : 90,
+            _ => stream.RotationAngle
+        };
+
+        var streamPortName = isInlet ? "Outlet" : "Inlet";
+        var (streamOffsetX, streamOffsetY, _) = stream.GetTransformedPort(streamPortName);
+
+        stream.X = _canvasLayout.Snap((absCoords.X + dx) - streamOffsetX);
+        stream.Y = _canvasLayout.Snap((absCoords.Y + dy) - streamOffsetY);
+        ClampElementPosition(stream);
     }
 
     /// <summary>
@@ -608,6 +763,7 @@ public class FlowsheetManager
         RebuildPipes();
         RunSimulation();
         NotifyStateChanged();
+        QueueVisualStateChanged();
     }
 
     /// <summary>
@@ -739,7 +895,7 @@ public class FlowsheetManager
 
     private IMainSolver GetSolver()
     {
-        return _project?.SimulationService.Solver ?? new NullSolver();
+        return _project?.SimulationService.Solver ?? new MainSolver();
     }
 
     private void SetUniqueElementName(IVisualElement element)
@@ -899,19 +1055,19 @@ public class FlowsheetManager
     /// Placeholder que evita NRE si aún no hay proyecto cargado.
     /// No ejecuta nada; el solver real se obtiene del proyecto.
     /// </summary>
-    private class NullSolver : IMainSolver
-    {
-        public List<IFacadeStream> Streams { get; } = new();
-        public List<ISolverEquipment> Equipments { get; } = new();
-        public Length Altitude { get; set; } = new(0, LengthUnits.Meter);
-        public Pressure AtmosphericPressure { get; set; } = new(101325, PressureUnits.Pascala);
-        public ThermodynamicMethodFullDto ThermoMethod { get; set; } = null!;
-        public event Action? OnSimulationCompleted;
-        public void AddStream(IFacadeStream stream) { }
-        public void AddEquipment(ISolverEquipment equipment) { }
-        public void ClearOrphanStream(IFacadeStream stream) { }
-        public void RunSimulation() { }
-        public void RemoveStream(IFacadeStream stream) { }
-        public void RemoveEquipment(ISolverEquipment equipment) { }
-    }
+    //private class NullSolver : IMainSolver
+    //{
+    //    public List<IFacadeStream> Streams { get; } = new();
+    //    public List<ISolverEquipment> Equipments { get; } = new();
+    //    public Length Altitude { get; set; } = new(0, LengthUnits.Meter);
+    //    public Pressure AtmosphericPressure { get; set; } = new(101325, PressureUnits.Pascala);
+    //    public ThermodynamicMethodFullDto ThermoMethod { get; set; } = null!;
+    //    public event Action? OnSimulationCompleted;
+    //    public void AddStream(IFacadeStream stream) { }
+    //    public void AddEquipment(ISolverEquipment equipment) { }
+    //    public void ClearOrphanStream(IFacadeStream stream) { }
+    //    public void RunSimulation() { }
+    //    public void RemoveStream(IFacadeStream stream) { }
+    //    public void RemoveEquipment(ISolverEquipment equipment) { }
+    //}
 }

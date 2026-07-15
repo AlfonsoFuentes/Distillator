@@ -1,5 +1,6 @@
 ﻿<MudDialog Gutters="false" ContentClass="pa-0">
     <DialogContent>
+        <CascadingValue Name="IsProjectReadOnly" Value="@(!CanEdit)">
         <div class="equipment-dialog">
 
             @* ENCABEZADO: Solo usa Equipment.Label *@
@@ -47,8 +48,8 @@
                 }
                 else if (activeTab == "Specs")
                 {
-                    <EquipmentBaseSpecifications Equipment="Equipment"
-                                                 OnSpecificationsChanged="HandleEquipmentUpdate" />
+                    <EquipmentBaseFormulaSpecifications Equipment="Equipment"
+                                                        OnSpecificationsChanged="HandleEquipmentUpdate" />
                 }
                 else if (activeTab == "Design")
                 {
@@ -92,14 +93,17 @@
             </div>
 
         </div>
+        </CascadingValue>
     </DialogContent>
 </MudDialog>
 
 @implements IDisposable
+@using Distillator.Domain.Services
 
 @code {
     [CascadingParameter] public IMudDialogInstance MudDialog { get; set; } = default!;
     [Parameter, EditorRequired] public IVisualElement Equipment { get; set; } = default!;
+    [Parameter] public bool CanEdit { get; set; } = true;
 
     [Parameter] public RenderFragment? MainSlot { get; set; }
     [Parameter] public RenderFragment? PropertiesSlot { get; set; }
@@ -121,7 +125,22 @@
 
     private void OnNotifyUIHandler()
     {
+        RefreshEquipmentFacadeFromWorkspace();
         _ = InvokeAsync(StateHasChanged);
+    }
+
+    private void RefreshEquipmentFacadeFromWorkspace()
+    {
+        var current = FSM.Elements.FirstOrDefault(element => element.Id == Equipment.Id);
+        if (current?.Facade == null || Equipment.Facade == null || ReferenceEquals(current.Facade, Equipment.Facade))
+        {
+            return;
+        }
+
+        FacadeStateSerializer.Apply(
+            Equipment.Facade,
+            FacadeStateSerializer.Serialize(current.Facade, includeTransientState: true),
+            restoreProjectDefaultDisplayUnits: true);
     }
 
     private void SetTab(string tabName) { activeTab = tabName; StateHasChanged(); }
