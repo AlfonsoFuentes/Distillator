@@ -45,6 +45,7 @@ namespace Client.Services
             builder.Services.AddScoped<CustomAuthenticationStateProvider>();
             builder.Services.AddScoped<AuthenticationStateProvider>(sp => sp.GetRequiredService<CustomAuthenticationStateProvider>());
             builder.Services.AddScoped<IProjectConfiguration, ProjectConfiguration>();
+            builder.Services.AddScoped<Client.Services.Diagnostics.ProjectActivityLogService>();
             builder.Services.AddScoped<ProjectSessionService>();
             builder.Services.AddScoped<ProjectRealtimeService>();
             builder.Services.AddScoped<IProjectRepository, InMemoryProjectRepository>();

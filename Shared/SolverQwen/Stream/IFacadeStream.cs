@@ -1,4 +1,4 @@
-﻿using Shared.PhaseEnvelopes;
+using Shared.PhaseEnvelopes;
 using Shared.ProcessFlowDiagram;
 using Shared.PropertiesDtos.Methods;
 using Shared.SolverConsecutive;
@@ -125,7 +125,22 @@ namespace Shared.SolverQwen.Stream
             MolarDensity.SetName($"{name} MolarDensity");
             EnthalpyFlow.SetName($"{name} EnthalpyFlow");
 
+            if (Composition != null)
+            {
+                SetComponentVariableNames(Composition.Components);
+            }
 
+        }
+
+        private void SetComponentVariableNames(IEnumerable<ComponentFacade> components)
+        {
+            foreach (var component in components)
+            {
+                component.MassFraction.SetName($"{Name}.{component.Name}.MassFraction");
+                component.MolarFraction.SetName($"{Name}.{component.Name}.MolarFraction");
+                component.MassFlow.SetName($"{Name}.{component.Name}.MassFlow");
+                component.MolarFlow.SetName($"{Name}.{component.Name}.MolarFlow");
+            }
         }
         public StreamStateType State => GetState();
         public bool IsEquilibriumSolved { get; set; }
@@ -315,6 +330,11 @@ namespace Shared.SolverQwen.Stream
         public ThermodynamicMethodFullDto ThermoMethod { get; private set; } = null!;
         public void SetThermodynamicMethod(ThermodynamicMethodFullDto method)
         {
+            if (IsSameThermodynamicMethod(method))
+            {
+                return;
+            }
+
             ThermoMethod = method;
             _materialStream.SetThermodynamicMethod(method);
 
@@ -345,11 +365,86 @@ namespace Shared.SolverQwen.Stream
 
             // 2. Crear orchestrator con la lista YA poblada
             Composition = new CompositionOrchestrator(_componentList);
+            SetComponentVariableNames(_componentList);
             Composition.OnCompositionChanged += () => _materialStream.SetCompositionData(Composition);
             Composition.OnCompositionChanged += ExecuteEquilibrium;
             Composition.OnCompositionChanged += () => EnvelopeCache = null!;
 
 
+        }
+
+        private bool IsSameThermodynamicMethod(ThermodynamicMethodFullDto method)
+        {
+            if (ThermoMethod == null || method == null)
+            {
+                return false;
+            }
+
+            if (ThermoMethod.Id != method.Id ||
+                ThermoMethod.VaporModel != method.VaporModel ||
+                ThermoMethod.LiquidModel != method.LiquidModel ||
+                !string.Equals(ThermoMethod.Name, method.Name, StringComparison.Ordinal))
+            {
+                return false;
+            }
+
+            if (!HasSameComponents(ThermoMethod.Components, method.Components))
+            {
+                return false;
+            }
+
+            return HasSameBinaryParameters(ThermoMethod.BinaryParameters, method.BinaryParameters);
+        }
+
+        private static bool HasSameComponents(
+            IReadOnlyList<MethodComponentFullDto> currentComponents,
+            IReadOnlyList<MethodComponentFullDto> newComponents)
+        {
+            if (currentComponents.Count != newComponents.Count)
+            {
+                return false;
+            }
+
+            for (var i = 0; i < currentComponents.Count; i++)
+            {
+                var current = currentComponents[i];
+                var next = newComponents[i];
+
+                if (current.ComponentId != next.ComponentId ||
+                    current.MatrixIndex != next.MatrixIndex ||
+                    !string.Equals(current.ComponentName, next.ComponentName, StringComparison.Ordinal))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private static bool HasSameBinaryParameters(
+            IReadOnlyList<BinaryInteractionParameterDto> currentParameters,
+            IReadOnlyList<BinaryInteractionParameterDto> newParameters)
+        {
+            if (currentParameters.Count != newParameters.Count)
+            {
+                return false;
+            }
+
+            for (var i = 0; i < currentParameters.Count; i++)
+            {
+                var current = currentParameters[i];
+                var next = newParameters[i];
+
+                if (current.ComponentI_Id != next.ComponentI_Id ||
+                    current.ComponentJ_Id != next.ComponentJ_Id ||
+                    current.ParameterType != next.ParameterType ||
+                    Math.Abs(current.Value - next.Value) > 1e-12)
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         public void ExecuteEquilibrium() => _equilibriumCalculator.Execute();

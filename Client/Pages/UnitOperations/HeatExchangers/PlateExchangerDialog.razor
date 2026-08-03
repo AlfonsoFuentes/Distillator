@@ -1,21 +1,21 @@
 ﻿@using Client.Layout.Shapes.SVGDrawings
 @using Client.Pages.UnitOperations.DialogBase
+@using Client.Pages.UnitOperations.HeatExchangers.Design
 @using Shared.UnitOperations.Helpers
 
 <EquipmentBaseDialog Equipment="Equipment" CanEdit="CanEdit">
     <MainSlot>
         <div class="phe-canvas-layout">
 
-            @* 1. ZONA IZQUIERDA: Entradas (Hot In arriba, Cold In abajo) *@
             <div class="side-zone left-zone">
                 <div class="static-port-container top-align">
-                    <span class="sub-label hot-label">Hot Inlet</span>
-                    <EquipmentPortConnector Port="@Equipment.HotInPort" ParentEquipment="Equipment" />
+                    <span class="sub-label side-a-label">Side A Inlet</span>
+                    <EquipmentPortConnector Port="@Equipment.SideAInPort" ParentEquipment="Equipment" />
                 </div>
 
                 <div class="static-port-container bottom-align">
-                    <span class="sub-label cold-label">Cold Inlet</span>
-                    <EquipmentPortConnector Port="@Equipment.ColdInPort" ParentEquipment="Equipment" />
+                    <span class="sub-label side-b-label">Side B Inlet</span>
+                    <EquipmentPortConnector Port="@Equipment.SideBInPort" ParentEquipment="Equipment" />
                 </div>
             </div>
 
@@ -31,16 +31,15 @@
                 </div>
             </div>
 
-            @* 3. ZONA DERECHA: Salidas (Cold Out arriba, Hot Out abajo) *@
             <div class="side-zone right-zone">
                 <div class="static-port-container top-align">
-                    <EquipmentPortConnector Port="@Equipment.ColdOutPort" ParentEquipment="Equipment" />
-                    <span class="sub-label cold-label">Cold Outlet</span>
+                    <EquipmentPortConnector Port="@Equipment.SideBOutPort" ParentEquipment="Equipment" />
+                    <span class="sub-label side-b-label">Side B Outlet</span>
                 </div>
 
                 <div class="static-port-container bottom-align">
-                    <EquipmentPortConnector Port="@Equipment.HotOutPort" ParentEquipment="Equipment" />
-                    <span class="sub-label hot-label">Hot Outlet</span>
+                    <EquipmentPortConnector Port="@Equipment.SideAOutPort" ParentEquipment="Equipment" />
+                    <span class="sub-label side-a-label">Side A Outlet</span>
                 </div>
             </div>
 
@@ -50,11 +49,11 @@
     <PropertiesSlot>
         @if (Equipment.Facade is SolverHeatExchanger hx)
         {
-            <VariableAmountRow Label="Hot Side ΔP"
+            <VariableAmountRow Label="Side A ΔP"
                                @bind-Variable="hx.DeltaPHot"
                                Mode="VariableMode.Standard" />
 
-            <VariableAmountRow Label="Cold Side ΔP"
+            <VariableAmountRow Label="Side B ΔP"
                                @bind-Variable="hx.DeltaPCold"
                                Mode="VariableMode.Standard" />
 
@@ -64,6 +63,9 @@
                                IsReadOnly="true" />
         }
     </PropertiesSlot>
+    <DesignSlot>
+        <PlateExchangerDesignPanel Equipment="Equipment" />
+    </DesignSlot>
 </EquipmentBaseDialog>
 
 @code {

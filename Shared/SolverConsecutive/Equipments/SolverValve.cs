@@ -80,32 +80,7 @@ namespace Shared.SolverConsecutive.Equipments
             Outlet = null!;
         }
 
-        //public override IEnumerable<ISolverEquipment> GetEquipmentInlets(IFacadeStream stream)
-        //{
-        //    if (stream == null) yield break;
-        //    if (Outlet == stream)
-        //    {
-        //        yield return Inlet!.EquipmentInlet;
-
-        //    }
-
-
-
-
-
-        //}
-        //public override IEnumerable<ISolverEquipment> GetEquipmentOutlets(IFacadeStream stream)
-        //{
-        //    if (stream == null) yield break;
-
-        //    if (Inlet == stream)
-        //    {
-        //        yield return Outlet!.EquipmentOutlet;
-
-        //    }
-
-
-        //}
+      
 
         public ValveStateType State => GetState();
 

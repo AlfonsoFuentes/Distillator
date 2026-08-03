@@ -3,7 +3,7 @@
 <div class="tab-content-form">
 
     <!-- ==================== 1. LIVE NAME BUILDER ==================== -->
-    <div>
+    <div class="naming-section">
         <div class="section-title">Live Name Builder</div>
         <div class="naming-slots-container">
             <button type="button" class="naming-slot @GetNamingSlotCss(ProjectFormDialog.NamingSlot.DiagramPrefix)" @onclick="() => OnSelectNamingSlot(ProjectFormDialog.NamingSlot.DiagramPrefix)">
@@ -38,7 +38,7 @@
 
   
     <!-- ==================== 2. EXAMPLES BY DIAGRAM ==================== -->
-    <div>
+    <div class="naming-section">
         <div class="section-title">Examples by Diagram</div>
         <div class="examples-grid">
             @foreach (var diagram in GetDiagramNamingPreview())
@@ -61,7 +61,7 @@
     </div>
 
     <!-- ==================== 3. CONFIGURATION PANEL ==================== -->
-    <div>
+    <div class="naming-section naming-configuration-section">
         <div class="section-title">@NamingSlotTitle(SelectedNamingSlot) Configuration</div>
         <div style="font-size: 11px; color: #64748b; margin-bottom: 12px;">@NamingSlotDescription(SelectedNamingSlot)</div>
 

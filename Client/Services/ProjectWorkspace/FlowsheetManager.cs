@@ -9,7 +9,9 @@ using Shared.SolverQwen.Stream;
 using Shared.UnitOperations.Basiss;
 using Shared.WorkSpaceManagers;
 using System.Threading;
+using System.Runtime.CompilerServices;
 using UnitSystem;
+using Client.Services.Diagnostics;
 using Distillator.Domain.Factories;
 using Distillator.Domain.Models;
 using Distillator.Domain.Policies;
@@ -30,6 +32,10 @@ public class FlowsheetManager
     private readonly FlowsheetCanvasLayoutService _canvasLayout;
     private readonly FlowsheetStyleService _styleService;
     private readonly EquipmentDragService _drag;
+    private readonly ProjectActivityLogService _activityLog;
+    private readonly FlowsheetEditChangePolicy _editChangePolicy = new();
+    private readonly FlowsheetEquipmentEditService _equipmentEditService = new();
+    private readonly FlowsheetConnectionEditService _connectionEditService = new();
 
     private Project? _project;
     private IFlowsheet? _flowsheet;
@@ -39,14 +45,19 @@ public class FlowsheetManager
     private long _solverSubscriptionVersion;
     private List<IVisualElement> _elements = new();
     private List<PipeVisualElement> _pipes = new();
+    private readonly List<IVisualElement> _selectedElements = new();
 
     private bool _isPanning;
     private int _runningSimulations;
     private bool _visualSavePendingAfterSimulation;
     private readonly Dictionary<Guid, IFlowsheet> _pendingVisualSaveFlowsheets = new();
+    private readonly Dictionary<Guid, IFlowsheet> _queuedVisualSaveFlowsheets = new();
     private readonly object _visualSaveSync = new();
+    private CancellationTokenSource? _visualStateNotificationDebounce;
     private double _lastPanMouseX;
     private double _lastPanMouseY;
+    private long _routeGeometryVersion;
+    private const int VisualStateNotificationDebounceMs = 650;
 
     public FlowsheetManager(
         ICameraService cameraService,
@@ -54,7 +65,8 @@ public class FlowsheetManager
         IEquipmentNamingService namingService,
         FlowsheetCanvasLayoutService canvasLayout,
         FlowsheetStyleService styleService,
-        EquipmentDragService drag)
+        EquipmentDragService drag,
+        ProjectActivityLogService activityLog)
     {
         _cameraService = cameraService ?? throw new ArgumentNullException(nameof(cameraService));
         _placementRules = placementRules ?? throw new ArgumentNullException(nameof(placementRules));
@@ -62,6 +74,7 @@ public class FlowsheetManager
         _canvasLayout = canvasLayout ?? throw new ArgumentNullException(nameof(canvasLayout));
         _styleService = styleService ?? throw new ArgumentNullException(nameof(styleService));
         _drag = drag ?? throw new ArgumentNullException(nameof(drag));
+        _activityLog = activityLog ?? throw new ArgumentNullException(nameof(activityLog));
     }
 
     // ==============================================================================
@@ -70,6 +83,7 @@ public class FlowsheetManager
     public Project? CurrentProject => _project;
     public IFlowsheet? CurrentFlowsheet => _flowsheet;
     public IVisualElement? SelectedElement { get; private set; }
+    public IReadOnlyCollection<IVisualElement> SelectedElements => _selectedElements.AsReadOnly();
     public List<IVisualElement> Elements => _elements;
     public List<PipeVisualElement> Pipes => _pipes;
 
@@ -90,6 +104,12 @@ public class FlowsheetManager
     public double Snap(double val) => _canvasLayout.Snap(val);
     public bool IsMovingAny => _drag.IsMovingAny;
     public bool IsMoving(IVisualElement el) => _drag.IsMoving(el);
+    public bool IsMoving(Guid elementId) => _elements.FirstOrDefault(element => element.Id == elementId) is { } element && _drag.IsMoving(element);
+    public bool IsSelected(IVisualElement el) => _selectedElements.Any(selected => selected.Id == el.Id);
+    public long RouteGeometryVersion => Interlocked.Read(ref _routeGeometryVersion);
+    public bool IsSimulationRunning => Interlocked.CompareExchange(ref _runningSimulations, 0, 0) > 0;
+    public bool HasActiveVisualOperation => IsMovingAny || IsPanning || CurrentDraftPipe != null;
+    public Func<bool>? CanEditCurrentProject { get; set; }
 
     public bool IsConnectionModeActive { get; private set; }
     public PipeVisualElement? CurrentDraftPipe { get; private set; }
@@ -104,6 +124,7 @@ public class FlowsheetManager
     // ==============================================================================
     public void LoadProject(Project project)
     {
+        ResetVisualSaveQueues();
         _project = project;
         _namingService.SetConfiguration(project.Configuration.NamingConfig);
         SubscribeToSolver(project.SimulationService.Solver);
@@ -111,10 +132,12 @@ public class FlowsheetManager
 
     public void LoadFlowsheet(IFlowsheet flowsheet)
     {
+        ResetVisualSaveQueues();
         _flowsheet = flowsheet;
         _elements.Clear();
         _pipes.Clear();
         SelectedElement = null;
+        _selectedElements.Clear();
         CurrentDraftPipe = null;
         IsConnectionModeActive = false;
         _isPanning = false;
@@ -139,6 +162,7 @@ public class FlowsheetManager
             if (element is OffPageConnectorElement opc && reference is IOffPageConnectorReference opcReference)
             {
                 opc.IsOutlet = opcReference.IsOutlet;
+                opc.PortSide = opcReference.PortSide;
                 opc.TargetAreaId = opcReference.TargetFlowsheetId;
                 opc.TargetConnectorId = opcReference.TargetConnectorId;
                 opc.TargetAreaName = opcReference.TargetFlowsheetName;
@@ -167,6 +191,7 @@ public class FlowsheetManager
         }
 
         UpdateDiagramSize();
+        NotifyRouteGeometryChanged();
         NotifyStateChanged();
     }
 
@@ -188,10 +213,12 @@ public class FlowsheetManager
 
     public void Clear()
     {
+        ResetVisualSaveQueues();
         _flowsheet = null;
         _elements.Clear();
         _pipes.Clear();
         SelectedElement = null;
+        _selectedElements.Clear();
         CurrentDraftPipe = null;
         IsConnectionModeActive = false;
         _isPanning = false;
@@ -204,6 +231,7 @@ public class FlowsheetManager
     // ==============================================================================
     public void AddFromToolbox(EquipmentType type, double offsetX, double offsetY)
     {
+        if (!CanEdit()) return;
         if (_project == null || _flowsheet == null) return;
         if (type == EquipmentType.None) return;
 
@@ -212,8 +240,6 @@ public class FlowsheetManager
         if (element == null) return;
 
         SetUniqueElementName(element);
-        RegisterElementInSolver(element);
-
         // Resolver colisiones usando el dominio
         var (resolvedX, resolvedY) = _placementRules.ResolvePosition(
             element,
@@ -225,35 +251,67 @@ public class FlowsheetManager
         // Mantener el equipo dentro de la región cuadriculada (canvas).
         ClampElementPosition(element);
 
-        _project.AddEquipment(element);
-        _flowsheet.AddElementReference(new FlowsheetElementReference(element.Id, element.X, element.Y));
+        if (!_equipmentEditService.TryAddEquipment(_project, _flowsheet, element)) return;
         _elements.Add(element);
 
         UpdateDiagramSize();
-        RunSimulation();
-        NotifyStateChanged();
-        QueueVisualStateChanged();
+        NotifyRouteGeometryChanged();
+        MarkTopologicalStateChanged();
     }
 
     public void SelectElement(IVisualElement? element)
     {
         SelectedElement = element;
+        _selectedElements.Clear();
+        if (element != null)
+        {
+            _selectedElements.Add(element);
+        }
+
+        NotifyStateChanged();
+    }
+
+    public void ToggleElementSelection(IVisualElement element)
+    {
+        var existing = _selectedElements.FirstOrDefault(selected => selected.Id == element.Id);
+        if (existing != null)
+        {
+            _selectedElements.Remove(existing);
+        }
+        else
+        {
+            _selectedElements.Add(element);
+        }
+
+        SelectedElement = _selectedElements.LastOrDefault();
+        NotifyStateChanged();
+    }
+
+    public void ClearSelection()
+    {
+        if (SelectedElement == null && _selectedElements.Count == 0) return;
+
+        SelectedElement = null;
+        _selectedElements.Clear();
         NotifyStateChanged();
     }
 
     public void StartMove(IVisualElement el, MouseEventArgs e)
     {
-        _drag.StartMove(el, e, IsConnectionModeActive, SelectElement);
+        if (!CanEdit()) return;
+        _drag.StartMove(el, e, IsConnectionModeActive, SelectElement, _selectedElements);
     }
 
     public void Move(MouseEventArgs e)
     {
+        if (!CanEdit()) return;
         _drag.Move(e, Zoom, GlobalScale, _canvasLayout.DiagramWidth, _canvasLayout.DiagramHeight);
         NotifyStateChanged();
     }
 
     public void EndMove()
     {
+        if (!CanEdit()) return;
         var moved = _drag.EndMove(
             _elements,
             _flowsheet?.GridSize ?? _canvasLayout.GridSize,
@@ -264,68 +322,90 @@ public class FlowsheetManager
         {
             SyncElementReferences();
             UpdateDiagramSize();
-            NotifyStateChanged();
-            QueueVisualStateChanged();
+            NotifyRouteGeometryChanged();
+            MarkVisualStateChanged();
         }
     }
 
     public void CancelMove()
     {
+        if (!CanEdit()) return;
         _drag.CancelMove();
         SyncElementReferences();
         UpdateDiagramSize();
+        NotifyRouteGeometryChanged();
         NotifyStateChanged();
     }
 
     public void RotateElement(IVisualElement element)
     {
+        if (!CanEdit()) return;
         element.Rotate90();
         SyncElementReference(element);
-        NotifyStateChanged();
-        QueueVisualStateChanged();
+        NotifyRouteGeometryChanged();
+        MarkVisualStateChanged();
     }
 
     public void FlipElementHorizontal(IVisualElement element)
     {
+        if (!CanEdit()) return;
         element.ToggleFlipHorizontal();
         SyncElementReference(element);
-        NotifyStateChanged();
-        QueueVisualStateChanged();
+        NotifyRouteGeometryChanged();
+        MarkVisualStateChanged();
     }
 
     public void FlipElementVertical(IVisualElement element)
     {
+        if (!CanEdit()) return;
         element.ToggleFlipVertical();
         SyncElementReference(element);
-        NotifyStateChanged();
-        QueueVisualStateChanged();
+        NotifyRouteGeometryChanged();
+        MarkVisualStateChanged();
+    }
+
+    public void SetOffPageConnectorPortSide(OffPageConnectorElement connector, OffPageConnectorPortSide side)
+    {
+        if (!CanEdit()) return;
+        connector.SetPortSide(side);
+        SyncElementReference(connector);
+        NotifyRouteGeometryChanged();
+        MarkVisualStateChanged();
+    }
+
+    public void SetOffPageConnectorAnchorSide(OffPageConnectorElement connector, OffPageConnectorPortSide anchorSide)
+    {
+        if (!CanEdit()) return;
+
+        const double offset = 60;
+        connector.X = anchorSide == OffPageConnectorPortSide.Left
+            ? _canvasLayout.Snap(offset)
+            : _canvasLayout.Snap(Math.Max(0, DiagramWidth - connector.Width - offset));
+
+        var inwardPortSide = anchorSide == OffPageConnectorPortSide.Left
+            ? OffPageConnectorPortSide.Right
+            : OffPageConnectorPortSide.Left;
+
+        connector.SetPortSide(inwardPortSide);
+        SyncElementReference(connector);
+        NotifyRouteGeometryChanged();
+        MarkVisualStateChanged();
     }
 
     public void DeleteElement(IVisualElement element)
     {
+        if (!CanEdit()) return;
         if (_project == null || _flowsheet == null || _connectionService == null) return;
 
-        // Desconectar todos los pipes conectados al elemento antes de eliminarlo.
-        var connectedPipeIds = _flowsheet.Pipes
-            .Where(p => p.SourceElementId == element.Id || p.TargetElementId == element.Id)
-            .Select(p => p.Id)
-            .ToList();
-
-        foreach (var pipeId in connectedPipeIds)
-        {
-            _connectionService.Disconnect(_flowsheet, pipeId);
-        }
-
-        _project.RemoveEquipment(element.Id);
-        _flowsheet.RemoveElementReference(element.Id);
+        if (!_equipmentEditService.TryDeleteEquipment(_project, _flowsheet, element, _connectionService)) return;
         _elements.Remove(element);
         if (SelectedElement?.Id == element.Id) SelectedElement = null;
+        _selectedElements.RemoveAll(selected => selected.Id == element.Id);
 
         RebuildPipes();
         UpdateDiagramSize();
-        RunSimulation();
-        NotifyStateChanged();
-        QueueVisualStateChanged();
+        NotifyRouteGeometryChanged();
+        MarkTopologicalStateChanged();
     }
 
     // ==============================================================================
@@ -333,6 +413,7 @@ public class FlowsheetManager
     // ==============================================================================
     public void StartPan(MouseEventArgs e)
     {
+        if (!CanEdit()) return;
         if (!IsMovingAny && !IsConnectionModeActive && (e.Button == 0 || e.Button == 1))
         {
             _isPanning = true;
@@ -344,6 +425,7 @@ public class FlowsheetManager
 
     public void Pan(MouseEventArgs e)
     {
+        if (!CanEdit()) return;
         if (!_isPanning || _flowsheet == null) return;
 
         var deltaX = e.ClientX - _lastPanMouseX;
@@ -358,30 +440,54 @@ public class FlowsheetManager
 
     public void EndPan()
     {
+        if (!CanEdit()) return;
+        var wasPanning = _isPanning;
         _isPanning = false;
+        if (wasPanning)
+        {
+            MarkVisualStateChanged();
+            return;
+        }
+
         NotifyStateChanged();
     }
 
     public void ZoomAt(double dY, double pX, double pY)
     {
+        if (!CanEdit()) return;
         if (_flowsheet == null) return;
         _cameraService.ZoomAt(_flowsheet, dY, pX, pY);
         PersistCamera();
-        NotifyStateChanged();
+        MarkVisualStateChanged();
     }
 
     public void ZoomToFit(double screenWidth, double screenHeight)
     {
+        if (!CanEdit()) return;
         if (_flowsheet == null) return;
         _cameraService.ZoomToFit(_flowsheet, screenWidth, screenHeight);
         PersistCamera();
-        NotifyStateChanged();
+        MarkVisualStateChanged();
     }
 
     public void SetContainerDimensions(double width, double height)
     {
-        _canvasLayout.SetContainerDimensions(width, height);
+        if (!CanEdit()) return;
+        if (!_canvasLayout.SetContainerDimensions(width, height)) return;
+
+        var previousWidth = _flowsheet?.DiagramWidth;
+        var previousHeight = _flowsheet?.DiagramHeight;
         UpdateDiagramSize();
+
+        if (_flowsheet != null &&
+            (Math.Abs(previousWidth.GetValueOrDefault() - _flowsheet.DiagramWidth) > 0.5 ||
+             Math.Abs(previousHeight.GetValueOrDefault() - _flowsheet.DiagramHeight) > 0.5))
+        {
+            MarkVisualStateChanged();
+            return;
+        }
+
+        NotifyStateChanged();
     }
 
     // ==============================================================================
@@ -389,6 +495,7 @@ public class FlowsheetManager
     // ==============================================================================
     public void SetConnectionMode(bool isActive)
     {
+        if (!CanEdit() && isActive) return;
         if (IsConnectionModeActive == isActive) return;
         IsConnectionModeActive = isActive;
         if (!isActive) CancelConnectionDraft();
@@ -397,6 +504,7 @@ public class FlowsheetManager
 
     public void StartConnectionDraft(IVisualElement source, string portName)
     {
+        if (!CanEdit()) return;
         var portCoords = source.GetAbsolutePortCoordinates(portName);
         DraftMouseLogicalX = portCoords.X;
         DraftMouseLogicalY = portCoords.Y;
@@ -414,6 +522,7 @@ public class FlowsheetManager
 
     public void UpdateConnectionDraft(double clientX, double clientY)
     {
+        if (!CanEdit()) return;
         if (CurrentDraftPipe == null) return;
         DraftMouseLogicalX = clientX;
         DraftMouseLogicalY = clientY;
@@ -428,16 +537,18 @@ public class FlowsheetManager
 
     public void CompleteConnection(IVisualElement? target, string? targetPortName, double dropX, double dropY)
     {
+        if (!CanEdit()) return;
         if (_project == null || _flowsheet == null || _connectionService == null || CurrentDraftPipe?.SourceElement == null) return;
 
         var source = CurrentDraftPipe.SourceElement;
         var sourcePortName = CurrentDraftPipe.SourcePortName;
 
-        CancelConnectionDraft();
-        SetConnectionMode(false);
+        CurrentDraftPipe = null;
+        IsConnectionModeActive = false;
 
-        var pipe = _connectionService.Connect(
+        var pipe = _connectionEditService.TryConnect(
             _flowsheet,
+            _connectionService,
             source,
             sourcePortName,
             target,
@@ -450,11 +561,16 @@ public class FlowsheetManager
             EnsureElementInVisualList(pipe.SourceElementId);
             EnsureElementInVisualList(pipe.TargetElementId);
             RebuildPipes();
+            NotifyRouteGeometryChanged();
         }
 
-        RunSimulation();
-        NotifyStateChanged();
-        QueueVisualStateChanged();
+        if (pipe == null)
+        {
+            NotifyStateChanged();
+            return;
+        }
+
+        MarkTopologicalStateChanged();
     }
 
     public bool IsValidTarget(IVisualElement target, string targetPortName)
@@ -468,17 +584,70 @@ public class FlowsheetManager
     // ==============================================================================
     // SIMULACIÓN
     // ==============================================================================
-    public void RunSimulation()
+    public void RunSimulation([CallerMemberName] string caller = "")
     {
+        if (!CanEdit()) return;
         if (_project == null) return;
 
+        _ = RunSimulationAndUpdateStateAsync(_project);
+    }
+
+    private async Task RunSimulationAndUpdateStateAsync(IProject project)
+    {
         _visualSavePendingAfterSimulation = true;
         Interlocked.Increment(ref _runningSimulations);
-        _project.RunSimulation();
         NotifyStateChanged();
+
+        try
+        {
+            await project.RunSimulationAsync();
+        }
+        finally
+        {
+            CompleteTrackedSimulation();
+        }
     }
 
     public void NotifyStateChanged() => OnNotifyUI?.Invoke();
+
+    private void NotifyRouteGeometryChanged()
+    {
+        Interlocked.Increment(ref _routeGeometryVersion);
+    }
+
+    public void MarkFacadeStateChanged()
+    {
+        _activityLog.Add("Facade", "Stream data changed", _flowsheet?.Name);
+        MarkVisualStateChanged();
+    }
+
+    private bool CanEdit()
+    {
+        return CanEditCurrentProject?.Invoke() ?? true;
+    }
+
+    private void MarkVisualStateChanged()
+    {
+        NotifyStateChanged();
+        if (_editChangePolicy.ShouldPersistVisualState(FlowsheetEditChangeKind.Visual))
+        {
+            QueueVisualStateChanged();
+        }
+    }
+
+    private void MarkTopologicalStateChanged(params IFlowsheet[] changedFlowsheets)
+    {
+        if (_editChangePolicy.ShouldRunSimulation(FlowsheetEditChangeKind.Topological))
+        {
+            RunSimulation();
+        }
+
+        NotifyStateChanged();
+        if (_editChangePolicy.ShouldPersistVisualState(FlowsheetEditChangeKind.Topological))
+        {
+            QueueVisualStateChanged(changedFlowsheets);
+        }
+    }
 
     private void QueueVisualStateChanged(params IFlowsheet[] changedFlowsheets)
     {
@@ -495,27 +664,98 @@ public class FlowsheetManager
                     _pendingVisualSaveFlowsheets[flowsheet.Id] = flowsheet;
                 }
             }
+
+            _activityLog.Add("Autosave", "Waiting for simulation before save", string.Join(", ", flowsheets.Select(flowsheet => flowsheet.Name)));
             return;
         }
 
-        var changed = flowsheets
-            .DistinctBy(candidate => candidate.Id)
-            .ToArray();
+        EnqueueVisualStateNotification(flowsheets);
+    }
+
+    private void EnqueueVisualStateNotification(IReadOnlyCollection<IFlowsheet> flowsheets)
+    {
+        if (flowsheets.Count == 0 || OnVisualStatesChangedAsync == null) return;
+
+        CancellationTokenSource debounce;
+        lock (_visualSaveSync)
+        {
+            foreach (var flowsheet in flowsheets.DistinctBy(candidate => candidate.Id))
+            {
+                _queuedVisualSaveFlowsheets[flowsheet.Id] = flowsheet;
+            }
+
+            _visualStateNotificationDebounce?.Cancel();
+            _visualStateNotificationDebounce?.Dispose();
+            debounce = new CancellationTokenSource();
+            _visualStateNotificationDebounce = debounce;
+        }
+
+        _activityLog.StartAutosaveCountdown("Visual state notification", TimeSpan.FromMilliseconds(VisualStateNotificationDebounceMs));
+        var token = debounce.Token;
         _ = Task.Run(async () =>
         {
             try
             {
-                foreach (Func<IReadOnlyCollection<IFlowsheet>, Task> handler in
-                         OnVisualStatesChangedAsync.GetInvocationList())
-                {
-                    await handler(changed);
-                }
+                await Task.Delay(VisualStateNotificationDebounceMs, token);
+                await FlushQueuedVisualStateNotificationAsync(debounce);
             }
-            catch (Exception ex)
+            catch (TaskCanceledException)
             {
-                Console.Error.WriteLine($"Visual autosave failed: {ex.Message}");
+            }
+            catch (ObjectDisposedException)
+            {
+            }
+            finally
+            {
+                debounce.Dispose();
             }
         });
+    }
+
+    private async Task FlushQueuedVisualStateNotificationAsync(CancellationTokenSource debounce)
+    {
+        IFlowsheet[] changed;
+        lock (_visualSaveSync)
+        {
+            if (!ReferenceEquals(_visualStateNotificationDebounce, debounce))
+            {
+                return;
+            }
+
+            changed = _queuedVisualSaveFlowsheets.Values.ToArray();
+            _queuedVisualSaveFlowsheets.Clear();
+            _visualStateNotificationDebounce = null;
+        }
+
+        if (changed.Length == 0 || OnVisualStatesChangedAsync == null) return;
+
+        try
+        {
+            _activityLog.Add("Autosave", "Visual state notification sent", string.Join(", ", changed.Select(flowsheet => flowsheet.Name)));
+            foreach (Func<IReadOnlyCollection<IFlowsheet>, Task> handler in
+                     OnVisualStatesChangedAsync.GetInvocationList())
+            {
+                await handler(changed);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Visual autosave failed: {ex.Message}");
+            _activityLog.CompleteAutosave($"Visual autosave notification failed: {ex.Message}", false);
+        }
+    }
+
+    private void ResetVisualSaveQueues()
+    {
+        _visualSavePendingAfterSimulation = false;
+        lock (_visualSaveSync)
+        {
+            _pendingVisualSaveFlowsheets.Clear();
+            _queuedVisualSaveFlowsheets.Clear();
+            _visualStateNotificationDebounce?.Cancel();
+            _visualStateNotificationDebounce?.Dispose();
+            _visualStateNotificationDebounce = null;
+        }
     }
 
     private void SubscribeToSolver(IMainSolver solver)
@@ -528,11 +768,7 @@ public class FlowsheetManager
         }
 
         Interlocked.Exchange(ref _runningSimulations, 0);
-        _visualSavePendingAfterSimulation = false;
-        lock (_visualSaveSync)
-        {
-            _pendingVisualSaveFlowsheets.Clear();
-        }
+        ResetVisualSaveQueues();
 
         _subscribedSolver = solver;
         var subscriptionVersion = Interlocked.Increment(ref _solverSubscriptionVersion);
@@ -548,6 +784,11 @@ public class FlowsheetManager
             return;
         }
 
+        NotifyStateChanged();
+    }
+
+    private void CompleteTrackedSimulation()
+    {
         var runningSimulations = Interlocked.Decrement(ref _runningSimulations);
         if (runningSimulations < 0)
         {
@@ -592,6 +833,131 @@ public class FlowsheetManager
         return _namingService.IsNameAvailable(name, _project);
     }
 
+    public bool RenameStream(IFacadeStream stream, string newName)
+    {
+        if (!CanEdit()) return false;
+        if (_project == null || stream == null || string.IsNullOrWhiteSpace(newName)) return false;
+
+        var element = FindStreamElement(stream);
+        if (element == null) return false;
+        var facade = element.Facade;
+        if (facade == null) return false;
+
+        var trimmedName = newName.Trim();
+        var oldElementName = element.Name;
+        var oldLabel = element.Label;
+        var oldFacadeName = facade.Name;
+        if (string.Equals(oldFacadeName, trimmedName, StringComparison.Ordinal))
+        {
+            return true;
+        }
+
+        if (IsNameDuplicated(trimmedName, element.Id))
+        {
+            return false;
+        }
+
+        element.Name = trimmedName;
+        element.Label = trimmedName;
+        facade.Id = element.Id;
+        facade.Name = trimmedName;
+
+        var formulaUpdates = BuildFormulaRenameUpdates(stream);
+        if (formulaUpdates == null)
+        {
+            element.Name = oldElementName;
+            element.Label = oldLabel;
+            facade.Name = oldFacadeName;
+            return false;
+        }
+
+        foreach (var update in formulaUpdates)
+        {
+            update.Equipment.RemoveSpec(update.Original);
+            update.Equipment.AddSpec(update.Replacement);
+        }
+
+        NotifyStateChanged();
+        QueueVisualStateChanged();
+        return true;
+    }
+
+    public bool IsStreamNameDuplicated(IFacadeStream stream, string name)
+    {
+        var element = FindStreamElement(stream);
+        return element == null
+            ? IsNameDuplicated(name, stream.Id)
+            : IsNameDuplicated(name, element.Id);
+    }
+
+    private StreamVisualElement? FindStreamElement(IFacadeStream stream)
+    {
+        return _project?.EquipmentRegistry.AllEquipments
+            .OfType<StreamVisualElement>()
+            .FirstOrDefault(element =>
+                ReferenceEquals(element.Facade, stream) ||
+                element.Id == stream.Id ||
+                element.Facade?.Id == stream.Id);
+    }
+
+    private bool IsNameDuplicated(string name, Guid currentElementId)
+    {
+        if (_project == null || string.IsNullOrWhiteSpace(name)) return false;
+
+        return _project.EquipmentRegistry.AllEquipments.Any(element =>
+            element.Id != currentElementId &&
+            string.Equals(element.Name, name, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private List<FormulaRenameUpdate>? BuildFormulaRenameUpdates(IFacadeStream stream)
+    {
+        if (_project == null) return new List<FormulaRenameUpdate>();
+
+        var updates = new List<FormulaRenameUpdate>();
+        foreach (var equipment in _project.EquipmentRegistry.AllEquipments
+                     .Select(element => element.Facade)
+                     .OfType<SolverEquipmentBase>())
+        {
+            foreach (var specification in equipment.Specifications.OfType<FormulaSpecification>().ToList())
+            {
+                if (!FormulaUsesStream(specification, stream))
+                {
+                    continue;
+                }
+
+                var renamedFormula = specification.Equation.ToFormulaText();
+                if (string.Equals(renamedFormula, specification.Formula, StringComparison.Ordinal))
+                {
+                    continue;
+                }
+
+                updates.Add(new FormulaRenameUpdate(
+                    equipment,
+                    specification,
+                    new FormulaSpecification(renamedFormula, specification.Equation)
+                    {
+                        Id = specification.Id,
+                        DefinedByUserId = specification.DefinedByUserId,
+                        DefinedByUserName = specification.DefinedByUserName,
+                        DefinedAtUtc = specification.DefinedAtUtc
+                    }));
+            }
+        }
+
+        return updates;
+    }
+
+    private static bool FormulaUsesStream(FormulaSpecification specification, IFacadeStream stream)
+    {
+        return specification.AssociatedStreams.Any(associated =>
+            ReferenceEquals(associated, stream) || associated.Id == stream.Id);
+    }
+
+    private sealed record FormulaRenameUpdate(
+        SolverEquipmentBase Equipment,
+        FormulaSpecification Original,
+        FormulaSpecification Replacement);
+
     // ==============================================================================
     // HELPERS PARA DIÁLOGOS DE EQUIPOS (reemplazan WM)
     // ==============================================================================
@@ -602,6 +968,7 @@ public class FlowsheetManager
     /// </summary>
     public StreamVisualElement? CreateStreamProgrammatically(string name)
     {
+        if (!CanEdit()) return null;
         if (_project == null || _flowsheet == null) return null;
 
         var factory = GetEquipmentFactory();
@@ -630,6 +997,7 @@ public class FlowsheetManager
 
     public StreamVisualElement? CreateAndConnectStreamFromPort(IVisualElement equipment, string portName, string streamName)
     {
+        if (!CanEdit()) return null;
         if (_project == null || _flowsheet == null) return null;
 
         var port = equipment.Ports.FirstOrDefault(item => item.Name == portName);
@@ -640,6 +1008,7 @@ public class FlowsheetManager
 
         PositionStreamFromPort(equipment, port, stream);
         SyncElementReference(stream);
+        NotifyRouteGeometryChanged();
         ConnectEquipmentToProjectStream(equipment, portName, stream);
         return stream;
     }
@@ -649,9 +1018,11 @@ public class FlowsheetManager
     /// </summary>
     public void ConnectEquipmentToStream(IVisualElement equipment, string portName, IVisualElement stream)
     {
+        if (!CanEdit()) return;
         if (_project == null || _flowsheet == null) return;
         _project.SimulationService.ConnectEquipmentToStream(_project, _flowsheet, equipment, portName, stream);
         RebuildPipes();
+        NotifyRouteGeometryChanged();
         RunSimulation();
         NotifyStateChanged();
         QueueVisualStateChanged();
@@ -662,6 +1033,7 @@ public class FlowsheetManager
     /// </summary>
     public void ConnectEquipmentToProjectStream(IVisualElement equipment, string portName, IVisualElement stream)
     {
+        if (!CanEdit()) return;
         if (_project == null || _flowsheet == null) return;
 
         var streamFlowsheet = FindFlowsheetForElement(stream.Id);
@@ -695,6 +1067,7 @@ public class FlowsheetManager
 
         RebuildPipes();
         UpdateDiagramSize();
+        NotifyRouteGeometryChanged();
         RunSimulation();
         NotifyStateChanged();
         QueueVisualStateChanged(_flowsheet, streamFlowsheet);
@@ -709,7 +1082,7 @@ public class FlowsheetManager
         double dx = 0;
         double dy = 0;
 
-        switch (port.Direction)
+        switch (absCoords.Direction)
         {
             case PortDirection.Top: dy = -spawnDistance; break;
             case PortDirection.Bottom: dy = spawnDistance; break;
@@ -718,14 +1091,7 @@ public class FlowsheetManager
         }
 
         var isInlet = port.Type == PortType.Inlet;
-        stream.RotationAngle = port.Direction switch
-        {
-            PortDirection.Left => isInlet ? 0 : 180,
-            PortDirection.Right => isInlet ? 180 : 0,
-            PortDirection.Top => isInlet ? 90 : 270,
-            PortDirection.Bottom => isInlet ? 270 : 90,
-            _ => stream.RotationAngle
-        };
+        stream.RotationAngle = GetStreamRotationForEquipmentPort(port.Type, absCoords.Direction);
 
         var streamPortName = isInlet ? "Outlet" : "Inlet";
         var (streamOffsetX, streamOffsetY, _) = stream.GetTransformedPort(streamPortName);
@@ -734,6 +1100,31 @@ public class FlowsheetManager
         stream.Y = _canvasLayout.Snap((absCoords.Y + dy) - streamOffsetY);
         ClampElementPosition(stream);
     }
+
+    private static int GetStreamRotationForEquipmentPort(PortType portType, PortDirection portDirection)
+    {
+        var streamDirection = portType == PortType.Inlet
+            ? OppositeDirection(portDirection)
+            : portDirection;
+
+        return streamDirection switch
+        {
+            PortDirection.Right => 0,
+            PortDirection.Bottom => 90,
+            PortDirection.Left => 180,
+            PortDirection.Top => 270,
+            _ => 0
+        };
+    }
+
+    private static PortDirection OppositeDirection(PortDirection direction) => direction switch
+    {
+        PortDirection.Right => PortDirection.Left,
+        PortDirection.Left => PortDirection.Right,
+        PortDirection.Bottom => PortDirection.Top,
+        PortDirection.Top => PortDirection.Bottom,
+        _ => direction
+    };
 
     /// <summary>
     /// Devuelve streams libres de todo el proyecto según el lado requerido por el puerto del equipo.
@@ -758,12 +1149,18 @@ public class FlowsheetManager
     /// </summary>
     public void DisconnectEquipmentPort(IVisualElement equipment, string portName)
     {
+        if (!CanEdit()) return;
         if (_project == null || _flowsheet == null) return;
-        _project.SimulationService.DisconnectPort(_project, _flowsheet, equipment, portName);
+
+        if (!_connectionEditService.TryDisconnectPort(_project, _flowsheet, equipment, portName, out var affectedFlowsheets))
+        {
+            NotifyStateChanged();
+            return;
+        }
+
         RebuildPipes();
-        RunSimulation();
-        NotifyStateChanged();
-        QueueVisualStateChanged();
+        NotifyRouteGeometryChanged();
+        MarkTopologicalStateChanged(affectedFlowsheets.ToArray());
     }
 
     /// <summary>
@@ -964,6 +1361,17 @@ public class FlowsheetManager
         reference.ZIndex = element.ZIndex;
         reference.IsFlippedHorizontal = element.IsFlippedHorizontal;
         reference.IsFlippedVertical = element.IsFlippedVertical;
+
+        if (element is OffPageConnectorElement connector &&
+            reference is OffPageConnectorReference connectorReference)
+        {
+            connectorReference.IsOutlet = connector.IsOutlet;
+            connectorReference.PortSide = connector.PortSide;
+            connectorReference.TargetFlowsheetId = connector.TargetAreaId;
+            connectorReference.TargetConnectorId = connector.TargetConnectorId;
+            connectorReference.TargetFlowsheetName = connector.TargetAreaName;
+            connectorReference.ConnectedEquipmentName = connector.ConnectedEquipmentName;
+        }
     }
 
     private void UpdateDiagramSize()
@@ -1000,6 +1408,8 @@ public class FlowsheetManager
     {
         _pipes.Clear();
         if (_flowsheet == null) return;
+        RemoveStaleVisualElements();
+
         foreach (var pipeRef in _flowsheet.Pipes)
         {
             EnsureElementInVisualList(pipeRef.SourceElementId);
@@ -1016,6 +1426,22 @@ public class FlowsheetManager
                 ShowTechnicalLabel = false
             });
         }
+    }
+
+    private void RemoveStaleVisualElements()
+    {
+        if (_flowsheet == null) return;
+
+        var activeElementIds = _flowsheet.Elements
+            .Select(reference => reference.ElementId)
+            .ToHashSet();
+
+        _elements.RemoveAll(element => !activeElementIds.Contains(element.Id));
+        if (SelectedElement != null && !activeElementIds.Contains(SelectedElement.Id))
+        {
+            SelectedElement = null;
+        }
+        _selectedElements.RemoveAll(element => !activeElementIds.Contains(element.Id));
     }
 
     private void EnsureElementInVisualList(Guid elementId)

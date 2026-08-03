@@ -1,4 +1,5 @@
-﻿@inject IMainSolver Solver
+@using Distillator.Domain.Configuration
+@using Shared.Helpers
 @inject ProjectSessionService SessionService
 @inject FlowsheetManager FSM
 
@@ -9,11 +10,7 @@
 
     <DialogContent>
         <div class="d-flex flex-column gap-4 pa-4">
-
-            @* 🔹 Método Termodinámico *@
             <div>
-
-               
                 @if (_isLoadingMethods)
                 {
                     <MudProgressCircular Indeterminate="true" Size="Size.Small" />
@@ -24,46 +21,39 @@
                 }
                 else
                 {
-                    <MudSelect T=ThermodynamicMethodFullDto Value="_localMethod" ValueChanged="SetMetod"
+                    <MudSelect T="ThermodynamicMethodFullDto" Value="_localMethod" ValueChanged="SetMethod"
                                Margin="Margin.Dense" Dense="true" Variant="Variant.Outlined" Label="Thermodynamic Method">
-                        @foreach (var method in _methods!)
+                        @foreach (var method in _methods)
                         {
                             <MudSelectItem Value="method">@method.Name</MudSelectItem>
                         }
                     </MudSelect>
-
-                    
-                   
                 }
             </div>
 
-            @* 🔹 Altitud (con tu componente) *@
             <div>
-
                 <AmountEdit Label="Altitude above sea level" T="Length"
-                            @bind-Amount="Solver.Altitude" />
+                            @bind-Amount="_localAltitude"
+                            @bind-Amount:after="StateHasChanged" />
                 <MudText Typo="Typo.caption" Class="text-muted mt-1">
                     Atmospheric pressure is calculated automatically.
                 </MudText>
             </div>
 
-            @* 🔹 Presión Atmosférica Calculada (Read-Only) *@
             <MudAlert Severity="Severity.Info">
                 <div class="d-flex flex-column gap-1">
                     <MudText><strong>Atmospheric Pressure:</strong></MudText>
                     <div class="d-flex gap-3 flex-wrap">
-                        <MudText>@Solver.AtmosphericPressure.ToString()</MudText>
-
+                        <MudText>@AtmosphericPressureCalculator.CalculateFromElevation(_localAltitude).ToString()</MudText>
                     </div>
                 </div>
             </MudAlert>
-
         </div>
     </DialogContent>
 
     <DialogActions>
         <MudButton OnClick="Cancel" Disabled="_isApplying">Cancel</MudButton>
-        <MudButton Color="Color.Primary" OnClick="Submit" Disabled="_isApplying || _isLoadingMethods">
+        <MudButton Color="Color.Primary" OnClick="Submit" Disabled="_isApplying || _isLoadingMethods || _localMethod == null">
             @if (_isApplying)
             {
                 <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="me-2" />
@@ -76,45 +66,36 @@
 @code {
     [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
 
-    ThermodynamicMethodFullDto _localMethod = null!;
-    private List<ThermodynamicMethodFullDto> _methods=new();
+    private ThermodynamicMethodFullDto? _localMethod;
+    private Length _localAltitude = new(0, LengthUnits.Meter);
+    private List<ThermodynamicMethodFullDto> _methods = new();
     private bool _isLoadingMethods;
     private string? _methodsError;
     private bool _isApplying;
 
     protected override async Task OnInitializedAsync()
     {
-        // Clonar configuración actual
+        var configuration = SessionService.CurrentProject?.Configuration;
+        if (configuration != null)
+        {
+            _localAltitude = configuration.PlantElevation;
+        }
 
-
-        // Cargar métodos desde base de datos
         await LoadThermodynamicMethods();
     }
-    async Task SetMetod(ThermodynamicMethodFullDto _metod)
+
+    private async Task SetMethod(ThermodynamicMethodFullDto? method)
     {
-
-        if (_metod != null)
+        if (method == null)
         {
-            // ❌ VIEJO: var result = await HttpServices.PostAsync<GetMethodFullRequest, Result<ThermodynamicMethodFullDto>>(new GetMethodFullRequest(_metod.Id));
-            var result = await HttpServices.PostAsync<GetMethodFullRequest, ThermodynamicMethodFullDto>(new GetMethodFullRequest(_metod.Id));
-            if (result.Succeeded)
-            {
-                var selectedMethod = result.Data;
-
-                if (selectedMethod != null)
-                {
-                    Solver.ThermoMethod = selectedMethod;
-                    _localMethod = _metod;
-
-
-
-                }
-            }
+            _localMethod = null;
+            return;
         }
-        else
-        {
-            Solver.ThermoMethod = null!;
 
+        var result = await HttpServices.PostAsync<GetMethodFullRequest, ThermodynamicMethodFullDto>(new GetMethodFullRequest(method.Id));
+        if (result.Succeeded)
+        {
+            _localMethod = result.Data ?? method;
         }
     }
 
@@ -125,21 +106,17 @@
 
         try
         {
-            // 🔥 Tu patrón HTTP: GetAllCompleteMethods
-            var request = new GetAllCompleteMethods();
-            // ❌ VIEJO: var result = await HttpServices.PostAsync<GetAllCompleteMethods, Result<List<ThermodynamicMethodFullDto>>>(request);
-            var result = await HttpServices.PostAsync<GetAllCompleteMethods, List<ThermodynamicMethodFullDto>>(request);
+            var result = await HttpServices.PostAsync<GetAllCompleteMethods, List<ThermodynamicMethodFullDto>>(new GetAllCompleteMethods());
 
             if (result.Succeeded && result.Data != null)
             {
                 _methods = result.Data;
+                var currentMethodId = SessionService.CurrentProject?.Configuration.ThermodynamicMethodId ?? Guid.Empty;
+                _localMethod = _methods.FirstOrDefault(method => method.Id == currentMethodId);
 
-                // Si ya hay un método seleccionado, asegurarse que esté en la lista
-                if (Solver.ThermoMethod != null &&!_methods.Any(m => m.Id == Solver.ThermoMethod.Id))
+                if (currentMethodId != Guid.Empty && _localMethod == null)
                 {
-                    // Si no está, buscar por nombre como fallback
-                    _localMethod = _methods.First(m => m.Id == Solver.ThermoMethod.Id);
-                   
+                    _methodsError = "Current thermodynamic method is not available.";
                 }
             }
             else
@@ -160,22 +137,44 @@
 
     private async Task Submit()
     {
-        if (_isLoadingMethods || _isApplying) return;
+        if (_isLoadingMethods || _isApplying || _localMethod == null) return;
+
+        var project = SessionService.CurrentProject;
+        if (project == null) return;
 
         _isApplying = true;
         StateHasChanged();
 
-        if (Solver.ThermoMethod != null)
+        var current = project.Configuration;
+        var configuration = new ProjectConfiguration(
+            unitDefaults: UnitConfiguration.Clone(current.UnitDefaults),
+            unitSystems: current.UnitSystems.Select(CloneUnitSystem).ToList(),
+            activeUnitSystemName: current.ActiveUnitSystemName,
+            cameraDefaults: current.CameraDefaults,
+            namingConfig: NamingConfiguration.Clone(current.NamingConfig),
+            thermodynamicMethodId: _localMethod.Id,
+            thermodynamicMethod: _localMethod,
+            reportConfig: current.ReportConfig,
+            equipmentDesignConfig: current.EquipmentDesignConfig,
+            plantElevation: _localAltitude);
+
+        var saved = await SessionService.UpdateProjectConfigurationAsync(project.Name, configuration);
+        if (saved)
         {
-            SessionService.CurrentProject?.UpdateThermodynamicMethod(Solver.ThermoMethod.Id);
+            FSM.NotifyStateChanged();
+            MudDialog.Close(true);
+            return;
         }
 
-        FSM.NotifyStateChanged();
-        SessionService.NotifyProjectChanged();
-
+        _methodsError = "Solver configuration was not saved. Please refresh and try again.";
         _isApplying = false;
-        MudDialog.Close(true);
+        StateHasChanged();
     }
 
     private void Cancel() => MudDialog.Cancel();
+
+    private static IProjectUnitSystem CloneUnitSystem(IProjectUnitSystem system)
+    {
+        return new ProjectUnitSystem(system.Name, system.Units, system.IsBuiltIn);
+    }
 }

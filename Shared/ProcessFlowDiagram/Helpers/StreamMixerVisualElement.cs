@@ -8,6 +8,7 @@ namespace Shared.ProcessFlowDiagram.Helpers
         public const string PortOutletName = "Outlet";
 
         private SolverStreamMixer StreamMixer => Facade as SolverStreamMixer ?? throw new InvalidOperationException("Facade must be SolverStreamMixer");
+        private readonly Dictionary<string, IFacadeStream> _inletStreamsByPortName = new(StringComparer.OrdinalIgnoreCase);
         public override EquipmentType Type => EquipmentType.Mixer;
         public override string Prefix => "MIX";
 
@@ -42,21 +43,30 @@ namespace Shared.ProcessFlowDiagram.Helpers
         // ==============================================================================
         public void RefreshDynamicPorts()
         {
-            var targetPorts = Ports.Where(p => p.Name.StartsWith("Inlet")).OrderBy(p => p.OffsetY).ToList();
+            var targetPorts = Ports
+                .Where(p => p.Name.StartsWith("Inlet"))
+                .OrderBy(p => ExtractPortIndex(p.Name, "Inlet_"))
+                .ToList();
             var freePorts = targetPorts.Where(p => p.ConnectedElementId == null).ToList();
 
             if (freePorts.Count == 0)
             {
-                int nextNum = targetPorts.Count + 1;
+                int nextNum = targetPorts.Select(port => ExtractPortIndex(port.Name, "Inlet_")).DefaultIfEmpty(-1).Max() + 2;
                 AddPort($"Inlet_{nextNum}", PortType.Inlet, 0, 0, PortDirection.Left);
             }
             else if (freePorts.Count > 1)
             {
-                var toRemove = freePorts.Skip(1).ToList();
+                var lastFreePort = freePorts
+                    .OrderByDescending(port => ExtractPortIndex(port.Name, "Inlet_"))
+                    .First();
+                var toRemove = freePorts.Where(port => port != lastFreePort).ToList();
                 foreach (var p in toRemove) Ports.Remove(p);
             }
 
-            targetPorts = Ports.Where(p => p.Name.StartsWith("Inlet")).ToList();
+            targetPorts = Ports
+                .Where(p => p.Name.StartsWith("Inlet"))
+                .OrderBy(p => ExtractPortIndex(p.Name, "Inlet_"))
+                .ToList();
 
             double spacing = 30;
             Height = Math.Max(60, (targetPorts.Count - 1) * spacing + 60);
@@ -80,6 +90,15 @@ namespace Shared.ProcessFlowDiagram.Helpers
             }
         }
 
+        public void EnsureDynamicInletPort(string portName)
+        {
+            if (!portName.StartsWith("Inlet_", StringComparison.OrdinalIgnoreCase)) return;
+            if (Ports.Any(port => string.Equals(port.Name, portName, StringComparison.OrdinalIgnoreCase))) return;
+
+            AddPort(portName, PortType.Inlet, 0, 0, PortDirection.Left);
+            RefreshDynamicPorts();
+        }
+
         public override void AttachConnection(string portName, IFacadeStream connectedFacade)
         {
             if (portName == "Outlet" && StreamMixer.Outlet == null)
@@ -88,7 +107,11 @@ namespace Shared.ProcessFlowDiagram.Helpers
             }
             else if (portName.StartsWith("Inlet_"))
             {
-                StreamMixer.AddInlet(connectedFacade);
+                if (!_inletStreamsByPortName.ContainsKey(portName))
+                {
+                    _inletStreamsByPortName[portName] = connectedFacade;
+                    StreamMixer.AddInlet(connectedFacade);
+                }
                 RefreshDynamicPorts();
             }
         }
@@ -101,10 +124,17 @@ namespace Shared.ProcessFlowDiagram.Helpers
             }
             else if (portName.StartsWith("Inlet_"))
             {
-                int index = ExtractPortIndex(portName, "Inlet_");
-                if (index >= 0 && index < StreamMixer.Inlets.Count)
+                if (_inletStreamsByPortName.Remove(portName, out var mappedStream))
                 {
-                    StreamMixer.RemoveInlet(StreamMixer.Inlets[index]);
+                    StreamMixer.RemoveInlet(mappedStream);
+                }
+                else
+                {
+                    int index = ExtractPortIndex(portName, "Inlet_");
+                    if (index >= 0 && index < StreamMixer.Inlets.Count)
+                    {
+                        StreamMixer.RemoveInlet(StreamMixer.Inlets[index]);
+                    }
                 }
                 RefreshDynamicPorts();
             }
@@ -126,6 +156,11 @@ namespace Shared.ProcessFlowDiagram.Helpers
             // 🚩 CORRECCIÓN BUG 2: Aquí decía StartsWith("Outlet_")
             if (portName.StartsWith("Inlet_"))
             {
+                if (_inletStreamsByPortName.TryGetValue(portName, out var mappedStream))
+                {
+                    return mappedStream;
+                }
+
                 int index = ExtractPortIndex(portName, "Inlet_");
                 if (index >= 0 && index < StreamMixer.Inlets.Count)
                     return StreamMixer.Inlets[index];

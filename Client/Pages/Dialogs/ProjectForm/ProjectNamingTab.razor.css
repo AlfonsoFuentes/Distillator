@@ -2,8 +2,12 @@
 .tab-content-form {
     display: flex;
     flex-direction: column;
-    gap: 18px;
-    padding-top: 4px;
+    gap: 14px;
+    padding-top: 0;
+}
+
+.naming-section {
+    min-width: 0;
 }
 
 .section-title {
@@ -19,15 +23,15 @@
 
 /* ==================== LIVE NAME BUILDER ==================== */
 .naming-slots-container {
-    display: flex;
-    flex-direction: row;
+    display: grid;
+    grid-template-columns: 1.35fr 1fr 1.45fr 1fr 1fr;
     align-items: stretch;
-    gap: 12px;
-    padding: 14px;
+    gap: 10px;
+    padding: 12px;
     background: #f8fafc;
     border: 1px solid #e2e8f0;
     border-radius: 4px;
-    overflow-x: auto;
+    overflow: hidden;
 }
 
 .naming-slot {
@@ -36,12 +40,13 @@
     align-items: center;
     justify-content: center;
     gap: 6px;
-    padding: 10px 14px;
+    padding: 10px 8px;
     background: #ffffff;
     border: 1px solid #cbd5e1;
     border-radius: 4px;
     cursor: pointer;
-    min-width: 90px;
+    min-width: 0;
+    min-height: 76px;
     text-align: center;
     transition: all 0.2s ease;
 }
@@ -61,6 +66,10 @@
     font-size: 14px;
     font-weight: 700;
     color: #334155;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .slot-label {
@@ -74,7 +83,7 @@
 .examples-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 16px;
+    gap: 12px;
     padding: 4px 0;
 }
 
@@ -111,7 +120,11 @@
     padding: 10px 12px;
     border-left: 3px solid #4674a6;
     border-radius: 0 4px 4px 0;
-    margin-top: 12px;
+    margin-top: 10px;
+}
+
+.naming-configuration-section {
+    min-height: 170px;
 }
 
 /* ==================== CONFIGURACIÓN DE OPCIONES (2x2) ==================== */
@@ -122,6 +135,10 @@
 }
 
 .option-card {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-height: 54px;
     padding: 12px;
     border: 1px solid #cbd5e1;
     border-radius: 4px;
@@ -129,6 +146,17 @@
     cursor: pointer;
     text-align: left;
     transition: all 0.2s ease;
+}
+
+.option-title {
+    color: #1f2937;
+    font-weight: 600;
+}
+
+.option-desc {
+    color: #475569;
+    font-size: 11px;
+    line-height: 1.35;
 }
 
     .option-card:hover {
@@ -145,8 +173,10 @@
 /* ==================== PREFIXES (3 Columnas) ==================== */
 .prefixes-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px 16px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px 12px;
+    max-height: 150px;
+    overflow: auto;
 }
 
 .prefix-form-group {
@@ -157,6 +187,20 @@
     border: 1px solid #e2e8f0;
     border-radius: 4px;
     padding: 6px 10px;
+    min-width: 0;
+}
+
+@media (max-width: 860px) {
+    .naming-slots-container {
+        grid-template-columns: repeat(5, minmax(110px, 1fr));
+        overflow-x: auto;
+    }
+
+    .options-grid,
+    .examples-grid,
+    .prefixes-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
 .prefix-label {

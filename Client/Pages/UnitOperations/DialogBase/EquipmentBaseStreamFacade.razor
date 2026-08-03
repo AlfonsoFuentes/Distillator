@@ -4,9 +4,11 @@
 <div style="display: contents;">
 
   
-    <UnifiedNameRow @bind-Value="Facade.Name"
+    <UnifiedNameRow Value="@Facade.Name"
+                    ValueChanged="RenameStream"
                     IsDuplicate="CheckDuplicateName"
                     OnGenerate="GenerateUniqueStreamName"
+                    AllowManualEdit="false"
                     Mode="VariableMode.Compact" />
 
 
@@ -60,7 +62,16 @@
 
     private bool CheckDuplicateName(string newName)
     {
-        return FSM?.Elements?.Any(e => e.Name.Equals(newName, StringComparison.OrdinalIgnoreCase) && e.Id != Facade?.Id) == true;
+        return FSM?.IsStreamNameDuplicated(Facade, newName) == true;
+    }
+
+    private async Task RenameStream(string newName)
+    {
+        if (FSM?.RenameStream(Facade, newName) == true)
+        {
+            await NotifyUpdate();
+            StateHasChanged();
+        }
     }
 
     /*
@@ -72,9 +83,7 @@
     {
         if (FSM == null || Facade == null) return;
 
-        Facade.Name = FSM.GenerateNextName("Stream");
-        await NotifyUpdate();
-        StateHasChanged();
+        await RenameStream(FSM.GenerateNextName("Stream"));
     }
 
     /*

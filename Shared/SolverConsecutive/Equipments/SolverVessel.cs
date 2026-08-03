@@ -1,5 +1,5 @@
-﻿using Shared.SolverQwen.Stream;
-
+﻿using Shared.SolverConsecutive.Equipments.Columns;
+using Shared.SolverQwen.Stream;
 namespace Shared.SolverConsecutive.Equipments
 {
     public enum VesselStateType { Created, PartiallyConnected, ReadyToCalculate, Solved }
@@ -70,9 +70,13 @@ namespace Shared.SolverConsecutive.Equipments
         private IEnumerable<ISolverEquation> GetEquations()
         {
         
-            yield return new EquipmentMassBalanceEquation(this);
-            yield return new EquipmentMassEnergyBalanceEquation(this);
-            yield return new EquipmentComponentMassBalanceEquation(this);
+            yield return new MassFractionDistributorEquation(this);
+            yield return new GlobalMassBalanceEquation(this);
+            yield return new ComponentMassBalanceEquation(this);
+            yield return new ComponentMassBalanceByMassFlowEquation(this);
+            yield return new ComponentMassBalanceMixedEquation(this);
+            yield return new GlobalEnergyBalanceByMassEnthalpyEquation(this);
+            yield return new GlobalMassEnergyBalanceEquation(this);
 
         }
         public override Task PostSolveAsync()
@@ -83,6 +87,5 @@ namespace Shared.SolverConsecutive.Equipments
         }
        
     }
-
 
 }

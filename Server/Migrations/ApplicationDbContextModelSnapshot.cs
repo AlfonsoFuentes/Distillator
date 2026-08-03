@@ -17,7 +17,7 @@ namespace Server.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.8")
+                .HasAnnotation("ProductVersion", "10.0.10")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -189,10 +189,80 @@ namespace Server.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
+                    b.Property<string>("GasEnthalpyEquationType")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)")
+                        .HasDefaultValue("IntegratedGasCpWithHvap");
+
+                    b.Property<string>("GasHeatCapacityEquationType")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)")
+                        .HasDefaultValue("AlyLee");
+
+                    b.Property<string>("GasThermalConductivityEquationType")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)")
+                        .HasDefaultValue("PolynomialRational");
+
+                    b.Property<string>("GasViscosityEquationType")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)")
+                        .HasDefaultValue("Dippr102");
+
+                    b.Property<string>("HeatOfVaporizationEquationType")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)")
+                        .HasDefaultValue("Dippr106");
+
                     b.Property<bool>("IsDeleted")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
                         .HasDefaultValue(false);
+
+                    b.Property<string>("LiquidDensityEquationType")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)")
+                        .HasDefaultValue("Rackett");
+
+                    b.Property<string>("LiquidEnthalpyEquationType")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)")
+                        .HasDefaultValue("IntegratedLiquidCp");
+
+                    b.Property<string>("LiquidHeatCapacityEquationType")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)")
+                        .HasDefaultValue("Polynomial");
+
+                    b.Property<string>("LiquidThermalConductivityEquationType")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)")
+                        .HasDefaultValue("Polynomial4");
+
+                    b.Property<string>("LiquidViscosityEquationType")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)")
+                        .HasDefaultValue("Dippr101");
 
                     b.Property<double>("MolecularWeight")
                         .HasColumnType("double precision");
@@ -207,6 +277,20 @@ namespace Server.Migrations
                         .HasColumnType("integer")
                         .HasDefaultValue(0);
 
+                    b.Property<string>("SaturatedMolarVolumeEquationType")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)")
+                        .HasDefaultValue("Rackett");
+
+                    b.Property<string>("SaturationTemperatureEquationType")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)")
+                        .HasDefaultValue("FromVaporPressureSecant");
+
                     b.Property<string>("SecondaryFamily")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -216,6 +300,20 @@ namespace Server.Migrations
                         .IsRequired()
                         .HasMaxLength(150)
                         .HasColumnType("character varying(150)");
+
+                    b.Property<string>("SurfaceTensionEquationType")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)")
+                        .HasDefaultValue("Dippr106");
+
+                    b.Property<string>("VaporPressureEquationType")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)")
+                        .HasDefaultValue("ExtendedAntoine");
 
                     b.HasKey("Id");
 
@@ -267,6 +365,9 @@ namespace Server.Migrations
                         .HasMaxLength(40)
                         .HasColumnType("character varying(40)");
 
+                    b.Property<Guid?>("OperationId")
+                        .HasColumnType("uuid");
+
                     b.Property<int>("Order")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
@@ -302,6 +403,9 @@ namespace Server.Migrations
                     b.HasIndex("TenantId", "ProjectId", "OccurredOnUtc");
 
                     b.HasIndex("TenantId", "ProjectId", "ProjectVersion");
+
+                    b.HasIndex("TenantId", "ProjectId", "UserId", "OperationId")
+                        .HasFilter("\"OperationId\" IS NOT NULL");
 
                     b.ToTable("ProjectChangeLogs", (string)null);
                 });

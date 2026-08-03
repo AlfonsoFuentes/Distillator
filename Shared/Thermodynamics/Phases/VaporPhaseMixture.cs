@@ -72,12 +72,14 @@ namespace Shared.Thermodynamics.Phases
             Pressure = pressure;
             CalculateMassFractions();
             // 1. Pure Properties
-            foreach (var comp in Components) comp.CalculateEquilibrium(temperature, pressure);
+            foreach (var comp in Components) 
+                comp.CalculateEquilibrium(temperature, pressure);
 
-            if (ThermoMethod.VaporModel == VaporPhaseModel.IdealGas)
+            if (UsesReferenceVaporFugacity())
             {
                 CompressibilityFactor = 1.0;
-                foreach (var c in Components) c.FugacityCoefficient = 1.0;
+                foreach (var c in Components) 
+                    c.FugacityCoefficient = 1.0;
             }
             else
             {
@@ -145,7 +147,14 @@ namespace Shared.Thermodynamics.Phases
 
             double vMolar = 0.0;
 
-            if (isPureWater && ThermoMethod.VaporModel == VaporPhaseModel.IdealGas)
+            if (isPureWater && ThermoMethod.VaporModel == VaporPhaseModel.SteamTables)
+            {
+                double pBar = pressure.GetValue(PressureUnits.Bara);
+                double massDensityWater = CPropiAgua.densW(tempK, pBar);
+                if (massDensityWater > 0)
+                    vMolar = mwMix / massDensityWater;
+            }
+            else if (isPureWater && ThermoMethod.VaporModel == VaporPhaseModel.IdealGas)
             {
                 double pBar = pressure.GetValue(PressureUnits.Bara);
                 double massDensityWater = CPropiAgua.densSatVapPW(pBar);
@@ -163,6 +172,12 @@ namespace Shared.Thermodynamics.Phases
                 MassDensity = new MassDensity(massDensity, MassDensityUnits.Kg_m3);
                 MolarDensity = new MolarDensity(1.0 / vMolar, MolarDensityUnits.Kgmol_m3);
             }
+        }
+
+        private bool UsesReferenceVaporFugacity()
+        {
+            return ThermoMethod.VaporModel == VaporPhaseModel.IdealGas ||
+                   ThermoMethod.VaporModel == VaporPhaseModel.SteamTables;
         }
 
         private double CalculateMixtureMolecularWeight()

@@ -24,7 +24,7 @@ namespace Shared.Thermodynamics.Phases
                                 components[i].Id, components[j].Id, BinaryParameterType.VanLaar_Aij, dbParams);
                     return vanLaar;
 
-                case LiquidPhaseModel.Wilson:
+           
                 case LiquidPhaseModel.WilsonAspen:
                     var wilson = new double[2][,];
                     wilson[0] = new double[n, n]; // Wilson Aij

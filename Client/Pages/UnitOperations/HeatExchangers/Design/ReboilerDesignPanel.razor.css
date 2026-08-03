@@ -1,0 +1,22 @@
+.design-placeholder {
+    display: grid;
+    gap: 12px;
+    padding: 14px;
+}
+
+.primary-action {
+    width: fit-content;
+    border: 1px solid #2f6099;
+    background: #3f76ad;
+    color: white;
+    padding: 8px 14px;
+    border-radius: 4px;
+    font-weight: 600;
+}
+
+.workflow-summary {
+    border: 1px solid #d8e1ec;
+    background: #f8fbff;
+    padding: 12px;
+    border-radius: 6px;
+}

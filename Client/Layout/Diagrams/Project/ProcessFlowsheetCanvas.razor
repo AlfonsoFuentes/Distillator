@@ -42,7 +42,7 @@
                 <ProcessEquipmentRenderer @key="el.Id"
                                           Element="el"
                                           IsDragging="FSM.IsMoving(el)"
-                                          IsSelected="@(FSM.SelectedElement?.Id == el.Id)"
+                                          IsSelected="@FSM.IsSelected(el)"
                                           OnSelect="HandleSelect"
                                           OnDragStart="e => FSM.StartMove(el, e)" />
             }
@@ -78,11 +78,29 @@
 
     private void OnNotifyUI() => _ = InvokeAsync(StateHasChanged);
 
-    private void HandleSelect(IVisualElement element) => FSM.SelectElement(element);
-    private void HandleWorkspaceClick() => FSM.SelectElement(null);
+    private void HandleSelect(ProcessCanvasEquipmentWrapper.EquipmentSelectionEventArgs e)
+    {
+        if (e.ToggleSelection)
+        {
+            FSM.ToggleElementSelection(e.Element);
+            return;
+        }
+
+        FSM.SelectElement(e.Element);
+    }
+
+    private void HandleWorkspaceClick() => FSM.ClearSelection();
 
     private void HandleKeyDown(KeyboardEventArgs e)
     {
+        if (e.Key == "Escape")
+        {
+            FSM.ClearSelection();
+            FSM.SetConnectionMode(false);
+            if (FSM.CurrentDraftPipe != null) FSM.CancelConnectionDraft();
+            return;
+        }
+
         if (e.CtrlKey) FSM.SetConnectionMode(true);
     }
 
@@ -127,6 +145,11 @@
             (relativeX - FSM.PanX) / effectiveZoom,
             (relativeY - FSM.PanY) / effectiveZoom
         );
+    }
+
+    private CanvasPoint GetViewportMousePosition(MouseEventArgs e)
+    {
+        return new CanvasPoint(e.ClientX - canvasX, e.ClientY - canvasY);
     }
 
     private void HandleMouseMove(MouseEventArgs e)
@@ -184,13 +207,14 @@
 
     private void HandleWheel(WheelEventArgs e)
     {
-        var pos = GetRelativeMousePosition(e);
+        var pos = GetViewportMousePosition(e);
         FSM.ZoomAt(e.DeltaY, pos.X, pos.Y);
     }
 
     private async Task HandleZoomToFit()
     {
         var dims = await JS.InvokeAsync<Dimensions>("canvasInterop.getCanvasDimensions", workspaceRef);
+        FSM.SetContainerDimensions(dims.Width, dims.Height);
         FSM.ZoomToFit(dims.Width, dims.Height);
     }
 
@@ -200,6 +224,8 @@
         {
             await workspaceRef.FocusAsync();
             await JS.InvokeVoidAsync("canvasInterop.preventScroll", workspaceRef);
+            var dims = await JS.InvokeAsync<Dimensions>("canvasInterop.getCanvasDimensions", workspaceRef);
+            FSM.SetContainerDimensions(dims.Width, dims.Height);
         }
     }
 

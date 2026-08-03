@@ -1,0 +1,87 @@
+@implements IDisposable
+@inject Client.Services.Diagnostics.ProjectActivityLogService ActivityLog
+
+<section class="activity-log-panel @(isExpanded ? "expanded" : "collapsed")">
+    <button type="button" class="activity-log-header" @onclick="Toggle">
+        <span class="activity-title">Background activity</span>
+        <span class="activity-status">@StatusText</span>
+        <span class="activity-toggle">@(isExpanded ? "Hide" : "Show")</span>
+    </button>
+
+    @if (isExpanded)
+    {
+        <div class="activity-log-body">
+            @if (Entries.Count == 0)
+            {
+                <div class="activity-empty">No background activity yet.</div>
+            }
+            else
+            {
+                @foreach (var entry in Entries)
+                {
+                    <div class="activity-entry">
+                        <span class="activity-time">@entry.Timestamp.ToLocalTime().ToString("HH:mm:ss.fff")</span>
+                        <span class="activity-source">@entry.Source</span>
+                        <span class="activity-message">@entry.Message</span>
+                        @if (!string.IsNullOrWhiteSpace(entry.Detail))
+                        {
+                            <span class="activity-detail">@entry.Detail</span>
+                        }
+                    </div>
+                }
+            }
+        </div>
+    }
+</section>
+
+@code {
+    private bool isExpanded;
+    private System.Threading.Timer? timer;
+    private IReadOnlyList<Client.Services.Diagnostics.ProjectActivityLogEntry> Entries => ActivityLog.Entries;
+
+    private string StatusText
+    {
+        get
+        {
+            if (ActivityLog.PendingAutosaveDueAt is { } dueAt)
+            {
+                var remaining = dueAt - DateTimeOffset.Now;
+                if (remaining > TimeSpan.Zero)
+                {
+                    return $"{ActivityLog.PendingAutosaveLabel}: {remaining.TotalMilliseconds:0} ms";
+                }
+
+                return $"{ActivityLog.PendingAutosaveLabel}: due now";
+            }
+
+            if (ActivityLog.LastAutosaveCompletedAt is { } savedAt)
+            {
+                return $"Saved at {savedAt.ToLocalTime():HH:mm:ss}";
+            }
+
+            return "Idle";
+        }
+    }
+
+    protected override void OnInitialized()
+    {
+        ActivityLog.Changed += OnActivityChanged;
+        timer = new System.Threading.Timer(_ => InvokeAsync(StateHasChanged), null, 0, 250);
+    }
+
+    private void Toggle()
+    {
+        isExpanded = !isExpanded;
+    }
+
+    private void OnActivityChanged()
+    {
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        ActivityLog.Changed -= OnActivityChanged;
+        timer?.Dispose();
+    }
+}

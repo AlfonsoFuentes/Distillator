@@ -150,6 +150,7 @@
                 <OffPageConnectorSvg Width="@Element.Width"
                                      Height="@Element.Height"
                                      IsOutlet="@opc.IsOutlet"
+                                     PortSide="@opc.PortSide"
                                      TargetAreaName="@opc.TargetAreaName"
                                      CssClass="opc-svg" />
             }
@@ -167,7 +168,7 @@
     [Parameter, EditorRequired] public IVisualElement Element { get; set; } = default!;
     [Parameter] public bool IsDragging { get; set; }
     [Parameter] public bool IsSelected { get; set; }
-    [Parameter] public EventCallback<IVisualElement> OnSelect { get; set; }
+    [Parameter] public EventCallback<ProcessCanvasEquipmentWrapper.EquipmentSelectionEventArgs> OnSelect { get; set; }
     [Parameter] public EventCallback<MouseEventArgs> OnDragStart { get; set; }
 
     private bool CanEditCurrentProject => ProjectSessionService.CurrentProject != null &&

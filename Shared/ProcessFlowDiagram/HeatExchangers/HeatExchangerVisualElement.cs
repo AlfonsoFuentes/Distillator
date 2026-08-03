@@ -1,14 +1,22 @@
 ﻿using Shared.SolverConsecutive.Equipments;
 using Shared.SolverQwen.Stream;
+using Shared.ProcessFlowDiagram.Designs;
+using Shared.UnitOperations.HeatExchangers.Design;
 
 namespace Shared.ProcessFlowDiagram.HeatExchangers
 {
-    public class HeatExchangerVisualElement : VisualElementBase
+    public class HeatExchangerVisualElement : VisualElementBase  , IDesignableEquipment
     {
         private SolverHeatExchanger HX => Facade as SolverHeatExchanger ?? throw new InvalidOperationException("Facade must be SolverHeatExchanger");
+        private readonly List<IEquipmentDesign> _designs = [];
+        private IFacadeStream? TubeSideInlet => HX.ColdInlet;
+        private IFacadeStream? TubeSideOutlet => HX.ColdOutlet;
+        private IFacadeStream? ShellSideInlet => HX.HotInlet;
+        private IFacadeStream? ShellSideOutlet => HX.HotOutlet;
 
         public override EquipmentType Type => EquipmentType.Exchanger;
         public override string Prefix => "E";
+        public IReadOnlyList<IEquipmentDesign> Designs => _designs;
 
         public override bool AllowFreeRotation => true;
         public override bool AllowFlipHorizontal => true;
@@ -34,16 +42,11 @@ namespace Shared.ProcessFlowDiagram.HeatExchangers
             Width = 160;
             Height = 60;
 
-            // LADO DE LOS TUBOS (Izquierda - 2 Pasos)
-            // La X en 0 ya está perfecta (a ras del borde izquierdo que empieza en 10).
-            AddPort(PortTubeInName, PortType.Inlet, 0, 15, PortDirection.Left);
+            // Lado de tubos.
+            AddPort(PortTubeInName, PortType.Inlet, 0, 35, PortDirection.Left);
+            AddPort(PortTubeOutName, PortType.Outlet, 0, 15, PortDirection.Left);
 
-            // 🚩 AJUSTE DE SIMETRÍA: Cambié Y de 45 a 35. 
-            // Como el tanque va de Y=5 a Y=55 (centro 30), los puertos en 15 y 35 se ven mucho más simétricos.
-            AddPort(PortTubeOutName, PortType.Outlet, 0, 35, PortDirection.Left);
-
-            // LADO DE LA CORAZA (Shell)
-            // 🚩 AJUSTE: Empujamos 5 píxeles hacia afuera (-5 arriba, 65 abajo) para que muerdan el borde exacto
+            // Lado de coraza.
             AddPort(PortShellInName, PortType.Inlet, 30, -5, PortDirection.Top);
             AddPort(PortCondensateOutName, PortType.Outlet, 130, 65, PortDirection.Bottom);
 
@@ -70,11 +73,10 @@ namespace Shared.ProcessFlowDiagram.HeatExchangers
         {
             return portName switch
             {
-                PortTubeInName => HX.ColdInlet,
-                PortTubeOutName => HX.ColdOutlet,
-                PortShellInName => HX.HotInlet,
-                PortCondensateOutName => HX.HotOutlet,
-                // VaporVent no tiene correspondencia directa en el solver
+                PortTubeInName => TubeSideInlet,
+                PortTubeOutName => TubeSideOutlet,
+                PortShellInName => ShellSideInlet,
+                PortCondensateOutName => ShellSideOutlet,
                 _ => null
             };
         }
@@ -143,10 +145,94 @@ namespace Shared.ProcessFlowDiagram.HeatExchangers
         {
             return new List<ToolTipLegend>
         {
-            new("ΔP Hot", HX.DeltaPHot.ToUiString()),
-            new("ΔP Cold", HX.DeltaPCold.ToUiString()),
+            new("ΔP Shell Side", HX.DeltaPHot.ToUiString()),
+            new("ΔP Tube Side", HX.DeltaPCold.ToUiString()),
             new("Q Transfer", HX.TransferHeat.ToUiString())
         };
+        }
+        public IEquipmentDesign CreateDesign()
+        {
+            var variables = new ShellAndTubeDesignVariables();
+            var result = CalculateDesign(variables);
+            var design = new EquipmentDesign
+            {
+                Id = Guid.NewGuid(),
+                Name = $"{Name}-D{_designs.Count + 1}",
+                Variables = variables,
+                Result = result
+            };
+
+            _designs.Add(design);
+            return design;
+        }
+
+        public IEquipmentDesign RecalculateDesign(IEquipmentDesign design)
+        {
+            ArgumentNullException.ThrowIfNull(design);
+
+            var variables = GetShellAndTubeVariables(design);
+            var result = CalculateDesign(variables);
+            var recalculatedDesign = new EquipmentDesign
+            {
+                Id = design.Id,
+                Name = design.Name,
+                Variables = variables,
+                Result = result
+            };
+
+            var index = _designs.FindIndex(existingDesign => existingDesign.Id == design.Id);
+            if (index >= 0)
+            {
+                _designs[index] = recalculatedDesign;
+            }
+
+            return recalculatedDesign;
+        }
+
+        private IDesignResult CalculateDesign(ShellAndTubeDesignVariables variables)
+        {
+            var request = CreateDesignRequest(variables);
+            var factory = new ShellAndTubeDesignFactory();
+            var designer = factory.Create(request);
+
+            return designer.Calculate();
+        }
+
+        private HeatExchangerDesignRequest CreateDesignRequest(ShellAndTubeDesignVariables variables)
+        {
+            return new HeatExchangerDesignRequest
+            {
+                HeatExchangerType = HeatExchangerType.ShellAndTube,
+                Variables = variables,
+                ShellSideInlet = CreateStreamSnapshot(ShellSideInlet, PortShellInName),
+                ShellSideOutlet = CreateStreamSnapshot(ShellSideOutlet, PortCondensateOutName),
+                TubeSideInlet = CreateStreamSnapshot(TubeSideInlet, PortTubeInName),
+                TubeSideOutlet = CreateStreamSnapshot(TubeSideOutlet, PortTubeOutName),
+                Equipment = this
+            };
+        }
+
+        private static ShellAndTubeDesignVariables GetShellAndTubeVariables(IEquipmentDesign design)
+        {
+            if (design.Variables is ShellAndTubeDesignVariables variables)
+            {
+                return variables;
+            }
+
+            throw new InvalidOperationException("The selected design does not contain shell and tube design variables.");
+        }
+
+        private static HeatExchangerStreamSnapshot CreateStreamSnapshot(IFacadeStream? stream, string portName)
+        {
+            if (stream is null)
+            {
+                throw new InvalidOperationException($"Cannot create a design because port '{portName}' is not connected.");
+            }
+
+            return new HeatExchangerStreamSnapshot
+            {
+                Stream = stream
+            };
         }
     }
    

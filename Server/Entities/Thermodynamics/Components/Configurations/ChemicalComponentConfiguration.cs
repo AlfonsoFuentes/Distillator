@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Shared.PropertiesDtos.Components;
 using System.Linq.Expressions;
 // using Shared.Units; // Asegúrate de importar tus unidades
 
@@ -30,6 +31,20 @@ namespace Server.Entities.BaseStructure.Components.Configurations
             builder.Property(x => x.StructuralFormula).HasMaxLength(150);
             builder.Property(x => x.Family).HasMaxLength(50);
             builder.Property(x => x.SecondaryFamily).HasMaxLength(50);
+            builder.Property(x => x.VaporPressureEquationType).HasConversion<string>().HasMaxLength(80).HasDefaultValue(VaporPressureEquationType.ExtendedAntoine);
+            builder.Property(x => x.SaturationTemperatureEquationType).HasConversion<string>().HasMaxLength(80).HasDefaultValue(SaturationTemperatureEquationType.FromVaporPressureSecant);
+            builder.Property(x => x.HeatOfVaporizationEquationType).HasConversion<string>().HasMaxLength(80).HasDefaultValue(HeatOfVaporizationEquationType.Dippr106);
+            builder.Property(x => x.LiquidHeatCapacityEquationType).HasConversion<string>().HasMaxLength(80).HasDefaultValue(LiquidHeatCapacityEquationType.Polynomial);
+            builder.Property(x => x.GasHeatCapacityEquationType).HasConversion<string>().HasMaxLength(80).HasDefaultValue(GasHeatCapacityEquationType.AlyLee);
+            builder.Property(x => x.LiquidViscosityEquationType).HasConversion<string>().HasMaxLength(80).HasDefaultValue(LiquidViscosityEquationType.Dippr101);
+            builder.Property(x => x.GasViscosityEquationType).HasConversion<string>().HasMaxLength(80).HasDefaultValue(GasViscosityEquationType.Dippr102);
+            builder.Property(x => x.LiquidThermalConductivityEquationType).HasConversion<string>().HasMaxLength(80).HasDefaultValue(LiquidThermalConductivityEquationType.Polynomial4);
+            builder.Property(x => x.GasThermalConductivityEquationType).HasConversion<string>().HasMaxLength(80).HasDefaultValue(GasThermalConductivityEquationType.PolynomialRational);
+            builder.Property(x => x.LiquidDensityEquationType).HasConversion<string>().HasMaxLength(80).HasDefaultValue(LiquidDensityEquationType.Rackett);
+            builder.Property(x => x.SurfaceTensionEquationType).HasConversion<string>().HasMaxLength(80).HasDefaultValue(SurfaceTensionEquationType.Dippr106);
+            builder.Property(x => x.LiquidEnthalpyEquationType).HasConversion<string>().HasMaxLength(80).HasDefaultValue(LiquidEnthalpyEquationType.IntegratedLiquidCp);
+            builder.Property(x => x.GasEnthalpyEquationType).HasConversion<string>().HasMaxLength(80).HasDefaultValue(GasEnthalpyEquationType.IntegratedGasCpWithHvap);
+            builder.Property(x => x.SaturatedMolarVolumeEquationType).HasConversion<string>().HasMaxLength(80).HasDefaultValue(SaturatedMolarVolumeEquationType.Rackett);
 
             // 3. Mapeo de Propiedades StoredAmount (Tipos Complejos Anidados)
             ConfigureAmount(builder, x => x.CriticalTemperature, "CriticalTemperature");

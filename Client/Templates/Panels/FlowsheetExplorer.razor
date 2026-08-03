@@ -80,13 +80,16 @@
                                 @foreach (var flowsheet in flowsheets)
                                 {
                                     var isActive = SessionService.ActiveFlowsheet?.Id == flowsheet.Id;
-                                    <div class="flowsheet-item @(isActive ? "active" : "") @(flowsheet == _draggedFlowsheet ? "dragging" : "")"
-                                         draggable="@CanEditCurrentProject"
+                                    <div class="flowsheet-item @(isActive ? "active" : "") @(flowsheet == _draggedFlowsheet ? "dragging" : "") @(flowsheet == _dropTargetFlowsheet ? "drop-target" : "")"
+                                         draggable="@(CanEditCurrentProject ? "true" : "false")"
                                          @onclick="() => SetActive(flowsheet)"
                                          @ondragstart="() => HandleDragStart(flowsheet)"
+                                         @ondragenter="() => HandleDragEnter(flowsheet)"
                                          @ondragover:preventDefault="true"
                                          @ondragover="() => { }"
-                                         @ondrop="() => HandleDrop(flowsheet)">
+                                         @ondrop:preventDefault="true"
+                                         @ondrop="() => HandleDrop(flowsheet)"
+                                         @ondragend="HandleDragEnd">
                                         <span class="flowsheet-name">@flowsheet.Name</span>
                                         @if (CanEditCurrentProject)
                                         {
@@ -140,6 +143,7 @@
     private readonly HashSet<string> _expandedTypes = new(StringComparer.OrdinalIgnoreCase);
     private bool IsCollapsed { get; set; } = false;
     private IFlowsheet? _draggedFlowsheet;
+    private IFlowsheet? _dropTargetFlowsheet;
     private string? _hoveredTooltip;
     private bool _canDeleteAnyFlowsheet;
 
@@ -162,21 +166,31 @@
     {
         if (!CanEditCurrentProject) return;
         _draggedFlowsheet = flowsheet;
+        _dropTargetFlowsheet = null;
     }
 
-    private void HandleDrop(IFlowsheet targetFlowsheet)
+    private void HandleDragEnter(IFlowsheet flowsheet)
+    {
+        if (!CanEditCurrentProject) return;
+        if (_draggedFlowsheet == null || _draggedFlowsheet.Id == flowsheet.Id) return;
+        if (!_draggedFlowsheet.TypeCode.Equals(flowsheet.TypeCode, StringComparison.OrdinalIgnoreCase)) return;
+
+        _dropTargetFlowsheet = flowsheet;
+    }
+
+    private async Task HandleDrop(IFlowsheet targetFlowsheet)
     {
         if (!CanEditCurrentProject) return;
 
         if (_draggedFlowsheet == null || _draggedFlowsheet.Id == targetFlowsheet.Id)
         {
-            _draggedFlowsheet = null;
+            ClearDragState();
             return;
         }
 
         if (SessionService.CurrentProject == null)
         {
-            _draggedFlowsheet = null;
+            ClearDragState();
             return;
         }
 
@@ -187,14 +201,25 @@
         var targetIndex = typeFlowsheets.IndexOf(targetFlowsheet);
         if (targetIndex < 0)
         {
-            _draggedFlowsheet = null;
+            ClearDragState();
             return;
         }
 
         var globalFlowsheets = SessionService.CurrentProject.Flowsheets.ToList();
         var globalTarget = globalFlowsheets.IndexOf(targetFlowsheet);
-        SessionService.ReorderFlowsheet(_draggedFlowsheet, globalTarget);
+        await SessionService.ReorderFlowsheetAsync(_draggedFlowsheet, globalTarget);
+        ClearDragState();
+    }
+
+    private void HandleDragEnd()
+    {
+        ClearDragState();
+    }
+
+    private void ClearDragState()
+    {
         _draggedFlowsheet = null;
+        _dropTargetFlowsheet = null;
     }
 
     protected override void OnInitialized()
@@ -268,13 +293,20 @@
     {
         if (!CanEditCurrentProject) return;
 
-        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true };
+        var options = new DialogOptions
+        {
+            MaxWidth = MaxWidth.False,
+            FullWidth = false,
+            NoHeader = true,
+            CloseOnEscapeKey = true,
+            BackdropClick = true
+        };
         var parameters = new DialogParameters
         {
             ["Project"] = SessionService.CurrentProject,
             ["FixedTypeCode"] = typeCode
         };
-        var dialog = await DialogService.ShowAsync<FlowsheetFormDialog>("New Diagram", parameters, options);
+        var dialog = await DialogService.ShowAsync<FlowsheetFormDialog>("", parameters, options);
         await dialog.Result;
     }
 
@@ -282,13 +314,20 @@
     {
         if (!CanEditCurrentProject) return;
 
-        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true };
+        var options = new DialogOptions
+        {
+            MaxWidth = MaxWidth.False,
+            FullWidth = false,
+            NoHeader = true,
+            CloseOnEscapeKey = true,
+            BackdropClick = true
+        };
         var parameters = new DialogParameters
         {
             ["Project"] = SessionService.CurrentProject,
             ["Flowsheet"] = flowsheet
         };
-        var dialog = await DialogService.ShowAsync<FlowsheetFormDialog>("Edit Diagram", parameters, options);
+        var dialog = await DialogService.ShowAsync<FlowsheetFormDialog>("", parameters, options);
         await dialog.Result;
     }
 

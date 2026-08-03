@@ -1,4 +1,3 @@
-﻿@using Client.Layout.Diagrams.Palettes
 @using Client.Services.Security
 
 @inherits LayoutComponentBase
@@ -37,9 +36,12 @@
     <MudMainContent Class="main-content-area">
         @Body
     </MudMainContent>
+    <ProjectActivityLogPanel />
 </MudLayout>
 
 @code {
+    [Inject] private ProjectSessionService ProjectSessionService { get; set; } = null!;
+
     bool _drawerOpen = false;
     void DrawerToggle() => _drawerOpen = !_drawerOpen;
 
@@ -63,6 +65,7 @@
 
         if (response != null && response.Succeeded)
         {
+            await ProjectSessionService.ClearCurrentSessionAsync();
             AuthProvider.ClearUserInfo();
             AuthProvider.NotifyAuthenticationStateChanged();
             NavigationManager.NavigateTo("/login");

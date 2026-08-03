@@ -3,8 +3,10 @@
    Estilo Industrial Minimalista (Colgate-Palmolive)
    ================================================= */
 .scrollable-container {
+    flex: 1 1 auto;
+    min-height: 0;
     overflow: auto;
-    max-height: 650px;
+    max-height: none;
     border: 1px solid var(--border-color, #b0b0b0);
     border-radius: 4px;
     background: #ffffff;

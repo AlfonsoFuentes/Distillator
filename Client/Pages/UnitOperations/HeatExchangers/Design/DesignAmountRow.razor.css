@@ -1,0 +1,120 @@
+.design-property-row {
+    display: grid;
+    grid-template-columns: minmax(122px, 0.82fr) minmax(0, 1.18fr);
+    min-height: 30px;
+    border-bottom: 1px solid #dce5ee;
+    min-width: 0;
+}
+
+.design-property-row:last-child {
+    border-bottom: 0;
+}
+
+.design-property-row label {
+    display: flex;
+    align-items: center;
+    margin: 0;
+    padding: 5px 8px;
+    background: #f4f7fb;
+    color: #60748c;
+    font-weight: 700;
+}
+
+.design-value-cell {
+    position: relative;
+    display: flex;
+    align-items: stretch;
+    min-width: 0;
+    background: #ffffff;
+}
+
+.amount-cell input {
+    flex: 1 1 auto;
+    min-width: 0;
+    width: 100%;
+    border: 0;
+    background: transparent;
+    color: #21364f;
+    padding: 5px 4px 5px 8px;
+    font: inherit;
+}
+
+.readonly-value {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    padding: 5px 4px 5px 8px;
+    color: #425972;
+}
+
+.amount-cell input:focus {
+    outline: 1px solid #c8d5e4;
+    outline-offset: -1px;
+    background: #fbfdff;
+}
+
+.unit-label {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    padding: 0 4px;
+    color: #21364f;
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+.unit-trigger {
+    flex: 0 0 26px;
+    border: 0;
+    background: transparent;
+    color: #1f2f43;
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    padding: 0;
+}
+
+.unit-trigger:hover,
+.unit-trigger:focus {
+    outline: 1px solid #c8d5e4;
+    outline-offset: -2px;
+    background: #f4f7fb;
+}
+
+.unit-popup {
+    position: absolute;
+    bottom: 100%;
+    right: 4px;
+    z-index: 80;
+    width: max-content;
+    min-width: 92px;
+    max-width: 240px;
+    display: grid;
+    max-height: 148px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 4px;
+    border: 1px solid #c8d5e4;
+    border-radius: 4px;
+    background: #ffffff;
+    box-shadow: 0 6px 16px rgba(37, 54, 74, 0.14);
+}
+
+.unit-item {
+    border: 0;
+    background: transparent;
+    color: #30465f;
+    text-align: left;
+    white-space: nowrap;
+    padding: 5px 8px;
+    border-radius: 3px;
+    cursor: pointer;
+    font: inherit;
+}
+
+.unit-item:hover,
+.unit-item.selected {
+    background: #eaf2fb;
+    color: #1f5d99;
+}

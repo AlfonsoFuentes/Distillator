@@ -347,7 +347,21 @@ public class ThermodynamicMethodEndPoint : IEndPoint
             LiquidThermalCond = MapCorrEntToDto(ent.LiquidThermalCond),
             GasThermalCond = MapCorrEntToDto(ent.GasThermalCond),
             Density = MapCorrEntToDto(ent.Density),
-            SurfaceTension = MapCorrEntToDto(ent.SurfaceTension)
+            SurfaceTension = MapCorrEntToDto(ent.SurfaceTension),
+            VaporPressureEquationType = ent.VaporPressureEquationType,
+            SaturationTemperatureEquationType = ent.SaturationTemperatureEquationType,
+            HeatOfVaporizationEquationType = ent.HeatOfVaporizationEquationType,
+            LiquidHeatCapacityEquationType = ent.LiquidHeatCapacityEquationType,
+            GasHeatCapacityEquationType = ent.GasHeatCapacityEquationType,
+            LiquidViscosityEquationType = ent.LiquidViscosityEquationType,
+            GasViscosityEquationType = ent.GasViscosityEquationType,
+            LiquidThermalConductivityEquationType = ent.LiquidThermalConductivityEquationType,
+            GasThermalConductivityEquationType = ent.GasThermalConductivityEquationType,
+            LiquidDensityEquationType = ent.LiquidDensityEquationType,
+            SurfaceTensionEquationType = ent.SurfaceTensionEquationType,
+            LiquidEnthalpyEquationType = ent.LiquidEnthalpyEquationType,
+            GasEnthalpyEquationType = ent.GasEnthalpyEquationType,
+            SaturatedMolarVolumeEquationType = ent.SaturatedMolarVolumeEquationType
         };
     }
     private CorrelationCoefficientsDto MapCorrEntToDto(CorrelationCoefficients e) => new()

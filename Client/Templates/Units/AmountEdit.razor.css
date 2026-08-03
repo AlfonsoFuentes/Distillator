@@ -46,3 +46,9 @@
         border-color: #4674a6;
         box-shadow: 0 0 0 2px rgba(70, 116, 166, 0.15);
     }
+
+.edit-amount-input[readonly] {
+    background: #f8fafc;
+    color: #475569;
+    cursor: default;
+}

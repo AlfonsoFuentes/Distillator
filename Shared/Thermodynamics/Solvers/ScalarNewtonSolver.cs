@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -39,10 +39,7 @@ namespace Shared.Thermodynamics.Solvers
              double tolAdim = DefaultAdimTolerance, int maxIter = DefaultMaxIterations, double adimperturbation = DefaultAdimPerturbation, string debugTag = "Newton")
         {
             var sw = System.Diagnostics.Stopwatch.StartNew();
-#if DEBUG
 
-            Console.WriteLine($"\n[DEBUG-{debugTag}] ⚡ Iniciando Solve (Motor IQI 3-Puntos) | x0={x0:F4}");
-#endif
             double xAdim = x0 / x_norm;
 
             double UseLinearSolve = tolAdim * 10;
@@ -66,9 +63,6 @@ namespace Shared.Thermodynamics.Solvers
 
                 if (Math.Abs(dfDx) < 1e-12)
                 {
-#if DEBUG
-                    Console.WriteLine($"[DEBUG-{debugTag}] ⚠️ Derivada singular (df/dx ≈ 0). Abortando.");
-#endif
                     break;
                 }
 
@@ -90,17 +84,11 @@ namespace Shared.Thermodynamics.Solvers
 
                 if (predictor.IsValid && Math.Abs(fNewtonAdim) > UseLinearSolve)
                 {
-#if DEBUG
-                    Console.WriteLine($"      🎯 [Iter {iter + 1}] IQI Activo: NR sugirió X={xNewtonAdim:F4}. Evaluador 3-puntos nos catapultó a X={predictor.PredictedX:F4}");
-#endif
                     // Boom. Tomamos el dato analítico inteligente
                     xAdim = predictor.PredictedX;
                 }
                 else
                 {
-#if DEBUG
-                    Console.WriteLine($"      🛡️ [Iter {iter + 1}] IQI Ilogico/Inestable. Seguimos con el NR normalito a X={xNewtonAdim:F4}");
-#endif
                     // El acelerador dio un salto absurdo, nos protegemos y seguimos con Newton
                     xAdim = xNewtonAdim;
                 }
@@ -146,10 +134,7 @@ namespace Shared.Thermodynamics.Solvers
              double tolAdim = DefaultAdimTolerance, int maxIter = DefaultMaxIterations, string debugTag = "NewtonRaw")
         {
             var sw = System.Diagnostics.Stopwatch.StartNew();
-#if DEBUG
        
-            Console.WriteLine($"\n[DEBUG-{debugTag}] ⚡ Iniciando SolveRaw | x0={x0:F4}");
-#endif
             double xAdim = x0 / x_norm;
 
             for (int iter = 0; iter < maxIter; iter++)
@@ -187,9 +172,6 @@ namespace Shared.Thermodynamics.Solvers
         {
             //            if (Math.Abs(dxAdim) < 1e-7)
             //            {
-            //#if DEBUG
-            //                Console.WriteLine($"      🛑 [LineSearch] Abortado: Salto propuesto (dx={dxAdim:E4}) es ruido numérico.");
-            //#endif
             //                return (false, xAdim, Math.Abs(currentFAdim), currentFReal);
             //            }
 
@@ -203,9 +185,6 @@ namespace Shared.Thermodynamics.Solvers
                 double testFReal = func(testX * xNorm);
                 double f1 = Math.Abs(testFReal / fNorm);
 
-#if DEBUG
-                Console.WriteLine($"      🔍 [LineSearch] k={k}, alpha={alpha:F4} | error={f1:E4}");
-#endif
 
                 if (f1 < f0)
                 {
@@ -221,19 +200,13 @@ namespace Shared.Thermodynamics.Solvers
                 alpha *= theta;
             }
 
-#if DEBUG
-            Console.WriteLine($"      🛑 [LineSearch] Abortado: 5 intentos agotados sin mejoría.");
-#endif
             return (false, xAdim, f0, currentFReal);
         }
 
         private static ScalarSolverResult LogSuccess(string tag, bool converged, int iter, double xReal, double fReal, System.Diagnostics.Stopwatch sw)
         {
-#if DEBUG
             sw?.Stop();
             string status = converged ? "✅ Convergió" : "❌ Falló";
-            Console.WriteLine($"[DEBUG-{tag}] {status} en {iter} iters | x={xReal:F6}, f={fReal:E4} | Tiempo: {sw?.Elapsed.TotalMilliseconds:F3} ms\n");
-#endif
             return new ScalarSolverResult(converged, iter, xReal, fReal);
         }
 

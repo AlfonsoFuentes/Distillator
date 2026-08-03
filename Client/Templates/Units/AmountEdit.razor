@@ -6,9 +6,10 @@
            class="edit-amount-input"
            value="@FormattedValue"
            @onchange="OnInputChanged"
-           step="any" />
+           step="any"
+           readonly="@IsReadOnly" />
 
-    <select class="edit-amount-select" @onchange="HandleUnitChange">
+    <select class="edit-amount-select" @onchange="HandleUnitChange" disabled="@IsUnitSelectDisabled">
         @foreach (var _unit in Amount.UnitsList)
         {
             <option value="@_unit.Name" selected="@(_unit.Name == Amount.Unit.Name)">

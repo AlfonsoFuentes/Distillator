@@ -1,7 +1,8 @@
 ﻿@using Client.Pages.UnitOperations.MaterialStreams.CompositionGrids
-@using Shared.PhaseEnvelopes
+@using Client.Services.Diagnostics
 @using Distillator.Domain.Services
 @implements IDisposable
+@inject ProjectActivityLogService ActivityLog
 
 
 <MudDialog Gutters="false" ContentClass="pa-0">
@@ -19,51 +20,50 @@
                 <div class="tab @(activeTab == "Conditions" ? "active" : "")" @onclick='() => SetTab("Conditions")'>Conditions</div>
                 <div class="tab @(activeTab == "Composition" ? "active" : "")" @onclick='() => SetTab("Composition")'>Composition</div>
                 <div class="tab @(activeTab == "Properties" ? "active" : "")" @onclick='() => SetTab("Properties")'>Properties</div>
-                <div class="tab @(activeTab == "Phase Envelope" ? "active" : "")" @onclick='() => SetTab("PhaseEnvelope")'>Phase Envelope</div>
+                <div class="tab @(activeTab == "PhaseEnvelope" ? "active" : "")" @onclick='() => SetTab("PhaseEnvelope")'>Phase Envelope</div>
               
             </div>
 
-            <div class="tab-content">
+            <div class="dialog-body">
                 @if (activeTab == "Conditions")
                 {
-                    <div class="tab-content active">
-                        <MaterialStreamMainData Facade="Facade" />
+                    <div class="tab-panel">
+                        <MaterialStreamMainData Facade="Facade" OnStreamUpdated="HandleStreamUpdated" />
                     </div>
                 }
-                @if (activeTab == "Composition")
+                else if (activeTab == "Composition")
                 {
-                    <div class="tab-content active">
-                        <CompositionGrid @bind-Variable="Facade.Composition" />
+                    <div class="tab-panel">
+                        <CompositionGrid @bind-Variable="Facade.Composition"
+                                         OnCompositionUpdated="HandleStreamUpdated" />
                     </div>
                 }
-                @if (activeTab == "Properties")
+                else if (activeTab == "Properties")
                 {
-                    <div class="tab-content active">
+                    <div class="tab-panel">
                         <MaterialStreamProperties Facade="Facade" />
                     </div>
                 }
-                @if (activeTab == "PhaseEnvelope")
+                else if (activeTab == "PhaseEnvelope")
                 {
-                    <div class="tab-content active" style="min-height: 400px; display: flex; justify-content: center; align-items: center; flex-direction: column;">
-
+                    <div class="tab-panel phase-envelope-panel">
                         @if (isCalculatingEnvelope)
                         {
-                            <div style="text-align: center; color: #64748b;">
+                            <div class="phase-envelope-message">
                                 <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" />
-                                <div style="margin-top: 10px; font-weight: 600;">Generating Phase Envelope...</div>
-                                <div style="font-size: 12px; opacity: 0.8;">Running 50 thermodynamic flashes</div>
+                                <div class="phase-envelope-title">Generating Phase Envelope...</div>
+                                <div class="phase-envelope-subtitle">Running 50 thermodynamic flashes</div>
                             </div>
                         }
                         else if (Facade.EnvelopeCache != null && Facade.EnvelopeCache.Success)
                         {
-                            @* 📊 AQUI LLAMAMOS AL COMPONENTE SVG *@
                             <StreamPhaseEnvelope EnvelopeData="Facade.EnvelopeCache"
-                                              CurrentStream="Facade"
-                                              ChartMode="PT" />
+                                                 CurrentStream="Facade"
+                                                 ChartMode="PT" />
                         }
                         else
                         {
-                            <div style="color: #ef4444; font-weight: bold; text-align: center;">
+                            <div class="phase-envelope-error">
                                 <MudIcon Icon="@Icons.Material.Filled.Error" Size="Size.Large" />
                                 <p>@Facade.EnvelopeCache?.ErrorMessage ?? "Could not generate envelope."</p>
                             </div>
@@ -73,8 +73,8 @@
             </div>
 
             @* 🟢 AGREGAR este bloque *@
-            <div class="status-bar" style="background-color: @Stream.StatusColor; color: #fff;">
-                <span class="status-text">@Stream.StatusText</span>
+            <div class="status-bar" style="background-color: @CurrentStream.StatusColor; color: #fff;">
+                <span class="status-text">@CurrentStream.StatusText</span>
             </div>
         </div>
         </CascadingValue>
@@ -88,9 +88,10 @@
     [Parameter]
     public StreamVisualElement Stream { get; set; } = default!;
     [Parameter] public bool CanEdit { get; set; } = true;
-    // 2. Tu parámetro del Facade que ya tenías
 
-    private IFacadeStream Facade => Stream.Facade as IFacadeStream ?? throw new InvalidOperationException("Facade must be IFacadeStream");
+    private StreamVisualElement? _activeStream;
+    private StreamVisualElement CurrentStream => _activeStream ?? Stream;
+    private IFacadeStream Facade => CurrentStream.Facade as IFacadeStream ?? throw new InvalidOperationException("Facade must be IFacadeStream");
 
 
     private void Submit() => MudDialog.Close(DialogResult.Ok(true));
@@ -120,20 +121,15 @@
     {
         activeTab = tabName;
 
-        if (tabName == "PhaseEnvelope")
+        if (tabName == "PhaseEnvelope" && Facade.EnvelopeCache == null)
         {
-            // Solo calculamos si la caché está vacía
-            if (Facade.EnvelopeCache == null)
-            {
-                isCalculatingEnvelope = true;
-                StateHasChanged(); // Forzamos a pintar el Spinner de MudBlazor
+            isCalculatingEnvelope = true;
+            StateHasChanged();
 
-                // Esperamos que el generador haga los 50 flashes en segundo plano
-                await Facade.GenerateEnvelopeAsync();
+            await Facade.GenerateEnvelopeAsync();
 
-                isCalculatingEnvelope = false;
-                StateHasChanged(); // Forzamos a quitar el Spinner y pintar el gráfico SVG
-            }
+            isCalculatingEnvelope = false;
+            StateHasChanged();
         }
     }
 
@@ -144,6 +140,7 @@
 
     protected override void OnInitialized()
     {
+        _activeStream = Stream;
         FSM.OnNotifyUI += OnNotifyUIHandler;
     }
 
@@ -159,16 +156,25 @@
 
     private void OnNotifyUIHandler()
     {
-        var current = FSM.Elements.FirstOrDefault(element => element.Id == Stream.Id) as StreamVisualElement;
-        if (current?.Facade != null && Stream.Facade != null && !ReferenceEquals(current.Facade, Stream.Facade))
+        var current = FSM.Elements.FirstOrDefault(element => element.Id == CurrentStream.Id) as StreamVisualElement;
+        if (current?.Facade != null)
         {
-            FacadeStateSerializer.Apply(
-                Stream.Facade,
-                FacadeStateSerializer.Serialize(current.Facade, includeTransientState: true),
-                restoreProjectDefaultDisplayUnits: true);
+            if (ReferenceEquals(current, CurrentStream))
+            {
+                _ = InvokeAsync(StateHasChanged);
+                return;
+            }
+
+            _activeStream = current;
+            ActivityLog.Add("Dialog", "Stream dialog refreshed", current.Name);
         }
 
         _ = InvokeAsync(StateHasChanged);
+    }
+
+    private void HandleStreamUpdated()
+    {
+        ActivityLog.Add("Dialog", "Stream dialog local edit", CurrentStream.Name);
     }
 
    

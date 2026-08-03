@@ -14,7 +14,7 @@ namespace UnitSystem
         {
 
         }
-        public UnitLess(double dvalue) : base(dvalue, UnitMeasure.None)
+        public UnitLess(double dvalue) : base(dvalue, UnitLessUnits.None)
         {
 
         }
@@ -406,8 +406,8 @@ namespace UnitSystem
 
         public override void SetValue(double dvalue, UnitMeasure unit)
         {
-            if (dvalue < 0) dvalue = 0;
-            if (dvalue > 100) dvalue = 100;
+            //if (dvalue < 0) dvalue = 0;
+            //if (dvalue > 100) dvalue = 100;
 
             this.dvalue = dvalue;
             this.unit = unit;
@@ -898,4 +898,3 @@ namespace UnitSystem
     }
 
 }
-

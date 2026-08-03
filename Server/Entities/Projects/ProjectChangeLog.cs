@@ -15,6 +15,7 @@ namespace Server.Entities.Projects
         public string EntityType { get; set; } = string.Empty;
         public string EntityId { get; set; } = string.Empty;
         public string Path { get; set; } = string.Empty;
+        public Guid? OperationId { get; set; }
         public string? OldValueJson { get; set; }
         public string? NewValueJson { get; set; }
         public long ProjectVersion { get; set; }

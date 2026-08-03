@@ -1,4 +1,4 @@
-﻿using Shared.PropertiesDtos.Methods;
+using Shared.PropertiesDtos.Methods;
 using Shared.SolverConsecutive;
 using Shared.SolverQwen.Variables;
 using Shared.Thermodynamics.ControlledVariables;
@@ -51,6 +51,7 @@ namespace Shared.SolverQwen.Stream
         {
             if (_components.Count == 0) return;
 
+
             foreach (var component in _components)
             {
                 component.MolarFraction.Clear(component.MolarFraction.DataProcedence);
@@ -61,6 +62,7 @@ namespace Shared.SolverQwen.Stream
 
             // 🔥 CRÍTICO: Resetear el InputType cuando se limpia toda la composición
             InputType = ComponentInputType.None;
+
 
             // 🔥 Notificar a los suscriptores
             CompositionChanged();
@@ -102,9 +104,6 @@ namespace Shared.SolverQwen.Stream
             if (Math.Abs(sum - 1.0) > 1e-6)
             {
                 error = $"Mass fractions sum {sum * 100:F2}% (expected 100%)";
-#if DEBUG
-                Console.WriteLine($"  [CompOrch] ❌ ERROR DE COMPOSICIÓN: {error}");
-#endif
                 return false;
             }
             return true;
@@ -127,9 +126,6 @@ namespace Shared.SolverQwen.Stream
             if (Math.Abs(sum - 1.0) > 1e-6)
             {
                 error = $"Mole fractions sum {sum * 100:F2}% (expected 100%)";
-#if DEBUG
-                Console.WriteLine($"  [CompOrch] ❌ ERROR DE COMPOSICIÓN: {error}");
-#endif
                 return false;
             }
             return true;
@@ -152,7 +148,6 @@ namespace Shared.SolverQwen.Stream
                 return true;
             }
         }
-       
 
     }
 

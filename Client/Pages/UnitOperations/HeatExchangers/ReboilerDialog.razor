@@ -1,5 +1,6 @@
 ﻿@using Client.Layout.Shapes.SVGDrawings
 @using Client.Pages.UnitOperations.DialogBase
+@using Client.Pages.UnitOperations.HeatExchangers.Design
 @using Shared.UnitOperations.Helpers
 
 <EquipmentBaseDialog Equipment="Equipment" CanEdit="CanEdit">
@@ -16,7 +17,7 @@
 
             @* 2. ZONA CENTRAL: SVG + Alimentación desde la Torre *@
             <div class="center-zone">
-                <div class="port-label">Process Side</div>
+                <div class="port-label">Tube Side</div>
 
                 <div class="equipment-drawing-zone">
                     <ReboilerSvg Width="60"
@@ -31,9 +32,8 @@
                 </div>
             </div>
 
-            @* 3. ZONA DERECHA: Vapor de Calentamiento *@
             <div class="side-zone right-zone">
-                <div class="port-label">Utility Side</div>
+                <div class="port-label">Shell Side</div>
 
                 <div class="static-port-container top-align">
                     <EquipmentPortConnector Port="@Equipment.ShellInPort" ParentEquipment="Equipment" />
@@ -52,11 +52,11 @@
     <PropertiesSlot>
         @if (Equipment.Facade is SolverHeatExchanger hx)
         {
-            <VariableAmountRow Label="Utility Side ΔP (Hot)"
+            <VariableAmountRow Label="Shell Side ΔP"
                                @bind-Variable="hx.DeltaPHot"
                                Mode="VariableMode.Standard" />
 
-            <VariableAmountRow Label="Process Side ΔP (Cold)"
+            <VariableAmountRow Label="Tube Side ΔP"
                                @bind-Variable="hx.DeltaPCold"
                                Mode="VariableMode.Standard" />
 
@@ -66,6 +66,9 @@
                                IsReadOnly="true" />
         }
     </PropertiesSlot>
+    <DesignSlot>
+        <ReboilerDesignPanel Equipment="Equipment" />
+    </DesignSlot>
 </EquipmentBaseDialog>
 
 @code {

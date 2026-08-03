@@ -85,7 +85,7 @@ namespace Shared.Thermodynamics.Componentes
         // ========================================================================
         private double CalculateFugacityCoefficient(Temperature temperature, Pressure pressure)
         {
-            if (VaporModel == VaporPhaseModel.IdealGas)
+            if (UsesReferenceVaporFugacity())
             {
                 CompressibilityFactor = 1.0;
                 return 1.0;
@@ -113,6 +113,12 @@ namespace Shared.Thermodynamics.Componentes
             }
 
             return Math.Exp(valor7);
+        }
+
+        private bool UsesReferenceVaporFugacity()
+        {
+            return VaporModel == VaporPhaseModel.IdealGas ||
+                   VaporModel == VaporPhaseModel.SteamTables;
         }
 
         // ========================================================================

@@ -199,8 +199,8 @@ namespace UnitSystem
         public static readonly UnitMeasure MilliGram = new UnitMeasure("milligram", "mg", 0.001 * Gram, "Mass");
         public static readonly UnitMeasure Ton = new UnitMeasure("ton", "ton", 1000.0 * KiloGram, "Mass");
 
-        public static readonly UnitMeasure Pound = new UnitMeasure("Pound", "lib", KiloGram * 2.2, "Mass");
-        public static readonly UnitMeasure Onze = new UnitMeasure("Onze", "Oz", KiloGram * 35.27394095, "Mass");
+        public static readonly UnitMeasure Pound = new UnitMeasure("Pound", "lib", KiloGram / 2.20462262185, "Mass");
+        public static readonly UnitMeasure Onze = new UnitMeasure("Onze", "Oz", Pound / 16d, "Mass");
     }
 
 
@@ -1033,4 +1033,3 @@ namespace UnitSystem
             N_m * 14.5939029, "SuperficialTension");
     }
 }
-

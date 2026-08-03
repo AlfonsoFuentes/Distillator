@@ -1,0 +1,22 @@
+@typeparam TEnum where TEnum : struct, Enum
+
+<MudSelect T="TEnum"
+           Value="Value"
+           ValueChanged="ValueChanged"
+           Label="Equation Type"
+           Variant="Variant.Outlined"
+           Margin="Margin.Dense"
+           Dense="true">
+    @foreach (var option in Enum.GetValues<TEnum>())
+    {
+        <MudSelectItem T="TEnum" Value="@option">@FormatOption(option)</MudSelectItem>
+    }
+</MudSelect>
+
+@code {
+    [Parameter] public TEnum Value { get; set; }
+    [Parameter] public EventCallback<TEnum> ValueChanged { get; set; }
+
+    private static string FormatOption(TEnum option)
+        => option.ToString();
+}

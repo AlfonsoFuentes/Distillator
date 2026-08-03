@@ -1,5 +1,11 @@
-﻿namespace Shared.ProcessFlowDiagram
+namespace Shared.ProcessFlowDiagram
 {
+    public enum OffPageConnectorPortSide
+    {
+        Left,
+        Right
+    }
+
     public class OffPageConnectorElement : VisualElementBase
     {
         public override bool ShowNozzles => false;
@@ -23,8 +29,8 @@
         public override bool AllowFlipHorizontal => false;
         public override bool AllowFlipVertical => false;
         public override bool IsResizable => false;
-        // 🚩 UX: OPCs se comportan como banderas en bordes de área
-        // Solo se pueden mover en Y para alinear con puertos (snap vertical)
+        // UX: OPCs se comportan como banderas en bordes de área.
+        // Solo se pueden mover en Y para alinear con puertos.
         public override bool AllowFreeDragX => false;
         public override bool AllowFreeDragY => true;
 
@@ -32,12 +38,14 @@
         public Guid? TargetConnectorId { get; set; }
 
         public bool IsOutlet { get; set; }
+        public OffPageConnectorPortSide PortSide { get; set; }
 
-        public OffPageConnectorElement(bool isOutlet = true)
+        public OffPageConnectorElement(bool isOutlet = true, OffPageConnectorPortSide? portSide = null)
         {
-            Width = 80;  // Ancho industrial para nombres largos
+            Width = 80;
             Height = 40;
             IsOutlet = isOutlet;
+            PortSide = portSide ?? GetDefaultPortSide(isOutlet);
 
             UpdatePorts();
         }
@@ -45,6 +53,13 @@
         public void ToggleDirection()
         {
             IsOutlet = !IsOutlet;
+            PortSide = GetDefaultPortSide(IsOutlet);
+            UpdatePorts();
+        }
+
+        public void SetPortSide(OffPageConnectorPortSide side)
+        {
+            PortSide = side;
             UpdatePorts();
         }
 
@@ -65,16 +80,15 @@
         private void UpdatePorts()
         {
             Ports.Clear();
-            if (IsOutlet)
-            {
-                // Si el flujo SALE, el tubo entra por la izquierda
-                AddPort("Transfer", PortType.Inlet, 0, 20, PortDirection.Left);
-            }
-            else
-            {
-                // Si el flujo ENTRA, el tubo sale por la derecha
-                AddPort("Transfer", PortType.Outlet, Width, 20, PortDirection.Right);
-            }
+
+            var portType = IsOutlet ? PortType.Inlet : PortType.Outlet;
+            var offsetX = PortSide == OffPageConnectorPortSide.Left ? 5 : Width - 5;
+            var direction = PortSide == OffPageConnectorPortSide.Left ? PortDirection.Left : PortDirection.Right;
+
+            AddPort("Transfer", portType, offsetX, 20, direction);
         }
+
+        private static OffPageConnectorPortSide GetDefaultPortSide(bool isOutlet) =>
+            isOutlet ? OffPageConnectorPortSide.Left : OffPageConnectorPortSide.Right;
     }
 }

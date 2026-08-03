@@ -2,6 +2,7 @@ using Client.Services;
 using Client.Services.EquipmentManagers;
 using Client.Services.LayoutServices;
 using Client.Services.ProjectWorkspace;
+using Distillator.Domain.Inputs;
 using Distillator.Domain.Policies;
 using Distillator.Domain.Services;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
@@ -21,6 +22,9 @@ builder.Services.AddSingleton<IEquipmentFactory, EquipmentFactory>();
 // builder.Services.AddScoped<WorkspaceManager>(); // --- LEGACY (comentado)
 builder.Services.AddScoped<FlowsheetManager>();
 builder.Services.AddScoped<IMainSolver,MainSolver>();
+builder.Services.AddScoped<VariableInputCommandHandler>();
+builder.Services.AddScoped<CompositionInputCommandHandler>();
+builder.Services.AddScoped<FormulaSpecificationCommandHandler>();
 
 // Servicios de dominio para el nuevo workspace
 builder.Services.AddScoped<ICameraService, Distillator.Domain.Services.CameraService>();

@@ -6,6 +6,10 @@ namespace Shared.ProcessFlowDiagram.HeatExchangers
     public class ReboilerVisualElement : VisualElementBase
     {
         private SolverHeatExchanger HX => Facade as SolverHeatExchanger ?? throw new InvalidOperationException("Facade must be SolverHeatExchanger");
+        private IFacadeStream? TubeSideInlet => HX.ColdInlet;
+        private IFacadeStream? TubeSideOutlet => HX.ColdOutlet;
+        private IFacadeStream? ShellSideInlet => HX.HotInlet;
+        private IFacadeStream? ShellSideOutlet => HX.HotOutlet;
 
         public override EquipmentType Type => EquipmentType.Reboiler;
         public override string Prefix => "E";
@@ -32,12 +36,11 @@ namespace Shared.ProcessFlowDiagram.HeatExchangers
             Width = 60;
             Height = 140;
 
-            // LADO DE LOS TUBOS (1 Paso)
-            // 🚩 AJUSTE: Cambiamos el Y de 140 a 145 para que quede a ras del tanque
+            // Lado de tubos.
             AddPort(PortTubeInName, PortType.Inlet, 30, 145, PortDirection.Bottom);
             AddPort(PortTubeOutName, PortType.Outlet, 0, 20, PortDirection.Left);
 
-            // LADO DE LA CORAZA (Fluido de calentamiento) - (Estos ya muerden perfecto)
+            // Lado de coraza.
             AddPort(PortShellInName, PortType.Inlet, 60, 20, PortDirection.Right);
             AddPort(PortCondensateOutName, PortType.Outlet, 60, 120, PortDirection.Right);
 
@@ -62,12 +65,10 @@ namespace Shared.ProcessFlowDiagram.HeatExchangers
         {
             return portName switch
             {
-                // Lado del proceso (tubos) → lado frío del solver
-                PortTubeInName => HX.ColdInlet,
-                PortTubeOutName => HX.ColdOutlet,
-                // Lado de calentamiento (coraza) → lado caliente del solver
-                PortShellInName => HX.HotInlet,
-                PortCondensateOutName => HX.HotOutlet,
+                PortTubeInName => TubeSideInlet,
+                PortTubeOutName => TubeSideOutlet,
+                PortShellInName => ShellSideInlet,
+                PortCondensateOutName => ShellSideOutlet,
                 _ => null
             };
         }
@@ -134,8 +135,8 @@ namespace Shared.ProcessFlowDiagram.HeatExchangers
         {
             return new List<ToolTipLegend>
         {
-            new("ΔP Process", HX.DeltaPCold.ToUiString()),
-            new("ΔP Heating", HX.DeltaPHot.ToUiString()),
+            new("ΔP Tube Side", HX.DeltaPCold.ToUiString()),
+            new("ΔP Shell Side", HX.DeltaPHot.ToUiString()),
             new("Q Duty", HX.TransferHeat.ToUiString())
         };
         }

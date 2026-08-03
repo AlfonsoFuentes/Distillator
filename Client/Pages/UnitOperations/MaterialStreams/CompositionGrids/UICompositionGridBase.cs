@@ -1,5 +1,6 @@
 ﻿using Client.Services.ProjectWorkspace;
 using Client.Services.Security;
+using Distillator.Domain.Inputs;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Shared.SolverConsecutive;
@@ -13,10 +14,12 @@ namespace Client.Pages.UnitOperations.MaterialStreams.CompositionGrids
     public abstract class UICompositionGridBase : ComponentBase
     {
         [Inject] protected FlowsheetManager FlowsheetManager { get; set; } = null!;
+        [Inject] protected CompositionInputCommandHandler CompositionInputCommandHandler { get; set; } = null!;
         [Inject] protected CustomAuthenticationStateProvider UserAuthProvider { get; set; } = null!;
 
         [Parameter] public CompositionOrchestrator Variable { get; set; } = default!;
         [Parameter] public EventCallback<CompositionOrchestrator> VariableChanged { get; set; }
+        [Parameter] public EventCallback OnCompositionUpdated { get; set; }
         [CascadingParameter(Name = "IsProjectReadOnly")] public bool IsProjectReadOnly { get; set; }
 
         protected ComponentFacade? _editingComponent;
@@ -107,34 +110,51 @@ namespace Client.Pages.UnitOperations.MaterialStreams.CompositionGrids
             if (!_tempInputValue.HasValue) return;
 
             var user = UserAuthProvider.CurrentUser;
-            if (isMass)
-                comp.MassFraction.SetValueFromUI(new Percentage(_tempInputValue.Value, PercentageUnits.Percentage), user?.Id.ToString(), user?.DisplayName);
-            else
-                comp.MolarFraction.SetValueFromUI(new Percentage(_tempInputValue.Value, PercentageUnits.Percentage), user?.Id.ToString(), user?.DisplayName);
+            var result = CompositionInputCommandHandler.Apply(
+                new SetCompositionFractionCommand(
+                    Variable,
+                    comp,
+                    isMass ? ComponentInputType.MassFraction : ComponentInputType.MolarFraction,
+                    _tempInputValue.Value,
+                    user?.Id.ToString(),
+                    user?.DisplayName));
 
-            Variable.InputType = isMass ? ComponentInputType.MassFraction : ComponentInputType.MolarFraction;
-
-            var sum = Variable.Components
-                .Sum(c => isMass ? c.MassFraction.GetDisplayValue() : c.MolarFraction.GetDisplayValue());
-
-            if (sum >= 99 && sum <= 101)
+            ResetEditingState();
+            await NotifyCompositionCommittedAsync();
+            if (result.ShouldRunSimulation)
             {
                 FlowsheetManager?.RunSimulation();
             }
 
-            ResetEditingState();
-            if (VariableChanged.HasDelegate) await VariableChanged.InvokeAsync(Variable);
+            FlowsheetManager?.MarkFacadeStateChanged();
         }
 
         protected async Task ClearCell()
         {
             if (IsProjectReadOnly) return;
-            Variable.Clear();
-            Variable.InputType = ComponentInputType.None; // 🔥 CRÍTICO: Resetea el InputType
-            FlowsheetManager?.RunSimulation();
-
+            var result = CompositionInputCommandHandler.Apply(new ClearCompositionInputCommand(Variable));
             ResetEditingState();
-            if (VariableChanged.HasDelegate) await VariableChanged.InvokeAsync(Variable);
+            await NotifyCompositionCommittedAsync();
+            if (result.ShouldRunSimulation)
+            {
+                FlowsheetManager?.RunSimulation();
+            }
+
+            FlowsheetManager?.MarkFacadeStateChanged();
+        }
+
+        protected async Task NotifyCompositionCommittedAsync()
+        {
+            if (VariableChanged.HasDelegate)
+            {
+                await VariableChanged.InvokeAsync(Variable);
+            }
+
+            if (OnCompositionUpdated.HasDelegate)
+            {
+                await OnCompositionUpdated.InvokeAsync();
+            }
+
         }
 
         protected bool IsCellReadOnly(ComponentFacade comp, bool isMass)

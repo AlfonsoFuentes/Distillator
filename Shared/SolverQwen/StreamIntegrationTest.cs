@@ -1,4 +1,4 @@
-﻿using Shared.PropertiesDtos.Methods;
+using Shared.PropertiesDtos.Methods;
 using Shared.SolverConsecutive;
 using Shared.SolverConsecutive.Equipments;
 using Shared.SolverConsecutive.Equipments.Columns;
@@ -52,11 +52,9 @@ namespace Shared.SolverQwen
         {
             if (ThermoMethod == null)
             {
-                Console.WriteLine("❌ ERROR: Debes llamar a SetThermoMethod() antes de Run().");
                 return;
             }
 
-            Console.WriteLine("=== SIMULACIÓN DE COLUMNA DE DESTILACIÓN COMPLETA ===\n");
 
             var spliter = new SolverSplitter("s-1");
             MainSolver.AddEquipment(spliter);
@@ -144,11 +142,9 @@ namespace Shared.SolverQwen
         {
             if (ThermoMethod == null)
             {
-                Console.WriteLine("❌ ERROR: Debes llamar a SetThermoMethod() antes de Run().");
                 return;
             }
 
-            Console.WriteLine("=== SIMULACIÓN DE COLUMNA DE DESTILACIÓN COMPLETA ===\n");
 
 
             CreateColumn();
@@ -535,11 +531,9 @@ namespace Shared.SolverQwen
         {
             if (ThermoMethod == null)
             {
-                Console.WriteLine("❌ ERROR: Debes llamar a SetThermoMethod() antes de Run().");
                 return;
             }
             //favor hacer ejemplo de SolverColumn con una columna de destilación con 2 etapas, con alimentación en etapa 1, y con un reflux ratio definido, para probar que el modelo se ajusta automáticamente para cumplir con las condiciones dadas.
-            Console.WriteLine("Simulacion de columna de destilacion con 2 etapas, con alimentacion en etapa 1, y con un reflux ratio definido");
             var column = new SolverColumn("Column-100");
             MainSolver.AddEquipment(column);
 
@@ -607,10 +601,8 @@ namespace Shared.SolverQwen
         {
             if (ThermoMethod == null)
             {
-                Console.WriteLine("❌ ERROR: Debes llamar a SetThermoMethod() antes de Run().");
                 return;
             }
-            Console.WriteLine("Simulacion de Spliter saliendo del condensador");
             var hotsideoutlet = new FacadeStream("Hot side outlet");
             MainSolver.AddStream(hotsideoutlet);
             SolverSplitter splitter = new SolverSplitter("Splitter-100");
@@ -679,10 +671,8 @@ namespace Shared.SolverQwen
         {
             if (ThermoMethod == null)
             {
-                Console.WriteLine("❌ ERROR: Debes llamar a SetThermoMethod() antes de Run().");
                 return;
             }
-            Console.WriteLine("Simulacion de intercambiador con varios estados de entrada y salida");
 
             var hotsideinlet = new FacadeStream("Hot side inlet");
             var hotsideoutlet = new FacadeStream("Hot side outlet");
@@ -724,7 +714,6 @@ namespace Shared.SolverQwen
             AllPrinter(MainSolver.Streams, "paso 6");
 
 
-            Console.WriteLine($"Cold Side Heat transfered {Hex1.TransferHeat.Value.GetValue(EnergyFlowUnits.Kcal_hr)} kcal/hr");
 
 
             var coldsideinlet = new FacadeStream("Cold side inlet");
@@ -762,12 +751,10 @@ namespace Shared.SolverQwen
 
             var massflowCold = coldsideinlet.MassFlow.Value.GetValue(MassFlowUnits.Kg_hr);
 
-            Console.WriteLine($"✅ Flujo másico en el lado frío: {massflowCold} kg/hr");    //flujo calculado ya que en paso 6 se definió el flujo del lado caliente y el calor transferido, por lo que el flujo del lado frío se ajusta automáticamente para cumplir con la transferencia de calor dada la temperatura de entrada y salida del lado frío.
 
             hotsideoutlet.VaporFraction.Clear(VariableDefinedBy.UserInput);   //limpiar para que se calcule nuevamente
             MainSolver.RunSimulation();
             AllPrinter(MainSolver.Streams, "paso 12");
-            Console.WriteLine(" se tuvo que haver descalculado el intercambiador");
 
             coldsideoutlet.MassFlow.SetValue(new MassFlow(massflowCold - 20000, MassFlowUnits.Kg_hr), VariableDefinedBy.UserInput);
             //definir un flujo en el lado frío que no corresponde con el flujo del lado caliente ni con la transferencia de calor, por lo que el modelo se descalcula porque no se pueden cumplir todas las condiciones al mismo tiempo.
@@ -854,85 +841,6 @@ namespace Shared.SolverQwen
 
         void AllPrinter(List<IFacadeStream> streams, string stepLabel)
         {
-            Console.WriteLine($"\n📋 {stepLabel}");
-            Console.WriteLine("═══════════════════════════════════════════════════════════\n");
-
-            // ── 1. PRESIONES ───────────────────────────────────────────
-            Console.WriteLine("PRESIONES (bara)");
-            Console.WriteLine("───────────────────────────────────────────────────────────");
-            foreach (var s in streams)
-                Console.WriteLine($"  {s.Name ?? "Stream",-14}: {s.Pressure.ToUiString("F2")} - {s.Pressure.DataProcedence}");
-            Console.WriteLine();
-
-            // ── 2. TEMPERATURAS ────────────────────────────────────────
-            Console.WriteLine("TEMPERATURAS (°C)");
-            Console.WriteLine("───────────────────────────────────────────────────────────");
-            foreach (var s in streams)
-                Console.WriteLine($"  {s.Name ?? "Stream",-14}: {s.Temperature.ToUiString("F1")} - {s.Temperature.DataProcedence}");
-            Console.WriteLine();
-
-            // ── 3. ENTALPÍAS ──────────────────────────────────────────
-            Console.WriteLine("ENTALPÍAS MÁSICAS (kcal/kg)");
-            Console.WriteLine("───────────────────────────────────────────────────────────");
-            foreach (var s in streams)
-                Console.WriteLine($"  {s.Name ?? "Stream",-14}: {s.MassEnthalpy.ToUiString("F2")}  - {s.MassEnthalpy.DataProcedence}");
-            Console.WriteLine();
-
-            Console.WriteLine("DENSIDADES MÁSICAS (Kg/m3)");
-            Console.WriteLine("───────────────────────────────────────────────────────────");
-            foreach (var s in streams)
-                Console.WriteLine($"  {s.Name ?? "Stream",-14}: {s.MassDensity.ToUiString("F2")}  - {s.MassDensity.DataProcedence}");
-            Console.WriteLine();
-
-            // ── 4. FLUJO MÁSICO TOTAL ─────────────────────────────────
-            Console.WriteLine("FLUJO MÁSICO TOTAL (kg/h)");
-            Console.WriteLine("───────────────────────────────────────────────────────────");
-            foreach (var s in streams)
-                Console.WriteLine($"  {s.Name ?? "Stream",-14}: {s.MassFlow.ToUiString("F1")}  - {s.MassFlow.DataProcedence}");
-            Console.WriteLine();
-
-            // ── 5. FLUJO ENTALPÍA TOTAL ───────────────────────────────
-            Console.WriteLine("FLUJO ENTALPÍA TOTAL (kcal/h)"); // Asumiendo kcal/h
-            Console.WriteLine("───────────────────────────────────────────────────────────");
-            foreach (var s in streams)
-                Console.WriteLine($"  {s.Name ?? "Stream",-14}: {s.EnthalpyFlow.ToUiString("F1")}  - {s.EnthalpyFlow.DataProcedence}");
-            Console.WriteLine();
-
-            // ── 6. FRACCIÓN DE VAPOR (%) ──────────────────────────────
-            Console.WriteLine("FRACCIÓN DE VAPOR (%)");
-            Console.WriteLine("───────────────────────────────────────────────────────────");
-            foreach (var s in streams)
-                Console.WriteLine($"  {s.Name ?? "Stream",-14}: {s.VaporFraction.ToUiString("F1")}  - {s.VaporFraction.DataProcedence}");
-            Console.WriteLine();
-
-            // ── 7. COMPOSICIÓN MÁSICA (%) ─────────────────────────────
-            Console.WriteLine("COMPOSICIÓN MÁSICA (%)");
-            Console.WriteLine("───────────────────────────────────────────────────────────");
-            var comps = streams.First().Composition.Components;
-            foreach (var c in comps)
-            {
-                Console.WriteLine($"  {c.Name}:");
-                foreach (var s in streams)
-                {
-                    var comp = s.Composition.Components.FirstOrDefault(x => x.Name == c.Name);
-                    Console.WriteLine($"    {s.Name ?? "Stream",-12}: {comp?.MassFraction.ToUiString("F1") ?? "---"}%  - {comp?.MassFraction.DataProcedence}");
-                }
-            }
-            Console.WriteLine();
-
-            // ── 8. FLUJO MÁSICO DE COMPONENTES (kg/h) ─────────────────
-            Console.WriteLine("FLUJO MÁSICO DE COMPONENTES (kg/h)");
-            Console.WriteLine("───────────────────────────────────────────────────────────");
-            foreach (var c in comps)
-            {
-                Console.WriteLine($"  {c.Name}:");
-                foreach (var s in streams)
-                {
-                    var comp = s.Composition.Components.FirstOrDefault(x => x.Name == c.Name);
-                    Console.WriteLine($"    {s.Name ?? "Stream",-12}: {comp?.MassFlow.ToUiString("F1") ?? "---"}  - {comp?.MassFlow.DataProcedence}");
-                }
-            }
-            Console.WriteLine("═══════════════════════════════════════════════════════════");
         }
 
     }

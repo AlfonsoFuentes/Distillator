@@ -63,6 +63,10 @@
         SessionService.ProjectPresenceChanged += OnProjectPresenceChanged;
         SessionService.ProjectHydrationChanged += OnProjectHydrationChanged;
         FSM.OnVisualStatesChangedAsync += PersistVisualStatesAsync;
+        SessionService.IsSimulationRunning = () => FSM.IsSimulationRunning;
+        SessionService.HasActiveVisualOperation = () => FSM.HasActiveVisualOperation;
+        FSM.CanEditCurrentProject = () => SessionService.CurrentProject != null &&
+                                          SessionService.CanCurrentUserEditProject(SessionService.CurrentProject);
     }
 
     public void Dispose()
@@ -71,6 +75,9 @@
         SessionService.ProjectPresenceChanged -= OnProjectPresenceChanged;
         SessionService.ProjectHydrationChanged -= OnProjectHydrationChanged;
         FSM.OnVisualStatesChangedAsync -= PersistVisualStatesAsync;
+        SessionService.IsSimulationRunning = null;
+        SessionService.HasActiveVisualOperation = null;
+        FSM.CanEditCurrentProject = null;
     }
 
     protected override async Task OnParametersSetAsync()
@@ -84,20 +91,23 @@
 
     private void OnProjectChanged()
     {
-        if (SessionService.CurrentProject == null)
+        _ = InvokeAsync(() =>
         {
-            FSM.Clear();
-        }
-        else if (SessionService.ActiveFlowsheet != null)
-        {
-            FSM.LoadProjectAndFlowsheet(SessionService.CurrentProject, SessionService.ActiveFlowsheet);
-        }
-        else
-        {
-            FSM.Clear();
-        }
+            if (SessionService.CurrentProject == null)
+            {
+                FSM.Clear();
+            }
+            else if (SessionService.ActiveFlowsheet != null)
+            {
+                FSM.LoadProjectAndFlowsheet(SessionService.CurrentProject, SessionService.ActiveFlowsheet);
+            }
+            else
+            {
+                FSM.Clear();
+            }
 
-        InvokeAsync(StateHasChanged);
+            StateHasChanged();
+        });
     }
 
     private void OnProjectPresenceChanged()

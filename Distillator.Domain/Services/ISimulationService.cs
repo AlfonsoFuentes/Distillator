@@ -16,8 +16,11 @@ public interface ISimulationService
     IMainSolver Solver { get; }
     IReadOnlyCollection<IDomainEvent> RecentEvents { get; }
     string? LastError { get; }
+    SimulationRunResult? LastSimulationResult { get; }
 
+    Task<SimulationRunResult> RunSimulationAsync(IProject project);
     void RunSimulation(IProject project);
+    void ApplyProjectConfiguration(IProject project);
     void PropagateThermodynamicMethod(IProject project);
     void ClearOrphanStream(IProject project, IFacadeStream stream);
     void DisconnectPort(IProject project, IFlowsheet flowsheet, IVisualElement equipment, string portName);
@@ -32,6 +35,7 @@ public class SimulationService : ISimulationService
     public IMainSolver Solver { get; }
     public IReadOnlyCollection<IDomainEvent> RecentEvents => _recentEvents.AsReadOnly();
     public string? LastError { get; private set; }
+    public SimulationRunResult? LastSimulationResult { get; private set; }
 
     public SimulationService(IMainSolver solver, ISimulationPolicy? policy = null)
     {
@@ -41,31 +45,46 @@ public class SimulationService : ISimulationService
 
     public void RunSimulation(IProject project)
     {
+        _ = RunSimulationAsync(project);
+    }
+
+    public async Task<SimulationRunResult> RunSimulationAsync(IProject project)
+    {
         LastError = null;
+        LastSimulationResult = null;
         Raise(new SimulationStartedEvent(project.Id));
 
         var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-        try
+        var result = await Solver.RunSimulationAsync();
+        stopwatch.Stop();
+
+        LastSimulationResult = result;
+
+        if (result.Status == SimulationRunStatus.Failed)
         {
-            Solver.RunSimulation();
-            stopwatch.Stop();
-            var successSnapshot = new SimulationSnapshot(Guid.NewGuid(), project.Id, DateTime.UtcNow, true, stopwatch.Elapsed, "{}");
-            Raise(new SimulationCompletedEvent(project.Id, stopwatch.Elapsed, true));
+            LastError = string.Join(Environment.NewLine, result.Diagnostics);
+            Raise(new SimulationFailedEvent(project.Id, LastError));
         }
-        catch (Exception ex)
-        {
-            stopwatch.Stop();
-            LastError = ex.Message;
-            var failedSnapshot = new SimulationSnapshot(Guid.NewGuid(), project.Id, DateTime.UtcNow, false, stopwatch.Elapsed, "{\"error\":\"" + ex.Message + "\"}");
-            Raise(new SimulationFailedEvent(project.Id, ex.Message));
-            Raise(new SimulationCompletedEvent(project.Id, stopwatch.Elapsed, false));
-        }
+
+        Raise(new SimulationCompletedEvent(project.Id, stopwatch.Elapsed, result.Converged));
+        return result;
     }
 
     public void PropagateThermodynamicMethod(IProject project)
     {
+        ApplyProjectConfiguration(project);
+    }
+
+    public void ApplyProjectConfiguration(IProject project)
+    {
+        Solver.Altitude = project.Configuration.PlantElevation;
+
         var method = project.Configuration.ThermodynamicMethod;
-        if (method == null) return;
+        if (method == null)
+        {
+            Solver.ThermoMethod = null!;
+            return;
+        }
 
         Solver.ThermoMethod = method;
         foreach (var stream in Solver.Streams)
@@ -204,10 +223,11 @@ public class SimulationService : ISimulationService
                 ? remotePipe.TargetPortName
                 : remotePipe.SourcePortName;
 
-            if (remoteStreamElement?.Facade is IFacadeStream remoteFacadeStream)
+            if (remoteStreamElement != null)
             {
                 remoteStreamElement.Disconnect(remoteStreamPortName);
-                if (remoteStreamElement.Ports.All(p => p.ConnectedElementId == null))
+                if (remoteStreamElement.Facade is IFacadeStream remoteFacadeStream &&
+                    remoteStreamElement.Ports.All(p => p.ConnectedElementId == null))
                 {
                     Solver.ClearOrphanStream(remoteFacadeStream);
                 }
@@ -219,6 +239,8 @@ public class SimulationService : ISimulationService
 
         remoteFlowsheet.RemoveElementReference(remoteOpc.ElementId);
         flowsheet.RemoveElementReference(localOpc.Id);
+        project.RemoveEquipment(remoteOpc.ElementId);
+        project.RemoveEquipment(localOpc.Id);
 
         var interConnection = project.InterFlowsheetConnections.FirstOrDefault(c =>
             c.SourceConnectorId == localOpc.Id || c.TargetConnectorId == localOpc.Id);

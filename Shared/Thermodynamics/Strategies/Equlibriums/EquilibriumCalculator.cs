@@ -1,4 +1,4 @@
-﻿using Shared.SolverConsecutive;
+using Shared.SolverConsecutive;
 using Shared.SolverQwen.Stream;
 using Shared.SolverQwen.Variables;
 using Shared.Thermodynamics.ControlledVariables;
@@ -35,26 +35,17 @@ namespace Shared.Thermodynamics.Strategies.Equlibriums
             MaterialStream.CurrentState = ThermodynamicState.Undefined;
             RemoveVariables(VariableDefinedBy.StreamCalculated);
 
-#if DEBUG
-            Console.WriteLine($"\n  [EquilCalc] 🔄 INICIANDO EVALUACIÓN DE EQUILIBRIO para '{_facade.Name}'");
-#endif
 
             // 1. CREAR ESTRATEGIA (La validación termodinámica/Gibbs es implícita aquí)
             _currentStrategy = CreateStrategy();
 
             if (_currentStrategy == null)
             {
-#if DEBUG
-                Console.WriteLine($"  [EquilCalc] 🛑 Abortado: No se pudo determinar una estrategia de cálculo. (Faltan grados de libertad o composición).");
-#endif
                 _currentMode = EquilibriumMode.None;
                 FlowsReady?.Invoke(); // Permitir que flujos se evalúen incluso sin equilibrio
                 return;
             }
 
-#if DEBUG
-            Console.WriteLine($"  [EquilCalc] ⚡ Ejecutando Estrategia: {_currentStrategy.GetType().Name} (Modo: {_currentMode})");
-#endif
 
             // 2. EJECUTAR ESTRATEGIA
             try
@@ -64,9 +55,6 @@ namespace Shared.Thermodynamics.Strategies.Equlibriums
             catch (Exception ex)
             {
                 string message = ex.ToString();
-#if DEBUG
-                Console.WriteLine($"  [EquilCalc] ❌ ERROR CRÍTICO durante el cálculo termodinámico: {ex.Message}");
-#endif
                 MaterialStream.CurrentState = ThermodynamicState.Undefined;
                 FlowsReady?.Invoke();
                 return;
@@ -75,17 +63,11 @@ namespace Shared.Thermodynamics.Strategies.Equlibriums
             // 3. VERIFICAR ÉXITO Y NOTIFICAR
             if (MaterialStream.CurrentState != ThermodynamicState.Undefined)
             {
-#if DEBUG
-                Console.WriteLine($"  [EquilCalc] ✅ Equilibrio Termodinámico Resuelto. (Estado: {MaterialStream.CurrentState})");
-#endif
                 _facade.IsEquilibriumSolved = true;
                 EquilibriumReady?.Invoke(); // FacadeStream sincronizará resultados hacia UI
             }
             else
             {
-#if DEBUG
-                Console.WriteLine($"  [EquilCalc] ⚠️ Estrategia finalizó pero el estado térmico quedó como Undefined.");
-#endif
             }
 
             FlowsReady?.Invoke(); // Permitir que balances de flujo se recalculen

@@ -11,7 +11,7 @@
                 <input type="text" class="std-input name-input"
                        value="@_tempValue"
                        placeholder="Enter name..."
-                       disabled="@IsProjectReadOnly"
+                       disabled="@IsInputDisabled"
                        @oninput="HandleInput"
                        @onkeyup="HandleKeyUp"
                        @onblur="CommitValue" />
@@ -37,7 +37,7 @@
                 <input type="text" class="compact-input name-input"
                        value="@_tempValue"
                        placeholder="Enter name..."
-                       disabled="@IsProjectReadOnly"
+                       disabled="@IsInputDisabled"
                        @oninput="HandleInput"
                        @onkeyup="HandleKeyUp"
                        @onblur="CommitValue" />
@@ -65,9 +65,11 @@
     [Parameter] public EventCallback OnGenerate { get; set; }
 
     [Parameter] public VariableMode Mode { get; set; } = VariableMode.Standard;
+    [Parameter] public bool AllowManualEdit { get; set; } = true;
     [CascadingParameter(Name = "IsProjectReadOnly")] public bool IsProjectReadOnly { get; set; }
 
     private string _tempValue = "";
+    private bool IsInputDisabled => IsProjectReadOnly || !AllowManualEdit;
 
     protected override void OnParametersSet()
     {
@@ -87,20 +89,20 @@
 
     private void HandleInput(ChangeEventArgs e)
     {
-        if (IsProjectReadOnly) return;
+        if (IsInputDisabled) return;
         _tempValue = e.Value?.ToString() ?? "";
     }
 
     private async Task HandleKeyUp(KeyboardEventArgs e)
     {
-        if (IsProjectReadOnly) return;
+        if (IsInputDisabled) return;
         if (e.Key == "Enter" || e.Key == "NumpadEnter") await CommitValue();
         if (e.Key == "Escape") { _tempValue = Value; StateHasChanged(); }
     }
 
     private async Task CommitValue()
     {
-        if (IsProjectReadOnly) return;
+        if (IsInputDisabled) return;
         var trimmed = _tempValue?.Trim() ?? "";
 
         // Si está vacío o es duplicado, restauramos el valor original y cancelamos

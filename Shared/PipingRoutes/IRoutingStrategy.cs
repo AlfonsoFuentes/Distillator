@@ -21,20 +21,17 @@ namespace Shared.PipingRoutes
         private const double PIPE_MARGIN = 15.0;
         public bool HasCollision(CanvasPoint p1, CanvasPoint p2, PipeRoutingContext ctx)
         {
-            // 1. Equipos obstáculos físicos (Ignorando origen y destino del contexto)
+            if (IntersectsRect(p1, p2, ctx.AEquipPos, ctx.AWidth, ctx.AHeight))
+                return true;
+
+            if (IntersectsRect(p1, p2, ctx.BEquipPos, ctx.BWidth, ctx.BHeight))
+                return true;
+
             foreach (var obstacle in ctx.EquipmentObstacles)
             {
                 var box = GetScreenBoundingBox(obstacle);
-
-                // El truco: Si el segmento ES MUY CORTO y está saliendo de una boquilla,
-                // no debería contar como colisión. Pero si atraviesa el centro, sí.
                 if (IntersectsRect(p1, p2, new CanvasPoint(box.X, box.Y), box.Width, box.Height))
                 {
-                    // Verificamos si estamos cerca de los puertos del equipo
-                    // Si la línea es muy corta y está cerca de un borde, la perdonamos
-                    if (IsPortExit(p1, box) || IsPortExit(p2, box))
-                        continue;
-
                     return true;
                 }
             }
@@ -348,6 +345,7 @@ namespace Shared.PipingRoutes
     }
     public class AvoidHandler : RoutingHandlerBase
     {
+        private const double ROUTE_MARGIN = 30.0;
         private readonly ISafePointCalculator _safeCalc;
         private readonly IAxisRoutingStrategy _axisStrategy;
         private readonly ICollisionDetector _collision;
@@ -361,21 +359,13 @@ namespace Shared.PipingRoutes
 
         public override List<CanvasPoint>? Handle(PipeRoutingContext ctx)
         {
-            // 1. Intentar ruta de evasión primaria
-            var route = _axisStrategy.BuildAvoidRoute(ctx, _safeCalc);
-            if (IsValidRoute(route, ctx))
-                return route;
+            var validRoute = BuildCandidateRoutes(ctx)
+                .Where(route => IsValidRoute(route, ctx))
+                .OrderBy(RouteLength)
+                .ThenBy(CountBends)
+                .FirstOrDefault();
 
-            // 2. Fallback: Ruta Z (Máxima seguridad alrededor del Target)
-            var zRoute = BuildZAvoidRoute(ctx);
-            if (IsValidRoute(zRoute, ctx))
-                return zRoute;
-
-            // 3. 🔥 ÚLTIMO RECURSO (RENDICIÓN ELEGANTE) 🔥
-            // Si ambas rutas chocaron (usualmente por un equipo gigante en el medio),
-            // abandonamos el zigzag inútil y devolvemos la ruta en 'L' más limpia posible.
-            // Aceptamos la colisión visual, dejando que el equipo tape la tubería (z-index).
-            return BuildCleanFallbackRoute(ctx);
+            return validRoute ?? BuildExternalFallbackRoute(ctx);
         }
 
         private bool IsValidRoute(List<CanvasPoint> route, PipeRoutingContext ctx)
@@ -386,6 +376,216 @@ namespace Shared.PipingRoutes
                     return false;
             }
             return true;
+        }
+
+        private IEnumerable<List<CanvasPoint>> BuildCandidateRoutes(PipeRoutingContext ctx)
+        {
+            var preferredL = ctx.IsVerticalPrimary
+                ? BuildVerticalThenHorizontalRoute(ctx)
+                : BuildHorizontalThenVerticalRoute(ctx);
+            yield return preferredL;
+
+            var alternateL = ctx.IsVerticalPrimary
+                ? BuildHorizontalThenVerticalRoute(ctx)
+                : BuildVerticalThenHorizontalRoute(ctx);
+            yield return alternateL;
+
+            yield return _axisStrategy.BuildAvoidRoute(ctx, _safeCalc);
+            yield return BuildZAvoidRoute(ctx);
+
+            foreach (var xLane in BuildXLanes(ctx))
+            {
+                yield return NormalizeRoute(new List<CanvasPoint>
+                {
+                    ctx.SafeStart,
+                    new CanvasPoint(xLane, ctx.SafeStart.Y),
+                    new CanvasPoint(xLane, ctx.SafeEnd.Y),
+                    ctx.SafeEnd
+                });
+            }
+
+            foreach (var yLane in BuildYLanes(ctx))
+            {
+                yield return NormalizeRoute(new List<CanvasPoint>
+                {
+                    ctx.SafeStart,
+                    new CanvasPoint(ctx.SafeStart.X, yLane),
+                    new CanvasPoint(ctx.SafeEnd.X, yLane),
+                    ctx.SafeEnd
+                });
+            }
+        }
+
+        private static List<CanvasPoint> BuildHorizontalThenVerticalRoute(PipeRoutingContext ctx)
+        {
+            return NormalizeRoute(new List<CanvasPoint>
+            {
+                ctx.SafeStart,
+                new CanvasPoint(ctx.SafeEnd.X, ctx.SafeStart.Y),
+                ctx.SafeEnd
+            });
+        }
+
+        private static List<CanvasPoint> BuildVerticalThenHorizontalRoute(PipeRoutingContext ctx)
+        {
+            return NormalizeRoute(new List<CanvasPoint>
+            {
+                ctx.SafeStart,
+                new CanvasPoint(ctx.SafeStart.X, ctx.SafeEnd.Y),
+                ctx.SafeEnd
+            });
+        }
+
+        private IEnumerable<double> BuildXLanes(PipeRoutingContext ctx)
+        {
+            foreach (var box in BuildRoutingBoxes(ctx))
+            {
+                yield return box.X - ROUTE_MARGIN;
+                yield return box.X + box.Width + ROUTE_MARGIN;
+            }
+        }
+
+        private IEnumerable<double> BuildYLanes(PipeRoutingContext ctx)
+        {
+            foreach (var box in BuildRoutingBoxes(ctx))
+            {
+                yield return box.Y - ROUTE_MARGIN;
+                yield return box.Y + box.Height + ROUTE_MARGIN;
+            }
+        }
+
+        private static IEnumerable<ScreenBoundingBox> BuildRoutingBoxes(PipeRoutingContext ctx)
+        {
+            yield return new ScreenBoundingBox(ctx.AEquipPos.X, ctx.AEquipPos.Y, ctx.AWidth, ctx.AHeight);
+            yield return new ScreenBoundingBox(ctx.BEquipPos.X, ctx.BEquipPos.Y, ctx.BWidth, ctx.BHeight);
+
+            foreach (var obstacle in ctx.EquipmentObstacles)
+            {
+                yield return GetScreenBoundingBox(obstacle);
+            }
+        }
+
+        private static ScreenBoundingBox GetScreenBoundingBox(IVisualElement el)
+        {
+            double w = el.Width;
+            double h = el.Height;
+            int rot = el.RotationAngle % 360;
+
+            double screenW = (rot == 90 || rot == 270) ? h : w;
+            double screenH = (rot == 90 || rot == 270) ? w : h;
+
+            double dx = (w - screenW) / 2.0;
+            double dy = (h - screenH) / 2.0;
+
+            return new ScreenBoundingBox(el.X + dx, el.Y + dy, screenW, screenH);
+        }
+
+        private static List<CanvasPoint> NormalizeRoute(List<CanvasPoint> route)
+        {
+            var normalized = new List<CanvasPoint>();
+            foreach (var point in route)
+            {
+                if (normalized.Count == 0 || !IsSamePoint(normalized[^1], point))
+                {
+                    normalized.Add(point);
+                }
+            }
+
+            for (int i = normalized.Count - 2; i > 0; i--)
+            {
+                var previous = normalized[i - 1];
+                var current = normalized[i];
+                var next = normalized[i + 1];
+                if (AreCollinear(previous, current, next))
+                {
+                    normalized.RemoveAt(i);
+                }
+            }
+
+            return normalized;
+        }
+
+        private static bool IsSamePoint(CanvasPoint a, CanvasPoint b) =>
+            Math.Abs(a.X - b.X) < 0.1 && Math.Abs(a.Y - b.Y) < 0.1;
+
+        private static bool AreCollinear(CanvasPoint a, CanvasPoint b, CanvasPoint c)
+        {
+            return (Math.Abs(a.X - b.X) < 0.1 && Math.Abs(b.X - c.X) < 0.1) ||
+                   (Math.Abs(a.Y - b.Y) < 0.1 && Math.Abs(b.Y - c.Y) < 0.1);
+        }
+
+        private List<CanvasPoint> BuildExternalFallbackRoute(PipeRoutingContext ctx)
+        {
+            var boxes = BuildRoutingBoxes(ctx).ToList();
+            var minX = boxes.Min(box => box.X) - ROUTE_MARGIN;
+            var maxX = boxes.Max(box => box.X + box.Width) + ROUTE_MARGIN;
+            var minY = boxes.Min(box => box.Y) - ROUTE_MARGIN;
+            var maxY = boxes.Max(box => box.Y + box.Height) + ROUTE_MARGIN;
+
+            var candidates = new[]
+            {
+                NormalizeRoute(new List<CanvasPoint>
+                {
+                    ctx.SafeStart,
+                    new CanvasPoint(minX, ctx.SafeStart.Y),
+                    new CanvasPoint(minX, ctx.SafeEnd.Y),
+                    ctx.SafeEnd
+                }),
+                NormalizeRoute(new List<CanvasPoint>
+                {
+                    ctx.SafeStart,
+                    new CanvasPoint(maxX, ctx.SafeStart.Y),
+                    new CanvasPoint(maxX, ctx.SafeEnd.Y),
+                    ctx.SafeEnd
+                }),
+                NormalizeRoute(new List<CanvasPoint>
+                {
+                    ctx.SafeStart,
+                    new CanvasPoint(ctx.SafeStart.X, minY),
+                    new CanvasPoint(ctx.SafeEnd.X, minY),
+                    ctx.SafeEnd
+                }),
+                NormalizeRoute(new List<CanvasPoint>
+                {
+                    ctx.SafeStart,
+                    new CanvasPoint(ctx.SafeStart.X, maxY),
+                    new CanvasPoint(ctx.SafeEnd.X, maxY),
+                    ctx.SafeEnd
+                })
+            };
+
+            return candidates
+                .Where(route => IsValidRoute(route, ctx))
+                .OrderBy(RouteLength)
+                .ThenBy(CountBends)
+                .FirstOrDefault()
+                ?? candidates.OrderBy(RouteLength).ThenBy(CountBends).First();
+        }
+
+        private static double RouteLength(List<CanvasPoint> route)
+        {
+            double length = 0;
+            for (int i = 0; i < route.Count - 1; i++)
+            {
+                length += Math.Abs(route[i + 1].X - route[i].X) +
+                          Math.Abs(route[i + 1].Y - route[i].Y);
+            }
+
+            return length;
+        }
+
+        private static int CountBends(List<CanvasPoint> route)
+        {
+            var bends = 0;
+            for (int i = 1; i < route.Count - 1; i++)
+            {
+                if (!AreCollinear(route[i - 1], route[i], route[i + 1]))
+                {
+                    bends++;
+                }
+            }
+
+            return bends;
         }
 
         private List<CanvasPoint> BuildZAvoidRoute(PipeRoutingContext ctx)

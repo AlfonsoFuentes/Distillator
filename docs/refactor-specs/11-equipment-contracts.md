@@ -84,6 +84,37 @@ invocar `Set/UnSet` tipado correspondiente.
 - Column administra feeds y side draws, manteniendo sus cuatro puertos principales.
 - Agregar o retirar puertos actualiza layout y facade sin duplicar simulacion.
 
+### SolverVessel
+
+`SolverVessel` es el banco principal para equipos con numero dinamico de entradas y
+salidas. Su contrato actual no asume un unico caso de balance; entrega varias
+ecuaciones por intencion y cada una decide si sus grados de libertad cierran.
+
+Ecuaciones vigentes:
+
+- `MassFractionDistributorEquation`: para 1 entrada y una o mas salidas; propaga
+  composicion cuando la fisica del caso es de divisor sin separacion.
+- `GlobalMassBalanceEquation`: balance global de masa para resolver un flujo masico.
+- `ComponentMassBalanceEquation`: balance por componentes para resolver fracciones
+  masicas.
+- `ComponentMassBalanceByMassFlowEquation`: balance por componentes para resolver
+  flujos masicos con composiciones conocidas y rango suficiente.
+- `ComponentMassBalanceMixedEquation`: caso mixto conservador para flujos y
+  fracciones cuando el DOF cierra exactamente.
+- `GlobalMassEnergyBalanceEquation`: balances de componentes + energia para resolver
+  varios flujos masicos cuando composiciones y entalpias masicas estan disponibles.
+- `GlobalEnergyBalanceByMassEnthalpyEquation`: balance de energia puro para resolver
+  una entalpia masica faltante en cualquier corriente.
+
+Validaciones manuales aprobadas:
+
+- `1/1`: igualdad de composicion y balance global.
+- `1/2`: divisor; composiciones iguales y flujos subdeterminados no se inventan.
+- `2/1`: mezcla con composicion faltante en entrada o salida.
+- `2/2`: resolucion de composiciones o flujos cuando matriz/rango lo permite.
+- `3/1`: mezcla con entalpia de salida calculada por balance de energia.
+- `3/2`: balances de componentes + energia resolviendo multiples flujos.
+
 ## Column
 
 Los calculos de columna pueden incluir FUG, VLE, McCabe-Thiele y plate-by-plate. Cada
@@ -150,4 +181,3 @@ Se creara una matriz por equipo con:
 - Equipos P&ID y electricos aun no implementados.
 - Crear equipos nuevos durante este refactor.
 - Redisenar ecuaciones sin prueba fisica de regresion.
-

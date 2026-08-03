@@ -102,6 +102,21 @@ namespace Shared.PropertiesDtos.Components
         [ExcelExport("Gas Thermal Cond")] public CorrelationCoefficientsDto GasThermalCond { get; set; } = new();
         [ExcelExport("Density")] public CorrelationCoefficientsDto Density { get; set; } = new();
         [ExcelExport("Surface Tension")] public CorrelationCoefficientsDto SurfaceTension { get; set; } = new();
+
+        public VaporPressureEquationType VaporPressureEquationType { get; set; } = VaporPressureEquationType.ExtendedAntoine;
+        public SaturationTemperatureEquationType SaturationTemperatureEquationType { get; set; } = SaturationTemperatureEquationType.FromVaporPressureSecant;
+        public HeatOfVaporizationEquationType HeatOfVaporizationEquationType { get; set; } = HeatOfVaporizationEquationType.Dippr106;
+        public LiquidHeatCapacityEquationType LiquidHeatCapacityEquationType { get; set; } = LiquidHeatCapacityEquationType.Polynomial;
+        public GasHeatCapacityEquationType GasHeatCapacityEquationType { get; set; } = GasHeatCapacityEquationType.AlyLee;
+        public LiquidViscosityEquationType LiquidViscosityEquationType { get; set; } = LiquidViscosityEquationType.Dippr101;
+        public GasViscosityEquationType GasViscosityEquationType { get; set; } = GasViscosityEquationType.Dippr102;
+        public LiquidThermalConductivityEquationType LiquidThermalConductivityEquationType { get; set; } = LiquidThermalConductivityEquationType.Polynomial4;
+        public GasThermalConductivityEquationType GasThermalConductivityEquationType { get; set; } = GasThermalConductivityEquationType.PolynomialRational;
+        public LiquidDensityEquationType LiquidDensityEquationType { get; set; } = LiquidDensityEquationType.Rackett;
+        public SurfaceTensionEquationType SurfaceTensionEquationType { get; set; } = SurfaceTensionEquationType.Dippr106;
+        public LiquidEnthalpyEquationType LiquidEnthalpyEquationType { get; set; } = LiquidEnthalpyEquationType.IntegratedLiquidCp;
+        public GasEnthalpyEquationType GasEnthalpyEquationType { get; set; } = GasEnthalpyEquationType.IntegratedGasCpWithHvap;
+        public SaturatedMolarVolumeEquationType SaturatedMolarVolumeEquationType { get; set; } = SaturatedMolarVolumeEquationType.Rackett;
     }
 
     public class CreateChemicalComponent : ChemicalComponentDto

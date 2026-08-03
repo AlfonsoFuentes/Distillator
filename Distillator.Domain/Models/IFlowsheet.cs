@@ -83,6 +83,7 @@ public interface IOffPageConnectorReference : IFlowsheetElementReference
     string TargetFlowsheetName { get; }
     string ConnectedEquipmentName { get; }
     bool IsOutlet { get; }
+    OffPageConnectorPortSide PortSide { get; }
 }
 
 /// <summary>

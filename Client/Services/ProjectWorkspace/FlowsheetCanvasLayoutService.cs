@@ -18,10 +18,17 @@ public class FlowsheetCanvasLayoutService
 
     public double Snap(double val) => Math.Round(val / GridSize) * GridSize;
 
-    public void SetContainerDimensions(double width, double height)
+    public bool SetContainerDimensions(double width, double height)
     {
+        if (width <= 0 || height <= 0) return false;
+
+        var changed = Math.Abs(ContainerWidth - width) > 0.5 ||
+                      Math.Abs(ContainerHeight - height) > 0.5;
+        if (!changed) return false;
+
         ContainerWidth = width;
         ContainerHeight = height;
+        return true;
     }
 
     public void SetDimensions(double width, double height)

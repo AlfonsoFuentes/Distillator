@@ -1,5 +1,6 @@
 @implements IAsyncDisposable
 @inject Client.Services.Security.CustomAuthenticationStateProvider AuthProvider
+@inject Distillator.Domain.Inputs.FormulaSpecificationCommandHandler FormulaSpecificationCommandHandler
 
 <div class="formula-specifications">
     <div class="specifications-toolbar">
@@ -260,19 +261,22 @@
             return;
         }
 
-        if (_editingSpecification != null)
-        {
-            SolverEquipment.RemoveSpec(_editingSpecification);
-        }
-
         var user = AuthProvider.CurrentUser;
-        SolverEquipment.AddSpec(new FormulaSpecification(_formulaText.Trim(), result.Data)
+        var commandResult = FormulaSpecificationCommandHandler.Apply(
+            new Distillator.Domain.Inputs.UpsertFormulaSpecificationCommand(
+                SolverEquipment,
+                _formulaText,
+                result.Data,
+                _editingSpecification,
+                user?.Id.ToString(),
+                user?.DisplayName));
+        if (!commandResult.Succeeded)
         {
-            Id = _editingSpecification?.Id ?? Guid.NewGuid(),
-            DefinedByUserId = user?.Id.ToString() ?? _editingSpecification?.DefinedByUserId,
-            DefinedByUserName = user?.DisplayName ?? _editingSpecification?.DefinedByUserName,
-            DefinedAtUtc = DateTime.UtcNow
-        });
+            _isFormulaValid = false;
+            _isValidationSuccessful = false;
+            _validationMessage = commandResult.ErrorMessage ?? "Formula could not be confirmed.";
+            return;
+        }
 
         if (OnSpecificationsChanged.HasDelegate)
         {
@@ -281,7 +285,10 @@
 
         ClearEditorState();
         _isEditorOpen = false;
-        FSM.RunSimulation();
+        if (commandResult.ShouldRunSimulation)
+        {
+            FSM.RunSimulation();
+        }
     }
 
     private void EditFormula(FormulaSpecification specification)
@@ -316,7 +323,17 @@
             return;
         }
 
-        SolverEquipment.RemoveSpec(specification);
+        var commandResult = FormulaSpecificationCommandHandler.Apply(
+            new Distillator.Domain.Inputs.RemoveFormulaSpecificationCommand(
+                SolverEquipment,
+                specification));
+        if (!commandResult.Succeeded)
+        {
+            _validationMessage = commandResult.ErrorMessage ?? "Formula could not be removed.";
+            _isValidationSuccessful = false;
+            return;
+        }
+
         if (ReferenceEquals(_editingSpecification, specification))
         {
             CancelEditor();
@@ -327,7 +344,10 @@
             await OnSpecificationsChanged.InvokeAsync();
         }
 
-        FSM.RunSimulation();
+        if (commandResult.ShouldRunSimulation)
+        {
+            FSM.RunSimulation();
+        }
     }
 
     private void CancelEditor()
@@ -363,8 +383,10 @@
             return result;
         }
 
-        var localStreams = LocalStreams.ToHashSet();
-        if (result.Data.LeftStreams.Any(stream => !localStreams.Contains(stream)))
+        var localStreamIds = LocalStreams
+            .Select(stream => stream.Id)
+            .ToHashSet();
+        if (result.Data.LeftStreams.Any(stream => !localStreamIds.Contains(stream.Id)))
         {
             return Result<FormulaEquationExpression>.Fail(
                 "The left side can only use streams connected to this equipment.");

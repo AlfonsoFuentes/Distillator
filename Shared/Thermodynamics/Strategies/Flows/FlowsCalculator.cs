@@ -1,4 +1,4 @@
-﻿using Shared.SolverConsecutive;
+using Shared.SolverConsecutive;
 using Shared.SolverQwen.Stream;
 using Shared.SolverQwen.Variables;
 using Shared.Thermodynamics.ControlledVariables;
@@ -51,9 +51,6 @@ namespace Shared.Thermodynamics.Strategies.Flows
                 _facade.IsFlowSolved = false;
                 RemoveVariables(VariableDefinedBy.StreamCalculated);
 
-#if DEBUG
-                Console.WriteLine($"\n  [FlowsCalc] 🌊 INICIANDO CÁLCULO DE FLUJOS para '{_facade.Name}'");
-#endif
 
                 // ✅ Solo recalcula fracciones si hubo un cambio real
                 bool molarFractionsDefined = _facade.Composition.Components.All(c => c.MolarFraction.IsDefined);
@@ -65,33 +62,21 @@ namespace Shared.Thermodynamics.Strategies.Flows
 
                 if (compMolarFlowsDefined)
                 {
-#if DEBUG
-                    Console.WriteLine($"  [FlowsCalc] 🔹 Fase 1: Detectados Flujos Molares por Componente.");
-#endif
                     _currentStrategy = new CompMolarFlowStrategy(_facade);
                     _currentStrategy.Execute();
                 }
                 else if (compMassFlowsDefined)
                 {
-#if DEBUG
-                    Console.WriteLine($"  [FlowsCalc] 🔹 Fase 1: Detectados Flujos Másicos por Componente.");
-#endif
                     _currentStrategy = new CompMassFlowStrategy(_facade);
                     _currentStrategy.Execute();
                 }
                 else if (molarFractionsDefined)
                 {
-#if DEBUG
-                    Console.WriteLine($"  [FlowsCalc] 🔹 Fase 1: Detectadas Fracciones Molares.");
-#endif
                     _currentStrategy = new MolarFractionStrategy(_facade);
                     _currentStrategy.Execute();
                 }
                 else if (massFractionsDefined)
                 {
-#if DEBUG
-                    Console.WriteLine($"  [FlowsCalc] 🔹 Fase 1: Detectadas Fracciones Másicas.");
-#endif
                     _currentStrategy = new MassFractionStrategy(_facade);
                     _currentStrategy.Execute();
                 }
@@ -99,12 +84,6 @@ namespace Shared.Thermodynamics.Strategies.Flows
                 if (_facade.Composition.IsValid)
                 {
                     bool compositionChanged = _facade.Composition.HasChanged;
-#if DEBUG
-                    if (compositionChanged || !oldIsValid)
-                    {
-                        Console.WriteLine($"  [FlowsCalc] ♻️ Composición Válida y ha cambiado. Disparando CompositionChanged()...");
-                    }
-#endif
                     if (compositionChanged || !oldIsValid)
                     {
                         _facade.Composition.CompositionChanged();
@@ -112,9 +91,6 @@ namespace Shared.Thermodynamics.Strategies.Flows
                 }
                 else
                 {
-#if DEBUG
-                    Console.WriteLine($"  [FlowsCalc] 🛑 Abortando: La Composición no es válida o está incompleta.");
-#endif
                     return;
                 }
 
@@ -127,15 +103,9 @@ namespace Shared.Thermodynamics.Strategies.Flows
                 {
                     if (!_facade.IsEquilibriumSolved)
                     {
-#if DEBUG
-                        Console.WriteLine($"  [FlowsCalc] ⚠️ VolumetricFlow detectado, pero el Equilibrio NO está resuelto. Esperando a Termodinámica...");
-#endif
                         return;
                     }
 
-#if DEBUG
-                    Console.WriteLine($"  [FlowsCalc] 🌊 Fase 2: Aplicando VolumetricFlowStrategy...");
-#endif
                     _currentStrategy = new VolumetricFlowStrategy(_facade);
                     _currentStrategy.Execute();
                     _facade.IsFlowSolved = true;
@@ -144,9 +114,6 @@ namespace Shared.Thermodynamics.Strategies.Flows
 
                 if (massFlowDefined)
                 {
-#if DEBUG
-                    Console.WriteLine($"  [FlowsCalc] 🌊 Fase 2: Aplicando MassFlowStrategy...");
-#endif
                     _currentStrategy = new MassFlowStrategy(_facade);
                     _currentStrategy.Execute();
                     _facade.IsFlowSolved = true;
@@ -155,24 +122,19 @@ namespace Shared.Thermodynamics.Strategies.Flows
 
                 if (molarFlowDefined)
                 {
-#if DEBUG
-                    Console.WriteLine($"  [FlowsCalc] 🌊 Fase 2: Aplicando MolarFlowStrategy...");
-#endif
                     _currentStrategy = new MolarFlowStrategy(_facade);
                     _currentStrategy.Execute();
                     _facade.IsFlowSolved = true;
                     return;
                 }
 
-#if DEBUG
-                Console.WriteLine($"  [FlowsCalc] ℹ️ Fase 2 omitida: No hay Flujo Global especificado (Masa, Molar, o Volumétrico).");
-#endif
             }
             finally
             {
                 IsSolvingbyFlows = false;
             }
         }
+
     }
 
 

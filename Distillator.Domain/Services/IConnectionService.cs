@@ -172,7 +172,9 @@ public class ConnectionService : IConnectionService
         var sourcePort = source.Ports.FirstOrDefault(p => p.Name == sourcePortName);
         if (sourcePort == null) return null;
 
-        var newStream = CreateStream(flowsheet, source, sourcePort, dropX, dropY);
+        var sourcePortCoords = source.GetAbsolutePortCoordinates(sourcePortName);
+        var streamRotationAngle = GetStreamRotationForEquipmentPort(sourcePort.Type, sourcePortCoords.Direction);
+        var newStream = CreateStream(flowsheet, source, sourcePort, dropX, dropY, streamRotationAngle);
         if (newStream == null) return null;
 
         var isSourceInlet = sourcePort.Type == PortType.Inlet;
@@ -240,6 +242,7 @@ public class ConnectionService : IConnectionService
 
             stream.X = _placementRules.Snap(x - (stream.Width / 2.0), flowsheet.GridSize);
             stream.Y = _placementRules.Snap(y - (stream.Height / 2.0), flowsheet.GridSize);
+            stream.RotationAngle = GetStreamRotationForEquipmentPort(sourcePort.Type, portCoords.Direction);
         }
 
         var reference = new FlowsheetElementReference(stream.Id, stream.X, stream.Y);
@@ -335,6 +338,31 @@ public class ConnectionService : IConnectionService
         var normalized = angle % 360;
         return normalized < 0 ? normalized + 360 : normalized;
     }
+
+    private static int GetStreamRotationForEquipmentPort(PortType portType, PortDirection portDirection)
+    {
+        var streamDirection = portType == PortType.Inlet
+            ? OppositeDirection(portDirection)
+            : portDirection;
+
+        return streamDirection switch
+        {
+            PortDirection.Right => 0,
+            PortDirection.Bottom => 90,
+            PortDirection.Left => 180,
+            PortDirection.Top => 270,
+            _ => 0
+        };
+    }
+
+    private static PortDirection OppositeDirection(PortDirection direction) => direction switch
+    {
+        PortDirection.Right => PortDirection.Left,
+        PortDirection.Left => PortDirection.Right,
+        PortDirection.Bottom => PortDirection.Top,
+        PortDirection.Top => PortDirection.Bottom,
+        _ => direction
+    };
 
     private sealed record StreamPlacement(double X, double Y, int RotationAngle);
 

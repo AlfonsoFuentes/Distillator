@@ -1,4 +1,4 @@
-﻿using Shared.PropertiesDtos.Methods;
+using Shared.PropertiesDtos.Methods;
 using Shared.SolverQwen.Stream;
 using System.Collections.Immutable;
 using System.Data.Common;
@@ -23,7 +23,6 @@ namespace Shared.SolverConsecutive.Equipments.Columns.Orchestrador
                 // 🔥 Si la presión no cambió, usar caché
                 if (_column.Orchestrator != null && !_column.Orchestrator.ColumnPressureChanged)
                 {
-                    Console.WriteLine($"✅ VLE: Presión sin cambios, usando caché");
                     return;
                 }
 
@@ -32,14 +31,12 @@ namespace Shared.SolverConsecutive.Equipments.Columns.Orchestrador
 
                 if (refStream == null)
                 {
-                    Console.WriteLine($"⚠️ VLE: No hay stream de referencia, retornando curva vacía");
                     _column.Orchestrator?.SetVLECurveResult(CreateEmptyVLECurve());
                     return;
                 }
 
                 if (refStream.ThermoMethod == null)
                 {
-                    Console.WriteLine($"⚠️ VLE: No hay método termodinámico, retornando curva vacía");
                     _column.Orchestrator?.SetVLECurveResult(CreateEmptyVLECurve());
                     return;
                 }
@@ -124,7 +121,6 @@ namespace Shared.SolverConsecutive.Equipments.Columns.Orchestrador
                             };
                         });
 
-                        Console.WriteLine($"✅ VLE calculada en paralelo: {curve.Length} puntos usando {Environment.ProcessorCount} cores");
 
                         _column.Orchestrator?.SetVLECurveResult(
                             new VLECurveResult
@@ -135,12 +131,10 @@ namespace Shared.SolverConsecutive.Equipments.Columns.Orchestrador
                     }
                     catch (OperationCanceledException)
                     {
-                        Console.WriteLine($"⚠️ VLE: Cancelada por el usuario");
                         _column.Orchestrator?.SetVLECurveResult(CreateEmptyVLECurve());
                     }
-                    catch (Exception ex)
+                    catch (Exception)
                     {
-                        Console.WriteLine($"❌ Error en VLE: {ex.Message}");
                         _column.Orchestrator?.SetVLECurveResult(CreateEmptyVLECurve());
                     }
                 }, cancellationToken);

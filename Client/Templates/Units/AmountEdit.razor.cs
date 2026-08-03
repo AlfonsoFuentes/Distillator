@@ -9,11 +9,17 @@ namespace Client.Templates.Units
         [Parameter] public string? Label { get; set; }
         [Parameter] public T Amount { get; set; } = default(T)!;
         [Parameter] public EventCallback<T> AmountChanged { get; set; }
+        [Parameter] public bool IsReadOnly { get; set; }
+        [Parameter] public bool AllowUnitChangeWhenReadOnly { get; set; }
 
         private string FormattedValue => Amount?.Value.ToString("0.####", CultureInfo.InvariantCulture) ?? "";
+        private bool IsUnitSelectDisabled => IsReadOnly && !AllowUnitChangeWhenReadOnly;
 
         private async Task OnInputChanged(ChangeEventArgs e)
         {
+            if (IsReadOnly)
+                return;
+
             if (double.TryParse(e.Value?.ToString(), NumberStyles.Any, CultureInfo.InvariantCulture, out var parsedValue))
             {
                 Amount.SetValue(parsedValue, Amount.Unit);

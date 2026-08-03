@@ -1,4 +1,4 @@
-﻿using Shared.UnitOperations.Streams;
+using Shared.UnitOperations.Streams;
 using UnitSystem;
 
 namespace Shared.SolverConsecutive.Equipments.Columns.Orchestrador
@@ -22,7 +22,6 @@ namespace Shared.SolverConsecutive.Equipments.Columns.Orchestrador
                 !_column.Orchestrator.VLEChanged &&
                 !_column.Orchestrator.PlatesChanged)
             {
-                Console.WriteLine($"✅ McCabeThiele: Sin cambios, usando caché");
                 return;
             }
 
@@ -97,7 +96,6 @@ namespace Shared.SolverConsecutive.Equipments.Columns.Orchestrador
                     // Validación básica
                     if (xD <= 0 || xB <= 0 || R <= 0 || zF <= 0)
                     {
-                        Console.WriteLine($"⚠️ McCabeThiele: Datos incompletos (xD={xD}, xB={xB}, R={R}, zF={zF})");
                         return;
                     }
 
@@ -155,11 +153,9 @@ namespace Shared.SolverConsecutive.Equipments.Columns.Orchestrador
                     };
 
                     _column.Orchestrator?.SetMcCabeThieleData(mcCabeData);
-                    Console.WriteLine($"✅ McCabeThiele generado: {staircaseSteps.Count} escalones");
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
-                    Console.WriteLine($"❌ Error en McCabeThiele: {ex.Message}");
                     _column.Orchestrator?.SetMcCabeThieleData(CreateEmptyData());
                 }
             }, cancellationToken);
@@ -452,7 +448,6 @@ namespace Shared.SolverConsecutive.Equipments.Columns.Orchestrador
     //            !_column.Orchestrator.VLEChanged &&
     //            !_column.Orchestrator.PlatesChanged)
     //        {
-    //            Console.WriteLine($"✅ McCabeThiele: Sin cambios, usando caché");
     //            return;
     //        }
 
@@ -552,7 +547,6 @@ namespace Shared.SolverConsecutive.Equipments.Columns.Orchestrador
     //                // Validación básica
     //                if (xD <= 0 || xB <= 0 || R <= 0 || zF <= 0)
     //                {
-    //                    Console.WriteLine($"⚠️ McCabeThiele: Datos incompletos (xD={xD}, xB={xB}, R={R}, zF={zF})");
     //                    return;
     //                }
 
@@ -604,11 +598,9 @@ namespace Shared.SolverConsecutive.Equipments.Columns.Orchestrador
     //                };
 
     //                _column.Orchestrator?.SetMcCabeThieleData(mcCabeData);
-    //                Console.WriteLine($"✅ McCabeThiele generado: {staircaseSteps.Count} escalones");
     //            }
     //            catch (Exception ex)
     //            {
-    //                Console.WriteLine($"❌ Error en McCabeThiele: {ex.Message}");
     //                _column.Orchestrator?.SetMcCabeThieleData(CreateEmptyData());
     //            }
     //        }, cancellationToken);
@@ -872,7 +864,6 @@ namespace Shared.SolverConsecutive.Equipments.Columns.Orchestrador
     //            !_column.Orchestrator.VLEChanged &&
     //            !_column.Orchestrator.PlatesChanged)
     //        {
-    //            Console.WriteLine($"✅ McCabeThiele: Sin cambios, usando caché");
     //            return;
     //        }
 
@@ -957,7 +948,6 @@ namespace Shared.SolverConsecutive.Equipments.Columns.Orchestrador
     //                // Validación básica
     //                if (xD <= 0 || xB <= 0 || R <= 0 || zF <= 0)
     //                {
-    //                    Console.WriteLine($"⚠️ McCabeThiele: Datos incompletos (xD={xD}, xB={xB}, R={R}, zF={zF})");
     //                    return;
     //                }
 
@@ -1008,11 +998,9 @@ namespace Shared.SolverConsecutive.Equipments.Columns.Orchestrador
     //                };
 
     //                _column.Orchestrator?.SetMcCabeThieleData(mcCabeData);
-    //                Console.WriteLine($"✅ McCabeThiele generado: {staircaseSteps.Count} escalones");
     //            }
     //            catch (Exception ex)
     //            {
-    //                Console.WriteLine($"❌ Error en McCabeThiele: {ex.Message}");
     //                _column.Orchestrator?.SetMcCabeThieleData(CreateEmptyData());
     //            }
     //        }, cancellationToken);
@@ -1360,7 +1348,6 @@ namespace Shared.SolverConsecutive.Equipments.Columns.Orchestrador
     //    {
     //        if (_column.Orchestrator == null)
     //        {
-    //            Console.WriteLine($"⚠️ McCabeThiele: No hay orquestador, saltando cálculo");
     //            return;
     //        }
 
@@ -1369,7 +1356,6 @@ namespace Shared.SolverConsecutive.Equipments.Columns.Orchestrador
     //            !_column.Orchestrator.VLEChanged &&
     //            !_column.Orchestrator.PlatesChanged)
     //        {
-    //            Console.WriteLine($"✅ McCabeThiele: FUG, VLE y Platos sin cambios, usando caché");
     //            return;
     //        }
 
@@ -1378,7 +1364,6 @@ namespace Shared.SolverConsecutive.Equipments.Columns.Orchestrador
 
     //        if (columnResult == null)
     //        {
-    //            Console.WriteLine($"⚠️ McCabeThiele: ColumnResult es null, retornando datos vacíos");
     //            _column.Orchestrator.SetMcCabeThieleData(CreateEmptyData());
     //            return;
     //        }
@@ -1398,7 +1383,6 @@ namespace Shared.SolverConsecutive.Equipments.Columns.Orchestrador
 
     //                if (!vlePoints.Any())
     //                {
-    //                    Console.WriteLine($"⚠️ McCabeThiele: No hay curva VLE, graficando solo diagonal");
     //                    _column.Orchestrator?.SetMcCabeThieleData(new McCabeThieleData
     //                    {
     //                        DiagonalLine = diagonalLine,
@@ -1507,11 +1491,9 @@ namespace Shared.SolverConsecutive.Equipments.Columns.Orchestrador
     //                    // 🔥 Subtítulo con información de reflujo
     //                    chartSubtitle = $"Reflux Ratio R = {R:F2} | Min Reflux R_min = {R_min:F2}";
 
-    //                    Console.WriteLine($"✅ McCabeThiele generado: {staircaseSteps.Count} escalones");
     //                }
     //                else
     //                {
-    //                    Console.WriteLine($"⚠️ McCabeThiele: Datos FUG incompletos (xD={xD}, xB={xB}, R={R}, zF={zF}), graficando solo VLE + diagonal");
     //                }
 
     //                var mcCabeData = new McCabeThieleData
@@ -1537,7 +1519,6 @@ namespace Shared.SolverConsecutive.Equipments.Columns.Orchestrador
     //            }
     //            catch (Exception ex)
     //            {
-    //                Console.WriteLine($"❌ Error en McCabeThiele: {ex.Message}");
     //                _column.Orchestrator?.SetMcCabeThieleData(CreateEmptyData());
     //            }
     //        }, cancellationToken);

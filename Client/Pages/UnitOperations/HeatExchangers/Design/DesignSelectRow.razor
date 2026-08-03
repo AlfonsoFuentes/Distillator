@@ -1,0 +1,70 @@
+<div class="design-property-row">
+    <label>@Label</label>
+    <div class="design-value-cell select-cell">
+        <button type="button"
+                class="select-trigger"
+                aria-label="@Label"
+                @onclick="TogglePopup">
+            <span>@SelectedLabel</span>
+            <span class="chevron">▾</span>
+        </button>
+
+        @if (showPopup)
+        {
+            <div class="select-popup" @onmouseleave="ClosePopup">
+                @foreach (var option in Options)
+                {
+                    <button type="button"
+                            class="select-item @(IsSelected(option.Value) ? "selected" : null)"
+                            @onclick="() => Select(option.Value)">
+                        @option.Label
+                    </button>
+                }
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public string Label { get; set; } = string.Empty;
+    [Parameter, EditorRequired] public string Value { get; set; } = string.Empty;
+    [Parameter, EditorRequired] public IReadOnlyList<DesignSelectOption> Options { get; set; } = [];
+    [Parameter] public EventCallback<string> ValueChanged { get; set; }
+
+    private bool showPopup;
+
+    private string SelectedLabel
+    {
+        get
+        {
+            foreach (var option in Options)
+            {
+                if (IsSelected(option.Value))
+                {
+                    return option.Label;
+                }
+            }
+
+            return Value;
+        }
+    }
+
+    private void TogglePopup()
+    {
+        showPopup = !showPopup;
+    }
+
+    private void ClosePopup()
+    {
+        showPopup = false;
+    }
+
+    private async Task Select(string value)
+    {
+        showPopup = false;
+        await ValueChanged.InvokeAsync(value);
+    }
+
+    private bool IsSelected(string value) =>
+        string.Equals(value, Value, StringComparison.OrdinalIgnoreCase);
+}

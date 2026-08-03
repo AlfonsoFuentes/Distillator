@@ -1,0 +1,73 @@
+.amount-cell-inline {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    min-width: 0;
+}
+
+.amount-value {
+    color: #2f455f;
+}
+
+.unit-label {
+    color: #21364f;
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+.unit-trigger {
+    width: 22px;
+    height: 22px;
+    border: 0;
+    background: transparent;
+    color: #1f2f43;
+    cursor: pointer;
+    display: inline-grid;
+    place-items: center;
+    padding: 0;
+    border-radius: 3px;
+}
+
+.unit-trigger:hover,
+.unit-trigger:focus {
+    outline: 1px solid #c8d5e4;
+    background: #f4f7fb;
+}
+
+.unit-popup {
+    position: absolute;
+    bottom: 100%;
+    right: 0;
+    z-index: 80;
+    display: grid;
+    width: max-content;
+    min-width: 92px;
+    max-width: 240px;
+    max-height: 148px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 4px;
+    border: 1px solid #c8d5e4;
+    border-radius: 4px;
+    background: #ffffff;
+    box-shadow: 0 6px 16px rgba(37, 54, 74, 0.14);
+}
+
+.unit-item {
+    border: 0;
+    background: transparent;
+    color: #30465f;
+    text-align: left;
+    white-space: nowrap;
+    padding: 5px 8px;
+    border-radius: 3px;
+    cursor: pointer;
+    font: inherit;
+}
+
+.unit-item:hover,
+.unit-item.selected {
+    background: #eaf2fb;
+    color: #1f5d99;
+}

@@ -1,0 +1,55 @@
+@using System.Globalization
+
+<div class="design-property-row @(ReadOnly ? "readonly" : null)">
+    <label>@Label</label>
+    <div class="design-value-cell">
+        @if (ReadOnly)
+        {
+            <span>@DisplayValue</span>
+        }
+        else
+        {
+            <input type="text"
+                   value="@DisplayValue"
+                   @onchange="OnValueChanged"
+                   aria-label="@Label" />
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public string Label { get; set; } = string.Empty;
+    [Parameter] public double Value { get; set; }
+    [Parameter] public bool Integer { get; set; }
+    [Parameter] public bool ReadOnly { get; set; }
+    [Parameter] public EventCallback<double> ValueChanged { get; set; }
+
+    private string DisplayValue => double.IsFinite(Value)
+        ? (Integer ? Math.Round(Value).ToString("0", CultureInfo.CurrentCulture) : FormatNumber(Value))
+        : string.Empty;
+
+    private async Task OnValueChanged(ChangeEventArgs e)
+    {
+        if (TryReadDouble(e, out var value))
+        {
+            await ValueChanged.InvokeAsync(value);
+        }
+    }
+
+    private static bool TryReadDouble(ChangeEventArgs e, out double value)
+    {
+        var text = e.Value?.ToString();
+        return double.TryParse(text, NumberStyles.Float, CultureInfo.CurrentCulture, out value) ||
+               double.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out value);
+    }
+
+    private static string FormatNumber(double value)
+    {
+        if (Math.Abs(value) > 0d && Math.Abs(value) < 0.001d)
+        {
+            return value.ToString("0.######", CultureInfo.CurrentCulture);
+        }
+
+        return value.ToString("0.###", CultureInfo.CurrentCulture);
+    }
+}

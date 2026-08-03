@@ -1,106 +1,121 @@
 @using Distillator.Domain.Models
 @inject ProjectSessionService SessionService
 
-<MudDialog>
+<MudDialog Gutters="false" ContentClass="pa-0">
     <DialogContent>
-        <MudForm @ref="_form" @bind-IsValid="_isValid">
-            <MudTextField @bind-Value="_model.Name"
-                          Label="Diagram Name"
-                          Required="true"
-                          RequiredError="Name is required"
-                          Validation="@(new Func<string?, string?>(ValidateName))"
-                          Immediate="true"
-                          Class="mb-4" />
+        <div class="flowsheet-dialog">
+            <div class="dialog-header">
+                <span class="dialog-title">@DialogTitle</span>
+                <button class="close-button" @onclick="Cancel">✕</button>
+            </div>
 
-            @if (RequiresDiagramNumber)
-            {
-                <MudTextField @bind-Value="_model.DiagramNumber"
-                              Label="Diagram Number"
-                              Required="true"
-                              RequiredError="Diagram number is required"
-                              Validation="@(new Func<string?, string?>(ValidateDiagramNumber))"
-                              Immediate="true"
-                              HelperText="Used by diagram-based naming rules. Example: 1 becomes prefix 100."
-                              Class="mb-4" />
-            }
+            <div class="tabs-header">
+                <div class="tab @(_activeTab == "General" ? "active" : "")" @onclick='() => SetTab("General")'>General</div>
+                <div class="tab @(_activeTab == "Diagram Settings" ? "active" : "")" @onclick='() => SetTab("Diagram Settings")'>Diagram Settings</div>
+                <div class="tab @(_activeTab == "Default Camera" ? "active" : "")" @onclick='() => SetTab("Default Camera")'>Default Camera</div>
+            </div>
 
-            @if (IsTypeFixed)
-            {
-                <MudTextField Value="EffectiveTypeName"
-                              Label="Diagram Type"
-                              ReadOnly="true"
-                              Class="mb-4" />
-            }
-            else if (IsNew)
-            {
-                <MudSelect @bind-Value="_model.TypeCode"
-                           Label="Diagram Type"
-                           Required="true"
-                           RequiredError="Type is required"
-                           Class="mb-4">
-                    @foreach (var type in AvailableTypes)
-                    {
-                        <MudSelectItem Value="@type.Code">@type.DisplayName</MudSelectItem>
-                    }
-                </MudSelect>
-            }
-            else
-            {
-                <MudTextField Value="CurrentTypeName"
-                              Label="Diagram Type"
-                              ReadOnly="true"
-                              Class="mb-4" />
-            }
+            <div class="flowsheet-form-frame">
+                <div class="dialog-body">
+                    <div class="tab-panel @(_activeTab == "General" ? "active" : "")">
+                        <div class="form-group">
+                            <label class="form-label">Diagram Name</label>
+                            <input type="text"
+                                   class="form-input @(NameError != null ? "invalid" : "")"
+                                   @bind="_model.Name"
+                                   @bind:event="oninput" />
+                            @if (NameError != null)
+                            {
+                                <span class="field-error">@NameError</span>
+                            }
+                        </div>
 
-            <MudExpansionPanels MultiExpansion="true">
-                <MudExpansionPanel Text="Diagram Settings">
-                    <MudNumericField @bind-Value="_model.DiagramWidth"
-                                     Label="Paper Width"
-                                     Min="500"
-                                     Max="20000"
-                                     Step="100"
-                                     Class="mb-2" />
-                    <MudNumericField @bind-Value="_model.DiagramHeight"
-                                     Label="Paper Height"
-                                     Min="500"
-                                     Max="20000"
-                                     Step="100"
-                                     Class="mb-2" />
-                    <MudNumericField @bind-Value="_model.GridSize"
-                                     Label="Grid Size"
-                                     Min="5"
-                                     Max="200"
-                                     Step="5"
-                                     Class="mb-2" />
-                    <MudNumericField @bind-Value="_model.GlobalScale"
-                                     Label="Global Scale"
-                                     Min="0.1"
-                                     Max="2.0"
-                                     Step="0.1"
-                                     Class="mb-2" />
-                </MudExpansionPanel>
+                        @if (RequiresDiagramNumber)
+                        {
+                            <div class="form-group">
+                                <label class="form-label">Diagram Number</label>
+                                <input type="text"
+                                       class="form-input @(DiagramNumberError != null ? "invalid" : "")"
+                                       @bind="_model.DiagramNumber"
+                                       @bind:event="oninput" />
+                                <span class="field-help">Used by diagram-based naming rules. Example: 1 becomes prefix 100.</span>
+                                @if (DiagramNumberError != null)
+                                {
+                                    <span class="field-error">@DiagramNumberError</span>
+                                }
+                            </div>
+                        }
 
-                <MudExpansionPanel Text="Default Camera">
-                    <MudNumericField @bind-Value="_model.Zoom"
-                                     Label="Zoom"
-                                     Min="0.1"
-                                     Max="5.0"
-                                     Step="0.1"
-                                     Class="mb-2" />
-                    <MudNumericField @bind-Value="_model.PanX"
-                                     Label="Pan X"
-                                     Class="mb-2" />
-                    <MudNumericField @bind-Value="_model.PanY"
-                                     Label="Pan Y"
-                                     Class="mb-2" />
-                </MudExpansionPanel>
-            </MudExpansionPanels>
-        </MudForm>
+                        @if (IsTypeFixed)
+                        {
+                            <div class="form-group">
+                                <label class="form-label">Diagram Type</label>
+                                <div class="calculated-value">@EffectiveTypeName</div>
+                            </div>
+                        }
+                        else if (IsNew)
+                        {
+                            <div class="form-group">
+                                <label class="form-label">Diagram Type</label>
+                                <select class="form-select" @bind="_model.TypeCode">
+                                    @foreach (var type in AvailableTypes)
+                                    {
+                                        <option value="@type.Code">@type.DisplayName</option>
+                                    }
+                                </select>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="form-group">
+                                <label class="form-label">Diagram Type</label>
+                                <div class="calculated-value">@CurrentTypeName</div>
+                            </div>
+                        }
+                    </div>
+
+                    <div class="tab-panel settings-grid @(_activeTab == "Diagram Settings" ? "active" : "")">
+                        <div class="form-group">
+                            <label class="form-label">Paper Width</label>
+                            <input type="number" min="500" max="20000" step="100" class="form-input" @bind="_model.DiagramWidth" />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Paper Height</label>
+                            <input type="number" min="500" max="20000" step="100" class="form-input" @bind="_model.DiagramHeight" />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Grid Size</label>
+                            <input type="number" min="5" max="200" step="5" class="form-input" @bind="_model.GridSize" />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Global Scale</label>
+                            <input type="number" min="0.1" max="2" step="0.1" class="form-input" @bind="_model.GlobalScale" />
+                        </div>
+                    </div>
+
+                    <div class="tab-panel settings-grid @(_activeTab == "Default Camera" ? "active" : "")">
+                        <div class="form-group">
+                            <label class="form-label">Zoom</label>
+                            <input type="number" min="0.1" max="5" step="0.1" class="form-input" @bind="_model.Zoom" />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Pan X</label>
+                            <input type="number" step="1" class="form-input" @bind="_model.PanX" />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Pan Y</label>
+                            <input type="number" step="1" class="form-input" @bind="_model.PanY" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dialog-actions">
+                    <button class="dialog-btn secondary" type="button" @onclick="Cancel">Cancel</button>
+                    <button class="dialog-btn primary" type="button" @onclick="Submit" disabled="@(!IsValid)">Save</button>
+                </div>
+            </div>
+        </div>
     </DialogContent>
-    <DialogActions>
-        <MudButton OnClick="Cancel">Cancel</MudButton>
-        <MudButton Color="Color.Primary" OnClick="Submit" Disabled="!_isValid">Save</MudButton>
-    </DialogActions>
 </MudDialog>
 
 @code {
@@ -109,15 +124,18 @@
     [Parameter] public IFlowsheet? Flowsheet { get; set; }
     [Parameter] public string? FixedTypeCode { get; set; }
 
-    private MudForm _form = default!;
-    private bool _isValid;
+    private string _activeTab = "General";
     private FlowsheetModel _model = new();
 
     private bool IsNew => Flowsheet == null;
+    private string DialogTitle => IsNew ? "New Diagram" : "Edit Diagram";
     private bool IsTypeFixed => !string.IsNullOrWhiteSpace(FixedTypeCode);
     private bool RequiresDiagramNumber => Project != null && ProjectSessionService.RequiresDiagramNumberForNaming(Project.Configuration.NamingConfig);
     private string EffectiveTypeCode => IsTypeFixed ? FixedTypeCode! : _model.TypeCode;
     private string EffectiveTypeName => Project?.FlowsheetTypes.GetByCode(EffectiveTypeCode)?.DisplayName ?? EffectiveTypeCode;
+    private string? NameError => ValidateName(_model.Name);
+    private string? DiagramNumberError => ValidateDiagramNumber(_model.DiagramNumber);
+    private bool IsValid => NameError == null && DiagramNumberError == null && !string.IsNullOrWhiteSpace(EffectiveTypeCode);
 
     private IEnumerable<IFlowsheetType> AvailableTypes
     {
@@ -210,11 +228,11 @@
     }
 
     private void Cancel() => MudDialog.Cancel();
+    private void SetTab(string tabName) => _activeTab = tabName;
 
     private async Task Submit()
     {
-        await _form.ValidateAsync();
-        if (!_isValid) return;
+        if (!IsValid) return;
 
         try
         {

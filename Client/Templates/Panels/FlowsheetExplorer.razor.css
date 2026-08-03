@@ -232,6 +232,11 @@
         background: #F1F5F9;
     }
 
+    .flowsheet-item.drop-target {
+        border-color: #38BDF8;
+        background: #E0F2FE;
+    }
+
 .flowsheet-name {
     white-space: nowrap;
     overflow: hidden;

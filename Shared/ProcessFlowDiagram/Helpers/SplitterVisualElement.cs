@@ -10,6 +10,7 @@ namespace Shared.ProcessFlowDiagram.Helpers
     public class SplitterVisualElement : VisualElementBase
     {
         private SolverSplitter Splitter => Facade as SolverSplitter ?? throw new InvalidOperationException("Facade must be SolverSplitter");
+        private readonly Dictionary<string, IFacadeStream> _outletStreamsByPortName = new(StringComparer.OrdinalIgnoreCase);
 
         public override EquipmentType Type => EquipmentType.Splitter;
         public override string Prefix => "SP";
@@ -50,22 +51,31 @@ namespace Shared.ProcessFlowDiagram.Helpers
         // ==============================================================================
         public void RefreshDynamicPorts()
         {
-            var targetPorts = Ports.Where(p => p.Name.StartsWith("Outlet")).OrderBy(p => p.OffsetY).ToList();
+            var targetPorts = Ports
+                .Where(p => p.Name.StartsWith("Outlet"))
+                .OrderBy(p => ExtractPortIndex(p.Name, "Outlet_"))
+                .ToList();
             var freePorts = targetPorts.Where(p => p.ConnectedElementId == null).ToList();
 
             // 1. Lógica de puerto libre
             if (freePorts.Count == 0)
             {
-                int nextNum = targetPorts.Count + 1;
+                int nextNum = targetPorts.Select(port => ExtractPortIndex(port.Name, "Outlet_")).DefaultIfEmpty(-1).Max() + 2;
                 AddPort($"Outlet_{nextNum}", PortType.Outlet, 0, 0, PortDirection.Right);
             }
             else if (freePorts.Count > 1)
             {
-                var toRemove = freePorts.Skip(1).ToList();
+                var lastFreePort = freePorts
+                    .OrderByDescending(port => ExtractPortIndex(port.Name, "Outlet_"))
+                    .First();
+                var toRemove = freePorts.Where(port => port != lastFreePort).ToList();
                 foreach (var p in toRemove) Ports.Remove(p);
             }
 
-            targetPorts = Ports.Where(p => p.Name.StartsWith("Outlet")).ToList();
+            targetPorts = Ports
+                .Where(p => p.Name.StartsWith("Outlet"))
+                .OrderBy(p => ExtractPortIndex(p.Name, "Outlet_"))
+                .ToList();
 
             // 2. CÁLCULO PROPORCIONAL
             double spacing = 30;
@@ -85,6 +95,15 @@ namespace Shared.ProcessFlowDiagram.Helpers
                 targetPorts[i].OffsetX = Width;
                 targetPorts[i].OffsetY = startY + (i * spacing);
             }
+        }
+
+        public void EnsureDynamicOutletPort(string portName)
+        {
+            if (!portName.StartsWith("Outlet_", StringComparison.OrdinalIgnoreCase)) return;
+            if (Ports.Any(port => string.Equals(port.Name, portName, StringComparison.OrdinalIgnoreCase))) return;
+
+            AddPort(portName, PortType.Outlet, 0, 0, PortDirection.Right);
+            RefreshDynamicPorts();
         }
 
         // ==============================================================================
@@ -109,6 +128,11 @@ namespace Shared.ProcessFlowDiagram.Helpers
             // Puertos dinámicos - Outlet
             if (portName.StartsWith("Outlet_"))
             {
+                if (_outletStreamsByPortName.TryGetValue(portName, out var mappedStream))
+                {
+                    return mappedStream;
+                }
+
                 int index = ExtractPortIndex(portName, "Outlet_");
                 if (index >= 0 && index < Splitter.Outlets.Count)
                     return Splitter.Outlets[index];
@@ -136,7 +160,11 @@ namespace Shared.ProcessFlowDiagram.Helpers
             // Puertos dinámicos - Outlet
             else if (portName.StartsWith("Outlet_"))
             {
-                Splitter.AddOutlet(connectedFacade);
+                if (!_outletStreamsByPortName.ContainsKey(portName))
+                {
+                    _outletStreamsByPortName[portName] = connectedFacade;
+                    Splitter.AddOutlet(connectedFacade);
+                }
                 RefreshDynamicPorts();
             }
         }
@@ -151,10 +179,17 @@ namespace Shared.ProcessFlowDiagram.Helpers
             // Puertos dinámicos - Outlet
             else if (portName.StartsWith("Outlet_"))
             {
-                int index = ExtractPortIndex(portName, "Outlet_");
-                if (index >= 0 && index < Splitter.Outlets.Count)
+                if (_outletStreamsByPortName.Remove(portName, out var mappedStream))
                 {
-                    Splitter.RemoveOutlet(Splitter.Outlets[index]);
+                    Splitter.RemoveOutlet(mappedStream);
+                }
+                else
+                {
+                    int index = ExtractPortIndex(portName, "Outlet_");
+                    if (index >= 0 && index < Splitter.Outlets.Count)
+                    {
+                        Splitter.RemoveOutlet(Splitter.Outlets[index]);
+                    }
                 }
                 RefreshDynamicPorts();
             }

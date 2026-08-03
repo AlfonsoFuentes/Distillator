@@ -1,0 +1,14 @@
+@using Shared.ProcessFlowDiagram.HeatExchangers
+@using Shared.UnitOperations.HeatExchangers.Design
+
+<section class="design-placeholder">
+    <button type="button" class="primary-action" disabled>Create Design</button>
+    <div class="workflow-summary">
+        <h3>Reboiler design</h3>
+        <p>Design implementation pending.</p>
+    </div>
+</section>
+
+@code {
+    [Parameter, EditorRequired] public ReboilerVisualElement Equipment { get; set; } = default!;
+}

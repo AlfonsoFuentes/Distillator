@@ -70,7 +70,7 @@ namespace Shared.Thermodynamics.Componentes
         // ========================================================================
         private double CalcPoyntingFactor(Temperature temperature, Pressure pressure)
         {
-            if (VaporModel == VaporPhaseModel.IdealGas)
+            if (UsesReferenceVaporFugacity())
                 return 1.0;
 
             double psKpa = SaturationPressure.GetValue(PressureUnits.KiloPascala);
@@ -91,7 +91,7 @@ namespace Shared.Thermodynamics.Componentes
         // ========================================================================
         private double CalculateFugacityCoefficient(Temperature temperature, Pressure pressure, bool isSaturationCalc)
         {
-            if (VaporModel == VaporPhaseModel.IdealGas)
+            if (UsesReferenceVaporFugacity())
             {
                 if (!isSaturationCalc) CompressibilityFactor = 1.0;
                 return 1.0;
@@ -123,6 +123,12 @@ namespace Shared.Thermodynamics.Componentes
             }
 
             return Math.Exp(valor7);
+        }
+
+        private bool UsesReferenceVaporFugacity()
+        {
+            return VaporModel == VaporPhaseModel.IdealGas ||
+                   VaporModel == VaporPhaseModel.SteamTables;
         }
 
         // ========================================================================

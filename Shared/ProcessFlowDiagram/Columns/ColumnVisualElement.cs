@@ -6,6 +6,8 @@ namespace Shared.ProcessFlowDiagram.Columns
     public class ColumnVisualElement : VisualElementBase
     {
         private SolverColumn Column => Facade as SolverColumn ?? throw new InvalidOperationException("Facade must be SolverColumn");
+        private readonly Dictionary<string, IFacadeStream> _feedStreamsByPortName = new(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, IFacadeStream> _sideDrawStreamsByPortName = new(StringComparer.OrdinalIgnoreCase);
 
         public override EquipmentType Type => EquipmentType.Column;
         public override string Prefix => "T";
@@ -82,27 +84,66 @@ namespace Shared.ProcessFlowDiagram.Columns
 
         private void ManageDynamicPortGroup(string prefix, PortType type, PortDirection dir, double xOffset, double startY, double spacingY)
         {
-            var targetPorts = Ports.Where(p => p.Name.StartsWith(prefix)).OrderBy(p => p.OffsetY).ToList();
+            var targetPorts = Ports
+                .Where(p => p.Name.StartsWith(prefix))
+                .OrderBy(p => ExtractPortNumber(p.Name, $"{prefix}_"))
+                .ToList();
             var freePorts = targetPorts.Where(p => p.ConnectedElementId == null).ToList();
 
             if (freePorts.Count == 0)
             {
-                int nextNum = targetPorts.Count + 1;
+                int nextNum = targetPorts.Select(p => ExtractPortNumber(p.Name, $"{prefix}_")).DefaultIfEmpty(0).Max() + 1;
                 AddPort($"{prefix}_{nextNum}", type, xOffset, startY + (targetPorts.Count * spacingY), dir);
             }
             else if (freePorts.Count > 1)
             {
-                for (int i = 1; i < freePorts.Count; i++)
+                var lastFreePort = freePorts
+                    .OrderByDescending(p => ExtractPortNumber(p.Name, $"{prefix}_"))
+                    .First();
+                foreach (var port in freePorts.Where(p => p != lastFreePort).ToList())
                 {
-                    Ports.Remove(freePorts[i]);
+                    Ports.Remove(port);
                 }
             }
 
-            targetPorts = Ports.Where(p => p.Name.StartsWith(prefix)).OrderBy(p => p.OffsetY).ToList();
+            targetPorts = Ports
+                .Where(p => p.Name.StartsWith(prefix))
+                .OrderBy(p => ExtractPortNumber(p.Name, $"{prefix}_"))
+                .ToList();
             for (int i = 0; i < targetPorts.Count; i++)
             {
                 targetPorts[i].OffsetY = startY + (i * spacingY);
             }
+        }
+
+        public void EnsureDynamicPort(string portName)
+        {
+            if (!portName.StartsWith("Feed_", StringComparison.OrdinalIgnoreCase) &&
+                !portName.StartsWith("SideDraw_", StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+
+            if (Ports.Any(port => string.Equals(port.Name, portName, StringComparison.OrdinalIgnoreCase))) return;
+
+            if (portName.StartsWith("Feed_", StringComparison.OrdinalIgnoreCase))
+            {
+                AddPort(portName, PortType.Inlet, 10, 0, PortDirection.Left);
+            }
+            else
+            {
+                AddPort(portName, PortType.Outlet, 70, 0, PortDirection.Right);
+            }
+
+            RefreshDynamicPorts();
+        }
+
+        private static int ExtractPortNumber(string name, string prefix)
+        {
+            return name.StartsWith(prefix, StringComparison.OrdinalIgnoreCase) &&
+                   int.TryParse(name[prefix.Length..], out var number)
+                ? number
+                : 0;
         }
 
         // ==============================================================================
@@ -133,6 +174,11 @@ namespace Shared.ProcessFlowDiagram.Columns
             // Puertos dinámicos - Feed
             if (portName.StartsWith("Feed_"))
             {
+                if (_feedStreamsByPortName.TryGetValue(portName, out var mappedStream))
+                {
+                    return mappedStream;
+                }
+
                 int index = ExtractPortIndex(portName, "Feed_");
                 if (index >= 0 && index < Column.Feeds.Count)
                     return Column.Feeds[index];
@@ -141,6 +187,11 @@ namespace Shared.ProcessFlowDiagram.Columns
             // Puertos dinámicos - SideDraw
             if (portName.StartsWith("SideDraw_"))
             {
+                if (_sideDrawStreamsByPortName.TryGetValue(portName, out var mappedStream))
+                {
+                    return mappedStream;
+                }
+
                 int index = ExtractPortIndex(portName, "SideDraw_");
                 if (index >= 0 && index < Column.SideDraws.Count)
                     return Column.SideDraws[index];
@@ -180,13 +231,21 @@ namespace Shared.ProcessFlowDiagram.Columns
             // Puertos dinámicos - Feed
             else if (portName.StartsWith("Feed_"))
             {
-                Column.AddFeed(connectedFacade);
+                if (!_feedStreamsByPortName.ContainsKey(portName))
+                {
+                    _feedStreamsByPortName[portName] = connectedFacade;
+                    Column.AddFeed(connectedFacade);
+                }
                 RefreshDynamicPorts();
             }
             // Puertos dinámicos - SideDraw
             else if (portName.StartsWith("SideDraw_"))
             {
-                Column.AddSideDraw(connectedFacade);
+                if (!_sideDrawStreamsByPortName.ContainsKey(portName))
+                {
+                    _sideDrawStreamsByPortName[portName] = connectedFacade;
+                    Column.AddSideDraw(connectedFacade);
+                }
                 RefreshDynamicPorts();
             }
         }
@@ -213,20 +272,34 @@ namespace Shared.ProcessFlowDiagram.Columns
             // Puertos dinámicos - Feed
             else if (portName.StartsWith("Feed_"))
             {
-                int index = ExtractPortIndex(portName, "Feed_");
-                if (index >= 0 && index < Column.Feeds.Count)
+                if (_feedStreamsByPortName.Remove(portName, out var mappedStream))
                 {
-                    Column.RemoveFeed(Column.Feeds[index]);
+                    Column.RemoveFeed(mappedStream);
+                }
+                else
+                {
+                    int index = ExtractPortIndex(portName, "Feed_");
+                    if (index >= 0 && index < Column.Feeds.Count)
+                    {
+                        Column.RemoveFeed(Column.Feeds[index]);
+                    }
                 }
                 RefreshDynamicPorts();
             }
             // Puertos dinámicos - SideDraw
             else if (portName.StartsWith("SideDraw_"))
             {
-                int index = ExtractPortIndex(portName, "SideDraw_");
-                if (index >= 0 && index < Column.SideDraws.Count)
+                if (_sideDrawStreamsByPortName.Remove(portName, out var mappedStream))
                 {
-                    Column.RemoveSideDraw(Column.SideDraws[index]);
+                    Column.RemoveSideDraw(mappedStream);
+                }
+                else
+                {
+                    int index = ExtractPortIndex(portName, "SideDraw_");
+                    if (index >= 0 && index < Column.SideDraws.Count)
+                    {
+                        Column.RemoveSideDraw(Column.SideDraws[index]);
+                    }
                 }
                 RefreshDynamicPorts();
             }

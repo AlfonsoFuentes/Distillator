@@ -1,75 +1,64 @@
-﻿
+<div class="stream-main-panel">
+    <div class="data-grid conditions-grid-three-col">
+        <div class="grid-header">Property</div>
+        <div class="grid-header">Value</div>
 
+        <UnifiedNameRow Label="Stream Name"
+                        Value="@Facade.Name"
+                        ValueChanged="RenameStream"
+                        IsDuplicate="CheckDuplicateName"
+                        OnGenerate="GenerateUniqueStreamName"
+                        AllowManualEdit="false"
+                        Mode="VariableMode.Compact" />
 
- <div class="data-grid conditions-grid-three-col">
+        <VariablePercentageRow Label="Vapor Fraction"
+                               @bind-Variable="Facade.VaporFraction"
+                               @bind-Variable:after="NotifyStreamUpdated"
+                               Mode="VariableMode.Compact" />
 
-    @* 1. HEADERS *@
-    <div class="grid-header">Property</div>
-    <div class="grid-header">Value</div>
+        <VariableAmountRow Label="Temperature" @bind-Variable="Facade.Temperature" @bind-Variable:after="NotifyStreamUpdated" Mode="VariableMode.Compact" />
 
-  
-@* 2. STREAM NAME *@
-    <UnifiedNameRow Label="Stream Name"
-                    @bind-Value="Facade.Name"
-                    IsDuplicate="CheckDuplicateName"
-                    OnGenerate="GenerateUniqueStreamName"
-                    Mode="VariableMode.Compact" />
+        <VariableAmountRow Label="Pressure" @bind-Variable="Facade.Pressure" @bind-Variable:after="NotifyStreamUpdated" Mode="VariableMode.Compact" />
 
+        <VariableAmountRow Label="Mass Flow" @bind-Variable="Facade.MassFlow" @bind-Variable:after="NotifyStreamUpdated" Mode="VariableMode.Compact" />
 
+        <VariableAmountRow Label="Molar Flow" @bind-Variable="Facade.MolarFlow" @bind-Variable:after="NotifyStreamUpdated" Mode="VariableMode.Compact" />
 
+        <VariableAmountRow Label="Volumetric Flow" @bind-Variable="Facade.VolumetricFlow" @bind-Variable:after="NotifyStreamUpdated" Mode="VariableMode.Compact" />
 
-
-
- <VariablePercentageRow Label="Vapor Fraction"
-                      @bind-Variable="Facade.VaporFraction"
-                      Mode="VariableMode.Compact"/>
-
-@* 5. PROPIEDADES CON NUEVO COMPONENTE (2 celdas del componente + 1 placeholder manual) *@
-
-<VariableAmountRow Label="Temperature" @bind-Variable="Facade.Temperature" Mode="VariableMode.Compact" />
-
-<VariableAmountRow Label="Pressure" @bind-Variable="Facade.Pressure" Mode="VariableMode.Compact" />
-
-
-<VariableAmountRow Label="Mass Flow" @bind-Variable="Facade.MassFlow" Mode="VariableMode.Compact" />
-
-
-<VariableAmountRow Label="Molar Flow" @bind-Variable="Facade.MolarFlow" Mode="VariableMode.Compact" />
-
-
-<VariableAmountRow Label="Volumetric Flow" @bind-Variable="Facade.VolumetricFlow" Mode="VariableMode.Compact" />
-
-
-<VariableAmountRow Label="Heat Flow" @bind-Variable="Facade.EnthalpyFlow" Mode="VariableMode.Compact" IsReadOnly="true" />
-
-
-</div> 
+        <VariableAmountRow Label="Heat Flow" @bind-Variable="Facade.EnthalpyFlow" Mode="VariableMode.Compact" IsReadOnly="true" />
+    </div>
+</div>
 
 @code {
     [Parameter, EditorRequired] public IFacadeStream Facade { get; set; } = default!;
-    // [Parameter, EditorRequired] public List<ThermodynamicMethodFullDto> AvailableMethods { get; set; } = new();
+    [Parameter] public EventCallback OnStreamUpdated { get; set; }
 
     private bool CheckDuplicateName(string newName)
     {
-        return FSM?.Elements?.Any(e => e.Name.Equals(newName, StringComparison.OrdinalIgnoreCase) && e.Id != Facade?.Id) == true;
+        return FSM?.IsStreamNameDuplicated(Facade, newName) == true;
     }
 
-    /*
-    // --- CÓDIGO VIEJO (WM) PARA REFERENCIA ---
-    // WM.Elements → FSM.Elements
-    */
+    private void RenameStream(string newName)
+    {
+        if (FSM?.RenameStream(Facade, newName) == true)
+        {
+            StateHasChanged();
+        }
+    }
 
     private void GenerateUniqueStreamName()
     {
         if (FSM == null || Facade == null) return;
 
-        Facade.Name = FSM.GenerateNextName("Stream");
-        StateHasChanged();
+        RenameStream(FSM.GenerateNextName("Stream"));
     }
 
-    /*
-    // --- CÓDIGO VIEJO (NamingService) PARA REFERENCIA ---
-    // NamingService.GenerateNextName("S") → FSM.GenerateNextName("Stream")
-    */
-  
+    private async Task NotifyStreamUpdated()
+    {
+        if (OnStreamUpdated.HasDelegate)
+        {
+            await OnStreamUpdated.InvokeAsync();
+        }
+    }
 }

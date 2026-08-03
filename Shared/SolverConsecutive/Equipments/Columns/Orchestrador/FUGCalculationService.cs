@@ -1,4 +1,4 @@
-﻿using Shared.SolverQwen.Stream;
+using Shared.SolverQwen.Stream;
 using Shared.Thermodynamics.Phases;
 using Shared.Thermodynamics.PureComponents;
 using Shared.UnitOperations.Streams;
@@ -23,14 +23,12 @@ namespace Shared.SolverConsecutive.Equipments.Columns.Orchestrador
         {
             if (_column.State != ColumnStateType.Solved)
             {
-                Console.WriteLine($"⚠️ FUG: Columna no está resuelta, saltando cálculo");
                 return;
             }
 
             // 🔥 Si la topología no cambió, usar caché (no recalcular)
             if (_column.Orchestrator != null && !_column.Orchestrator.TopologyChanged)
             {
-                Console.WriteLine($"✅ FUG: Topología sin cambios, usando caché");
                 return;
             }
 
@@ -45,7 +43,6 @@ namespace Shared.SolverConsecutive.Equipments.Columns.Orchestrador
                 {
                     if (refluxInlet == null || vaporOutlet == null || bottomOutlet == null || feeds.Count == 0)
                     {
-                        Console.WriteLine($"⚠️ FUG: Streams incompletos, retornando parámetros vacíos");
                         _column.Orchestrator?.SetDistillationParameters(CreateEmptyDistillationParameters());
                         return;
                     }
@@ -54,7 +51,6 @@ namespace Shared.SolverConsecutive.Equipments.Columns.Orchestrador
                         vaporOutlet.State != StreamStateType.Calculated ||
                         bottomOutlet.State != StreamStateType.Calculated)
                     {
-                        Console.WriteLine($"⚠️ FUG: Streams no calculadas, retornando parámetros vacíos");
                         _column.Orchestrator?.SetDistillationParameters(CreateEmptyDistillationParameters());
                         return;
                     }
@@ -66,7 +62,6 @@ namespace Shared.SolverConsecutive.Equipments.Columns.Orchestrador
 
                     if (D <= 0)
                     {
-                        Console.WriteLine($"⚠️ FUG: Flujo de destilado inválido (D={D}), retornando parámetros vacíos");
                         _column.Orchestrator?.SetDistillationParameters(CreateEmptyDistillationParameters());
                         return;
                     }
@@ -232,7 +227,6 @@ namespace Shared.SolverConsecutive.Equipments.Columns.Orchestrador
 
                         if (R_min < 0 || double.IsNaN(R_min) || double.IsInfinity(R_min))
                         {
-                            Console.WriteLine($"⚠️ FUG: R_min inválido ({R_min}), ajustando a 0");
                             R_min = 0;
                         }
                     }
@@ -249,7 +243,6 @@ namespace Shared.SolverConsecutive.Equipments.Columns.Orchestrador
                         N_th = (N_min + Y) / (1.0 - Y);
                     }
 
-                    Console.WriteLine($"✅ FUG calculado: R={R_actual:F2}, R_min={R_min:F2}, N_min={N_min:F1}, N_th={N_th:F1}");
 
                     var distParameter = new DistillationParameters
                     {
@@ -267,9 +260,8 @@ namespace Shared.SolverConsecutive.Equipments.Columns.Orchestrador
                     };
                     _column.Orchestrator?.SetDistillationParameters(distParameter);
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
-                    Console.WriteLine($"❌ Error en FUG: {ex.Message}");
                     _column.Orchestrator?.SetDistillationParameters(CreateEmptyDistillationParameters());
                 }
             }, cancellationToken);
@@ -314,7 +306,6 @@ namespace Shared.SolverConsecutive.Equipments.Columns.Orchestrador
                 //    _ => 1.0 - feedVF  // Fallback
                 //};
 
-                Console.WriteLine($"🔍 FUG: q (placeholder) = {q:F2}, Estado = {feedMaterial.ThermodynamicState}");
 
 
                 return q;

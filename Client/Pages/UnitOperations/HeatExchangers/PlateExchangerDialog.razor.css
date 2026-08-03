@@ -53,7 +53,7 @@
     gap: 6px;
 }
 
-/* Etiquetas y Colores Térmicos */
+/* Etiquetas y colores de lados */
 .port-label {
     font-size: 0.8rem;
     font-weight: 700;
@@ -69,10 +69,10 @@
     text-transform: uppercase;
 }
 
-.hot-label {
-    color: #EF4444; /* Rojo para corrientes calientes */
+.side-a-label {
+    color: #7C3AED;
 }
 
-.cold-label {
-    color: #3B82F6; /* Azul para corrientes frías */
+.side-b-label {
+    color: #0891B2;
 }

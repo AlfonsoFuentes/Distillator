@@ -141,9 +141,7 @@ namespace Shared.SolverConsecutive.Equipments
             yield return new HXMassBalanceColdSideEquation(this);
             yield return new HXMassEnergyBalanceHotSideEquation(this);
             yield return new HXMassEnergyBalanceColdSideEquation(this);
-            // Backup legacy: la V2 de specifications usa las ecuaciones MassBalance regulares.
-            // yield return new HXMassBalanceColdSideEquationSpec(this);
-            // yield return new HXMassBalanceHotSideEquationSpec(this);
+          
         }
        
     }
@@ -430,85 +428,5 @@ namespace Shared.SolverConsecutive.Equipments
         }
     }
 
-    /*
-    // Backup legacy: la V2 de specifications usa las ecuaciones MassBalance regulares.
-    public class HXMassBalanceHotSideEquationSpec : ISpecSolverEquation
-    {
-        public SolverEquationTypeModifier EquationTypeModifer { get; } = SolverEquationTypeModifier.Spec;
-        SolverHeatExchanger hx;
-        public HXMassBalanceHotSideEquationSpec(SolverHeatExchanger _hx) => hx = _hx;
-        public string Name => $"{EquationType} - Hot Side - {hx.Name}";
-        public SolverEquationType EquationType => SolverEquationType.MassBalance;
-        public List<double> Residuals => GetResiduals();
-        public List<IVariable> Variables => GetVariables();
-
-        List<double> GetResiduals()
-        {
-            List<double> r = new();
-            if (hx.HotInlet == null || hx.HotOutlet == null) return r;
-            r.Add(hx.HotInlet.MassFlow.GetSolverValue() - hx.HotOutlet.MassFlow.GetSolverValue());
-
-            return r;
-        }
-        List<IVariable> GetVariables()
-        {
-            List<IVariable> v = new();
-            if (hx.HotInlet == null || hx.HotOutlet == null) return v;
-            v.Add(hx.HotInlet.MassFlow);
-            v.Add(hx.HotOutlet.MassFlow);
-
-            return v;
-        }
-        public IEnumerable<IFacadeStream> AsociatedStreams
-        {
-            get
-            {
-                if (hx.HotInlet != null)
-                    yield return hx.HotInlet;
-
-                if (hx.HotOutlet != null)
-                    yield return hx.HotOutlet;
-            }
-        }
-    }
-    public class HXMassBalanceColdSideEquationSpec : ISpecSolverEquation
-    {
-        public SolverEquationTypeModifier EquationTypeModifer { get; } = SolverEquationTypeModifier.Spec;
-        SolverHeatExchanger hx;
-        public HXMassBalanceColdSideEquationSpec(SolverHeatExchanger _hx) => hx = _hx;
-        public string Name => $"{EquationType} - Cold Side - {hx.Name}";
-        public SolverEquationType EquationType => SolverEquationType.MassBalance;
-        public List<double> Residuals => GetResiduals();
-        public List<IVariable> Variables => GetVariables();
-
-        List<double> GetResiduals()
-        {
-            List<double> r = new();
-            if (hx.ColdInlet == null || hx.ColdOutlet == null) return r;
-            r.Add(hx.ColdInlet.MassFlow.GetSolverValue() - hx.ColdOutlet.MassFlow.GetSolverValue());
-
-            return r;
-        }
-        List<IVariable> GetVariables()
-        {
-            List<IVariable> v = new();
-            if (hx.ColdInlet == null || hx.ColdOutlet == null) return v;
-            v.Add(hx.ColdInlet.MassFlow);
-            v.Add(hx.ColdOutlet.MassFlow);
-
-            return v;
-        }
-        public IEnumerable<IFacadeStream> AsociatedStreams
-        {
-            get
-            {
-                if (hx.ColdInlet != null)
-                    yield return hx.ColdInlet;
-
-                if (hx.ColdOutlet != null)
-                    yield return hx.ColdOutlet;
-            }
-        }
-    }
-    */
+    
 }

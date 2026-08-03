@@ -22,6 +22,7 @@ namespace Server.Entities.Projects.Configurations
             builder.Property(x => x.EntityType).IsRequired().HasMaxLength(80);
             builder.Property(x => x.EntityId).IsRequired().HasMaxLength(80);
             builder.Property(x => x.Path).IsRequired().HasMaxLength(240);
+            builder.Property(x => x.OperationId);
             builder.Property(x => x.OldValueJson).HasColumnType("jsonb");
             builder.Property(x => x.NewValueJson).HasColumnType("jsonb");
 
@@ -37,6 +38,8 @@ namespace Server.Entities.Projects.Configurations
 
             builder.HasIndex(x => new { x.TenantId, x.ProjectId, x.ProjectVersion });
             builder.HasIndex(x => new { x.TenantId, x.ProjectId, x.OccurredOnUtc });
+            builder.HasIndex(x => new { x.TenantId, x.ProjectId, x.UserId, x.OperationId })
+                .HasFilter("\"OperationId\" IS NOT NULL");
         }
     }
 }

@@ -52,21 +52,7 @@ public static class FacadeStateSerializer
         {
             if (!variablesByPath.TryGetValue(variableState.Path, out var variable)) continue;
 
-            var valueUnit = ResolveUnit(variableState.ValueUnitName);
-            var displayUnit = ResolveUnit(variableState.DisplayUnitName);
-            if (valueUnit == null) continue;
-
-            variable.RestorePersistedState(
-                variableState.IsDefined,
-                variableState.Value,
-                valueUnit,
-                ParseEnum(variableState.DataProcedence, VariableDefinedBy.Undefined),
-                displayUnit,
-                variableState.HasDisplayUnitOverride,
-                restoreProjectDefaultDisplayUnits,
-                variableState.DefinedByUserId,
-                variableState.DefinedByUserName,
-                variableState.DefinedAtUtc);
+            TryRestoreVariableState(variable, variableState, restoreProjectDefaultDisplayUnits);
         }
 
         foreach (var propertyState in snapshot.Properties ?? new List<FacadePropertyState>())
@@ -85,6 +71,59 @@ public static class FacadeStateSerializer
                 // El estado viejo o incompatible se ignora para mantener compatibilidad.
             }
         }
+    }
+
+    public static bool ApplyNewerUserInputStates(
+        IFacade? facade,
+        string? facadeStateJson,
+        string? userId,
+        bool restoreProjectDefaultDisplayUnits = false)
+    {
+        if (facade == null || string.IsNullOrWhiteSpace(facadeStateJson) || string.IsNullOrWhiteSpace(userId))
+        {
+            return false;
+        }
+
+        FacadeStateSnapshot? snapshot;
+        try
+        {
+            snapshot = JsonSerializer.Deserialize<FacadeStateSnapshot>(facadeStateJson, JsonOptions);
+        }
+        catch
+        {
+            return false;
+        }
+
+        if (snapshot?.Variables == null || snapshot.Variables.Count == 0)
+        {
+            return false;
+        }
+
+        var variablesByPath = new Dictionary<string, IVariable>(StringComparer.OrdinalIgnoreCase);
+        var propertiesByPath = new Dictionary<string, PropertyTarget>(StringComparer.OrdinalIgnoreCase);
+        IndexStateTargets(facade, string.Empty, variablesByPath, propertiesByPath, new HashSet<object>(ReferenceEqualityComparer.Instance));
+
+        var changed = false;
+        foreach (var variableState in snapshot.Variables)
+        {
+            if (!variableState.IsDefined ||
+                variableState.DefinedAtUtc == null ||
+                !string.Equals(variableState.DefinedByUserId, userId, StringComparison.OrdinalIgnoreCase) ||
+                ParseEnum(variableState.DataProcedence, VariableDefinedBy.Undefined) != VariableDefinedBy.UserInput ||
+                !variablesByPath.TryGetValue(variableState.Path, out var variable))
+            {
+                continue;
+            }
+
+            if (variable.DefinedAtUtc.HasValue && variable.DefinedAtUtc.Value >= variableState.DefinedAtUtc.Value)
+            {
+                continue;
+            }
+
+            changed |= TryRestoreVariableState(variable, variableState, restoreProjectDefaultDisplayUnits);
+        }
+
+        return changed;
     }
 
     private static void CaptureObject(
@@ -302,6 +341,30 @@ public static class FacadeStateSerializer
         where TEnum : struct
     {
         return Enum.TryParse<TEnum>(value, true, out var parsed) ? parsed : fallback;
+    }
+
+    private static bool TryRestoreVariableState(
+        IVariable variable,
+        FacadeVariableState variableState,
+        bool restoreProjectDefaultDisplayUnits)
+    {
+        var valueUnit = ResolveUnit(variableState.ValueUnitName);
+        var displayUnit = ResolveUnit(variableState.DisplayUnitName);
+        if (valueUnit == null) return false;
+
+        variable.RestorePersistedState(
+            variableState.IsDefined,
+            variableState.Value,
+            valueUnit,
+            ParseEnum(variableState.DataProcedence, VariableDefinedBy.Undefined),
+            displayUnit,
+            variableState.HasDisplayUnitOverride,
+            restoreProjectDefaultDisplayUnits,
+            variableState.DefinedByUserId,
+            variableState.DefinedByUserName,
+            variableState.DefinedAtUtc);
+
+        return true;
     }
 
     private static string UnitName(UnitMeasure? unit)

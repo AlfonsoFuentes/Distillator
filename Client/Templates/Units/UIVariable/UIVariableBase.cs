@@ -1,5 +1,6 @@
 ﻿using Client.Services.ProjectWorkspace;
 using Client.Services.Security;
+using Distillator.Domain.Inputs;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Shared.SolverConsecutive;
@@ -12,6 +13,7 @@ namespace Client.Templates.Units.UIVariable
     public abstract class UIVariableBase<T> : ComponentBase, IDisposable where T : Amount
     {
         [Inject] protected FlowsheetManager FlowsheetManager { get; set; } = null!;
+        [Inject] protected VariableInputCommandHandler VariableInputCommandHandler { get; set; } = null!;
         [Inject] protected CustomAuthenticationStateProvider UserAuthProvider { get; set; } = null!;
         [Parameter] public string Label { get; set; } = string.Empty;
         [Parameter] public Variable<T> Variable { get; set; } = default!;
@@ -113,19 +115,26 @@ namespace Client.Templates.Units.UIVariable
         {
             if (IsEffectivelyReadOnly) return;
 
-            // 🔥 Delete para borrar definición (comportamiento idéntico)
+            // Delete para borrar definicion.
             if (e.Key == "Delete")
             {
-                Variable?.ClearFromUI(); // 🔥 NUEVO: ClearFromUI en lugar de ClearValue
-                if (FlowsheetManager != null)
+                if (Variable != null)
                 {
-                    // Usa 'await' si tu interfaz dice: Task RunSimulation();
-                    // Usa llamada normal si dice: void RunSimulation();
-                    FlowsheetManager.RunSimulation();
+                    var result = VariableInputCommandHandler.Apply(new ClearVariableInputCommand<T>(Variable));
+                    if (VariableChanged.HasDelegate) await VariableChanged.InvokeAsync(Variable);
+
+                    if (result.Changed)
+                    {
+                        FlowsheetManager.MarkFacadeStateChanged();
+                    }
+
+                    if (result.ShouldRunSimulation && FlowsheetManager != null)
+                    {
+                        FlowsheetManager.RunSimulation();
+                    }
                 }
                 _isEditing = false;
                 _tempInputValue = null;
-                if (VariableChanged.HasDelegate) await VariableChanged.InvokeAsync(Variable);
                 return;
             }
 
@@ -169,20 +178,26 @@ namespace Client.Templates.Units.UIVariable
             var newVal = ProcessVariableHelper.ParseInput(_tempInputValue);
             if (newVal.HasValue && Variable?.Value != null)
             {
-                var currentUnit = Variable.UnitForUI; // 🔥 NUEVO: UnitForUI en lugar de GetPreferredUnit
+                var currentUnit = Variable.UnitForUI;
                 if (currentUnit != null && newVal.HasValue)
                 {
-                    // Usar el factory para crear nueva instancia del tipo T
-
-                    var newValue = Variable.Value;
-                    newValue.SetValue(newVal.Value, currentUnit); // 🔥 NUEVO: SetValue con valor y unidad
-
                     var user = UserAuthProvider.CurrentUser;
-                    Variable.SetValueFromUI(newValue, user?.Id.ToString(), user?.DisplayName);
-                    if (FlowsheetManager != null)
+                    var result = VariableInputCommandHandler.Apply(
+                        new SetVariableInputCommand<T>(
+                            Variable,
+                            newVal.Value,
+                            currentUnit,
+                            user?.Id.ToString(),
+                            user?.DisplayName));
+                    if (VariableChanged.HasDelegate) await VariableChanged.InvokeAsync(Variable);
+
+                    if (result.Changed)
                     {
-                        // Usa 'await' si tu interfaz dice: Task RunSimulation();
-                        // Usa llamada normal si dice: void RunSimulation();
+                        FlowsheetManager.MarkFacadeStateChanged();
+                    }
+
+                    if (result.ShouldRunSimulation && FlowsheetManager != null)
+                    {
                         FlowsheetManager.RunSimulation();
                     }
                 }
@@ -190,7 +205,6 @@ namespace Client.Templates.Units.UIVariable
 
             _isEditing = false;
             _tempInputValue = null;
-            if (VariableChanged.HasDelegate) await VariableChanged.InvokeAsync(Variable);
         }
 
         protected async Task EnterEditMode()
@@ -215,9 +229,17 @@ namespace Client.Templates.Units.UIVariable
         protected async Task SelectUnit(UnitMeasure unit)
         {
             if (Variable == null) return;
-            Variable.ChangeUnitForUI(unit); // 🔥 NUEVO: ChangeUnitForUI en lugar de SetPreferredUnit
+            if (Variable.UnitForUI == unit)
+            {
+                _showUnitSelector = false;
+                StateHasChanged();
+                return;
+            }
+
+            Variable.ChangeUnitForUI(unit);
             _showUnitSelector = false;
             if (VariableChanged.HasDelegate) await VariableChanged.InvokeAsync(Variable);
+            FlowsheetManager.MarkFacadeStateChanged();
             StateHasChanged(); // Forzar re-render para actualizar display
         }
     }

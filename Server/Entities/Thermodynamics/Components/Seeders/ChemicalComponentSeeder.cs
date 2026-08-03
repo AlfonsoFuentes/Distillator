@@ -5,6 +5,7 @@ using Server.Entities.BaseStructure.Components;
 using System.Globalization;
 using System.Text;
 using UnitSystem;
+using Shared.PropertiesDtos.Components;
 
 namespace Server.Data.Seeders
 {
@@ -48,6 +49,7 @@ namespace Server.Data.Seeders
             string[] prefixes = { "PV", "CV", "CPL", "CPG", "VL", "VV", "CTL", "CTV", "DE", "TS" };
             foreach (var p in prefixes)
             {
+                header.Add($"{p}_EquationType");
                 for (int i = 1; i <= 7; i++) header.Add($"{p}_C{i}");
                 header.Add($"{p}_Tmin"); header.Add($"{p}_Tmax");
             }
@@ -58,55 +60,55 @@ namespace Server.Data.Seeders
 
             // ETANOL
             sb.Append("Etanol;C2H6O;C2H5OH;Alcohol;Primary;46.06904;514;6137;351.44;159.05;0.168;0.1752;0.24;0.644;0.644;-234950000;-167850000;280.64;-1235000000;");
-            sb.Append("61.791;-7122.3;0;0;-7.1424;2.8853E-06;2;159.05;514;"); // PV
-            sb.Append("55789000;0.31245;0;0;0;0;0;159.05;514;"); // CV
-            sb.Append("102640;-139.63;-0.030341;0.0020386;0;0;0;159.05;390;"); // CPL
-            sb.Append("49232;145.5;0.000166;139.4;744.7;0;0;273.15;1500;"); // CPG
-            sb.Append("-14.187;1389.5;-3.0418;0;0;0;0;200;440;"); // VL
-            sb.Append("0.1249;0.8247;52.7;0;0;0;0;273.15;1000;"); // VV
-            sb.Append("0.2222;-0.000264;0;0;0;0;0;159.05;351.44;"); // CTL
-            sb.Append("0.00115;0.7082;2684.3;-268000;0;0;0;273.15;1000;"); // CTV
-            sb.Append("1.6288;0.27469;514;0.23177;0;0;0;159.05;514;"); // DE
-            sb.AppendLine("37.64;-0.02157;1.233;0;0;0;0;159.05;503.15"); // TS
+            sb.Append("ExtendedAntoine;61.791;-7122.3;0;0;-7.1424;2.8853E-06;2;159.05;514;"); // PV
+            sb.Append("Dippr106;55789000;0.31245;0;0;0;0;0;159.05;514;"); // CV
+            sb.Append("Polynomial;102640;-139.63;-0.030341;0.0020386;0;0;0;159.05;390;"); // CPL
+            sb.Append("AlyLee;49232;145.5;0.000166;139.4;744.7;0;0;273.15;1500;"); // CPG
+            sb.Append("Dippr101;-14.187;1389.5;-3.0418;0;0;0;0;200;440;"); // VL
+            sb.Append("Dippr102;0.1249;0.8247;52.7;0;0;0;0;273.15;1000;"); // VV
+            sb.Append("Ppds8;0.1112096;0;0;1.218333669;0;0;0;159.05;513.99;"); // CTL
+            sb.Append("PolynomialRational;0.00115;0.7082;2684.3;-268000;0;0;0;273.15;1000;"); // CTV
+            sb.Append("Rackett;1.6288;0.27469;514;0.23177;0;0;0;159.05;514;"); // DE
+            sb.AppendLine("Dippr106;37.64;-0.02157;1.233;0;0;0;0;159.05;503.15"); // TS
 
             // AGUA (H2O) - Datos especiales de tus capturas
             sb.Append("Agua;H2O;H2O;Inorganic;Water;18.0151;647.096;22064;373.14;273.15;0.0559;0.0436;0.229;0.344;0.344;-242000;-229000;188.724;0;");
-            sb.Append("62.136;-7258.2;0;0;-7.3037;4.17E-06;2;273.16;647.1;"); // PV
-            sb.Append("52100000;0.3199;-0.212;0.25795;0;0;0;1.85;373.98;"); // CV
-            sb.Append("0;0;0;0;0;0;0;0;0;"); // CPL (Ceros según imagen)
-            sb.Append("33363;26790;2610.5;8896;1169;0;0;-173.15;2000;"); // CPG
-            sb.Append("-52.12;3603.5;5.22;-0.014;10;0;0;0.01;373;"); // VL
-            sb.Append("1.07E-07;0.88;0;0;0;0;0;273.15;800;"); // VV
-            sb.Append("0.000632;0.00757;-8.08E-06;1.86E-09;0;0;0;1;373.14;"); // CTL
-            sb.Append("6.2E-06;1.1;0;0;0;0;0;0.01;800;"); // CTV
-            sb.Append("-13.85;0.213;-0.00191;0;0;0;0;2;80;"); // DE
-            sb.AppendLine("177.66;-256.7;-360;1.9699;0;0;0;273.16;647.1"); // TS
+            sb.Append("IapwsSteamTables;62.136;-7258.2;0;0;-7.3037;4.17E-06;2;273.16;647.1;"); // PV
+            sb.Append("IapwsSteamTables;52100000;0.3199;-0.212;0.25795;0;0;0;1.85;373.98;"); // CV
+            sb.Append("IapwsSteamTables;0;0;0;0;0;0;0;0;0;"); // CPL (Ceros según imagen)
+            sb.Append("IapwsSteamTables;33363;26790;2610.5;8896;1169;0;0;-173.15;2000;"); // CPG
+            sb.Append("IapwsSteamTables;-52.12;3603.5;5.22;-0.014;10;0;0;0.01;373;"); // VL
+            sb.Append("IapwsSteamTables;1.07E-07;0.88;0;0;0;0;0;273.15;800;"); // VV
+            sb.Append("IapwsSteamTables;0.000632;0.00757;-8.08E-06;1.86E-09;0;0;0;1;373.14;"); // CTL
+            sb.Append("IapwsSteamTables;6.2E-06;1.1;0;0;0;0;0;0.01;800;"); // CTV
+            sb.Append("IapwsSteamTables;-13.85;0.213;-0.00191;0;0;0;0;2;80;"); // DE
+            sb.AppendLine("IapwsSteamTables;177.66;-256.7;-360;1.9699;0;0;0;273.16;647.1"); // TS
 
             // METANOL
             sb.Append("Metanol;CH4O;CH3OH;Alcohol;Primary;32.04216;512.5;8084;337.85;175.47;0.117;0.1198;0.224;0.565;0.565;-200940000;-162320000;239.88;-638200000;");
-            sb.Append("71.205;-6904.5;0;0;-8.8622;7.4664E-06;2;175.47;512.5;"); // PV
-            sb.Append("50451000;0.33594;0;0;0;0;0;175.47;512.5;"); // CV
-            sb.Append("105300;-362.23;0.9379;0;0;0;0;175.47;400;"); // CPL
-            sb.Append("40152;31046;1468;25850;170.3;0;0;273.15;1500;"); // CPG
-            sb.Append("-20.158;1389.2;2.069;0;0;0;0;175.47;337.85;"); // VL
-            sb.Append("0.0125;0.8904;205;0;0;0;0;273.15;1000;"); // VV
-            sb.Append("0.2312;-0.000251;0;0;0;0;0;175.47;337.85;"); // CTL
-            sb.Append("5.7992E-07;1.109;0;0;0;0;0;273.15;684.37;"); // CTV
-            sb.Append("2.288;0.2685;512.5;0.2319;0;0;0;175.47;512.5;"); // DE
-            sb.AppendLine("35.13;-0.00704;1.1895;0;0;0;0;175.47;337.85"); // TS
+            sb.Append("ExtendedAntoine;71.205;-6904.5;0;0;-8.8622;7.4664E-06;2;175.47;512.5;"); // PV
+            sb.Append("Dippr106;50451000;0.33594;0;0;0;0;0;175.47;512.5;"); // CV
+            sb.Append("Polynomial;105300;-362.23;0.9379;0;0;0;0;175.47;400;"); // CPL
+            sb.Append("AlyLee;40152;31046;1468;25850;170.3;0;0;273.15;1500;"); // CPG
+            sb.Append("Dippr101;-25.317;1789.2;2.069;0;0;0;0;175.47;337.85;"); // VL
+            sb.Append("Dippr102;0.0125;0.8904;205;0;0;0;0;273.15;1000;"); // VV
+            sb.Append("Polynomial4;0.2312;-0.000251;0;0;0;0;0;175.47;337.85;"); // CTL
+            sb.Append("PolynomialRational;5.7992E-07;1.109;0;0;0;0;0;273.15;684.37;"); // CTV
+            sb.Append("Rackett;2.288;0.2685;512.5;0.2319;0;0;0;175.47;512.5;"); // DE
+            sb.AppendLine("Dippr106;35.13;-0.00704;1.1895;0;0;0;0;175.47;337.85"); // TS
 
             // GLICEROL (Glicerina)
             sb.Append("Glicerol;C3H8O3;C3H5(OH)3;Alcohol;Polyol;92.09472;850;7500;561;291.33;0.264;0.4119;0.281;0.513;0.513;-577900000;-447100000;0;-1477000000;");
-            sb.Append("88.473;-13808;0;0;-10.088;3.5712E-19;6;291.33;850;"); // PV
-            sb.Append("11067000;0.48319;0;0;0;0;0;291.33;850;"); // CV
-            sb.Append("143530;241.3;-0.6276;0.00115;5.2837E-06;0;0;291.33;850;"); // CPL
-            sb.Append("96490;185.2;0.000215;163.4;832.5;0;0;273.15;1500;"); // CPG
-            sb.Append("-49.771;6173.3;4.314;2693000;-2;0;0;291.33;680;"); // VL
-            sb.Append("0.0401;0.902;0;0;0;0;0;273.15;1000;"); // VV
-            sb.Append("0.282;0.0001134;0;0;0;0;0;291.33;561;"); // CTL
-            sb.Append("-0.91351;0.1263;58.3;-4749600;0;0;0;273.15;1000;"); // CTV
-            sb.Append("0.92382;0.23512;850;0.2367;0;0;0;291.33;850;"); // DE
-            sb.AppendLine("63.145;-0.0016;1.08;0;0;0;0;291.33;453.15"); // TS
+            sb.Append("ExtendedAntoine;88.473;-13808;0;0;-10.088;3.5712E-19;6;291.33;850;"); // PV
+            sb.Append("Dippr106;11067000;0.48319;0;0;0;0;0;291.33;850;"); // CV
+            sb.Append("Polynomial;143530;241.3;-0.6276;0.00115;5.2837E-06;0;0;291.33;850;"); // CPL
+            sb.Append("AlyLee;96490;185.2;0.000215;163.4;832.5;0;0;273.15;1500;"); // CPG
+            sb.Append("Dippr101;120.62;-15959;-17.118;2693000;-2;0;0;291.33;680;"); // VL
+            sb.Append("Dippr102;0.0401;0.902;0;0;0;0;0;273.15;1000;"); // VV
+            sb.Append("Polynomial4;0.282;0.0001134;0;0;0;0;0;291.33;561;"); // CTL
+            sb.Append("PolynomialRational;-0.91351;0.1263;58.3;-4749600;0;0;0;273.15;1000;"); // CTV
+            sb.Append("Rackett;0.92382;0.23512;850;0.2367;0;0;0;291.33;850;"); // DE
+            sb.AppendLine("Dippr106;63.145;-0.0016;1.08;0;0;0;0;291.33;453.15"); // TS
 
             await File.WriteAllTextAsync(path, sb.ToString(), Encoding.UTF8);
         }
@@ -148,20 +150,84 @@ namespace Server.Data.Seeders
                     CombustionEnthalpy = new StoredAmount(D(idx++), MolarEnergyUnits.J_Kgmol.Name)
                 };
 
+                ApplyDefaultEquationTypes(comp);
+
+                comp.VaporPressureEquationType = ReadEquationType(r, ref idx, comp.VaporPressureEquationType);
                 comp.VaporPressure = MapCorr(r, ref idx);
+                comp.HeatOfVaporizationEquationType = ReadEquationType(r, ref idx, comp.HeatOfVaporizationEquationType);
                 comp.HeatOfVaporization = MapCorr(r, ref idx);
+                comp.LiquidHeatCapacityEquationType = ReadEquationType(r, ref idx, comp.LiquidHeatCapacityEquationType);
                 comp.LiquidHeatCapacity = MapCorr(r, ref idx);
+                comp.GasHeatCapacityEquationType = ReadEquationType(r, ref idx, comp.GasHeatCapacityEquationType);
                 comp.GasHeatCapacity = MapCorr(r, ref idx);
+                comp.LiquidViscosityEquationType = ReadEquationType(r, ref idx, comp.LiquidViscosityEquationType);
                 comp.LiquidViscosity = MapCorr(r, ref idx);
+                comp.GasViscosityEquationType = ReadEquationType(r, ref idx, comp.GasViscosityEquationType);
                 comp.GasViscosity = MapCorr(r, ref idx);
+                comp.LiquidThermalConductivityEquationType = ReadEquationType(r, ref idx, comp.LiquidThermalConductivityEquationType);
                 comp.LiquidThermalCond = MapCorr(r, ref idx);
+                comp.GasThermalConductivityEquationType = ReadEquationType(r, ref idx, comp.GasThermalConductivityEquationType);
                 comp.GasThermalCond = MapCorr(r, ref idx);
+                comp.LiquidDensityEquationType = ReadEquationType(r, ref idx, comp.LiquidDensityEquationType);
                 comp.Density = MapCorr(r, ref idx);
+                comp.SurfaceTensionEquationType = ReadEquationType(r, ref idx, comp.SurfaceTensionEquationType);
                 comp.SurfaceTension = MapCorr(r, ref idx);
 
                 list.Add(comp);
             }
             return list;
+        }
+
+        private static TEnum ReadEquationType<TEnum>(string[] r, ref int idx, TEnum defaultValue)
+            where TEnum : struct, Enum
+        {
+            if (idx < r.Length && Enum.TryParse<TEnum>(r[idx], ignoreCase: true, out var value))
+            {
+                idx++;
+                return value;
+            }
+
+            return defaultValue;
+        }
+
+        private static void ApplyDefaultEquationTypes(ChemicalComponent component)
+        {
+            bool isWater = component.Name.Equals("Agua", StringComparison.OrdinalIgnoreCase) ||
+                           component.Name.Equals("Water", StringComparison.OrdinalIgnoreCase);
+
+            if (isWater)
+            {
+                component.VaporPressureEquationType = VaporPressureEquationType.IapwsSteamTables;
+                component.SaturationTemperatureEquationType = SaturationTemperatureEquationType.IapwsSteamTables;
+                component.HeatOfVaporizationEquationType = HeatOfVaporizationEquationType.IapwsSteamTables;
+                component.LiquidHeatCapacityEquationType = LiquidHeatCapacityEquationType.IapwsSteamTables;
+                component.GasHeatCapacityEquationType = GasHeatCapacityEquationType.IapwsSteamTables;
+                component.LiquidViscosityEquationType = LiquidViscosityEquationType.IapwsSteamTables;
+                component.GasViscosityEquationType = GasViscosityEquationType.IapwsSteamTables;
+                component.LiquidThermalConductivityEquationType = LiquidThermalConductivityEquationType.IapwsSteamTables;
+                component.GasThermalConductivityEquationType = GasThermalConductivityEquationType.IapwsSteamTables;
+                component.LiquidDensityEquationType = LiquidDensityEquationType.IapwsSteamTables;
+                component.SurfaceTensionEquationType = SurfaceTensionEquationType.IapwsSteamTables;
+                component.LiquidEnthalpyEquationType = LiquidEnthalpyEquationType.IapwsSteamTables;
+                component.GasEnthalpyEquationType = GasEnthalpyEquationType.IapwsSteamTables;
+                component.SaturatedMolarVolumeEquationType = SaturatedMolarVolumeEquationType.IapwsSteamTables;
+                return;
+            }
+
+            component.VaporPressureEquationType = VaporPressureEquationType.ExtendedAntoine;
+            component.SaturationTemperatureEquationType = SaturationTemperatureEquationType.FromVaporPressureSecant;
+            component.HeatOfVaporizationEquationType = HeatOfVaporizationEquationType.Dippr106;
+            component.LiquidHeatCapacityEquationType = LiquidHeatCapacityEquationType.Polynomial;
+            component.GasHeatCapacityEquationType = GasHeatCapacityEquationType.AlyLee;
+            component.LiquidViscosityEquationType = LiquidViscosityEquationType.Dippr101;
+            component.GasViscosityEquationType = GasViscosityEquationType.Dippr102;
+            component.LiquidThermalConductivityEquationType = LiquidThermalConductivityEquationType.Polynomial4;
+            component.GasThermalConductivityEquationType = GasThermalConductivityEquationType.PolynomialRational;
+            component.LiquidDensityEquationType = LiquidDensityEquationType.Rackett;
+            component.SurfaceTensionEquationType = SurfaceTensionEquationType.Dippr106;
+            component.LiquidEnthalpyEquationType = LiquidEnthalpyEquationType.IntegratedLiquidCp;
+            component.GasEnthalpyEquationType = GasEnthalpyEquationType.IntegratedGasCpWithHvap;
+            component.SaturatedMolarVolumeEquationType = SaturatedMolarVolumeEquationType.Rackett;
         }
 
         private static CorrelationCoefficients MapCorr(string[] r, ref int idx)

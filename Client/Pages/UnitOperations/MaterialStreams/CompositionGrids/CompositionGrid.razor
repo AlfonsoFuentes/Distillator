@@ -26,7 +26,7 @@
             <div class="grid-cell value @(HasTooltip(comp, true) ? "has-tooltip" : "")" data-state="@GetCellState(comp, true)">
                 @if (IsCellReadOnly(comp, true))
                 {
-                    <span class="readonly-value">@FormatFraction(comp.MassFraction.GetDisplayValue())</span>
+                    <span class="readonly-value">@FormatReadonlyFraction(comp.MassFraction, true)</span>
                 }
                 else
                 {
@@ -48,7 +48,7 @@
             <div class="grid-cell value @(HasTooltip(comp, false) ? "has-tooltip" : "")" data-state="@GetCellState(comp, false)">
                 @if (IsCellReadOnly(comp, false))
                 {
-                    <span class="readonly-value">@FormatFraction(comp.MolarFraction.GetDisplayValue())</span>
+                    <span class="readonly-value">@FormatReadonlyFraction(comp.MolarFraction, false)</span>
                 }
                 else
                 {
@@ -110,6 +110,42 @@
         if (!string.IsNullOrWhiteSpace(variable.Source) && variable.Source != "Undefined")
             return $"Calculated by: {variable.Source}";
         return "Calculated from mixture";
+    }
+
+    private string FormatReadonlyFraction(Variable<Percentage> variable, bool isMass)
+    {
+        if (ShouldHideOppositeBasis(isMass))
+        {
+            return "<Not defined>";
+        }
+
+        return variable.IsDefined
+            ? FormatFraction(variable.GetDisplayValue())
+            : "<Not defined>";
+    }
+
+    private bool ShouldHideOppositeBasis(bool isMass)
+    {
+        var activeInputType = Variable.InputType;
+        if (activeInputType == ComponentInputType.None) return false;
+
+        var isOppositeBasis =
+            activeInputType == ComponentInputType.MassFraction && !isMass ||
+            activeInputType == ComponentInputType.MolarFraction && isMass;
+
+        return isOppositeBasis && !IsCompositionComplete(activeInputType);
+    }
+
+    private bool IsCompositionComplete(ComponentInputType inputType)
+    {
+        var variables = inputType == ComponentInputType.MassFraction
+            ? Variable.Components.Select(component => component.MassFraction)
+            : Variable.Components.Select(component => component.MolarFraction);
+
+        var values = variables.ToList();
+        return values.Count > 0 &&
+               values.All(variable => variable.IsDefined) &&
+               Math.Abs(values.Sum(variable => variable.GetDisplayValue()) - 100) <= 1.0e-6;
     }
 
     private bool ShouldGlBeReadOnly()
@@ -191,18 +227,22 @@
         if (ethanol != null && water != null)
         {
             var user = AuthProvider.CurrentUser;
-            ethanol.MassFraction.SetValueFromUI(new Percentage(massFraction, PercentageUnits.Percentage), user?.Id.ToString(), user?.DisplayName);
-            water.MassFraction.SetValueFromUI(new Percentage(100 - massFraction, PercentageUnits.Percentage), user?.Id.ToString(), user?.DisplayName);
+            var result = CompositionInputCommandHandler.Apply(
+                new Distillator.Domain.Inputs.SetEthanolWaterMassCompositionCommand(
+                    Variable,
+                    ethanol,
+                    water,
+                    massFraction,
+                    user?.Id.ToString(),
+                    user?.DisplayName));
 
-            Variable.InputType = ComponentInputType.MassFraction;
-
-            if (FSM != null)
+            await NotifyCompositionCommittedAsync();
+            if (result.ShouldRunSimulation && FSM != null)
             {
                 FSM.RunSimulation();
             }
 
-            if (VariableChanged.HasDelegate)
-                await VariableChanged.InvokeAsync(Variable);
+            FlowsheetManager?.MarkFacadeStateChanged();
 
             StateHasChanged();
         }

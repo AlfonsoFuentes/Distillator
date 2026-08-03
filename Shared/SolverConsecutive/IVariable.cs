@@ -1,4 +1,4 @@
-﻿using Shared.SolverQwen.Variables;
+using Shared.SolverQwen.Variables;
 using UnitSystem;
 
 namespace Shared.SolverConsecutive
@@ -165,7 +165,10 @@ namespace Shared.SolverConsecutive
             if ( _procedence == VariableDefinedBy.Undefined)
             {
             }
-            if (DataProcedence != _procedence) return;
+            if (DataProcedence != _procedence)
+            {
+                return;
+            }
 
             var oldIsSpecToEquilibrium = ShouldTriggerRecalculation;
             DataProcedence = VariableDefinedBy.Undefined;
@@ -232,7 +235,7 @@ namespace Shared.SolverConsecutive
             if (DataProcedence == VariableDefinedBy.Undefined)
                 return "<Not defined>";
 
-            double valueInDisplayUnit = _value.GetValue(DisplayUnit);
+            double valueInDisplayUnit = NormalizeDisplayValue(_value.GetValue(DisplayUnit));
             return $"{valueInDisplayUnit.ToString(format)} {DisplayUnit.Symbol}";
         }
 
@@ -279,10 +282,27 @@ namespace Shared.SolverConsecutive
             DefinedAtUtc = null;
         }
 
-        public double GetDisplayValue() => _value.GetValue(DisplayUnit);
+        public double GetDisplayValue() => NormalizeDisplayValue(_value.GetValue(DisplayUnit));
         public string GetDisplayUnit() => DisplayUnit.Symbol;
         public UnitMeasure UnitForUI => DisplayUnit;
         public void ChangeUnitForUI(UnitMeasure unit) => SetDisplayUnit(unit);
+
+        private static double NormalizeDisplayValue(double value)
+        {
+            const double tolerance = 1.0e-7;
+
+            if (Math.Abs(value) <= tolerance)
+            {
+                return 0.0;
+            }
+
+            if (typeof(T) == typeof(Percentage) && Math.Abs(value - 100.0) <= tolerance)
+            {
+                return 100.0;
+            }
+
+            return value;
+        }
     }
 
 }

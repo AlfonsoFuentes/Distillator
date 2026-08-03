@@ -1,4 +1,4 @@
-﻿using Shared.PropertiesDtos.Methods;
+using Shared.PropertiesDtos.Methods;
 using Shared.SolverQwen.Stream;
 using Shared.Thermodynamics.Componentes;
 using Shared.Thermodynamics.PureComponents;
@@ -294,9 +294,7 @@ namespace Shared.Thermodynamics.Phases
             double innerTol = 1e-3;
             int innerMaxIter = 50;
 
-#if DEBUG
             var sw = System.Diagnostics.Stopwatch.StartNew();
-#endif
 
             Temperature = temperature;
             Pressure = pressure;
@@ -458,11 +456,8 @@ namespace Shared.Thermodynamics.Phases
 
 
 
-#if DEBUG
             sw.Stop();
             bool converged = iter < outerMaxIter;
-            Console.WriteLine($"[DEBUG-PT] {(converged ? "✅" : "❌")} Flash PT Finalizado | VF: {vapfrac:F4} | Iters: {iter + 1} | T: {sw.Elapsed.TotalMilliseconds:F2} ms");
-#endif
         }
 
         private double[] InitializeKValuesWithPsat(Temperature t, Pressure p)
@@ -740,10 +735,6 @@ namespace Shared.Thermodynamics.Phases
             //double hRocio = propsRocio.molarEnthalpy.GetValue(MolarEnergyUnits.J_Kgmol);
             //double cpRocio = propsRocio.Cp.GetValue(MolarEntropyUnits.J_Kgmol_C);
 
-//#if DEBUG
-//            Console.WriteLine($"      [PH-Radar] Burbuja: T={tBurbuja:F2}K, H={hBurbuja:E4}, Cp={cpBurbuja:F2}");
-//            Console.WriteLine($"      [PH-Radar] Rocío:   T={tRocio:F2}K, H={hRocio:E4}, Cp={cpRocio:F2}");
-//#endif
             double tGuess = 300.0;
             //if (targetHmolar < hBurbuja)
             //{
@@ -766,17 +757,11 @@ namespace Shared.Thermodynamics.Phases
             //    tGuess = tBurbuja + fraccionTermica * (tRocio - tBurbuja);
 
             //}
-#if DEBUG
-            Console.WriteLine($"      [PH-Zona] Temperatura supuesta inicial. Guess preciso: {tGuess:F2} K");
-#endif
             return (tGuess, targetHmolar); // Placeholder - reemplazar con lógica real
         }
         public void PerformFlashPH(Pressure pressure, MassEnergy massenthalpy)
         {
-#if DEBUG
             var sw = System.Diagnostics.Stopwatch.StartNew();
-            Console.WriteLine($"\n[DEBUG-PH] ⚡ Iniciando Flash PH | P={pressure.GetValue(PressureUnits.Bara):F2} bar | H_mass={massenthalpy.GetValue(MassEnergyUnits.J_Kg):F2} J/kg");
-#endif
 
             _cachedK = null!; // Invalidamos la caché de K
 
@@ -804,11 +789,6 @@ namespace Shared.Thermodynamics.Phases
             var propsRocio = CalculateMolarEnthalpyOnly(tempRocio, new Percentage(100, PercentageUnits.Percentage));
             double hRocio = propsRocio.molarEnthalpy.GetValue(MolarEnergyUnits.J_Kgmol);
 
-#if DEBUG
-            Console.WriteLine($"      [PH-Radar] Burbuja: T={tBurbuja:F2}K ({tBurbuja - 273.15:F2}°C), H={hBurbuja:E4} J/kmol");
-            Console.WriteLine($"      [PH-Radar] Rocío:   T={tRocio:F2}K ({tRocio - 273.15:F2}°C), H={hRocio:E4} J/kmol");
-            Console.WriteLine($"      [PH-Radar] Target:  H={targetHmolar:E4} J/kmol");
-#endif
 
             // ====================================================================
             // 2. DETECCIÓN DE ZONA TERMODINÁMICA
@@ -816,15 +796,6 @@ namespace Shared.Thermodynamics.Phases
             bool isSubcooled = targetHmolar < hBurbuja;
             bool isSuperheated = targetHmolar > hRocio;
             bool isTwoPhase = !isSubcooled && !isSuperheated;
-
-#if DEBUG
-            if (isSubcooled)
-                Console.WriteLine($"      [PH-Zona] 💧 LÍQUIDO SUBENFRIADO (H < H_burbuja)");
-            else if (isSuperheated)
-                Console.WriteLine($"      [PH-Zona] 🔥 VAPOR SOBRECALENTADO (H > H_rocio)");
-            else
-                Console.WriteLine($"      [PH-Zona] 🌫️ MEZCLA BIFÁSICA (H_burbuja < H < H_rocio)");
-#endif
 
             // ====================================================================
             // 3. RESOLUCIÓN SEGÚN ZONA
@@ -852,9 +823,6 @@ namespace Shared.Thermodynamics.Phases
                 double vfGuess = (targetHmolar - hBurbuja) / (hRocio - hBurbuja);
                 vfGuess = Math.Max(0.01, Math.Min(0.99, vfGuess)); // Evitar 0 o 1 exactos
 
-#if DEBUG
-                Console.WriteLine($"      [PH-Bifásico] Resolviendo para VF | Guess inicial: {vfGuess:F4}");
-#endif
 
                 var res = ScalarNewtonSolver.Solve(funcVF, vfGuess, 1.0, H_NORM, TOL_ADIM, 25, HADMIN, "PH-VF");
 
@@ -878,9 +846,6 @@ namespace Shared.Thermodynamics.Phases
                 double tGuess = tBurbuja - Math.Min(20, (hBurbuja - targetHmolar) / 5000);
                 tGuess = Math.Max(273.15, tGuess); // No bajar de 0°C
 
-#if DEBUG
-                Console.WriteLine($"      [PH-Líquido] Resolviendo para T | Guess inicial: {tGuess:F2}K ({tGuess - 273.15:F2}°C)");
-#endif
 
                 var res = ScalarNewtonSolver.Solve(funcT, tGuess, T_NORM, H_NORM, TOL_ADIM, 25, HADMIN, "PH-LIQ");
 
@@ -904,9 +869,6 @@ namespace Shared.Thermodynamics.Phases
                 // Estimación: iniciar 10-50K por encima de T_rocio
                 double tGuess = tRocio + Math.Min(50, (targetHmolar - hRocio) / 2000);
 
-#if DEBUG
-                Console.WriteLine($"      [PH-Vapor] Resolviendo para T | Guess inicial: {tGuess:F2}K ({tGuess - 273.15:F2}°C)");
-#endif
 
                 var res = ScalarNewtonSolver.Solve(funcT, tGuess, T_NORM, H_NORM, TOL_ADIM, 25, HADMIN, "PH-VAP");
 
@@ -921,18 +883,11 @@ namespace Shared.Thermodynamics.Phases
             // ====================================================================
             Temperature = new Temperature(tFinal, TemperatureUnits.Kelvin);
 
-#if DEBUG
             sw.Stop();
-            Console.WriteLine($"[DEBUG-PH] ✅ Flash PH Finalizado | T final: {Temperature.GetValue(TemperatureUnits.DegreeCelcius):F2} °C | VF: {VaporFraction.GetValue(PercentageUnits.Percentage):F2}% | Estado: {CurrentState}");
-            Console.WriteLine($"[DEBUG-PH] ⏱️ Tiempo total PH: {sw.Elapsed.TotalMilliseconds:F2} ms\n");
-#endif
         }
         public void PerformFlashPH2(Pressure pressure, MassEnergy massenthalpy)
         {
-#if DEBUG
             var sw = System.Diagnostics.Stopwatch.StartNew();
-            Console.WriteLine($"\n[DEBUG-PH] ⚡ Iniciando Flash PH | P={pressure.GetValue(PressureUnits.Bara):F2} bar | H_mass={massenthalpy.GetValue(MassEnergyUnits.J_Kg):F2} J/kg");
-#endif
 
             _cachedK = null!; // Invalidamos la caché de K porque estamos cambiando la variable de control a P-H
 
@@ -963,11 +918,7 @@ namespace Shared.Thermodynamics.Phases
             // ====================================================================
             Temperature = new Temperature(tFinal, TemperatureUnits.Kelvin);
 
-#if DEBUG
             sw.Stop();
-            Console.WriteLine($"[DEBUG-PH] ✅ Flash PH Finalizado | T final: {Temperature.GetValue(TemperatureUnits.DegreeCelcius):F2} °C | Estado: {CurrentState}");
-            Console.WriteLine($"[DEBUG-PH] ⏱️HADMIN: {HADMIN} | TOL_ADIM: {TOL_ADIM} | H_NORM:{H_NORM} Tiempo total PH: {sw.Elapsed.TotalMilliseconds:F2} ms\n");
-#endif
         }
 
 

@@ -67,10 +67,13 @@ namespace Shared.SolverConsecutive.Equipments
         private IEnumerable<ISolverEquation> GetEquations()
         {
             yield return new MixerPressureEquation(this);
-            yield return new EquipmentMassBalanceEquation(this);
-            yield return new EquipmentMassEnergyBalanceEquation(this);
-            yield return new EquipmentComponentMassBalanceEquation(this);
-            yield return new EquipmentMassEnergyBalanceWithComponentsEquation(this);
+            yield return new MassFractionDistributorEquation(this);
+            yield return new GlobalMassBalanceEquation(this);
+            yield return new ComponentMassBalanceEquation(this);
+            yield return new ComponentMassBalanceByMassFlowEquation(this);
+            yield return new ComponentMassBalanceMixedEquation(this);
+            yield return new GlobalEnergyBalanceByMassEnthalpyEquation(this);
+            yield return new GlobalMassEnergyBalanceEquation(this);
 
         }
 

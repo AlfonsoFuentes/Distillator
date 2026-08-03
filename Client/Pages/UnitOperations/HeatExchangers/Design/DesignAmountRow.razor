@@ -1,0 +1,134 @@
+@using System.Globalization
+@using Shared.SolverConsecutive
+@using UnitSystem
+@typeparam T where T : Amount
+
+<div class="design-property-row @(ReadOnly ? "readonly" : null)">
+    <label>@Label</label>
+    <div class="design-value-cell amount-cell">
+        @if (ReadOnly)
+        {
+            <span class="readonly-value">@DisplayValue</span>
+        }
+        else
+        {
+            <input type="text"
+                   value="@DisplayValue"
+                   @onchange="OnValueChanged"
+                   aria-label="@Label" />
+        }
+
+        <span class="unit-label">@CurrentUnitLabel</span>
+
+        @if (AvailableUnits.Count > 1)
+        {
+            <button type="button"
+                    class="unit-trigger"
+                    aria-label="Change unit"
+                    @onclick="ToggleUnitPopup">
+                <span>▾</span>
+            </button>
+        }
+
+        @if (IsUnitPopupOpen)
+        {
+            <div class="unit-popup" @onmouseleave="CloseUnitPopup">
+                @foreach (var unit in AvailableUnits)
+                {
+                    <button type="button"
+                            class="unit-item @(IsSelected(unit) ? "selected" : null)"
+                            @onclick="() => SelectUnit(unit)">
+                        @unit.Symbol
+                    </button>
+                }
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public string Label { get; set; } = string.Empty;
+    [Parameter, EditorRequired] public Variable<T> Variable { get; set; } = default!;
+    [Parameter] public bool ReadOnly { get; set; }
+    [Parameter] public EventCallback<double> ValueChanged { get; set; }
+    [CascadingParameter] public DesignUnitPopupContext? UnitPopupContext { get; set; }
+
+    private bool showUnitPopup;
+    private readonly string unitPopupKey = Guid.NewGuid().ToString("N");
+
+    private bool IsUnitPopupOpen => UnitPopupContext is null
+        ? showUnitPopup
+        : UnitPopupContext.OpenKey == unitPopupKey;
+
+    private IReadOnlyList<UnitMeasure> AvailableUnits => Variable?.Value?.UnitsList ?? [];
+
+    private string DisplayValue => Variable.IsDefined
+        ? FormatNumber(Variable.Value.GetValue(Variable.DisplayUnit))
+        : string.Empty;
+
+    private string CurrentUnitLabel
+    {
+        get
+        {
+            return Variable.DisplayUnit.Symbol;
+        }
+    }
+
+    private async Task OnValueChanged(ChangeEventArgs e)
+    {
+        if (TryReadDouble(e, out var value))
+        {
+            await ValueChanged.InvokeAsync(value);
+        }
+    }
+
+    private void ToggleUnitPopup()
+    {
+        if (UnitPopupContext is not null)
+        {
+            UnitPopupContext.Toggle(unitPopupKey);
+            return;
+        }
+
+        showUnitPopup = !showUnitPopup;
+    }
+
+    private void CloseUnitPopup()
+    {
+        if (UnitPopupContext is not null)
+        {
+            UnitPopupContext.Close(unitPopupKey);
+            return;
+        }
+
+        showUnitPopup = false;
+    }
+
+    private void SelectUnit(UnitMeasure unit)
+    {
+        Variable.SetDisplayUnit(unit);
+        CloseUnitPopup();
+    }
+
+    private bool IsSelected(UnitMeasure unit) =>
+        string.Equals(unit.Name, Variable.DisplayUnit.Name, StringComparison.OrdinalIgnoreCase);
+
+    private static bool TryReadDouble(ChangeEventArgs e, out double value)
+    {
+        var text = e.Value?.ToString();
+        return double.TryParse(text, NumberStyles.Float, CultureInfo.CurrentCulture, out value) ||
+               double.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out value);
+    }
+
+    private static string FormatNumber(double value)
+    {
+        if (!double.IsFinite(value))
+        {
+            return string.Empty;
+        }
+
+        return Math.Abs(value) > 0d && Math.Abs(value) < 0.001d
+            ? value.ToString("0.######", CultureInfo.CurrentCulture)
+            : value.ToString("0.###", CultureInfo.CurrentCulture);
+    }
+}

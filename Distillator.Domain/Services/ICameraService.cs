@@ -21,12 +21,14 @@ public class CameraService : ICameraService
         double newZoom = flowsheet.Zoom * factor;
         newZoom = Math.Clamp(newZoom, flowsheet.Project.Configuration.CameraDefaults.MinZoom, flowsheet.Project.Configuration.CameraDefaults.MaxZoom);
 
-        double logicalX = (pointerX - flowsheet.PanX) / flowsheet.Zoom;
-        double logicalY = (pointerY - flowsheet.PanY) / flowsheet.Zoom;
+        double currentScale = Math.Max(flowsheet.Zoom * flowsheet.GlobalScale, 0.001);
+        double logicalX = (pointerX - flowsheet.PanX) / currentScale;
+        double logicalY = (pointerY - flowsheet.PanY) / currentScale;
 
         flowsheet.Zoom = newZoom;
-        flowsheet.PanX = pointerX - (logicalX * newZoom);
-        flowsheet.PanY = pointerY - (logicalY * newZoom);
+        double newScale = Math.Max(newZoom * flowsheet.GlobalScale, 0.001);
+        flowsheet.PanX = pointerX - (logicalX * newScale);
+        flowsheet.PanY = pointerY - (logicalY * newScale);
     }
 
     public void Pan(IFlowsheet flowsheet, double deltaX, double deltaY)
@@ -49,10 +51,16 @@ public class CameraService : ICameraService
         double contentHeight = maxY - minY;
         double padding = 100;
 
-        double scaleX = (screenWidth - padding) / contentWidth;
-        double scaleY = (screenHeight - padding) / contentHeight;
+        double availableWidth = Math.Max(1, screenWidth - padding);
+        double availableHeight = Math.Max(1, screenHeight - padding);
+        double globalScale = Math.Max(flowsheet.GlobalScale, 0.001);
+        double scaleX = availableWidth / Math.Max(1, contentWidth) / globalScale;
+        double scaleY = availableHeight / Math.Max(1, contentHeight) / globalScale;
         double newZoom = Math.Min(scaleX, scaleY);
-        newZoom = Math.Clamp(newZoom, 0.5, 1.2);
+        newZoom = Math.Clamp(
+            newZoom,
+            flowsheet.Project.Configuration.CameraDefaults.MinZoom,
+            flowsheet.Project.Configuration.CameraDefaults.MaxZoom);
 
         flowsheet.Zoom = newZoom;
         double effectiveScale = newZoom * flowsheet.GlobalScale;

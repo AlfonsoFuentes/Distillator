@@ -1,7 +1,6 @@
 ﻿.chart-container {
-    /* 🔥 LA MAGIA ESTÁ AQUÍ: Le damos un ancho físico fijo para obligar 
-       al 'fit-content' del MaterialStreamDialog a expandirse automáticamente */
-    width: 850px;
+    width: 100%;
+    max-width: 100%;
     margin: 0 auto;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     display: flex;

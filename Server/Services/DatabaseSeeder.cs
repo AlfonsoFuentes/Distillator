@@ -88,7 +88,7 @@ namespace Server.Services
             // Usar exactamente los mismos encabezados del método de semilla
             var h = new List<string> { "Name", "Formula", "Struct", "Fam", "SecFam", "MW", "Tc", "Pc", "Tb", "Tm", "Vc", "Va", "Zc", "Ac", "AcP", "EntH", "EntG", "EntS", "EntC" };
             string[] pref = { "PV", "CV", "CPL", "CPG", "VL", "VV", "CTL", "CTV", "DE", "TS" };
-            foreach (var p in pref) { for (int i = 1; i <= 7; i++) h.Add($"{p}_C{i}"); h.Add($"{p}_Tmin"); h.Add($"{p}_Tmax"); }
+            foreach (var p in pref) { h.Add($"{p}_EquationType"); for (int i = 1; i <= 7; i++) h.Add($"{p}_C{i}"); h.Add($"{p}_Tmin"); h.Add($"{p}_Tmax"); }
             sb.AppendLine(string.Join(";", h));
 
             var ci = CultureInfo.InvariantCulture;
@@ -107,16 +107,16 @@ namespace Server.Services
                 };
 
                 // Exportar correlaciones en estricto orden
-                AddCorrelationToRow(row, c.VaporPressure, ci);
-                AddCorrelationToRow(row, c.HeatOfVaporization, ci);
-                AddCorrelationToRow(row, c.LiquidHeatCapacity, ci);
-                AddCorrelationToRow(row, c.GasHeatCapacity, ci);
-                AddCorrelationToRow(row, c.LiquidViscosity, ci);
-                AddCorrelationToRow(row, c.GasViscosity, ci);
-                AddCorrelationToRow(row, c.LiquidThermalCond, ci);
-                AddCorrelationToRow(row, c.GasThermalCond, ci);
-                AddCorrelationToRow(row, c.Density, ci);
-                AddCorrelationToRow(row, c.SurfaceTension, ci);
+                AddCorrelationToRow(row, c.VaporPressureEquationType, c.VaporPressure, ci);
+                AddCorrelationToRow(row, c.HeatOfVaporizationEquationType, c.HeatOfVaporization, ci);
+                AddCorrelationToRow(row, c.LiquidHeatCapacityEquationType, c.LiquidHeatCapacity, ci);
+                AddCorrelationToRow(row, c.GasHeatCapacityEquationType, c.GasHeatCapacity, ci);
+                AddCorrelationToRow(row, c.LiquidViscosityEquationType, c.LiquidViscosity, ci);
+                AddCorrelationToRow(row, c.GasViscosityEquationType, c.GasViscosity, ci);
+                AddCorrelationToRow(row, c.LiquidThermalConductivityEquationType, c.LiquidThermalCond, ci);
+                AddCorrelationToRow(row, c.GasThermalConductivityEquationType, c.GasThermalCond, ci);
+                AddCorrelationToRow(row, c.LiquidDensityEquationType, c.Density, ci);
+                AddCorrelationToRow(row, c.SurfaceTensionEquationType, c.SurfaceTension, ci);
 
                 sb.AppendLine(string.Join(";", row));
             }
@@ -124,8 +124,11 @@ namespace Server.Services
             await File.WriteAllTextAsync(filePath, sb.ToString(), Encoding.UTF8);
         }
 
-        private static void AddCorrelationToRow(List<string> row, CorrelationCoefficients corr, CultureInfo ci)
+        private static void AddCorrelationToRow<TEnum>(List<string> row, TEnum equationType, CorrelationCoefficients corr, CultureInfo ci)
+            where TEnum : struct, Enum
         {
+            row.Add(equationType.ToString());
+
             if (corr == null)
             {
                 row.AddRange(new[] { "0", "0", "0", "0", "0", "0", "0", "0", "0" });

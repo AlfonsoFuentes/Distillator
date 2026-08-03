@@ -112,6 +112,11 @@
         visibility: visible;
     }
 
+    .mini-toolbar button.active {
+        color: #0EA5E9;
+        transform: translateY(-1px);
+    }
+
 .equipment-context-menu {
     position: absolute;
     z-index: 12000;

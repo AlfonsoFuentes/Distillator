@@ -11,6 +11,8 @@ namespace Shared.ProcessFlowDiagram.Vessels
         public const string PortMainOutletName = "Outlet_1";
 
         private SolverVessel Vessel => Facade as SolverVessel ?? throw new InvalidOperationException("Facade must be SolverVessel");
+        private readonly Dictionary<string, IFacadeStream> _inletStreamsByPortName = new(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, IFacadeStream> _outletStreamsByPortName = new(StringComparer.OrdinalIgnoreCase);
         public override EquipmentType Type => EquipmentType.Tank;
         public override string Prefix => "V";
 
@@ -85,9 +87,20 @@ namespace Shared.ProcessFlowDiagram.Vessels
             var inlets = Ports.Where(p => p.Name.StartsWith("Inlet")).ToList();
             if (!inlets.Any(p => p.ConnectedElementId == null))
             {
-                int nextIndex = inlets.Count + 1;
+                int nextIndex = inlets.Select(p => ExtractPortNumber(p.Name, "Inlet_")).DefaultIfEmpty(0).Max() + 1;
                 // 🚩 Nace en 0
                 AddPort($"Inlet_{nextIndex}", PortType.Inlet, 0, 0, PortDirection.Left);
+            }
+            else if (inlets.Count(p => p.ConnectedElementId == null) > 1)
+            {
+                var lastFree = inlets
+                    .Where(p => p.ConnectedElementId == null)
+                    .OrderByDescending(p => ExtractPortNumber(p.Name, "Inlet_"))
+                    .First();
+                foreach (var port in inlets.Where(p => p.ConnectedElementId == null && p != lastFree).ToList())
+                {
+                    Ports.Remove(port);
+                }
             }
         }
 
@@ -96,10 +109,40 @@ namespace Shared.ProcessFlowDiagram.Vessels
             var outlets = Ports.Where(p => p.Name.StartsWith("Outlet")).ToList();
             if (!outlets.Any(p => p.ConnectedElementId == null))
             {
-                int nextIndex = outlets.Count + 1;
+                int nextIndex = outlets.Select(p => ExtractPortNumber(p.Name, "Outlet_")).DefaultIfEmpty(0).Max() + 1;
                 // 🚩 Nace en Width
                 AddPort($"Outlet_{nextIndex}", PortType.Outlet, Width, 0, PortDirection.Right);
             }
+        }
+
+        public void EnsureDynamicPort(string portName)
+        {
+            if (!portName.StartsWith("Inlet_", StringComparison.OrdinalIgnoreCase) &&
+                !portName.StartsWith("Outlet_", StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+
+            if (Ports.Any(port => string.Equals(port.Name, portName, StringComparison.OrdinalIgnoreCase))) return;
+
+            if (portName.StartsWith("Inlet_", StringComparison.OrdinalIgnoreCase))
+            {
+                AddPort(portName, PortType.Inlet, 0, 0, PortDirection.Left);
+            }
+            else
+            {
+                AddPort(portName, PortType.Outlet, Width, 0, PortDirection.Right);
+            }
+
+            RefreshDynamicPorts();
+        }
+
+        private static int ExtractPortNumber(string name, string prefix)
+        {
+            return name.StartsWith(prefix, StringComparison.OrdinalIgnoreCase) &&
+                   int.TryParse(name[prefix.Length..], out var number)
+                ? number
+                : 0;
         }
 
         private int GetPortIndex(string name)
@@ -140,6 +183,11 @@ namespace Shared.ProcessFlowDiagram.Vessels
             // Entradas
             if (portName.StartsWith("Inlet_"))
             {
+                if (_inletStreamsByPortName.TryGetValue(portName, out var mappedStream))
+                {
+                    return mappedStream;
+                }
+
                 int index = ExtractPortIndex(portName, "Inlet_");
                 if (index >= 0 && index < Vessel.Inlets.Count)
                     return Vessel.Inlets[index];
@@ -147,6 +195,11 @@ namespace Shared.ProcessFlowDiagram.Vessels
             // Salidas
             else if (portName.StartsWith("Outlet_"))
             {
+                if (_outletStreamsByPortName.TryGetValue(portName, out var mappedStream))
+                {
+                    return mappedStream;
+                }
+
                 int index = ExtractPortIndex(portName, "Outlet_");
                 if (index >= 0 && index < Vessel.Outlets.Count)
                     return Vessel.Outlets[index];
@@ -159,12 +212,20 @@ namespace Shared.ProcessFlowDiagram.Vessels
         {
             if (portName.StartsWith("Inlet_"))
             {
-                Vessel.AddInlet(connectedFacade);
+                if (!_inletStreamsByPortName.ContainsKey(portName))
+                {
+                    _inletStreamsByPortName[portName] = connectedFacade;
+                    Vessel.AddInlet(connectedFacade);
+                }
                 RefreshDynamicPorts();
             }
             else if (portName.StartsWith("Outlet_"))
             {
-                Vessel.AddOutlet(connectedFacade);
+                if (!_outletStreamsByPortName.ContainsKey(portName))
+                {
+                    _outletStreamsByPortName[portName] = connectedFacade;
+                    Vessel.AddOutlet(connectedFacade);
+                }
                 RefreshDynamicPorts();
             }
         }
@@ -173,20 +234,34 @@ namespace Shared.ProcessFlowDiagram.Vessels
         {
             if (portName.StartsWith("Inlet_"))
             {
-                int index = ExtractPortIndex(portName, "Inlet_");
-                if (index >= 0 && index < Vessel.Inlets.Count)
+                if (_inletStreamsByPortName.Remove(portName, out var mappedStream))
                 {
-                    Vessel.RemoveInlet(Vessel.Inlets[index]);
+                    Vessel.RemoveInlet(mappedStream);
+                }
+                else
+                {
+                    int index = ExtractPortIndex(portName, "Inlet_");
+                    if (index >= 0 && index < Vessel.Inlets.Count)
+                    {
+                        Vessel.RemoveInlet(Vessel.Inlets[index]);
+                    }
                 }
                 RefreshDynamicPorts();
             }
             else if (portName.StartsWith("Outlet_"))
             {
-                int index = ExtractPortIndex(portName, "Outlet_");
-                if (index >= 0 && index < Vessel.Outlets.Count)
+                if (_outletStreamsByPortName.Remove(portName, out var mappedStream))
                 {
-                    // Nota: Usando el nombre exacto de tu método (RemoveOulet)
-                    Vessel.RemoveOulet(Vessel.Outlets[index]);
+                    Vessel.RemoveOulet(mappedStream);
+                }
+                else
+                {
+                    int index = ExtractPortIndex(portName, "Outlet_");
+                    if (index >= 0 && index < Vessel.Outlets.Count)
+                    {
+                        // Nota: Usando el nombre exacto de tu método (RemoveOulet)
+                        Vessel.RemoveOulet(Vessel.Outlets[index]);
+                    }
                 }
                 RefreshDynamicPorts();
             }

@@ -1,5 +1,6 @@
 ﻿using Client.Services.ProjectWorkspace;
 using Client.Services.Security;
+using Distillator.Domain.Inputs;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Shared.SolverConsecutive;
@@ -10,6 +11,7 @@ namespace Client.Templates.Units.UIVariablePercentage
     public abstract class UIVariablePercentageBase : ComponentBase
     {
         [Inject] protected FlowsheetManager FlowsheetManager { get; set; } = null!;
+        [Inject] protected VariableInputCommandHandler VariableInputCommandHandler { get; set; } = null!;
         [Inject] protected CustomAuthenticationStateProvider UserAuthProvider { get; set; } = null!;
 
         [Parameter] public string Label { get; set; } = string.Empty;
@@ -93,14 +95,23 @@ namespace Client.Templates.Units.UIVariablePercentage
             // Delete para borrar definición
             if (e.Key == "Delete")
             {
-                Variable?.ClearFromUI();
-                if (FlowsheetManager != null)
+                if (Variable != null)
                 {
-                    FlowsheetManager.RunSimulation();
+                    var result = VariableInputCommandHandler.Apply(new ClearVariableInputCommand<Percentage>(Variable));
+                    if (VariableChanged.HasDelegate) await VariableChanged.InvokeAsync(Variable);
+
+                    if (result.Changed)
+                    {
+                        FlowsheetManager.MarkFacadeStateChanged();
+                    }
+
+                    if (result.ShouldRunSimulation && FlowsheetManager != null)
+                    {
+                        FlowsheetManager.RunSimulation();
+                    }
                 }
                 _isEditing = false;
                 _tempInputValue = null;
-                if (VariableChanged.HasDelegate) await VariableChanged.InvokeAsync(Variable);
                 return;
             }
 
@@ -146,13 +157,22 @@ namespace Client.Templates.Units.UIVariablePercentage
                 // Usar siempre PercentageUnits.Percentage (solo tiene una unidad)
                 var currentUnit = PercentageUnits.Percentage;
 
-                var newValue = Variable.Value;
-                newValue.SetValue(newVal.Value, currentUnit);
-
                 var user = UserAuthProvider.CurrentUser;
-                Variable.SetValueFromUI(newValue, user?.Id.ToString(), user?.DisplayName);
+                var result = VariableInputCommandHandler.Apply(
+                    new SetVariableInputCommand<Percentage>(
+                        Variable,
+                        newVal.Value,
+                        currentUnit,
+                        user?.Id.ToString(),
+                        user?.DisplayName));
+                if (VariableChanged.HasDelegate) await VariableChanged.InvokeAsync(Variable);
 
-                if (FlowsheetManager != null)
+                if (result.Changed)
+                {
+                    FlowsheetManager.MarkFacadeStateChanged();
+                }
+
+                if (result.ShouldRunSimulation && FlowsheetManager != null)
                 {
                     FlowsheetManager.RunSimulation();
                 }
@@ -160,7 +180,6 @@ namespace Client.Templates.Units.UIVariablePercentage
 
             _isEditing = false;
             _tempInputValue = null;
-            if (VariableChanged.HasDelegate) await VariableChanged.InvokeAsync(Variable);
         }
 
         protected async Task EnterEditMode()

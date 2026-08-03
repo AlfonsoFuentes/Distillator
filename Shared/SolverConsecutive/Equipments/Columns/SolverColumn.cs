@@ -1,4 +1,4 @@
-﻿using Shared.SolverConsecutive.Equipments.Columns.Orchestrador;
+using Shared.SolverConsecutive.Equipments.Columns.Orchestrador;
 using Shared.SolverQwen.Stream;
 using Shared.Thermodynamics.PureComponents;
 using System;
@@ -67,11 +67,9 @@ namespace Shared.SolverConsecutive.Equipments.Columns
 
 
 
-                Console.WriteLine($"✅ Columna {Name}: Cálculo completado exitosamente");
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                Console.WriteLine($"❌ Error en PostSolveAsync de {Name}: {ex.Message}");
                 IsCalculationCompleted = false;
                 CalculationResult = null;
             }
@@ -227,10 +225,14 @@ namespace Shared.SolverConsecutive.Equipments.Columns
             yield return new ColumnPressureDeltaPEquation(this);
             yield return new ColumnPressureBottomEquation(this);
             yield return new ColumnEnergyBalanceEquation(this);
-            // Backup legacy: la V2 de specifications usa ColumnEnergyBalanceEquation regular.
-            // yield return new ColumnMassBalanceEquationSpec(this);
+            //yield return new GlobalMassBalanceEquation(this);
+            //yield return new ComponentMassBalanceEquation(this);
+            //yield return new ComponentMassBalanceByMassFlowEquation(this);
+            //yield return new ComponentMassBalanceMixedEquation(this);
+            yield return new GlobalEnergyBalanceByMassEnthalpyEquation(this);
+            //yield return new GlobalMassEnergyBalanceEquation(this);
         }
-        
+
     }
 
 
@@ -413,7 +415,7 @@ namespace Shared.SolverConsecutive.Equipments.Columns
                 double HVaporOutlet = _column.VaporOutlet.MassEnthalpy.GetSolverValue();
                 totalmassOut += mVaporOutlet;
                 totalEnergyOut += mVaporOutlet * HVaporOutlet;
-               if(_column.VaporOutlet.Composition!=null)
+                if (_column.VaporOutlet.Composition != null)
                 {
                     for (int i = 0; i < _column.VaporOutlet.Composition.Components.Count - 1; i++)
                     {
@@ -570,7 +572,303 @@ namespace Shared.SolverConsecutive.Equipments.Columns
             return variables;
         }
     }
-   
 
 
+    //public class GeneralEnergyBalanceEquationByGlobalMassFlow : ISolverEquation
+    //{
+    //    private readonly ISolverEquipment _equipment;
+    //    public SolverEquationTypeModifier EquationTypeModifer => SolverEquationTypeModifier.Regular;
+    //    public GeneralEnergyBalanceEquationByGlobalMassFlow(ISolverEquipment equipment)
+    //    {
+    //        _equipment = equipment;
+    //    }
+
+    //    public string Name => $"{EquationType} - {_equipment.Name}";
+    //    public SolverEquationType EquationType => SolverEquationType.MassEnergyBalance;
+    //    public List<double> Residuals => GetResiduals();
+    //    public List<IVariable> Variables => GetVariables();
+    //    private int GetComponentCount()
+    //    {
+    //        return _equipment.AllStreams
+    //            .FirstOrDefault(stream => stream.Composition != null)
+    //            ?.Composition.Components.Count ?? 0;
+    //    }
+    //    public List<double> GetResiduals()
+    //    {
+    //        var residuals = new List<double>();
+
+    //        var componentCount = GetComponentCount();
+    //        double totalEnergyIn = 0;
+    //        double totalEnergyOut = 0;
+    //        double totalmassIn = 0;
+    //        double totalmassOut = 0;
+
+    //        double massCompIn = 0;
+    //        double massCompoOut = 0;
+    //        for (int inlet = 0; inlet < _equipment.Inlets.Count; inlet++)
+    //        {
+    //            var streamIn = _equipment.Inlets[inlet];
+    //            double mIn = streamIn.MassFlow.GetSolverValue();
+    //            double HIn = streamIn.MassEnthalpy.GetSolverValue();
+    //            totalmassIn += mIn;
+    //            totalEnergyIn += mIn * HIn;
+    //            for (int i = 0; i < componentCount; i++)
+    //            {
+    //                var compo = streamIn.Composition.Components[i];
+    //                massCompIn += compo.MassFraction.GetSolverValue() * mIn;
+    //            }
+              
+    //        }
+    //        for (int outlet = 0; outlet < _equipment.Outlets.Count; outlet++)
+    //        {
+    //            var streamOut = _equipment.Outlets[outlet];
+    //            double mOut = streamOut.MassFlow.GetSolverValue();
+    //            double HOut = streamOut.MassEnthalpy.GetSolverValue();
+    //            totalmassOut += mOut;
+    //            totalEnergyOut += mOut * HOut;
+    //            for (int i = 0; i < componentCount; i++)
+    //            {
+    //                var compo = streamOut.Composition.Components[i];
+    //                massCompoOut += compo.MassFraction.GetSolverValue() * mOut;
+
+    //            }
+              
+    //        }
+            
+
+
+
+
+
+
+    //        // Sumar energía de entrada
+
+    //        residuals.Add(massCompIn - massCompoOut);
+    //        residuals.Add(totalmassIn - totalmassOut);
+    //        residuals.Add(totalEnergyIn - totalEnergyOut);
+
+    //        return residuals;
+    //    }
+
+    //    private List<IVariable> GetVariables()
+    //    {
+    //        var variables = new List<IVariable>();
+
+    //        foreach (var stream in _equipment.Inlets)
+    //        {
+    //            variables.Add(stream.MassEnthalpy);
+    //            variables.Add(stream.MassFlow);
+    //        }
+    //        foreach (var stream in _equipment.Outlets)
+    //        {
+    //            variables.Add(stream.MassEnthalpy);
+    //            variables.Add(stream.MassFlow);
+    //        }
+
+
+
+    //        return variables;
+    //    }
+    //}
+    //public class GeneralEnergyBalanceEquationByComponentMassFlow : ISolverEquation
+    //{
+    //    private readonly ISolverEquipment _equipment;
+    //    public SolverEquationTypeModifier EquationTypeModifer => SolverEquationTypeModifier.Regular;
+    //    public GeneralEnergyBalanceEquationByComponentMassFlow(ISolverEquipment equipment)
+    //    {
+    //        _equipment = equipment;
+    //    }
+
+    //    public string Name => $"{EquationType} - {_equipment.Name}";
+    //    public SolverEquationType EquationType => SolverEquationType.MassEnergyBalance;
+    //    public List<double> Residuals => GetResiduals();
+    //    public List<IVariable> Variables => GetVariables();
+    //    private int GetComponentCount()
+    //    {
+    //        return _equipment.AllStreams
+    //            .FirstOrDefault(stream => stream.Composition != null)
+    //            ?.Composition.Components.Count ?? 0;
+    //    }
+    //    public List<double> GetResiduals()
+    //    {
+    //        var residuals = new List<double>();
+
+    //        var componentCount = GetComponentCount();
+    //        double totalEnergyIn = 0;
+    //        double totalEnergyOut = 0;
+    //        double totalmassIn = 0;
+    //        double totalmassOut = 0;
+
+    //        double massCompIn = 0;
+    //        double massCompoOut = 0;
+    //        for (int inlet = 0; inlet < _equipment.Inlets.Count; inlet++)
+    //        {
+    //            var streamIn = _equipment.Inlets[inlet];
+    //            double mIn = streamIn.MassFlow.GetSolverValue();
+    //            double HIn = streamIn.MassEnthalpy.GetSolverValue();
+    //            totalmassIn += mIn;
+    //            totalEnergyIn += mIn * HIn;
+    //            for (int i = 0; i < componentCount - 1; i++)
+    //            {
+    //                var compo = streamIn.Composition.Components[i];
+    //                massCompIn += compo.MassFraction.GetSolverValue() * mIn;
+    //            }
+              
+    //        }
+    //        for (int outlet = 0; outlet < _equipment.Outlets.Count; outlet++)
+    //        {
+    //            var streamOut = _equipment.Outlets[outlet];
+    //            double mOut = streamOut.MassFlow.GetSolverValue();
+    //            double HOut = streamOut.MassEnthalpy.GetSolverValue();
+    //            totalmassOut += mOut;
+    //            totalEnergyOut += mOut * HOut;
+    //            for (int i = 0; i < componentCount-1; i++)
+    //            {
+    //                var compo = streamOut.Composition.Components[i];
+    //                massCompoOut += compo.MassFraction.GetSolverValue() * mOut;
+    //            }
+                
+    //        }
+            
+    //        residuals.Add(massCompIn - massCompoOut);
+    //        residuals.Add(totalmassIn - totalmassOut);
+    //        residuals.Add(totalEnergyIn - totalEnergyOut);
+
+    //        return residuals;
+    //    }
+
+    //    private List<IVariable> GetVariables()
+    //    {
+    //        var variables = new List<IVariable>();
+
+    //        foreach (var stream in _equipment.Inlets)
+    //        {
+    //            variables.Add(stream.MassFlow);
+    //            variables.Add(stream.MassEnthalpy);
+    //            //foreach (var compo in stream.Composition.Components)
+    //            //{
+    //            //    variables.Add(compo.MassFraction);
+    //            //}
+    //        }
+    //        foreach (var stream in _equipment.Outlets)
+    //        {
+    //            variables.Add(stream.MassFlow);
+    //            variables.Add(stream.MassEnthalpy);
+    //            //foreach (var compo in stream.Composition.Components)
+    //            //{
+    //            //    variables.Add(compo.MassFraction);
+    //            //}
+
+    //        }
+
+
+
+    //        return variables;
+    //    }
+    //}
+
+    //public class GeneralEnergyBalanceEquationByComponentMassFraction : ISolverEquation
+    //{
+    //    private readonly ISolverEquipment _equipment;
+    //    public SolverEquationTypeModifier EquationTypeModifer => SolverEquationTypeModifier.Regular;
+    //    public GeneralEnergyBalanceEquationByComponentMassFraction(ISolverEquipment equipment)
+    //    {
+    //        _equipment = equipment;
+    //    }
+
+    //    public string Name => $"{EquationType} - {_equipment.Name}";
+    //    public SolverEquationType EquationType => SolverEquationType.MassEnergyBalance;
+    //    public List<double> Residuals => GetResiduals();
+    //    public List<IVariable> Variables => GetVariables();
+    //    private int GetComponentCount()
+    //    {
+    //        return _equipment.AllStreams
+    //            .FirstOrDefault(stream => stream.Composition != null)
+    //            ?.Composition.Components.Count ?? 0;
+    //    }
+    //    public List<double> GetResiduals()
+    //    {
+    //        var residuals = new List<double>();
+
+    //        var componentCount = GetComponentCount();
+    //        double totalEnergyIn = 0;
+    //        double totalEnergyOut = 0;
+    //        double totalmassIn = 0;
+    //        double totalmassOut = 0;
+
+    //        double massCompIn = 0;
+    //        double massCompoOut = 0;
+    //        for (int inlet = 0; inlet < _equipment.Inlets.Count; inlet++)
+    //        {
+    //            var streamIn = _equipment.Inlets[inlet];
+    //            double mIn = streamIn.MassFlow.GetSolverValue();
+    //            double HIn = streamIn.MassEnthalpy.GetSolverValue();
+    //            totalmassIn += mIn;
+    //            totalEnergyIn += mIn * HIn;
+    //            for (int i = 0; i < componentCount - 1; i++)
+    //            {
+    //                var compo = streamIn.Composition.Components[i];
+    //                massCompIn += compo.MassFraction.GetSolverValue() * mIn;
+    //            }
+
+    //        }
+    //        for (int outlet = 0; outlet < _equipment.Outlets.Count; outlet++)
+    //        {
+    //            var streamOut = _equipment.Outlets[outlet];
+    //            double mOut = streamOut.MassFlow.GetSolverValue();
+    //            double HOut = streamOut.MassEnthalpy.GetSolverValue();
+    //            totalmassOut += mOut;
+    //            totalEnergyOut += mOut * HOut;
+    //            for (int i = 0; i < componentCount - 1; i++)
+    //            {
+    //                var compo = streamOut.Composition.Components[i];
+    //                massCompoOut += compo.MassFraction.GetSolverValue() * mOut;
+    //            }
+
+    //        }
+
+
+
+
+
+
+
+    //        // Sumar energía de entrada
+
+    //        residuals.Add(massCompIn - massCompoOut);
+    //        residuals.Add(totalmassIn - totalmassOut);
+    //        residuals.Add(totalEnergyIn - totalEnergyOut);
+
+    //        return residuals;
+    //    }
+
+    //    private List<IVariable> GetVariables()
+    //    {
+    //        var variables = new List<IVariable>();
+
+    //        foreach (var stream in _equipment.Inlets)
+    //        {
+    //            variables.Add(stream.MassEnthalpy);
+    //            variables.Add(stream.MassFlow);
+    //            foreach (var compo in stream.Composition.Components)
+    //            {
+    //                variables.Add(compo.MassFraction);
+    //            }
+    //        }
+    //        foreach (var stream in _equipment.Outlets)
+    //        {
+    //            variables.Add(stream.MassEnthalpy);
+    //            variables.Add(stream.MassFlow);
+    //            foreach (var compo in stream.Composition.Components)
+    //            {
+    //                variables.Add(compo.MassFraction);
+    //            }
+
+    //        }
+
+
+
+    //        return variables;
+    //    }
+    //}
 }

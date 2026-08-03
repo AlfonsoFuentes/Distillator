@@ -42,6 +42,9 @@
     [Parameter] public bool IsDraft { get; set; }
 
     private SvgRenderData RenderData = new("", 0, 0, false);
+    private string? routeSignature;
+    private long routeGeometryVersion = -1;
+    private const string RouteCacheVersion = "orthogonal-portflow-v2";
 
     protected override void OnParametersSet()
     {
@@ -50,12 +53,32 @@
 
     private void CalculatePaths()
     {
+        if (!IsDraft &&
+            routeSignature is not null &&
+            !FSM.IsMovingAny &&
+            routeGeometryVersion == FSM.RouteGeometryVersion)
+        {
+            return;
+        }
+
+        if (!IsDraft && routeSignature is not null && FSM.IsMovingAny && !IsConnectedToMovingElement())
+        {
+            return;
+        }
+
+        var signature = BuildRouteSignature();
+        if (!IsDraft && signature == routeSignature)
+        {
+            return;
+        }
+
         RenderData = PipeRoutingFactory.GetRoute(Pipe, IsDraft, FSM.DraftMouseLogicalX, FSM.DraftMouseLogicalY, FSM.Elements, FSM.Pipes);
+        routeSignature = signature;
+        routeGeometryVersion = FSM.RouteGeometryVersion;
     }
 
     private void HandleDoubleClick()
     {
-        Console.WriteLine($"[Pipe UI] Opening Design Form for {Pipe.Label}");
     }
 
     private string GetLabelTransform()
@@ -66,4 +89,63 @@
     }
 
     private string Pt(double val) => Math.Round(val).ToString(System.Globalization.CultureInfo.InvariantCulture);
+
+    private bool IsConnectedToMovingElement()
+    {
+        return FSM.IsMoving(Pipe.SourceElementId) ||
+               FSM.IsMoving(Pipe.TargetElementId) ||
+               (Pipe.SourceElement is not null && FSM.IsMoving(Pipe.SourceElement)) ||
+               (Pipe.TargetElement is not null && FSM.IsMoving(Pipe.TargetElement));
+    }
+
+    private string BuildRouteSignature()
+    {
+        if (IsDraft)
+        {
+            return string.Join("|",
+                "draft",
+                Pipe.Id,
+                Pipe.SourceElementId,
+                Pipe.SourcePortName,
+                Math.Round(FSM.DraftMouseLogicalX, 1),
+                Math.Round(FSM.DraftMouseLogicalY, 1));
+        }
+
+        var parts = new List<string>
+        {
+            RouteCacheVersion,
+            Pipe.Id.ToString(),
+            Pipe.SourceElementId.ToString(),
+            Pipe.SourcePortName,
+            Pipe.TargetElementId.ToString(),
+            Pipe.TargetPortName
+        };
+
+        foreach (var element in FSM.Elements.OrderBy(element => element.Id))
+        {
+            parts.Add(string.Join(",",
+                element.Id,
+                Math.Round(element.X, 1),
+                Math.Round(element.Y, 1),
+                Math.Round(element.Width, 1),
+                Math.Round(element.Height, 1),
+                element.RotationAngle,
+                element.IsFlippedHorizontal,
+                element.IsFlippedVertical));
+
+            foreach (var port in element.Ports.OrderBy(port => port.Name))
+            {
+                parts.Add(string.Join(",",
+                    "port",
+                    element.Id,
+                    port.Name,
+                    port.Type,
+                    port.Direction,
+                    Math.Round(port.OffsetX, 1),
+                    Math.Round(port.OffsetY, 1)));
+            }
+        }
+
+        return string.Join("|", parts);
+    }
 }

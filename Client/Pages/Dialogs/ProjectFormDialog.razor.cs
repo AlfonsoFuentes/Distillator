@@ -256,6 +256,7 @@ public partial class ProjectFormDialog
             plantElevation: _plantElevation);
 
         bool renameExistingEquipment = false;
+        Dictionary<Guid, string>? diagramNumberUpdates = null;
 
         if (IsEditing && Project != null)
         {
@@ -295,11 +296,8 @@ public partial class ProjectFormDialog
                     return;
                 }
 
-                foreach (var (flowsheet, newDiagramNumber) in migrationResult.UpdatedDiagrams)
-                {
-                    flowsheet.DiagramNumber = newDiagramNumber;
-                }
-
+                diagramNumberUpdates = migrationResult.UpdatedDiagrams
+                    .ToDictionary(item => item.Flowsheet.Id, item => item.DiagramNumber);
                 renameExistingEquipment = migrationResult.RenameExisting;
             }
             else if (diagramError != null)
@@ -313,9 +311,16 @@ public partial class ProjectFormDialog
 
         if (IsEditing && Project != null)
         {
-            Project.Name = _projectName.Trim();
-            await SessionService.UpdateProjectConfigurationAsync(configuration, renameExistingEquipment);
-            Project.UpdateThermodynamicMethod(thermodynamicMethodId, selectedMethod);
+            var saved = await SessionService.UpdateProjectConfigurationAsync(
+                _projectName.Trim(),
+                configuration,
+                renameExistingEquipment,
+                diagramNumberUpdates);
+            if (!saved)
+            {
+                _configurationError = "Project configuration was not saved. Please refresh and try again.";
+                return;
+            }
 
             _originalNamingMode = configuration.NamingConfig.Mode;
             _originalNamingPattern = configuration.NamingConfig.Pattern;
@@ -323,8 +328,7 @@ public partial class ProjectFormDialog
             _originalStartingNumber = configuration.NamingConfig.StartingNumber;
             _originalNamingConfiguration = NamingConfiguration.Clone(configuration.NamingConfig);
 
-            SessionService.NotifyProjectChanged();
-            MudDialog.Close(Project);
+            MudDialog.Close(SessionService.CurrentProject ?? Project);
         }
         else
         {

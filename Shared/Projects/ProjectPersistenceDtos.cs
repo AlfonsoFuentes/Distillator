@@ -19,8 +19,11 @@ namespace Shared.Projects
     public class UpdateProjectConfigurationRequest
     {
         public Guid ProjectId { get; set; }
+        public long? ExpectedVersion { get; set; }
+        public Guid? OperationId { get; set; }
         public string Name { get; set; } = string.Empty;
         public ProjectBasicConfigurationDto Configuration { get; set; } = new();
+        public List<ProjectDiagramDto>? MigratedDiagrams { get; set; }
     }
 
     public class DeleteProjectRequest
@@ -31,24 +34,32 @@ namespace Shared.Projects
     public class CreateDiagramRequest
     {
         public Guid ProjectId { get; set; }
+        public long? ExpectedVersion { get; set; }
+        public Guid? OperationId { get; set; }
         public ProjectDiagramDto Diagram { get; set; } = new();
     }
 
     public class UpdateDiagramRequest
     {
         public Guid ProjectId { get; set; }
+        public long? ExpectedVersion { get; set; }
+        public Guid? OperationId { get; set; }
         public ProjectDiagramDto Diagram { get; set; } = new();
     }
 
     public class UpdateDiagramsRequest
     {
         public Guid ProjectId { get; set; }
+        public long? ExpectedVersion { get; set; }
+        public Guid? OperationId { get; set; }
         public List<ProjectDiagramDto> Diagrams { get; set; } = new();
     }
 
     public class DeleteDiagramRequest
     {
         public Guid ProjectId { get; set; }
+        public long? ExpectedVersion { get; set; }
+        public Guid? OperationId { get; set; }
         public Guid DiagramId { get; set; }
     }
 

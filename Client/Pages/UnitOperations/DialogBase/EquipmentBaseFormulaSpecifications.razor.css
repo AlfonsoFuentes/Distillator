@@ -1,10 +1,11 @@
 .formula-specifications {
     display: flex;
     flex-direction: column;
-    gap: 14px;
-    max-height: 560px;
-    overflow: auto;
-    padding: 2px;
+    gap: 10px;
+    width: 100%;
+    min-width: 0;
+    overflow: visible;
+    padding: 0;
     color: #333333;
 }
 
@@ -17,6 +18,7 @@
     border: 1px solid var(--border-color, #b0b0b0);
     border-radius: 4px;
     background: #e4e4e4;
+    flex: 0 0 auto;
 }
 
 .specifications-toolbar > div {
@@ -68,6 +70,7 @@
     border: 1px solid var(--border-color, #b0b0b0);
     border-radius: 4px;
     background: #f8fafc;
+    min-width: 0;
 }
 
 .section-header {
@@ -107,7 +110,7 @@
 
 .formula-editor {
     position: relative;
-    padding: 12px;
+    padding: 10px;
 }
 
 .formula-editor label,
@@ -121,9 +124,10 @@
 
 .formula-input {
     width: 100%;
-    min-height: 64px;
+    min-height: 58px;
+    max-height: 120px;
     margin-top: 5px;
-    resize: vertical;
+    resize: none;
     border: 1px solid #b0b0b0;
     border-radius: 3px;
     outline: none;
@@ -200,6 +204,7 @@
 
 .editor-actions {
     display: flex;
+    flex-wrap: wrap;
     gap: 7px;
     margin-top: 10px;
 }
@@ -257,17 +262,20 @@ button:disabled {
 
 .formula-list {
     display: grid;
+    max-height: 230px;
+    overflow: auto;
 }
 
 .formula-row {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 70px auto;
+    grid-template-columns: minmax(0, 1fr) 68px auto;
     align-items: center;
     gap: 8px;
     min-height: 36px;
     padding: 5px 9px;
     border-bottom: 1px solid #d7dde5;
     background: #ffffff;
+    min-width: 0;
 }
 
 .formula-row:last-child {
@@ -280,6 +288,7 @@ button:disabled {
     font-size: 11px;
     text-overflow: ellipsis;
     white-space: nowrap;
+    min-width: 0;
 }
 
 .formula-state.ready {

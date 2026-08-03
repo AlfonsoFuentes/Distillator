@@ -1,0 +1,52 @@
+.design-property-row {
+    display: grid;
+    grid-template-columns: minmax(122px, 0.82fr) minmax(0, 1.18fr);
+    min-height: 30px;
+    border-bottom: 1px solid #dce5ee;
+    min-width: 0;
+}
+
+.design-property-row:last-child {
+    border-bottom: 0;
+}
+
+.design-property-row label {
+    display: flex;
+    align-items: center;
+    margin: 0;
+    padding: 5px 8px;
+    background: #f4f7fb;
+    color: #60748c;
+    font-weight: 700;
+}
+
+.design-value-cell {
+    display: flex;
+    align-items: stretch;
+    min-width: 0;
+    background: #ffffff;
+}
+
+.design-value-cell span {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 5px 8px;
+    color: #425972;
+}
+
+.design-value-cell input {
+    width: 100%;
+    min-width: 0;
+    border: 0;
+    background: transparent;
+    color: #21364f;
+    padding: 5px 8px;
+    font: inherit;
+}
+
+.design-value-cell input:focus {
+    outline: 1px solid #c8d5e4;
+    outline-offset: -1px;
+    background: #fbfdff;
+}

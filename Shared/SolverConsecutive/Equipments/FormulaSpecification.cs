@@ -1,5 +1,6 @@
 using Shared.Results;
 using Shared.SolverQwen.Stream;
+using System.Globalization;
 using UnitSystem;
 
 namespace Shared.SolverConsecutive.Equipments
@@ -29,6 +30,7 @@ namespace Shared.SolverConsecutive.Equipments
         public abstract IEnumerable<IVariable> Variables { get; }
         public abstract IEnumerable<IFacadeStream> Streams { get; }
         public abstract bool TryEvaluate(out double value);
+        public abstract string ToFormulaText();
     }
 
     public sealed class FormulaConstantNode(double value) : FormulaExpressionNode
@@ -42,6 +44,8 @@ namespace Shared.SolverConsecutive.Equipments
             result = value;
             return double.IsFinite(result);
         }
+
+        public override string ToFormulaText() => value.ToString("G17", CultureInfo.InvariantCulture);
     }
 
     public sealed class StreamMassFlowNode(IFacadeStream stream) : FormulaExpressionNode
@@ -55,6 +59,8 @@ namespace Shared.SolverConsecutive.Equipments
             value = stream.MassFlow.GetSolverValue();
             return double.IsFinite(value);
         }
+
+        public override string ToFormulaText() => $"{stream.Name}.MassFlow";
     }
 
     public sealed class ComponentMassFlowNode(
@@ -82,6 +88,8 @@ namespace Shared.SolverConsecutive.Equipments
             value = stream.MassFlow.GetSolverValue() * massFraction;
             return double.IsFinite(value);
         }
+
+        public override string ToFormulaText() => $"{stream.Name}.Component.{component.Name}.MassFlow";
     }
 
     public sealed class FormulaUnaryNode(
@@ -103,6 +111,11 @@ namespace Shared.SolverConsecutive.Equipments
             value = operation == '-' ? -operandValue : operandValue;
             return double.IsFinite(value);
         }
+
+        public override string ToFormulaText() => $"{operation}{FormatOperand(operand)}";
+
+        private static string FormatOperand(FormulaExpressionNode node) =>
+            node is FormulaBinaryNode ? $"({node.ToFormulaText()})" : node.ToFormulaText();
     }
 
     public sealed class FormulaBinaryNode : FormulaExpressionNode
@@ -157,6 +170,12 @@ namespace Shared.SolverConsecutive.Equipments
 
             return double.IsFinite(value);
         }
+
+        public override string ToFormulaText() =>
+            $"{FormatOperand(_left)}{_operation}{FormatOperand(_right)}";
+
+        private static string FormatOperand(FormulaExpressionNode node) =>
+            node is FormulaBinaryNode ? $"({node.ToFormulaText()})" : node.ToFormulaText();
     }
 
     public sealed class FormulaEquationExpression(
@@ -190,6 +209,8 @@ namespace Shared.SolverConsecutive.Equipments
             residual = leftValue - rightValue;
             return double.IsFinite(residual);
         }
+
+        public string ToFormulaText() => $"{left.ToFormulaText()}={right.ToFormulaText()}";
     }
 
     public sealed class FormulaSpecification : ISpecification
@@ -378,6 +399,11 @@ namespace Shared.SolverConsecutive.Equipments
                 return TryConsume(')')
                     ? expression
                     : Fail<FormulaExpressionNode>($"Missing ')' at position {_position + 1}.");
+            }
+
+            if (_streams.Any(candidate => TryMatchName(candidate.Name)))
+            {
+                return ParseStreamReference();
             }
 
             var number = ParseNumber();

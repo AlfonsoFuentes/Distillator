@@ -2,23 +2,28 @@
 .scrollable-container {
     overflow-x: auto;
     width: 100%;
-    max-height: 400px;
+    max-width: 100%;
+    max-height: 220px;
     overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
+    background-color: #ffffff;
+    border: 1px solid #b0b0b0;
+    border-radius: 3px;
 }
 
 .data-grid {
     display: grid;
-    border-top: 1px solid #b0b0b0;
-    border-left: 1px solid #b0b0b0;
+    border-top: none;
+    border-left: none;
     width: max-content;
     min-width: 100%;
 }
 
 .composition-grid {
-    grid-template-columns: 150px 130px 130px 130px 130px 130px;
+    grid-template-columns: 150px 120px 120px 130px 130px 120px;
+}
+
+.gl-input-container {
+    width: 100%;
 }
 
 .grid-header, .grid-cell {

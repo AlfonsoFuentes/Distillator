@@ -316,6 +316,89 @@ explicitas. Como minimo, segun el equipo afectado:
 No se modificara `NewtonSolver` para hacer pasar una prueba que en realidad evidencia
 un armado incorrecto de ecuaciones o variables.
 
+### Matriz Manual Aprobada Para SolverVessel
+
+Los siguientes escenarios fueron validados manualmente en UI y se consideran cerrados
+funcionalmente. Deben convertirse en regresiones automatizadas cuando sea rentable:
+
+| Caso | Datos clave | Resultado esperado |
+|---|---|---|
+| `1/1` | Un inlet y un outlet con flujo definido | balance global y composicion igualada |
+| `1/2` | Un inlet y dos outlets con composicion de divisor | no inventar dos flujos si el rango es dependiente |
+| `2/1` | Dos inlets, un outlet, flujos definidos | calcular composicion faltante en cualquier corriente |
+| `2/2` | Dos inlets y dos outlets | resolver composiciones o flujos solo si DOF/rango cierran |
+| `3/1` | Tres inlets, un outlet, entalpia de salida faltante | calcular `MassEnthalpy` por balance de energia |
+| `3/2` | Tres inlets, dos outlets, tres flujos faltantes | resolver flujos con componentes + energia si el rango es completo |
+
+### Cierre Manual Del Vertical Principal - 20/07/2026
+
+Alfonso confirmo manualmente en UI:
+
+- solver de equipos cerrado funcionalmente para columna, bomba, valvula, mixer,
+  splitter, flash/vessel e intercambiadores;
+- `SolverStreamMixer` probado y cerrado durante la programacion;
+- persistencia multiusuario probada: otro usuario abre el proyecto y ve
+  topologia, inputs UI y resultados esperados;
+- specifications por formula probadas y cerradas;
+- realtime/autosave probado y cerrado;
+- UX de conexion probada con creacion, desconexion y reconexion de corrientes,
+  incluyendo puertos dinamicos de columna;
+- reconexion de `S-106` validada despues de hacer idempotente
+  `FacadeStream.SetThermodynamicMethod`; los inputs UI de composicion se
+  conservan al reconectar.
+
+Pruebas negativas validadas manualmente durante la auditoría de balances:
+
+- dos salidas con composicion igual y dos flujos faltantes no deben producir flujo
+  negativo;
+- flujo cero puede cerrar balance global, pero no debe usarse para resolver una
+  composicion que no transporta masa;
+- datos insuficientes deben quedar pendientes, no lanzar excepcion arbitraria.
+
+### Validación Futura De Componentes Y Métodos Termodinámicos
+
+Objetivo: confirmar que el sistema no está solamente ajustado al caso agua/etanol.
+
+Pruebas manuales pendientes:
+
+1. Crear o cargar una sustancia adicional y revisar propiedades puras principales.
+2. Editar una correlación y confirmar que persiste y vuelve a cargar.
+3. Crear o editar un método termodinámico con más de dos componentes.
+4. Definir parámetros binarios NRTL/Wilson y confirmar que persisten.
+5. Usar esas sustancias en una corriente y verificar equilibrio, flujos, entalpías y propiedades.
+6. Confirmar que el cambio de método termodinámico no borra inputs UI ya definidos.
+7. Dejar exportación Excel de componentes y métodos para la fase final.
+
+### Auditoría De Recálculos Innecesarios - Validada Manualmente
+
+Objetivo: confirmar que la UI no solicita solver ni autosave pesado cuando no existe
+un cambio real de intención.
+
+Validación 2026-07-21: Alfonso confirmó manualmente que cambiar tabs sin editar no
+recalcula, provocar `blur` con el mismo valor no recalcula, y cambiar un valor real
+sin presionar Enter antes de cambiar de tab sí recalcula. Los logs temporales usados
+para auditar el flujo fueron retirados después de la validación.
+
+Pruebas manuales aplicadas:
+
+1. Abrir un equipo y cambiar entre `Main`, `Specs`, `Design`, `Streams` y
+   `Composition` sin editar nada. Esperado: cero solicitudes de simulación.
+2. Entrar a un input, no modificarlo y cambiar de tab para provocar `blur`.
+   Esperado: cero solicitudes.
+3. Confirmar el mismo valor con formato equivalente, por ejemplo `1000` y
+   `1000.00`. Esperado: cero solicitudes.
+4. Cambiar realmente temperatura, presión o flujo. Esperado: una solicitud.
+5. Confirmar composición completa con el mismo valor. Esperado: cero solicitudes.
+6. Cambiar composición completa a un valor real diferente. Esperado: una solicitud.
+7. Confirmar el mismo `GL` etanol/agua. Esperado: cero solicitudes.
+8. Cambiar `GL` a un valor diferente. Esperado: una solicitud.
+9. Seleccionar la misma unidad visual. Esperado: cero persistencias nuevas y cero
+   simulaciones.
+10. Confirmar una formula existente sin cambios. Esperado: cero solicitudes.
+11. Editar realmente una formula. Esperado: una solicitud.
+12. Conectar o desconectar una corriente. Esperado: una solicitud por cambio
+    topológico real.
+
 ## Pruebas Manuales Y Datos
 
 - Los escenarios manuales deben usar proyectos de prueba identificables.

@@ -111,6 +111,23 @@
                     ↻
                 </button>
             }
+            @if (Element is OffPageConnectorElement opc)
+            {
+                <button data-title="OPC on Left"
+                        class="@(IsOpcAnchoredLeft(opc) ? "active" : "")"
+                        @onclick:stopPropagation="true"
+                        @onmousedown:stopPropagation="true"
+                        @onclick="() => HandleOpcAnchorSide(OffPageConnectorPortSide.Left)">
+                    ←
+                </button>
+                <button data-title="OPC on Right"
+                        class="@(!IsOpcAnchoredLeft(opc) ? "active" : "")"
+                        @onclick:stopPropagation="true"
+                        @onmousedown:stopPropagation="true"
+                        @onclick="() => HandleOpcAnchorSide(OffPageConnectorPortSide.Right)">
+                    →
+                </button>
+            }
         </div>
     }
 
@@ -161,7 +178,7 @@
     [Parameter] public bool IsDragging { get; set; }
     [Parameter] public bool CanEdit { get; set; } = true;
 
-    [Parameter] public EventCallback<IVisualElement> OnSelect { get; set; }
+    [Parameter] public EventCallback<EquipmentSelectionEventArgs> OnSelect { get; set; }
     [Parameter] public EventCallback<IVisualElement> OnOpenDetails { get; set; }
     [Parameter] public EventCallback<MouseEventArgs> OnDragStart { get; set; }
 
@@ -172,10 +189,10 @@
     private string? HoveredPortName;
     private string ContextMenuStyle => $"left: {Math.Round(contextMenuX)}px; top: {Math.Round(contextMenuY)}px;";
 
-    private async Task HandleSingleClick()
+    private async Task HandleSingleClick(MouseEventArgs e)
     {
         showContextMenu = false;
-        await OnSelect.InvokeAsync(Element);
+        await OnSelect.InvokeAsync(new EquipmentSelectionEventArgs(Element, e.ShiftKey));
     }
 
     private async Task HandleDoubleClick()
@@ -187,6 +204,7 @@
     {
         showContextMenu = false;
         if (!CanEdit) return;
+        if (e.ShiftKey) return;
 
         await OnDragStart.InvokeAsync(e);
     }
@@ -199,7 +217,7 @@
         showContextMenu = true;
         contextMenuX = Math.Max(0, e.OffsetX);
         contextMenuY = Math.Max(0, e.OffsetY);
-        await OnSelect.InvokeAsync(Element);
+        await OnSelect.InvokeAsync(new EquipmentSelectionEventArgs(Element, false));
     }
 
     private void ShowTooltip() => showTooltip = true;
@@ -219,6 +237,17 @@
         FSM.RotateElement(Element);
     }
 
+    private void HandleOpcAnchorSide(OffPageConnectorPortSide side)
+    {
+        if (!CanEdit || Element is not OffPageConnectorElement connector) return;
+
+        showContextMenu = false;
+        FSM.SetOffPageConnectorAnchorSide(connector, side);
+    }
+
+    private static bool IsOpcAnchoredLeft(OffPageConnectorElement connector) =>
+        connector.PortSide == OffPageConnectorPortSide.Right;
+
     private void HandleDelete()
     {
         if (!CanEdit) return;
@@ -234,6 +263,8 @@
         if (e.Key.Equals("h", StringComparison.OrdinalIgnoreCase)) HandleFlipHorizontal();
         if (e.Key.Equals("r", StringComparison.OrdinalIgnoreCase)) HandleRotate();
     }
+
+    public sealed record EquipmentSelectionEventArgs(IVisualElement Element, bool ToggleSelection);
 
     private double GetNozzleX(Shared.ProcessFlowDiagram.EquipmentPort port)
     {

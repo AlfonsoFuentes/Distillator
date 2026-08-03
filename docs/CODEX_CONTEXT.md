@@ -76,6 +76,10 @@ Ruta principal del proyecto: C:\Programas\Distillator\Distillator
 
 - `ProjectCollaborationHub` y `ProjectRealtimeService`.
 - Realtime con recarga por HTTP tras evento aceptado.
+- Recuperacion autoritativa M46:
+  - `ProjectAuthoritativeSyncService` ejecuta `GetProjectRequest` cada 3 segundos cuando hay proyecto activo y la politica lo permite;
+  - esta frecuencia fue validada manualmente porque recupera cambios perdidos/offline-online;
+  - queda deuda tecnica explicita: optimizar este polling con metricas, backoff y condiciones mas estrictas para reducir carga en UI/backend sin perder la seguridad de sincronizacion.
 - Presencia mínima:
   - usuario conectado;
   - diagrama activo.
@@ -114,6 +118,35 @@ Ruta principal del proyecto: C:\Programas\Distillator\Distillator
   - intentar ecuaciones ordenadamente;
   - retirar solo lo que converge.
 - Limpieza de variables calculadas por solver/equations corregida.
+- Limpieza de variables calculadas por solver:
+  - `NewtonSolver` notifica al `MainSolver` las variables que realmente modifica;
+  - `MainSolver` conserva un `HashSet<IVariable>` de resultados del solver para limpiar en la siguiente corrida;
+  - la limpieza ya no depende de que la variable siga apareciendo en las ecuaciones actuales del equipo, lo que cubre cambios de topologia.
+- Filosofia actual de ecuaciones de equipo:
+  - cada ecuacion representa una posibilidad resolutiva concreta;
+  - una ecuacion valida sus datos requeridos y grados de libertad antes de exponerse a Newton;
+  - si no cierra estructuralmente, retorna listas vacias y queda fuera de esa ronda;
+  - `NewtonSolver` conserva el filtrado de variables ajustables (`!IsDefined`).
+- `SolverVessel` probado como equipo dinamico con balances por intencion:
+  - `MassFractionDistributorEquation`: iguala composicion en caso 1 entrada / N salidas cuando aplica;
+  - `GlobalMassBalanceEquation`: resuelve un flujo masico global faltante;
+  - `ComponentMassBalanceEquation`: resuelve fracciones masicas faltantes cuando los flujos estan definidos y el DOF cierra;
+  - `ComponentMassBalanceByMassFlowEquation`: resuelve flujos masicos cuando las composiciones estan definidas y la matriz de composiciones tiene rango suficiente;
+  - `ComponentMassBalanceMixedEquation`: resuelve casos mixtos solo cuando el conteo de incognitas y el rango cierran;
+  - `GlobalMassEnergyBalanceEquation`: resuelve flujos masicos usando balances de componentes + energia cuando composiciones y entalpias estan disponibles;
+  - `GlobalEnergyBalanceByMassEnthalpyEquation`: resuelve una entalpia masica faltante en cualquier corriente cuando todos los flujos estan definidos.
+- Grados de libertad y rango:
+  - balances de componente no asumen que `ncomp` residuales son siempre independientes;
+  - para flujos desconocidos se valida el rango de la matriz de composiciones;
+  - para masa + energia se valida el rango de la matriz `[fracciones de componente + entalpia]`;
+  - casos degenerados, como dos salidas con la misma composicion en un divisor, no deben producir flujos negativos inventados.
+- Pruebas manuales validadas en UI:
+  - `1/1`: copia/propaga composicion y cierra masa;
+  - `1/2`: divisor con composiciones iguales, sin resolver flujos subdeterminados;
+  - `2/1`: mezcla con composicion faltante en entrada o salida;
+  - `2/2`: resolucion de composiciones y flujos cuando DOF/rango cierran;
+  - `3/1`: mezcla con energia, calculando entalpia de salida;
+  - `3/2`: balances de componentes + energia resolviendo varios flujos.
 - Caso bomba `DeltaP`: al desdefinir presión de descarga ya no debe conservar `DeltaP` viejo.
 - Autosave se evita durante ejecución del solver.
 
@@ -161,37 +194,63 @@ Ruta principal del proyecto: C:\Programas\Distillator\Distillator
 - Al conectar equipo-equipo, la corriente intermedia ya no se ubica con offset hardcodeado.
 - `ConnectionService` usa boquillas origen/destino, dirección visual y orientación dominante.
 - La corriente se rota automáticamente según el flujo visual esperado.
-- Pendiente validación visual amplia.
+- Validación visual amplia confirmada manualmente en UI.
+
+## Cierre Operativo Manual - 20/07/2026
+
+Alfonso confirmó manualmente en UI los bloques principales del vertical:
+
+- Solver de equipos cerrado funcionalmente:
+  - columna;
+  - bomba;
+  - válvula;
+  - mixer;
+  - splitter;
+  - flash/vessel;
+  - intercambiadores.
+- `SolverStreamMixer` probado durante la programación y cerrado funcionalmente.
+- Persistencia multiusuario probada:
+  - un usuario guarda/autosave;
+  - otro usuario abre el mismo proyecto y ve topología, valores UI y resultados esperados.
+- Specifications por formula probadas y cerradas funcionalmente.
+- Realtime / autosave probado y cerrado funcionalmente.
+- UX de conexión probada:
+  - crear, conectar, desconectar y reconectar corrientes;
+  - puertos fijos;
+  - puertos dinámicos de columna;
+  - reconexión sin perder inputs UI.
+- Bug de reconexión `S-106` corregido:
+  - causa: `FacadeStream.SetThermodynamicMethod` reconstruía `Composition` al reconectar una corriente existente;
+  - corrección: `SetThermodynamicMethod` ahora es idempotente cuando el método, modelos, componentes y parámetros binarios son equivalentes;
+  - verificación manual: composición UI `8/92` se conserva al desconectar/reconectar.
 
 ## Pendientes Actuales
 
-1. Probar equipo por equipo:
-   - columna;
-   - bomba;
-   - válvula;
-   - mixer;
-   - splitter;
-   - flash/vessel;
-   - intercambiadores.
-2. Validar routing automático en casos visuales:
-   - equipos alineados horizontalmente;
-   - alineados verticalmente;
-   - cruzados diagonalmente;
-   - boquillas invertidas por rotación/flip.
-3. Agregar pruebas de regresión del solver:
+1. Validar componentes químicos y métodos termodinámicos con sustancias distintas a agua/etanol:
+   - cargar componentes adicionales desde la base de datos;
+   - verificar correlaciones de propiedades puras;
+   - crear/editar método termodinámico y parámetros binarios;
+   - confirmar que las propiedades calculadas son coherentes en corrientes y equipos.
+2. Dejar exportaciones Excel para el cierre:
+   - componentes;
+   - métodos termodinámicos;
+   - reportes principales que se decidan.
+3. Agregar pruebas de regresión automatizadas del solver cuando sea rentable:
    - limpieza de variables calculadas;
    - bomba `DeltaP`;
    - formula global;
    - formula por componente;
    - division por cero/no evaluable.
-4. Definir comportamiento futuro ante renombrado de corrientes usadas en formulas:
-   - opción simple: actualizar texto al renombrar;
-   - opción robusta: almacenar referencias por Id y renderizar texto.
-5. Decidir si la auditoría ligera en canvas debe evolucionar a change log histórico completo en servidor.
-6. Continuar regla de oro:
+4. Continuar regla de oro:
    - persistir intención de usuario;
    - recalcular resultados;
    - no guardar resultados transitorios como verdad persistente.
+
+Contextos cerrados o compactados:
+
+- Solver de equipos, recálculos innecesarios, persistencia, realtime/autosave, specifications, renombrado de corrientes en formulas, naming de proyecto y sincronización autoritativa quedan validados funcionalmente.
+- La auditoría ligera de inputs queda suficiente por ahora: conservar usuario/fecha del último input y no implementar historial completo en servidor hasta que exista necesidad real de producto.
+- El polling autoritativo quedó optimizado y validado manualmente; mantenerlo como reconciliación de seguridad, no como tarea pendiente inmediata.
 
 ---
 
@@ -1130,6 +1189,21 @@ Puertos y diálogos:
 - Flash Tank coincide con `SolverDrum`: una entrada `Feed`, una salida `Vapor` y una salida `Liquid`; no tiene feeds ni side draws dinámicos.
 - `FlashTankDialog` usa una cuadrícula scoped estable, símbolo ampliado solo en el diálogo y los tres conectores visibles.
 - Pendiente de prueba visual: abrir todos los diálogos, con atención especial al layout de Flash Tank.
+
+Auditoría validada de recálculos innecesarios:
+
+- Alfonso observó que cambiar de pestaña en diálogos de equipos puede disparar simulación.
+- Causa probable auditada: el cambio de tab no recalcula directamente, pero puede provocar `blur` en un input activo. Ese `blur` llama `CommitValue`/`HandleBlur`; si el comando vuelve a aplicar el mismo valor y devuelve `ShouldRunSimulation=true`, `FlowsheetManager.RunSimulation()` se ejecuta aunque no exista cambio real.
+- Implementación aplicada:
+  1. `VariableInputCommandHandler` es idempotente si valor físico, unidad y procedencia UI ya son equivalentes.
+  2. `CompositionInputCommandHandler` solo solicita simulación con composición completa y cambio real.
+  3. El caso etanol/agua por °GL compara cambios reales antes de recalcular.
+  4. Seleccionar la misma unidad visual no marca cambios ni persistencia.
+  5. Confirmar una fórmula existente sin cambios no solicita simulación.
+  6. Conexión/desconexión sigue siendo un cambio topológico real.
+- Validación manual 2026-07-21: cambiar tabs sin editar no recalcula, `blur` con el mismo valor no recalcula, y cambiar un valor real sin Enter antes de cambiar tab sí recalcula.
+- Los logs temporales `[SIM-FSM]`, `[SIM-SERVICE]` y `[SIM-MAIN]` usados para auditar el flujo fueron retirados.
+- Mantener como legítimos los cálculos pesados que no son solver global cuando son explícitos y cacheados, por ejemplo `PhaseEnvelope` al entrar a su pestaña si no hay caché.
 
 Verificación más reciente:
 

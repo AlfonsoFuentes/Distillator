@@ -59,6 +59,7 @@ public class Project : IProject
     {
         Configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         ProjectUnitSystemApplier.ApplyToProject(this);
+        SimulationService.ApplyProjectConfiguration(this);
         Raise(new ProjectConfigurationUpdatedEvent(Id));
     }
 
@@ -216,7 +217,7 @@ public class Project : IProject
             equipmentDesignConfig: Configuration.EquipmentDesignConfig,
             plantElevation: Configuration.PlantElevation);
 
-        SimulationService.PropagateThermodynamicMethod(this);
+        SimulationService.ApplyProjectConfiguration(this);
         ProjectUnitSystemApplier.ApplyToProject(this);
     }
 
@@ -235,6 +236,11 @@ public class Project : IProject
     public void RunSimulation()
     {
         SimulationService.RunSimulation(this);
+    }
+
+    public Task<SimulationRunResult> RunSimulationAsync()
+    {
+        return SimulationService.RunSimulationAsync(this);
     }
 
     public void ClearDomainEvents()

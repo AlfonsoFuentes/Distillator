@@ -144,6 +144,7 @@ namespace Client.Services.Security
             CurrentUserInfo = null;
             CurrentUser = null;
             _currentUserInfoTask = null;
+            CurrentUserChanged?.Invoke();
         }
     }
 }

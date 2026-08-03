@@ -17,133 +17,134 @@
     <link href="_content/MudBlazor/MudBlazor.min.css?v=1" rel="stylesheet" />
     <script type="importmap"></script>
 
-    <!-- PROCESS SIMULATOR SPLASH SCREEN STYLES -->
+    <!-- ========================================== -->
+    <!-- ESTILOS DEL SPLASH SCREEN                  -->
+    <!-- ========================================== -->
     <style>
+        /* Fondo azul tenue para que resalte el texto */
         #app-splash-screen {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background-color: var(--dist-gray-bg, #F4F5F7);
-            background-image: linear-gradient(var(--dist-grid-lines, #A8B2C1) 1px, transparent 1px), linear-gradient(90deg, var(--dist-grid-lines, #A8B2C1) 1px, transparent 1px);
-            background-size: 30px 30px;
-            background-position: center center;
+            inset: 0;
+            background-color: #f7fafc !important;
+            background-image: linear-gradient(rgba(0, 0, 0, 0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 0, 0, 0.06) 1px, transparent 1px);
+            background-size: 40px 40px;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             z-index: 9999;
-            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-        }
-
-        /* Lienzo exacto para evitar desfasajes */
-        .pfd-canvas {
-            position: relative;
-            width: 380px;
-            height: 380px;
-            margin-bottom: 2rem;
-        }
-
-        /* --- TUBERÍAS (Capa Inferior: z-index 1) --- */
-        .pipe {
-            position: absolute;
-            background-color: var(--dist-grid-bg, #EAECEF);
-            border: 2px solid var(--dist-navy, #5D79AE);
-            border-left: none;
-            border-right: none;
-            z-index: 1;
-            height: 16px;
+            font-family: 'Roboto', sans-serif;
             overflow: hidden;
         }
 
-            /* Indicador de flujo animado dentro del tubo */
-            .pipe::after {
-                content: '';
-                position: absolute;
-                top: 4px;
-                left: 0;
-                width: 200%;
-                height: 4px;
-                background: repeating-linear-gradient(90deg, transparent, transparent 10px, #0EA5E9 10px, #0EA5E9 20px);
-                animation: flowForward 1.5s linear infinite;
-                opacity: 0.6;
+        .pfd-3d-container {
+            position: relative;
+            width: 520px;
+            height: 540px;
+            transform: perspective(1200px) rotateX(2deg);
+            animation: floatAssembly 6s ease-in-out infinite;
+            filter: drop-shadow(0 15px 30px rgba(148, 163, 184, 0.2));
+        }
+
+        /* TUBERÍAS SVG */
+        .pipes-svg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            filter: drop-shadow(0 0 5px rgba(147, 197, 253, 0.3));
+        }
+
+        .pipe-path {
+            fill: none;
+            stroke: #94a3b8;
+            stroke-width: 14;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .pipe-flow {
+            fill: none;
+            stroke: #7dd3fc;
+            stroke-width: 6;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            stroke-dasharray: 10, 15;
+            animation: flowAnimation 1.5s linear infinite;
+            opacity: 0.8;
+        }
+
+            .pipe-flow.hot {
+                stroke: #fdba74;
+                filter: drop-shadow(0 0 5px #fdba74);
+                animation: flowAnimation 1.2s linear infinite;
+                opacity: 0.8;
             }
 
-            .pipe.reverse::after {
-                animation: flowReverse 1.5s linear infinite;
+            .pipe-flow.cool {
+                stroke: #67e8f9;
+                filter: drop-shadow(0 0 5px #67e8f9);
+                animation: flowAnimation 2s linear infinite;
+                opacity: 0.8;
             }
 
-        /* Posiciones exactas de las tuberías para conectar los equipos */
-        .pipe-vapor-overhead {
-            left: 210px;
-            top: 80px;
-            width: 80px;
-        }
-
-        .pipe-reflux {
-            left: 210px;
-            top: 105px;
-            width: 80px;
-        }
-
-        .pipe-vapor-return {
-            left: 90px;
-            top: 270px;
-            width: 80px;
-        }
-
-        .pipe-liquid-bottom {
-            left: 90px;
-            top: 300px;
-            width: 80px;
-        }
-
-        /* --- EQUIPOS (Capa Superior: z-index 3) --- */
-
-        /* 1. Columna de Destilación */
+        /* COLUMNA */
+        /* COLUMNA */
         .dist-column {
             position: absolute;
-            left: 150px;
-            top: 40px;
-            width: 80px;
-            height: 300px;
-            background-color: var(--dist-grid-bg, #EAECEF);
-            border: 3px solid var(--dist-navy, #5D79AE);
-            border-radius: 40px 40px 20px 20px;
-            overflow: hidden;
+            left: 180px;
+            top: 80px;
+            width: 100px;
+            height: 320px;
+            background: linear-gradient(90deg, #cbd5e1 0%, #e2e8f0 30%, #f1f5f9 50%, #e2e8f0 70%, #cbd5e1 100%);
+            border-radius: 20px;
             z-index: 3;
-            box-shadow: 0 10px 20px rgba(93, 121, 174, 0.15);
+            box-shadow: 0 15px 35px rgba(148, 163, 184, 0.25), inset 0 0 15px rgba(255, 255, 255, 0.5);
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.4);
         }
 
         .tray {
+            position: absolute;
             width: 100%;
-            height: 4px;
-            background-color: var(--dist-navy, #5D79AE);
-            margin-top: 35px;
-            opacity: 0.4;
+            height: 2px;
+            background: rgba(147, 197, 253, 0.4);
+            box-shadow: 0 0 5px rgba(147, 197, 253, 0.3);
         }
 
         .column-fluid {
             position: absolute;
             bottom: 0;
             width: 100%;
-            background-color: #0EA5E9;
-            opacity: 0.7;
-            animation: fluidLevel 3s ease-in-out infinite alternate;
+            height: 40%;
+            background: linear-gradient(180deg, rgba(147, 197, 253, 0.4) 0%, rgba(147, 197, 253, 0.7) 100%);
+            border-radius: 0 0 20px 20px;
+            animation: fluidSlosh 4s ease-in-out infinite alternate;
         }
 
-        /* 2. Condensador */
-        .condenser-unit {
+        .bubble {
             position: absolute;
-            left: 270px;
-            top: 60px;
-            width: 100px;
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 50%;
+            box-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
+            animation: rise 2s linear infinite;
+        }
+
+        /* CONDENSADOR */
+        /* CONDENSADOR */
+        .condenser {
+            position: absolute;
+            left: 310px;
+            top: 30px;
+            width: 130px;
             height: 70px;
-            background-color: var(--dist-grid-bg, #EAECEF);
-            border: 3px solid var(--dist-navy, #5D79AE);
-            border-radius: 35px;
+            background: linear-gradient(180deg, #cbd5e1 0%, #e2e8f0 40%, #f1f5f9 50%, #e2e8f0 60%, #cbd5e1 100%);
+            border-radius: 20px;
             z-index: 3;
+            box-shadow: 0 10px 25px rgba(148, 163, 184, 0.2), inset 0 0 10px rgba(103, 232, 249, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.4);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -151,172 +152,322 @@
 
         .cooling-coil {
             width: 70%;
-            height: 20px;
-            border: 2px dashed #829ab1;
-            border-radius: 10px;
-            animation: coolingPulse 2s linear infinite;
+            height: 30px;
+            border: 2px dashed rgba(103, 232, 249, 0.5);
+            border-radius: 15px;
+            animation: spinCool 3s linear infinite;
+            box-shadow: 0 0 8px rgba(103, 232, 249, 0.2);
         }
 
-        /* 3. Rehervidor */
-        .reboiler-unit {
+        /* REHERVIDOR */
+        /* REHERVIDOR */
+        .reboiler {
             position: absolute;
-            left: 10px;
-            top: 250px;
-            width: 100px;
-            height: 80px;
-            background-color: var(--dist-grid-bg, #EAECEF);
-            border: 3px solid var(--dist-navy, #5D79AE);
-            border-radius: 10px 10px 40px 40px;
+            left: 320px;
+            top: 360px;
+            width: 90px;
+            height: 130px;
+            background: linear-gradient(90deg, #fecaca 0%, #fca5a5 30%, #fecaca 50%, #fca5a5 70%, #fecaca 100%);
+            border-radius: 20px;
             z-index: 3;
+            box-shadow: 0 15px 30px rgba(252, 165, 165, 0.25), inset 0 0 10px rgba(255, 200, 150, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.4);
             overflow: hidden;
+        }
+
+            .reboiler::after {
+                content: '';
+                position: absolute;
+                bottom: -10px;
+                left: 10%;
+                width: 80%;
+                height: 30px;
+                background: radial-gradient(ellipse, rgba(253, 186, 116, 0.5), transparent);
+                filter: blur(5px);
+                animation: heatPulse 1.5s ease-in-out infinite alternate;
+            }
+
+        .reboiler-bubble {
+            position: absolute;
+            background: rgba(253, 186, 116, 0.5);
+            border-radius: 50%;
+            box-shadow: 0 0 5px rgba(253, 186, 116, 0.3);
+            animation: riseHot 1.8s linear infinite;
+        }
+
+        /* TÍTULO ESPECTACULAR */
+        .ui-title {
+            color: #ffffff;
+            font-size: 2.5rem;
+            font-weight: 800;
+            letter-spacing: 3px;
+            margin-top: 1.5rem;
+            text-transform: uppercase;
+            text-shadow: 0 0 30px rgba(14, 165, 233, 1), 0 0 60px rgba(14, 165, 233, 0.8), 0 0 90px rgba(14, 165, 233, 0.6), 0 4px 8px rgba(0, 0, 0, 0.2);
+            animation: titleGlow 3s ease-in-out infinite alternate;
             position: relative;
         }
 
-        .tube-bundle {
-            position: absolute;
-            bottom: 20px;
-            left: 10px;
-            width: 60px;
-            height: 30px;
-            border: 2px solid var(--dist-text-muted, #5C6A7A);
-            border-radius: 15px;
-            opacity: 0.6;
-        }
+            .ui-title::after {
+                content: '';
+                position: absolute;
+                bottom: -10px;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 220px;
+                height: 4px;
+                background: linear-gradient(90deg, transparent, #0ea5e9, transparent);
+                border-radius: 2px;
+                box-shadow: 0 0 15px #0ea5e9, 0 0 30px rgba(14, 165, 233, 0.5);
+            }
 
-        .boil-bubble {
-            position: absolute;
-            background-color: #0EA5E9;
-            border-radius: 50%;
-            opacity: 0.8;
-            animation: boilUp 1.5s linear infinite;
-        }
-
-        /* --- TEXTOS UI --- */
-        .ui-title {
-            color: var(--dist-text-main, #202A36);
-            font-size: 1.8rem;
-            font-weight: 700;
-            letter-spacing: 1px;
-            margin-bottom: 0.5rem;
-        }
-
+        /* STATUS CON DOT ESPECTACULAR */
         .ui-status {
-            color: var(--dist-text-muted, #5C6A7A);
+            color: #64748b;
             font-size: 1rem;
             font-weight: 500;
-            animation: statusPulse 2s ease-in-out infinite;
+            letter-spacing: 1px;
+            margin-top: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }
 
-        /* --- ANIMACIONES KEYFRAMES --- */
-        @keyframes fluidLevel {
+        .status-dot {
+            position: relative;
+            width: 12px;
+            height: 12px;
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+            border-radius: 50%;
+            box-shadow: 0 0 10px #22c55e, 0 0 20px #22c55e, 0 0 30px rgba(34, 197, 94, 0.5);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+            .status-dot::before {
+                content: '';
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                width: 100%;
+                height: 100%;
+                background: inherit;
+                border-radius: inherit;
+                animation: ripple 2s ease-out infinite;
+            }
+
+            .status-dot::after {
+                content: '';
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                width: 100%;
+                height: 100%;
+                background: inherit;
+                border-radius: inherit;
+                animation: ripple 2s ease-out 1s infinite;
+            }
+
+        /* ANIMACIONES */
+        @keyframes flowAnimation {
+            to {
+                stroke-dashoffset: -25;
+            }
+        }
+
+        @keyframes fluidSlosh {
             0% {
-                height: 25%;
+                height: 35%;
+                transform: skewX(-1deg);
             }
 
             100% {
-                height: 55%;
+                height: 45%;
+                transform: skewX(1deg);
             }
         }
 
-        @keyframes boilUp {
+        @keyframes rise {
+            0% {
+                bottom: 0;
+                opacity: 0;
+                transform: scale(0.5);
+            }
+
+            20% {
+                opacity: 0.6;
+            }
+
+            100% {
+                bottom: 100%;
+                opacity: 0;
+                transform: scale(1.2) translateX(5px);
+            }
+        }
+
+        @keyframes riseHot {
             0% {
                 bottom: 10px;
-                transform: scale(0.5);
                 opacity: 0;
+                transform: scale(0.3);
+            }
+
+            30% {
+                opacity: 0.5;
+            }
+
+            100% {
+                bottom: 110px;
+                opacity: 0;
+                transform: scale(1.5) translateX(-3px);
+            }
+        }
+
+        @keyframes spinCool {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes heatPulse {
+            0% {
+                opacity: 0.3;
+                transform: scale(0.9);
+            }
+
+            100% {
+                opacity: 0.6;
+                transform: scale(1.1);
+            }
+        }
+
+        @keyframes floatAssembly {
+            0%, 100% {
+                transform: perspective(1200px) rotateX(2deg) translateY(0);
+            }
+
+            50% {
+                transform: perspective(1200px) rotateX(2deg) translateY(-10px);
+            }
+        }
+
+        @keyframes titleGlow {
+            0% {
+                text-shadow: 0 0 20px rgba(14, 165, 233, 0.8), 0 0 40px rgba(14, 165, 233, 0.6), 0 0 60px rgba(14, 165, 233, 0.4), 0 4px 8px rgba(0, 0, 0, 0.2);
+            }
+
+            100% {
+                text-shadow: 0 0 30px rgba(14, 165, 233, 1), 0 0 60px rgba(14, 165, 233, 0.9), 0 0 90px rgba(14, 165, 233, 0.7), 0 4px 8px rgba(0, 0, 0, 0.2);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+                transform: scale(1);
+                box-shadow: 0 0 10px #22c55e, 0 0 20px #22c55e;
             }
 
             50% {
                 opacity: 0.8;
+                transform: scale(1.1);
+                box-shadow: 0 0 15px #22c55e, 0 0 30px #22c55e, 0 0 45px rgba(34, 197, 94, 0.6);
+            }
+        }
+
+        @keyframes ripple {
+            0% {
+                width: 100%;
+                height: 100%;
+                opacity: 1;
             }
 
             100% {
-                bottom: 70px;
-                transform: scale(1.2);
+                width: 300%;
+                height: 300%;
                 opacity: 0;
             }
         }
-
-        @keyframes coolingPulse {
-            0%, 100% {
-                border-color: #829ab1;
-            }
-
-            50% {
-                border-color: #0EA5E9;
-            }
-        }
-
-        @keyframes statusPulse {
-            0%, 100% {
-                opacity: 0.6;
-            }
-
-            50% {
-                opacity: 1;
-            }
-        }
-
-        @keyframes flowForward {
-            0% {
-                transform: translateX(0);
-            }
-
-            100% {
-                transform: translateX(-20px);
-            }
-        }
-
-        @keyframes flowReverse {
-            0% {
-                transform: translateX(-20px);
-            }
-
-            100% {
-                transform: translateX(0);
-            }
-        }
     </style>
+
 </head>
 <body>
     <div id="app">
-        <!-- PANTALLA DE CARGA DEL SIMULADOR -->
+        <!-- ========================================== -->
+        <!-- DIV DEL SPLASH SCREEN                      -->
+        <!-- ========================================== -->
         <div id="app-splash-screen">
-            <div class="pfd-canvas">
-                <!-- 1. Tuberías (Capa inferior) -->
-                <!-- Vapor hacia el condensador -->
-                <div class="pipe pipe-vapor-overhead"></div>
-                <!-- Reflujo hacia la columna (Flujo inverso) -->
-                <div class="pipe reverse pipe-reflux"></div>
-                <!-- Líquido hacia el rehervidor -->
-                <div class="pipe pipe-liquid-bottom"></div>
-                <!-- Vapor de retorno a la columna (Flujo inverso) -->
-                <div class="pipe reverse pipe-vapor-return"></div>
+            <div class="pfd-3d-container">
 
-                <!-- 2. Equipos (Capa superior, tapan los bordes de los tubos) -->
-                <div class="reboiler-unit">
-                    <div class="tube-bundle"></div>
-                    <div class="boil-bubble" style="left: 30px; width: 12px; height: 12px; animation-duration: 1.2s;"></div>
-                    <div class="boil-bubble" style="left: 50px; width: 8px; height: 8px; animation-duration: 1.8s; animation-delay: 0.3s;"></div>
-                    <div class="boil-bubble" style="left: 70px; width: 14px; height: 14px; animation-duration: 1.5s; animation-delay: 0.6s;"></div>
-                </div>
+                <!-- TUBERÍAS SVG - RECTAS CON GIROS EN L -->
+                <svg class="pipes-svg" viewBox="0 0 520 560">
+                    <!-- 1. VAPOR: Sube desde la columna, pasa por encima del condensador y baja por la parte superior -->
+                    <path d="M 230 80 L 230 10 L 375 10 L 375 30" class="pipe-path" />
+                    <path d="M 230 80 L 230 10 L 375 10 L 375 30" class="pipe-flow" />
 
-                <div class="dist-column">
-                    <div class="column-fluid"></div>
-                    <div class="tray"></div>
-                    <div class="tray"></div>
-                    <div class="tray"></div>
-                    <div class="tray"></div>
-                    <div class="tray"></div>
-                </div>
+                    <!-- 2. REFLUJO: Baja del condensador, gira en L hacia la columna -->
+                    <path d="M 410 100 L 410 150 L 230 150" class="pipe-path" />
+                    <path d="M 410 100 L 410 150 L 230 150" class="pipe-flow cool" />
 
-                <div class="condenser-unit">
+                    <!-- 3. NUEVA TUBERÍA: Sale justo debajo del condensador hacia la derecha -->
+                    <path d="M 410 150 L 510 150" class="pipe-path" />
+                    <path d="M 410 150 L 510 150" class="pipe-flow cool" />
+
+                    <!-- 4. LÍQUIDO: Baja de la columna, pasa por DEBAJO del rehervidor -->
+                    <path d="M 230 400 L 230 540 L 365 540" class="pipe-path" />
+                    <path d="M 230 400 L 230 540 L 365 540" class="pipe-flow" />
+
+                    <!-- 5. ENTRADA AL REHERVIDOR: Sube desde el punto de división hacia el rehervidor -->
+                    <path d="M 365 540 L 365 490" class="pipe-path" />
+                    <path d="M 365 540 L 365 490" class="pipe-flow" />
+
+                    <!-- 6. PRODUCTO DE FONDO: Sale del punto de división hacia la derecha -->
+                    <path d="M 365 540 L 520 540" class="pipe-path" />
+                    <path d="M 365 540 L 520 540" class="pipe-flow hot" />
+
+                    <!-- 7. VAPOR RETORNO: Sale de la parte superior izquierda del rehervidor y va horizontal a la columna -->
+                    <path d="M 320 380 L 230 380" class="pipe-path" />
+                    <path d="M 320 380 L 230 380" class="pipe-flow hot" />
+                </svg>
+
+                <!-- CONDENSADOR -->
+                <div class="condenser">
                     <div class="cooling-coil"></div>
                 </div>
+
+                <!-- COLUMNA -->
+                <div class="dist-column">
+                    <div class="column-fluid"></div>
+                    <div class="tray" style="top: 60px;"></div>
+                    <div class="tray" style="top: 120px;"></div>
+                    <div class="tray" style="top: 180px;"></div>
+                    <div class="tray" style="top: 240px;"></div>
+                    <div class="bubble" style="left: 30px; width: 8px; height: 8px; animation-duration: 2.5s;"></div>
+                    <div class="bubble" style="left: 60px; width: 6px; height: 6px; animation-duration: 3.2s; animation-delay: 0.5s;"></div>
+                    <div class="bubble" style="left: 45px; width: 10px; height: 10px; animation-duration: 2.8s; animation-delay: 1.2s;"></div>
+                </div>
+
+                <!-- REHERVIDOR -->
+                <div class="reboiler">
+                    <div class="reboiler-bubble" style="left: 25px; width: 10px; height: 10px; animation-duration: 1.5s;"></div>
+                    <div class="reboiler-bubble" style="left: 50px; width: 7px; height: 7px; animation-duration: 1.2s; animation-delay: 0.4s;"></div>
+                    <div class="reboiler-bubble" style="left: 35px; width: 12px; height: 12px; animation-duration: 1.8s; animation-delay: 0.8s;"></div>
+                </div>
+
             </div>
 
-            <div class="ui-title">ProcessSimulator</div>
-            <div class="ui-status">Initializing Thermodynamics Engine...</div>
+            <div class="ui-title">DISTILLATOR PRO</div>
+            <div class="ui-status">
+                <span class="status-dot"></span>
+                Product by AFDS...
+            </div>
         </div>
+
     </div>
 
     <div id="blazor-error-ui">
@@ -325,9 +476,10 @@
         <span class="dismiss">🗙</span>
     </div>
 
-    <!--<script src="_framework/blazor.webassembly#[.{fingerprint}].js"></script>-->
-    <script src="_framework/blazor.webassembly.js"></script>
-    <script src="_content/MudBlazor/MudBlazor.min.js?v=1"></script>
+  
+    <script src="networkStatusInterop.js"></script>
+    <script src="_content/MudBlazor/MudBlazor.min.js?v=2"></script>
     <script src="canvasInterop.js"></script>
+    <script src="_framework/blazor.webassembly.js"></script>
 </body>
 </html>

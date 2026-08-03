@@ -346,11 +346,55 @@ namespace Server.Entities.Projects.EndPoints
                 {
                     return Result<ProjectDocumentDto>.Fail("You do not have permission to edit this project.");
                 }
+                var idempotentResult = await TryBuildIdempotentProjectResultAsync(context, project, userId, request.OperationId);
+                if (idempotentResult != null)
+                {
+                    return idempotentResult;
+                }
+
+                if (!ValidateExpectedVersion(project.Version, request.ExpectedVersion, out var versionConflict))
+                {
+                    return versionConflict;
+                }
 
                 var oldValue = ProjectConfigurationAuditValue(project);
+                var migratedDiagrams = request.MigratedDiagrams?
+                    .Where(diagram => diagram.Id != Guid.Empty)
+                    .ToList();
+                if (migratedDiagrams is { Count: > 0 })
+                {
+                    var diagramValidationError = ValidateDiagramBatchForAtomicConfiguration(project, migratedDiagrams);
+                    if (diagramValidationError != null)
+                    {
+                        return Result<ProjectDocumentDto>.Fail(diagramValidationError);
+                    }
+                }
 
                 project.Name = NormalizeProjectName(request.Name);
                 ApplyConfiguration(project, request.Configuration);
+
+                if (migratedDiagrams is { Count: > 0 })
+                {
+                    var recordsById = project.Diagrams.ToDictionary(diagram => diagram.Id);
+                    foreach (var diagramDto in migratedDiagrams)
+                    {
+                        var diagram = recordsById[diagramDto.Id];
+                        var oldDiagramValue = ProjectDiagramAudit.Summarize(ToDiagramDto(diagram));
+                        ApplyDiagram(diagram, diagramDto);
+                        AddChangeLog(
+                            context,
+                            project,
+                            userId,
+                            ProjectChangeOperation.Updated,
+                            nameof(ProjectDiagramRecord),
+                            diagram.Id,
+                            "Project.Diagrams",
+                            oldDiagramValue,
+                            ProjectDiagramAudit.Summarize(ToDiagramDto(diagram)),
+                            request.OperationId);
+                    }
+                }
+
                 TouchProject(project, userId);
 
                 AddChangeLog(
@@ -362,7 +406,8 @@ namespace Server.Entities.Projects.EndPoints
                     project.Id,
                     "Project.Configuration",
                     oldValue,
-                    ProjectConfigurationAuditValue(project));
+                    ProjectConfigurationAuditValue(project),
+                    request.OperationId);
 
                 var result = await context.SaveResultAsync(
                     () => ToDocumentDto(project),
@@ -453,6 +498,16 @@ namespace Server.Entities.Projects.EndPoints
                 {
                     return Result<ProjectDocumentDto>.Fail("You do not have permission to edit this project.");
                 }
+                var idempotentResult = await TryBuildIdempotentProjectResultAsync(context, project, userId, request.OperationId);
+                if (idempotentResult != null)
+                {
+                    return idempotentResult;
+                }
+
+                if (!ValidateExpectedVersion(project.Version, request.ExpectedVersion, out var versionConflict))
+                {
+                    return versionConflict;
+                }
 
                 var diagramId = request.Diagram.Id == Guid.Empty ? Guid.NewGuid() : request.Diagram.Id;
                 var existingDiagram = await context.ProjectDiagrams
@@ -496,7 +551,8 @@ namespace Server.Entities.Projects.EndPoints
                     diagram.Id,
                     "Project.Diagrams",
                     null,
-                    ToDiagramDto(diagram));
+                    ToDiagramDto(diagram),
+                    request.OperationId);
 
                 var result = await context.SaveResultAsync(
                     () => ToDocumentDto(project),
@@ -532,6 +588,16 @@ namespace Server.Entities.Projects.EndPoints
                 {
                     return Result<ProjectDocumentDto>.Fail("You do not have permission to edit this project.");
                 }
+                var idempotentResult = await TryBuildIdempotentProjectResultAsync(context, project, userId, request.OperationId);
+                if (idempotentResult != null)
+                {
+                    return idempotentResult;
+                }
+
+                if (!ValidateExpectedVersion(project.Version, request.ExpectedVersion, out var versionConflict))
+                {
+                    return versionConflict;
+                }
 
                 var diagram = project.Diagrams.FirstOrDefault(item => item.Id == request.Diagram.Id);
                 if (diagram == null)
@@ -544,7 +610,7 @@ namespace Server.Entities.Projects.EndPoints
                     return Result<ProjectDocumentDto>.Fail("A diagram with this number already exists.");
                 }
 
-                var oldValue = ToDiagramDto(diagram);
+                var oldValue = ProjectDiagramAudit.Summarize(ToDiagramDto(diagram));
 
                 ApplyDiagram(diagram, request.Diagram);
                 TouchProject(project, userId);
@@ -558,7 +624,8 @@ namespace Server.Entities.Projects.EndPoints
                     diagram.Id,
                     "Project.Diagrams",
                     oldValue,
-                    ToDiagramDto(diagram));
+                    ProjectDiagramAudit.Summarize(ToDiagramDto(diagram)),
+                    request.OperationId);
 
                 var result = await context.SaveResultAsync(
                     () => ToDocumentDto(project),
@@ -601,6 +668,16 @@ namespace Server.Entities.Projects.EndPoints
                 {
                     return Result<ProjectDocumentDto>.Fail("You do not have permission to edit this project.");
                 }
+                var idempotentResult = await TryBuildIdempotentProjectResultAsync(context, project, userId, request.OperationId);
+                if (idempotentResult != null)
+                {
+                    return idempotentResult;
+                }
+
+                if (!ValidateExpectedVersion(project.Version, request.ExpectedVersion, out var versionConflict))
+                {
+                    return versionConflict;
+                }
 
                 var recordsById = project.Diagrams.ToDictionary(diagram => diagram.Id);
                 if (request.Diagrams.Any(diagram => !recordsById.ContainsKey(diagram.Id)))
@@ -620,7 +697,7 @@ namespace Server.Entities.Projects.EndPoints
                 foreach (var diagramDto in request.Diagrams)
                 {
                     var diagram = recordsById[diagramDto.Id];
-                    var oldValue = ToDiagramDto(diagram);
+                    var oldValue = ProjectDiagramAudit.Summarize(ToDiagramDto(diagram));
                     ApplyDiagram(diagram, diagramDto);
                     AddChangeLog(
                         context,
@@ -631,7 +708,8 @@ namespace Server.Entities.Projects.EndPoints
                         diagram.Id,
                         "Project.Diagrams",
                         oldValue,
-                        ToDiagramDto(diagram));
+                        ProjectDiagramAudit.Summarize(ToDiagramDto(diagram)),
+                        request.OperationId);
                 }
 
                 TouchProject(project, userId);
@@ -675,6 +753,16 @@ namespace Server.Entities.Projects.EndPoints
                 {
                     return Result<ProjectDocumentDto>.Fail("You do not have permission to edit this project.");
                 }
+                var idempotentResult = await TryBuildIdempotentProjectResultAsync(context, project, userId, request.OperationId);
+                if (idempotentResult != null)
+                {
+                    return idempotentResult;
+                }
+
+                if (!ValidateExpectedVersion(project.Version, request.ExpectedVersion, out var versionConflict))
+                {
+                    return versionConflict;
+                }
 
                 if (project.Diagrams.Count(diagram => !diagram.IsDeleted) <= 1)
                 {
@@ -700,7 +788,8 @@ namespace Server.Entities.Projects.EndPoints
                     diagram.Id,
                     "Project.Diagrams",
                     oldValue,
-                    null);
+                    null,
+                    request.OperationId);
 
                 var diagramId = diagram.Id;
                 context.ProjectDiagrams.Remove(diagram);
@@ -773,11 +862,90 @@ namespace Server.Entities.Projects.EndPoints
                 string.Equals(diagram.DiagramNumber?.Trim(), normalized, StringComparison.OrdinalIgnoreCase));
         }
 
+        private static string? ValidateDiagramBatchForAtomicConfiguration(
+            ProjectRecord project,
+            IReadOnlyCollection<ProjectDiagramDto> diagrams)
+        {
+            if (diagrams.Count == 0 ||
+                diagrams.Any(diagram => diagram.Id == Guid.Empty) ||
+                diagrams.Select(diagram => diagram.Id).Distinct().Count() != diagrams.Count)
+            {
+                return "The diagram migration batch is invalid.";
+            }
+
+            var activeDiagrams = project.Diagrams
+                .Where(diagram => !diagram.IsDeleted)
+                .ToList();
+            var recordsById = activeDiagrams.ToDictionary(diagram => diagram.Id);
+            if (diagrams.Any(diagram => !recordsById.ContainsKey(diagram.Id)))
+            {
+                return "One or more diagrams were not found.";
+            }
+
+            var projectedNumbers = activeDiagrams
+                .Select(diagram =>
+                {
+                    var migrated = diagrams.FirstOrDefault(item => item.Id == diagram.Id);
+                    return migrated?.DiagramNumber ?? diagram.DiagramNumber;
+                })
+                .Where(number => !string.IsNullOrWhiteSpace(number))
+                .Select(number => number!.Trim())
+                .ToList();
+
+            var duplicate = projectedNumbers
+                .GroupBy(number => number, StringComparer.OrdinalIgnoreCase)
+                .FirstOrDefault(group => group.Count() > 1);
+
+            return duplicate == null
+                ? null
+                : $"Diagram number '{duplicate.Key}' is already used by more than one diagram.";
+        }
+
         private static void TouchProject(ProjectRecord project, string userId)
         {
             project.UpdatedBy = userId;
             project.UpdatedOnUtc = DateTime.UtcNow;
             project.Version++;
+        }
+
+        private static bool ValidateExpectedVersion(
+            long currentVersion,
+            long? expectedVersion,
+            out Result<ProjectDocumentDto> conflict)
+        {
+            conflict = Result<ProjectDocumentDto>.Fail();
+            if (ProjectVersionConcurrency.IsExpectedVersionValid(currentVersion, expectedVersion))
+            {
+                return true;
+            }
+
+            conflict = Result<ProjectDocumentDto>.Fail(
+                ProjectVersionConcurrency.BuildConflictMessage(currentVersion, expectedVersion!.Value));
+            return false;
+        }
+
+        private static async Task<Result<ProjectDocumentDto>?> TryBuildIdempotentProjectResultAsync(
+            ApplicationDbContext context,
+            ProjectRecord project,
+            string userId,
+            Guid? operationId)
+        {
+            operationId = ProjectOperationId.Normalize(operationId);
+            if (!operationId.HasValue)
+            {
+                return null;
+            }
+
+            var alreadyApplied = await context.ProjectChangeLogs
+                .AsNoTracking()
+                .AnyAsync(changeLog =>
+                    changeLog.ProjectId == project.Id &&
+                    changeLog.UserId == userId &&
+                    changeLog.OperationId == operationId.Value);
+
+            return alreadyApplied
+                ? Result<ProjectDocumentDto>.Success(ToDocumentDto(project), "Operation already applied.")
+                : null;
         }
 
         private static void AddChangeLog(
@@ -789,7 +957,8 @@ namespace Server.Entities.Projects.EndPoints
             Guid entityId,
             string path,
             object? oldValue,
-            object? newValue)
+            object? newValue,
+            Guid? operationId = null)
         {
             context.ProjectChangeLogs.Add(new ProjectChangeLog
             {
@@ -800,6 +969,7 @@ namespace Server.Entities.Projects.EndPoints
                 EntityType = entityType,
                 EntityId = entityId.ToString(),
                 Path = path,
+                OperationId = ProjectOperationId.Normalize(operationId),
                 OldValueJson = oldValue == null ? null : JsonSerializer.Serialize(oldValue),
                 NewValueJson = newValue == null ? null : JsonSerializer.Serialize(newValue),
                 ProjectVersion = project.Version,

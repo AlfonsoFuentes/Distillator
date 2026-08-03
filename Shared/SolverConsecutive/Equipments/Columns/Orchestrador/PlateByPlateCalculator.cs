@@ -1,4 +1,4 @@
-﻿using Shared.SolverQwen.Stream;
+using Shared.SolverQwen.Stream;
 using System.Collections.Immutable;
 using UnitSystem;
 
@@ -21,7 +21,6 @@ namespace Shared.SolverConsecutive.Equipments.Columns.Orchestrador
         {
             if (_column.State != ColumnStateType.Solved)
             {
-                Console.WriteLine($"⚠️ Platos: Columna no está resuelta, saltando cálculo");
                 return;
             }
 
@@ -29,7 +28,6 @@ namespace Shared.SolverConsecutive.Equipments.Columns.Orchestrador
             // 🔥 Si la topología no cambió Y FUG no recalculó, usar caché
             if (_column.Orchestrator != null && !_column.Orchestrator.TopologyChanged )
             {
-                Console.WriteLine($"✅ Platos: Topología y FUG sin cambios, usando caché");
                 return;
             }
 
@@ -37,7 +35,6 @@ namespace Shared.SolverConsecutive.Equipments.Columns.Orchestrador
             {
                 try
                 {
-                    Console.WriteLine($"📊 Calculando platos...");
                     var plateSolver = new ColumnIdealPlateSolver(_column);
                     plateSolver.Solve();
 
@@ -50,11 +47,9 @@ namespace Shared.SolverConsecutive.Equipments.Columns.Orchestrador
                     // necesitamos un mecanismo para que el orquestador los convierta a ImmutableList
                     // y los guarde en el caché. Esto se hace en el orquestador.
 
-                    Console.WriteLine($"✅ Platos calculados");
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
-                    Console.WriteLine($"❌ Error en Platos: {ex.Message}");
                     _column.Orchestrator?.SetStages(ImmutableList<StageResult>.Empty);
                 }
             }, cancellationToken);

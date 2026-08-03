@@ -65,8 +65,10 @@
                 }
                 else if (activeTab == "Streams")
                 {
-                    <EquipmentBaseStreams Ports="_Ports"
-                                          OnEquipmentStreamsUpdated="HandleEquipmentUpdate" />
+                    <div class="streams-tab-container">
+                        <EquipmentBaseStreams Ports="_Ports"
+                                              OnEquipmentStreamsUpdated="HandleEquipmentUpdate" />
+                    </div>
                 }
                 else if (activeTab == "Composition")
                 {

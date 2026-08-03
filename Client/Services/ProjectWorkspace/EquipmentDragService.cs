@@ -13,6 +13,8 @@ public class EquipmentDragService
     private readonly IPlacementRules _placementRules;
 
     private IVisualElement? _movingElement;
+    private readonly List<IVisualElement> _movingElements = new();
+    private readonly Dictionary<Guid, (double X, double Y)> _originalPositions = new();
     private double _lastMouseX;
     private double _lastMouseY;
     private double _originalDragX;
@@ -25,18 +27,39 @@ public class EquipmentDragService
 
     public bool IsMovingAny => _movingElement != null;
 
-    public bool IsMoving(IVisualElement el) => _movingElement != null && _movingElement.Id == el.Id;
+    public bool IsMoving(IVisualElement el) => _movingElements.Any(element => element.Id == el.Id);
 
-    public void StartMove(IVisualElement el, MouseEventArgs e, bool isConnectionModeActive, Action<IVisualElement> onSelectElement)
+    public void StartMove(
+        IVisualElement el,
+        MouseEventArgs e,
+        bool isConnectionModeActive,
+        Action<IVisualElement> onSelectElement,
+        IReadOnlyCollection<IVisualElement>? selectedElements = null)
     {
         if (isConnectionModeActive || e.Button != 0) return;
 
         _movingElement = el;
+        _movingElements.Clear();
+        _originalPositions.Clear();
         _lastMouseX = e.ClientX;
         _lastMouseY = e.ClientY;
         _originalDragX = el.X;
         _originalDragY = el.Y;
-        onSelectElement(el);
+
+        var group = selectedElements?.Any(selected => selected.Id == el.Id) == true
+            ? selectedElements
+            : new[] { el };
+
+        foreach (var element in group)
+        {
+            _movingElements.Add(element);
+            _originalPositions[element.Id] = (element.X, element.Y);
+        }
+
+        if (_movingElements.Count == 1)
+        {
+            onSelectElement(el);
+        }
     }
 
     public void Move(MouseEventArgs e, double zoom, double globalScale, double paperWidth, double paperHeight)
@@ -46,12 +69,18 @@ public class EquipmentDragService
         double effectiveScale = zoom * globalScale;
         if (effectiveScale <= 0) effectiveScale = 0.001;
 
-        if (_movingElement.AllowFreeDragX)
-            _movingElement.X += (e.ClientX - _lastMouseX) / effectiveScale;
-        if (_movingElement.AllowFreeDragY)
-            _movingElement.Y += (e.ClientY - _lastMouseY) / effectiveScale;
+        var deltaX = (e.ClientX - _lastMouseX) / effectiveScale;
+        var deltaY = (e.ClientY - _lastMouseY) / effectiveScale;
 
-        ClampToPaper(_movingElement, paperWidth, paperHeight);
+        foreach (var element in _movingElements)
+        {
+            if (element.AllowFreeDragX)
+                element.X += deltaX;
+            if (element.AllowFreeDragY)
+                element.Y += deltaY;
+
+            ClampToPaper(element, paperWidth, paperHeight);
+        }
 
         _lastMouseX = e.ClientX;
         _lastMouseY = e.ClientY;
@@ -61,22 +90,31 @@ public class EquipmentDragService
     {
         if (_movingElement == null) return false;
 
-        if (_placementRules.HasCollision(_movingElement, _movingElement.X, _movingElement.Y, elements))
+        var movingIds = _movingElements.Select(element => element.Id).ToHashSet();
+        var collisionCandidates = elements
+            .Where(element => !movingIds.Contains(element.Id))
+            .ToList();
+
+        if (_movingElements.Any(element => _placementRules.HasCollision(element, element.X, element.Y, collisionCandidates)))
         {
-            _movingElement.X = _originalDragX;
-            _movingElement.Y = _originalDragY;
+            RestoreOriginalPositions();
         }
 
-        ClampToPaper(_movingElement, paperWidth, paperHeight);
+        foreach (var element in _movingElements)
+        {
+            ClampToPaper(element, paperWidth, paperHeight);
 
-        if (_movingElement.AllowFreeDragX)
-            _movingElement.X = _placementRules.Snap(_movingElement.X, gridSize);
-        if (_movingElement.AllowFreeDragY)
-            _movingElement.Y = _placementRules.Snap(_movingElement.Y, gridSize);
+            if (element.AllowFreeDragX)
+                element.X = _placementRules.Snap(element.X, gridSize);
+            if (element.AllowFreeDragY)
+                element.Y = _placementRules.Snap(element.Y, gridSize);
 
-        ClampToPaper(_movingElement, paperWidth, paperHeight);
+            ClampToPaper(element, paperWidth, paperHeight);
+        }
 
         _movingElement = null;
+        _movingElements.Clear();
+        _originalPositions.Clear();
         return true;
     }
 
@@ -95,8 +133,19 @@ public class EquipmentDragService
     {
         if (_movingElement == null) return;
 
-        _movingElement.X = _originalDragX;
-        _movingElement.Y = _originalDragY;
+        RestoreOriginalPositions();
         _movingElement = null;
+        _movingElements.Clear();
+        _originalPositions.Clear();
+    }
+
+    private void RestoreOriginalPositions()
+    {
+        foreach (var element in _movingElements)
+        {
+            if (!_originalPositions.TryGetValue(element.Id, out var position)) continue;
+            element.X = position.X;
+            element.Y = position.Y;
+        }
     }
 }

@@ -39,12 +39,11 @@
     --font-family: "Segoe UI", Arial, sans-serif;
     font-family: var(--font-family);
     font-size: 12px;
-    width: fit-content;
-    min-width: 480px;
-    max-width: 95vw;
+    width: min(580px, 96vw);
+    height: min(500px, 90vh);
     border-radius: 4px;
     border: 1px solid #888888;
-    background-color: #ffffff;
+    background-color: #fafafa;
     margin: 0 auto;
     display: flex;
     flex-direction: column;
@@ -82,19 +81,77 @@
     }
 
 /* ==================== CONTENIDO DE TABS ==================== */
-.tab-content {
-    padding: 10px;
-    flex-grow: 1;
-    min-height: 480px;
+.dialog-body {
+    padding: 16px 18px;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: auto;
     width: 100%;
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
+    align-items: stretch;
 }
 
-    .tab-content.active {
-        display: block;
-    }
+.tab-panel {
+    width: 100%;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    min-height: 0;
+}
+
+.phase-envelope-panel {
+    min-height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: stretch;
+    flex-direction: column;
+    align-self: stretch;
+    overflow: auto;
+}
+
+.phase-envelope-panel ::deep .chart-container {
+    width: 100%;
+    min-width: 0;
+}
+
+.phase-envelope-panel ::deep .eng-svg {
+    width: 100%;
+    min-width: 0;
+}
+
+.phase-envelope-message,
+.phase-envelope-error {
+    min-height: 380px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    text-align: center;
+}
+
+.phase-envelope-message {
+    color: #64748b;
+}
+
+.phase-envelope-title {
+    margin-top: 10px;
+    font-weight: 600;
+}
+
+.phase-envelope-subtitle {
+    font-size: 12px;
+    opacity: 0.8;
+}
+
+.phase-envelope-error {
+    color: #ef4444;
+    font-weight: bold;
+}
 
 /* ==================== GRIDS - SOLO DEFINICIONES DE LAYOUT ==================== */
 .data-grid {
@@ -120,7 +177,7 @@
 .scrollable-container {
     overflow-x: auto;
     width: 100%;
-    max-height: 420px;
+    max-height: none;
     overflow-y: auto;
     border: 1px solid var(--border-color);
     border-radius: 4px;
@@ -146,15 +203,31 @@
 /* ==================== STATUS BAR ==================== */
 .status-bar {
     display: flex;
+    flex: 0 0 auto;
     align-items: center;
     gap: 8px;
     padding: 8px 12px;
-    margin-top: 10px;
+    margin-top: 0;
     border-radius: 4px;
     font-family: "Segoe UI", Arial, sans-serif;
     font-size: 12px;
     font-weight: 500;
     transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+@media (max-width: 760px) {
+    .stream-dialog {
+        width: 96vw;
+        height: 90vh;
+    }
+
+    .tabs-header {
+        overflow-x: auto;
+    }
+
+    .tab {
+        flex: 0 0 auto;
+    }
 }
 
 .status-icon {

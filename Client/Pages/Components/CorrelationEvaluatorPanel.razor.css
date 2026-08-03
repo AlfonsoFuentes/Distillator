@@ -1,0 +1,87 @@
+.correlation-evaluator {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.evaluator-header {
+    align-items: center;
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.result-box {
+    border: 1px solid var(--mud-palette-lines-default);
+    border-radius: 6px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 56px;
+    padding: 0.4rem 0.75rem;
+}
+
+.result-label {
+    color: var(--mud-palette-text-secondary);
+    font-size: 0.72rem;
+    line-height: 1.1;
+}
+
+.result-value {
+    color: var(--mud-palette-text-primary);
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+}
+
+.chart-shell {
+    background: var(--mud-palette-surface);
+    border: 1px solid var(--mud-palette-lines-default);
+    border-radius: 6px;
+    min-height: 300px;
+    padding: 0.75rem;
+}
+
+.correlation-chart {
+    display: block;
+    height: 280px;
+    width: 100%;
+}
+
+.axis-line {
+    stroke: var(--mud-palette-text-secondary);
+    stroke-width: 1;
+}
+
+.grid-line {
+    stroke: var(--mud-palette-lines-default);
+    stroke-dasharray: 4 5;
+    stroke-width: 1;
+}
+
+.data-line {
+    fill: none;
+    stroke: var(--mud-palette-primary);
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 3;
+}
+
+.data-point {
+    fill: var(--mud-palette-primary);
+    stroke: var(--mud-palette-surface);
+    stroke-width: 1.5;
+}
+
+.axis-text {
+    fill: var(--mud-palette-text-secondary);
+    font-size: 12px;
+}
+
+@media (max-width: 720px) {
+    .evaluator-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+}

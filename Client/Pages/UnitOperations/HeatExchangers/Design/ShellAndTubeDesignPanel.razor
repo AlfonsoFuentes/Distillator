@@ -1,0 +1,876 @@
+@using System.Globalization
+@using Distillator.Domain.Configuration
+@using Distillator.Domain.Services
+@using Shared.ProcessFlowDiagram.Designs
+@using Shared.ProcessFlowDiagram.HeatExchangers
+@using Shared.SolverConsecutive
+@using Shared.UnitOperations.HeatExchangers.Design
+@using UnitSystem
+@inject ProjectSessionService ProjectSessionService
+@implements IDisposable
+
+<CascadingValue Value="unitPopupContext">
+<section class="shell-design">
+    <div class="design-toolbar">
+        <button type="button" class="primary-action" @onclick="CreateDesign">Create Design</button>
+
+        @if (Equipment.Designs.Count > 0)
+        {
+            <div class="design-tabs" role="tablist" aria-label="Designs">
+                @foreach (var design in Equipment.Designs)
+                {
+                    <button type="button"
+                            class="design-tab @(selectedDesign?.Id == design.Id ? "active" : null)"
+                            role="tab"
+                            @onclick="() => SelectDesign(design)">
+                        @design.Name
+                    </button>
+                }
+            </div>
+
+            <div class="unit-system-picker">
+                <span>Units</span>
+                <select value="@SelectedUnitSystemName" @onchange="OnDesignUnitSystemChanged" aria-label="Design unit system">
+                    @foreach (var option in UnitSystemOptions)
+                    {
+                        <option value="@option.Name">@option.Name</option>
+                    }
+                </select>
+            </div>
+        }
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(errorMessage))
+    {
+        <div class="design-message design-message-error">@errorMessage</div>
+    }
+
+    @if (selectedDesign is null)
+    {
+        <div class="empty-design">
+            <div>
+                <h3>Shell and tube design</h3>
+                <p>Create a preliminary design from the connected streams.</p>
+            </div>
+        </div>
+    }
+    else if (Variables is { } variables)
+    {
+        <div class="design-surface">
+            <div class="visual-grid">
+                <article class="design-card">
+                    <div class="card-title">
+                        <h3>Tube Detail</h3>
+                        <span>@FormatDefinedBy(variables.TubeOuterDiameter)</span>
+                    </div>
+
+                    <svg class="tube-svg" viewBox="0 0 220 150" role="img" aria-label="Tube detail">
+                        @{
+                            var od = GetDiameterValue(variables.TubeOuterDiameter, DiameterUnits.Inch);
+                            var id = GetDiameterValue(variables.TubeInnerDiameter, DiameterUnits.Inch);
+                            var innerRadius = od <= 0 ? 0 : Math.Clamp(52d * id / od, 8d, 50d);
+                        }
+                        <circle cx="110" cy="66" r="50" class="tube-outer" />
+                        <circle cx="110" cy="66" r="@FormatSvg(innerRadius)" class="tube-inner" />
+                        <line x1="60" y1="66" x2="160" y2="66" class="projection-line" />
+                        <line x1="60" y1="116" x2="60" y2="132" class="projection-line" />
+                        <line x1="160" y1="116" x2="160" y2="132" class="projection-line" />
+                        <line x1="58" y1="132" x2="162" y2="132" class="dimension-line" />
+                        <line x1="53" y1="137" x2="63" y2="127" class="dimension-tick" />
+                        <line x1="157" y1="137" x2="167" y2="127" class="dimension-tick" />
+                        <text x="110" y="13" text-anchor="middle">ID @FormatNumber(id) in</text>
+                        <text x="110" y="146" text-anchor="middle">OD @FormatNumber(od) in</text>
+                    </svg>
+
+                    <div class="property-table">
+                        <DesignSelectRow Label="Standard" Value="@tubeStandard" Options="TubeStandardOptions" ValueChanged="OnTubeStandardChanged" />
+                        <DesignAmountRow T="Diameter" Label="Tube OD" Variable="variables.TubeOuterDiameter" ValueChanged="SetTubeOuterDiameter" />
+                        <DesignAmountRow T="Diameter" Label="Tube ID" Variable="variables.TubeInnerDiameter" ReadOnly="true" />
+                        <DesignSelectRow Label="Gauge" Value="@GetGaugeValue(variables)" Options="TubeGaugeOptions" ValueChanged="OnTubeGaugeChanged" />
+                    </div>
+                </article>
+
+                <article class="design-card">
+                    <div class="card-title">
+                        <h3>Tube Layout</h3>
+                        <span>Kern/TEMA</span>
+                    </div>
+
+                    <svg class="layout-svg" viewBox="0 0 260 232" role="img" aria-label="Tube layout">
+                        <circle cx="130" cy="104" r="82" class="shell-circle" />
+                        @foreach (var tube in GetAvailableTubeLayoutPoints())
+                        {
+                            <circle cx="@FormatSvg(tube.X)" cy="@FormatSvg(tube.Y)" r="@FormatSvg(tube.Radius)" class="layout-tube-available" />
+                        }
+                        @foreach (var tube in GetInstalledTubeLayoutPoints())
+                        {
+                            <circle cx="@FormatSvg(tube.X)" cy="@FormatSvg(tube.Y)" r="@FormatSvg(tube.Radius)" class="layout-tube" />
+                        }
+                        <line x1="48" y1="186" x2="48" y2="216" class="projection-line" />
+                        <line x1="212" y1="186" x2="212" y2="216" class="projection-line" />
+                        <line x1="54" y1="216" x2="206" y2="216" class="dimension-line" />
+                        <line x1="43" y1="221" x2="53" y2="211" class="dimension-tick" />
+                        <line x1="207" y1="221" x2="217" y2="211" class="dimension-tick" />
+                        <text x="130" y="14" text-anchor="middle">@GetTubeLayoutSummary(variables)</text>
+                        <text x="130" y="210" text-anchor="middle">Shell ID @FormatNumber(GetDiameterValue(variables.ShellInsideDiameter, DiameterUnits.Inch)) in</text>
+                    </svg>
+
+                    <div class="property-table">
+                        <DesignAmountRow T="Diameter" Label="Shell ID" Variable="variables.ShellInsideDiameter" ValueChanged="value => SetDiameter(variables.ShellInsideDiameter, value)" />
+                        <DesignValueRow Label="Required tubes" Value="@GetUnitLessValue(variables.RequiredTubeCount)" Integer="true" ReadOnly="true" />
+                        @if (IsUTubeConstruction())
+                        {
+                            <DesignValueRow Label="U-tubes" Value="@GetUTubeCount(variables.ActualTubeCount)" Integer="true" ReadOnly="true" />
+                        }
+                        <DesignValueRow Label="@GetTubeCountRowLabel()" Value="@GetUnitLessValue(variables.ActualTubeCount)" Integer="true" ValueChanged="value => SetUnitLess(variables.ActualTubeCount, value)" />
+                        <DesignValueRow Label="Tubes that fit" Value="@GetUnitLessValue(variables.MaximumTubeCount)" Integer="true" ReadOnly="true" />
+                        <DesignAmountRow T="Diameter" Label="Pitch" Variable="variables.TubePitch" ValueChanged="value => SetDiameter(variables.TubePitch, value)" />
+                        <DesignSelectRow Label="Layout" Value="@variables.TubeLayout.ToString()" Options="TubeLayoutOptions" ValueChanged="OnTubeLayoutChanged" />
+                    </div>
+                </article>
+
+                <article class="design-card wide-card">
+                    <div class="card-title">
+                        <h3>Exchanger View</h3>
+                        <span>@GetTemaType()</span>
+                    </div>
+
+                    <svg class="exchanger-svg" viewBox="0 0 420 178" role="img" aria-label="Exchanger view">
+                        <rect x="70" y="48" width="280" height="68" rx="12" class="shell-body" />
+                        <path d="M70 56 C46 56 46 108 70 108" class="head-line" />
+                        <path d="M350 56 C374 56 374 108 350 108" class="head-line" />
+                        @foreach (var y in GetPassLines())
+                        {
+                            <line x1="82" y1="@FormatSvg(y)" x2="338" y2="@FormatSvg(y)" class="tube-line" />
+                        }
+                        @foreach (var x in GetBaffleLines())
+                        {
+                            <line x1="@FormatSvg(x)" y1="52" x2="@FormatSvg(x)" y2="114" class="baffle-line" />
+                        }
+                        <line x1="70" y1="116" x2="70" y2="148" class="projection-line" />
+                        <line x1="350" y1="116" x2="350" y2="148" class="projection-line" />
+                        <line x1="78" y1="148" x2="342" y2="148" class="dimension-line" />
+                        <line x1="65" y1="153" x2="75" y2="143" class="dimension-tick" />
+                        <line x1="345" y1="153" x2="355" y2="143" class="dimension-tick" />
+                        <line x1="374" y1="48" x2="374" y2="116" class="dimension-line" />
+                        <line x1="369" y1="53" x2="379" y2="43" class="dimension-tick" />
+                        <line x1="369" y1="121" x2="379" y2="111" class="dimension-tick" />
+                        <text x="386" y="85" text-anchor="middle" transform="rotate(90 386 85)">ID @FormatNumber(GetDiameterValue(variables.ShellInsideDiameter, DiameterUnits.Inch)) in</text>
+                        <text x="210" y="142" text-anchor="middle">Length @FormatNumber(GetLengthValue(variables.TubeLength, LengthUnits.Foot)) ft</text>
+                    </svg>
+
+                    <div class="tema-selector">
+                        <button type="button" class="tema-letter">B<span>Bonnet</span></button>
+                        <button type="button" class="tema-letter">E<span>One-pass shell</span></button>
+                        <button type="button" class="tema-letter">@GetRearHeadLetter()<span>@GetRearHeadLabel()</span></button>
+                    </div>
+
+                    <div class="property-table">
+                        <DesignSelectRow Label="Tube construction" Value="@tubeConstruction" Options="TubeConstructionOptions" ValueChanged="OnTubeConstructionChanged" />
+                        <DesignValueRow Label="Tube passes" Value="@GetUnitLessValue(variables.TubePasses)" Integer="true" ValueChanged="value => SetUnitLess(variables.TubePasses, value)" />
+                        <DesignValueRow Label="Shell passes" Value="@GetUnitLessValue(variables.ShellPasses)" Integer="true" ValueChanged="value => SetUnitLess(variables.ShellPasses, value)" />
+                        <DesignAmountRow T="Length" Label="Length" Variable="variables.TubeLength" ValueChanged="value => SetLength(variables.TubeLength, value)" />
+                        <DesignAmountRow T="Length" Label="Baffle spacing" Variable="variables.BaffleSpacing" ValueChanged="value => SetLength(variables.BaffleSpacing, value)" />
+                    </div>
+                </article>
+            </div>
+
+            <section class="@GetConstraintClass()">
+                <div class="section-title">
+                    <h3>Design Constraints</h3>
+                    <span>@GetOverallStatus()</span>
+                </div>
+                <table class="result-table">
+                    <thead>
+                        <tr>
+                            <th>Check</th>
+                            <th>Actual</th>
+                            <th>Limit</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>@GetTubeCountConstraintLabel()</td>
+                            <td>@GetTubeCountDisplay(variables.ActualTubeCount)</td>
+                            <td>&lt;= @GetTubeCapacityDisplay(variables.MaximumTubeCount)</td>
+                            <td class="@GetStatusClass(IsTubeCountForShellValid(variables))">@FormatStatus(IsTubeCountForShellValid(variables))</td>
+                        </tr>
+                        <tr>
+                            <td>Installed area</td>
+                            <td><DesignAmountCell T="Area" Variable="variables.ActualArea" /></td>
+                            <td>&gt;= @FormatAmountInUnit(variables.RequiredArea, variables.ActualArea.DisplayUnit) @variables.ActualArea.DisplayUnit.Symbol</td>
+                            <td class="@GetStatusClass(IsInstalledAreaValid(variables))">@FormatStatus(IsInstalledAreaValid(variables))</td>
+                        </tr>
+                        <tr>
+                            <td>Tube velocity min</td>
+                            <td><DesignAmountCell T="Velocity" Variable="variables.TubeVelocity" /></td>
+                            <td>&gt;= @FormatAmountInUnit(variables.MinimumTubeVelocity, variables.TubeVelocity.DisplayUnit) @variables.TubeVelocity.DisplayUnit.Symbol</td>
+                            <td class="@GetStatusClass(IsTubeVelocityMinimumValid(variables))">@FormatStatus(IsTubeVelocityMinimumValid(variables))</td>
+                        </tr>
+                        <tr>
+                            <td>Tube velocity max</td>
+                            <td><DesignAmountCell T="Velocity" Variable="variables.TubeVelocity" /></td>
+                            <td>&lt;= @FormatAmount(new Velocity(10d, VelocityUnits.FeetPerSecond), variables.TubeVelocity.DisplayUnit) @variables.TubeVelocity.DisplayUnit.Symbol</td>
+                            <td class="@GetStatusClass(IsTubeVelocityMaximumValid(variables))">@FormatStatus(IsTubeVelocityMaximumValid(variables))</td>
+                        </tr>
+                        <tr>
+                            <td>Tube pressure drop</td>
+                            <td><DesignAmountCell T="PressureDrop" Variable="variables.TubeSidePressureDrop" /></td>
+                            <td>&lt;= @FormatAmount(new PressureDrop(5d, PressureDropUnits.psi), variables.TubeSidePressureDrop.DisplayUnit) @variables.TubeSidePressureDrop.DisplayUnit.Symbol</td>
+                            <td class="@GetStatusClass(IsTubePressureDropValid(variables))">@FormatStatus(IsTubePressureDropValid(variables))</td>
+                        </tr>
+                        <tr>
+                            <td>Shell pressure drop</td>
+                            <td><DesignAmountCell T="PressureDrop" Variable="variables.ShellSidePressureDrop" /></td>
+                            <td>&lt;= @FormatAmount(new PressureDrop(5d, PressureDropUnits.psi), variables.ShellSidePressureDrop.DisplayUnit) @variables.ShellSidePressureDrop.DisplayUnit.Symbol</td>
+                            <td class="@GetStatusClass(IsShellPressureDropValid(variables))">@FormatStatus(IsShellPressureDropValid(variables))</td>
+                        </tr>
+                        <tr>
+                            <td>Fouling resistance</td>
+                            <td>@FormatNumber(GetUnitLessValue(variables.CalculatedFoulingResistance)) hr ft2 F/BTU</td>
+                            <td>&gt;= @FormatNumber(GetUnitLessValue(variables.AllowedFoulingResistance)) hr ft2 F/BTU</td>
+                            <td class="@GetStatusClass(IsFoulingResistanceValid(variables))">@FormatStatus(IsFoulingResistanceValid(variables))</td>
+                        </tr>
+                        <tr>
+                            <td>TEMA pitch</td>
+                            <td><DesignAmountCell T="Diameter" Variable="variables.TubePitch" /></td>
+                            <td>&gt;= @FormatAmount(new Diameter(1.25d * GetDiameterValue(variables.TubeOuterDiameter, DiameterUnits.Inch), DiameterUnits.Inch), variables.TubePitch.DisplayUnit) @variables.TubePitch.DisplayUnit.Symbol</td>
+                            <td class="@GetStatusClass(IsTemaPitchValid(variables))">@FormatStatus(IsTemaPitchValid(variables))</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <section class="datasheet">
+                <div class="section-title">
+                    <h3>TEMA Datasheet Preview</h3>
+                    <span>@selectedDesign.Name</span>
+                </div>
+
+                <div class="datasheet-grid">
+                    <article>
+                        <h4>Performance Data</h4>
+                        <div class="property-table datasheet-properties">
+                            <DesignAmountRow T="EnergyFlow" Label="Heat Duty" Variable="variables.HeatDuty" ReadOnly="true" />
+                            <DesignAmountRow T="Temperature" Label="LMTD" Variable="variables.LogMeanTemperatureDifference" ReadOnly="true" />
+                            <DesignAmountRow T="Area" Label="Required Area" Variable="variables.RequiredArea" ReadOnly="true" />
+                            <DesignAmountRow T="Area" Label="Actual Area" Variable="variables.ActualArea" ReadOnly="true" />
+                            <DesignAmountRow T="HeatTransferCoefficient" Label="Clean U" Variable="variables.CleanOverallCoefficient" ReadOnly="true" />
+                            <DesignAmountRow T="HeatTransferCoefficient" Label="Actual U" Variable="variables.ActualOverallCoefficient" ReadOnly="true" />
+                            <DesignAmountRow T="HeatTransferCoefficient" Label="Dirty U" Variable="variables.CalculatedDirtyOverallCoefficient" ReadOnly="true" />
+                            <DesignValueRow Label="Fouling Resistance" Value="@GetUnitLessValue(variables.CalculatedFoulingResistance)" ReadOnly="true" />
+                            <DesignValueRow Label="Allowed Fouling" Value="@GetUnitLessValue(variables.AllowedFoulingResistance)" ReadOnly="true" />
+                        </div>
+                    </article>
+
+                    <article>
+                        <h4>Tube Side</h4>
+                        <div class="property-table datasheet-properties">
+                            <DesignAmountRow T="Velocity" Label="Velocity" Variable="variables.TubeVelocity" ReadOnly="true" />
+                            <DesignAmountRow T="PressureDrop" Label="Pressure Drop" Variable="variables.TubeSidePressureDrop" ReadOnly="true" />
+                            <DesignAmountRow T="HeatTransferCoefficient" Label="Heat Transfer Coefficient" Variable="variables.TubeSideHeatTransferCoefficient" ReadOnly="true" />
+                            <DesignValueRow Label="Reynolds Number" Value="@GetUnitLessValue(variables.TubeSideReynoldsNumber)" ReadOnly="true" />
+                            <DesignValueRow Label="Friction Factor" Value="@GetUnitLessValue(variables.TubeSideFrictionFactor)" ReadOnly="true" />
+                            <DesignValueRow Label="Allowed Fouling" Value="@GetUnitLessValue(variables.TubeSideAllowedFoulingResistance)" ValueChanged="value => SetFoulingResistance(variables.TubeSideAllowedFoulingResistance, value)" />
+                        </div>
+                    </article>
+
+                    <article>
+                        <h4>Shell Side</h4>
+                        <div class="property-table datasheet-properties">
+                            <DesignAmountRow T="Velocity" Label="Velocity" Variable="variables.ShellSideVelocity" ReadOnly="true" />
+                            <DesignAmountRow T="PressureDrop" Label="Pressure Drop" Variable="variables.ShellSidePressureDrop" ReadOnly="true" />
+                            <DesignAmountRow T="HeatTransferCoefficient" Label="Heat Transfer Coefficient" Variable="variables.ShellSideHeatTransferCoefficient" ReadOnly="true" />
+                            <DesignAmountRow T="Diameter" Label="Equivalent Diameter" Variable="variables.ShellEquivalentDiameter" ReadOnly="true" />
+                            <DesignAmountRow T="Area" Label="Flow Area" Variable="variables.ShellFlowArea" ReadOnly="true" />
+                            <DesignValueRow Label="Allowed Fouling" Value="@GetUnitLessValue(variables.ShellSideAllowedFoulingResistance)" ValueChanged="value => SetFoulingResistance(variables.ShellSideAllowedFoulingResistance, value)" />
+                        </div>
+                    </article>
+                </div>
+            </section>
+
+            @if (selectedDesign.Result is HeatExchangerDesignResult result && result.RequiredMethodImplementations.Count > 0)
+            {
+                <section class="pending-methods">
+                    <h3>Pending Implementations</h3>
+                    <p>This design route exists, but these calculation methods still need validated Kern/TEMA equations.</p>
+                    <ul>
+                        @foreach (var method in result.RequiredMethodImplementations)
+                        {
+                            <li>@method</li>
+                        }
+                    </ul>
+                </section>
+            }
+        </div>
+    }
+</section>
+</CascadingValue>
+
+@code {
+    [Parameter, EditorRequired] public HeatExchangerVisualElement Equipment { get; set; } = default!;
+
+    private readonly DesignUnitPopupContext unitPopupContext = new();
+    private IEquipmentDesign? selectedDesign;
+    private string? errorMessage;
+    private string? selectedUnitSystemName;
+    private string tubeStandard = "Kern";
+    private string tubeConstruction = "U-tube";
+    private static readonly IReadOnlyList<DesignSelectOption> TubeStandardOptions =
+    [
+        new("Kern", "Kern"),
+        new("3A", "3A"),
+        new("ASME", "ASME")
+    ];
+
+    private static readonly IReadOnlyList<DesignSelectOption> TubeGaugeOptions =
+    [
+        new("8", "8 BWG"),
+        new("10", "10 BWG"),
+        new("11", "11 BWG"),
+        new("12", "12 BWG"),
+        new("13", "13 BWG"),
+        new("14", "14 BWG"),
+        new("15", "15 BWG"),
+        new("16", "16 BWG"),
+        new("17", "17 BWG"),
+        new("18", "18 BWG"),
+        new("19", "19 BWG"),
+        new("20", "20 BWG"),
+        new("21", "21 BWG"),
+        new("22", "22 BWG")
+    ];
+
+    private static readonly IReadOnlyDictionary<int, double> BwgThicknessInches = new Dictionary<int, double>
+    {
+        [8] = 0.165d,
+        [10] = 0.134d,
+        [11] = 0.120d,
+        [12] = 0.109d,
+        [13] = 0.095d,
+        [14] = 0.083d,
+        [15] = 0.072d,
+        [16] = 0.065d,
+        [17] = 0.058d,
+        [18] = 0.049d,
+        [19] = 0.042d,
+        [20] = 0.035d,
+        [21] = 0.032d,
+        [22] = 0.028d
+    };
+
+    private static readonly IReadOnlyList<DesignSelectOption> TubeLayoutOptions =
+    [
+        new(ShellAndTubeTubeLayout.Triangular.ToString(), "Triangular"),
+        new(ShellAndTubeTubeLayout.Square.ToString(), "Square")
+    ];
+
+    private static readonly IReadOnlyList<DesignSelectOption> TubeConstructionOptions =
+    [
+        new("Straight", "Straight"),
+        new("U-tube", "U-tube")
+    ];
+    private ShellAndTubeDesignVariables? Variables => selectedDesign?.Variables as ShellAndTubeDesignVariables;
+
+    protected override void OnInitialized()
+    {
+        unitPopupContext.Changed += StateHasChanged;
+    }
+
+    public void Dispose()
+    {
+        unitPopupContext.Changed -= StateHasChanged;
+    }
+
+    private IReadOnlyList<IProjectUnitSystem> UnitSystemOptions =>
+        ProjectSessionService.CurrentProject?.Configuration.UnitSystems?.ToArray()
+        ?? [ProjectUnitSystem.SI(), ProjectUnitSystem.English()];
+
+    private string SelectedUnitSystemName =>
+        selectedUnitSystemName
+        ?? ProjectSessionService.CurrentProject?.Configuration.ActiveUnitSystemName
+        ?? UnitSystemOptions.FirstOrDefault()?.Name
+        ?? "SI";
+
+    protected override void OnParametersSet()
+    {
+        if (selectedDesign is null && Equipment.Designs.Count > 0)
+        {
+            selectedDesign = Equipment.Designs[^1];
+            ApplySelectedUnitSystem();
+        }
+    }
+
+    private void CreateDesign()
+    {
+        errorMessage = null;
+
+        try
+        {
+            selectedDesign = Equipment.CreateDesign();
+            ApplySelectedUnitSystem();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ex.Message;
+        }
+    }
+
+    private void SelectDesign(IEquipmentDesign design)
+    {
+        selectedDesign = design;
+        errorMessage = null;
+        ApplySelectedUnitSystem();
+    }
+
+    private void RecalculateSelectedDesign()
+    {
+        if (selectedDesign is null)
+        {
+            return;
+        }
+
+        try
+        {
+            selectedDesign = Equipment.RecalculateDesign(selectedDesign);
+            ApplySelectedUnitSystem();
+            errorMessage = null;
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ex.Message;
+        }
+    }
+
+    private void SetDiameter(Variable<Diameter> variable, ChangeEventArgs e, UnitMeasure unit)
+    {
+        if (TryReadDouble(e, out var value))
+        {
+            variable.SetValue(new Diameter(value, unit), VariableDefinedBy.UserInput);
+            RecalculateSelectedDesign();
+        }
+    }
+
+    private void SetDiameter(Variable<Diameter> variable, double value)
+    {
+        variable.SetValue(new Diameter(value, variable.DisplayUnit), VariableDefinedBy.UserInput);
+        RecalculateSelectedDesign();
+    }
+
+    private void SetTubeOuterDiameter(double value)
+    {
+        if (Variables is null)
+        {
+            return;
+        }
+
+        Variables.TubeOuterDiameter.SetValue(new Diameter(value, Variables.TubeOuterDiameter.DisplayUnit), VariableDefinedBy.UserInput);
+        ApplyTubeInnerDiameterFromGauge();
+        RecalculateSelectedDesign();
+    }
+
+    private void SetLength(Variable<Length> variable, ChangeEventArgs e, UnitMeasure unit)
+    {
+        if (TryReadDouble(e, out var value))
+        {
+            variable.SetValue(new Length(value, unit), VariableDefinedBy.UserInput);
+            RecalculateSelectedDesign();
+        }
+    }
+
+    private void SetLength(Variable<Length> variable, double value)
+    {
+        variable.SetValue(new Length(value, variable.DisplayUnit), VariableDefinedBy.UserInput);
+        RecalculateSelectedDesign();
+    }
+
+    private void SetUnitLess(Variable<UnitLess> variable, ChangeEventArgs e)
+    {
+        if (TryReadDouble(e, out var value))
+        {
+            variable.SetValue(new UnitLess(value), VariableDefinedBy.UserInput);
+            RecalculateSelectedDesign();
+        }
+    }
+
+    private void SetUnitLess(Variable<UnitLess> variable, double value)
+    {
+        variable.SetValue(new UnitLess(value), VariableDefinedBy.UserInput);
+        RecalculateSelectedDesign();
+    }
+
+    private void SetFoulingResistance(Variable<UnitLess> variable, double value)
+    {
+        if (Variables is null)
+        {
+            return;
+        }
+
+        variable.SetValue(new UnitLess(value), VariableDefinedBy.UserInput);
+        RecalculateSelectedDesign();
+    }
+
+    private Task OnTubeLayoutChanged(string value)
+    {
+        if (Variables is null)
+        {
+            return Task.CompletedTask;
+        }
+
+        if (Enum.TryParse<ShellAndTubeTubeLayout>(value, out var layout))
+        {
+            Variables.TubeLayout = layout;
+            RecalculateSelectedDesign();
+        }
+
+        return Task.CompletedTask;
+    }
+
+    private Task OnTubeStandardChanged(string value)
+    {
+        tubeStandard = value;
+        ApplyTubeInnerDiameterFromGauge();
+        RecalculateSelectedDesign();
+        return Task.CompletedTask;
+    }
+
+    private Task OnTubeGaugeChanged(string value)
+    {
+        if (Variables is null || !int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var gauge))
+        {
+            return Task.CompletedTask;
+        }
+
+        Variables.TubeGauge.SetValue(new UnitLess(gauge), VariableDefinedBy.UserInput);
+        ApplyTubeInnerDiameterFromGauge();
+        RecalculateSelectedDesign();
+        return Task.CompletedTask;
+    }
+
+    private Task OnTubeConstructionChanged(string value)
+    {
+        tubeConstruction = value;
+        return Task.CompletedTask;
+    }
+
+    private Task OnDesignUnitSystemChanged(ChangeEventArgs e)
+    {
+        selectedUnitSystemName = e.Value?.ToString();
+        ApplySelectedUnitSystem(overrideDisplayUnits: true);
+        return Task.CompletedTask;
+    }
+
+    private void ApplySelectedUnitSystem(bool overrideDisplayUnits = false)
+    {
+        var system = UnitSystemOptions.FirstOrDefault(option => option.Name == SelectedUnitSystemName)
+            ?? UnitSystemOptions.FirstOrDefault();
+
+        ProjectUnitSystemApplier.ApplyToDesignVariables(selectedDesign?.Variables, system?.Units, overrideDisplayUnits);
+    }
+
+    private static bool TryReadDouble(ChangeEventArgs e, out double value)
+    {
+        var text = e.Value?.ToString();
+        return double.TryParse(text, NumberStyles.Float, CultureInfo.CurrentCulture, out value) ||
+               double.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out value);
+    }
+
+    private static double GetDiameterValue(Variable<Diameter> variable, UnitMeasure unit) =>
+        variable.IsDefined ? variable.Value.GetValue(unit) : 0d;
+
+    private static double GetLengthValue(Variable<Length> variable, UnitMeasure unit) =>
+        variable.IsDefined ? variable.Value.GetValue(unit) : 0d;
+
+    private static double GetAmountValue<T>(Variable<T> variable, UnitMeasure unit)
+        where T : Amount => variable.IsDefined ? variable.Value.GetValue(unit) : 0d;
+
+    private static double GetUnitLessValue(Variable<UnitLess> variable) =>
+        variable.IsDefined ? variable.Value.GetValue(UnitLessUnits.None) : 0d;
+
+    private static string GetGaugeValue(ShellAndTubeDesignVariables variables) =>
+        FormatInteger(GetUnitLessValue(variables.TubeGauge));
+
+    private void ApplyTubeInnerDiameterFromGauge()
+    {
+        if (Variables is null || !Variables.TubeOuterDiameter.IsDefined)
+        {
+            return;
+        }
+
+        if (!TryGetTubeWallThicknessInches(out var wallThicknessInches))
+        {
+            return;
+        }
+
+        var outerDiameterInches = Variables.TubeOuterDiameter.Value.GetValue(DiameterUnits.Inch);
+        var innerDiameterInches = outerDiameterInches - 2d * wallThicknessInches;
+
+        if (innerDiameterInches <= 0d)
+        {
+            errorMessage = "Tube ID cannot be calculated because gauge thickness is greater than tube OD.";
+            return;
+        }
+
+        Variables.TubeInnerDiameter.SetValue(
+            new Diameter(innerDiameterInches, DiameterUnits.Inch),
+            VariableDefinedBy.Equipment);
+    }
+
+    private bool TryGetTubeWallThicknessInches(out double wallThicknessInches)
+    {
+        wallThicknessInches = 0d;
+
+        if (!string.Equals(tubeStandard, "Kern", StringComparison.OrdinalIgnoreCase) &&
+            !string.Equals(tubeStandard, "ASME", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        if (Variables is null)
+        {
+            return false;
+        }
+
+        var gauge = (int)Math.Round(GetUnitLessValue(Variables.TubeGauge));
+        return BwgThicknessInches.TryGetValue(gauge, out wallThicknessInches);
+    }
+
+    private static string FormatAmount<T>(Variable<T> variable, UnitMeasure unit)
+        where T : Amount => variable.IsDefined ? FormatNumber(variable.Value.GetValue(unit)) : "-";
+
+    private static string FormatAmount<T>(T amount, UnitMeasure unit)
+        where T : Amount => FormatNumber(amount.GetValue(unit));
+
+    private static string FormatAmountInUnit<T>(Variable<T> variable, UnitMeasure unit)
+        where T : Amount => variable.IsDefined ? FormatNumber(variable.Value.GetValue(unit)) : "-";
+
+    private static string FormatUnitLess(Variable<UnitLess> variable) =>
+        variable.IsDefined ? FormatNumber(variable.Value.GetValue(UnitLessUnits.None)) : "-";
+
+    private static string FormatNumber(double value)
+    {
+        if (!double.IsFinite(value))
+        {
+            return "-";
+        }
+
+        return Math.Abs(value) > 0d && Math.Abs(value) < 0.001d
+            ? value.ToString("0.######", CultureInfo.CurrentCulture)
+            : value.ToString("0.###", CultureInfo.CurrentCulture);
+    }
+
+    private static string FormatInteger(double value) =>
+        double.IsFinite(value) ? Math.Round(value).ToString("0", CultureInfo.CurrentCulture) : "-";
+
+    private static string FormatSvg(double value) =>
+        value.ToString("0.###", CultureInfo.InvariantCulture);
+
+    private static string FormatDefinedBy<T>(Variable<T> variable)
+        where T : Amount => variable.DataProcedence == VariableDefinedBy.UserInput ? "User" : "Calculated";
+
+    private static string FormatStatus(bool passed) => passed ? "Pass" : "Review";
+
+    private static string GetStatusClass(bool passed) => passed ? "status-pass" : "status-review";
+
+    private static bool IsTubeCountForShellValid(ShellAndTubeDesignVariables variables) =>
+        GetUnitLessValue(variables.ActualTubeCount) <= GetUnitLessValue(variables.MaximumTubeCount);
+
+    private static bool IsInstalledAreaValid(ShellAndTubeDesignVariables variables) =>
+        GetAmountValue(variables.ActualArea, SurfaceUnits.Foot2) >= GetAmountValue(variables.RequiredArea, SurfaceUnits.Foot2);
+
+    private static bool IsTubeVelocityMinimumValid(ShellAndTubeDesignVariables variables) =>
+        GetAmountValue(variables.TubeVelocity, VelocityUnits.FeetPerSecond) >= GetAmountValue(variables.MinimumTubeVelocity, VelocityUnits.FeetPerSecond);
+
+    private static bool IsTubeVelocityMaximumValid(ShellAndTubeDesignVariables variables) =>
+        GetAmountValue(variables.TubeVelocity, VelocityUnits.FeetPerSecond) <= 10d;
+
+    private static bool IsTubePressureDropValid(ShellAndTubeDesignVariables variables) =>
+        GetAmountValue(variables.TubeSidePressureDrop, PressureDropUnits.psi) <= 5d;
+
+    private static bool IsShellPressureDropValid(ShellAndTubeDesignVariables variables) =>
+        GetAmountValue(variables.ShellSidePressureDrop, PressureDropUnits.psi) <= 5d;
+
+    private static bool IsFoulingResistanceValid(ShellAndTubeDesignVariables variables) =>
+        GetUnitLessValue(variables.CalculatedFoulingResistance) >= GetUnitLessValue(variables.AllowedFoulingResistance);
+
+    private static bool IsTemaPitchValid(ShellAndTubeDesignVariables variables)
+    {
+        var odInches = GetDiameterValue(variables.TubeOuterDiameter, DiameterUnits.Inch);
+        var pitchInches = GetDiameterValue(variables.TubePitch, DiameterUnits.Inch);
+        return odInches <= 0d || pitchInches >= 1.25d * odInches;
+    }
+
+    private string GetTemaType() => tubeConstruction == "U-tube" ? "B-E-U" : "B-E-M";
+
+    private string GetRearHeadLetter() => tubeConstruction == "U-tube" ? "U" : "M";
+
+    private string GetRearHeadLabel() => tubeConstruction == "U-tube" ? "U-tube bundle" : "Fixed tubesheet";
+
+    private bool IsUTubeConstruction() =>
+        string.Equals(tubeConstruction, "U-tube", StringComparison.OrdinalIgnoreCase);
+
+    private string GetTubeLayoutSummary(ShellAndTubeDesignVariables variables)
+    {
+        var actualTubeLegs = GetUnitLessValue(variables.ActualTubeCount);
+        var maximumTubeLegs = GetUnitLessValue(variables.MaximumTubeCount);
+
+        return IsUTubeConstruction()
+            ? $"{FormatInteger(actualTubeLegs / 2d)} U-tubes / {FormatInteger(actualTubeLegs)} legs / {FormatInteger(maximumTubeLegs)} fit"
+            : $"{FormatInteger(actualTubeLegs)} tubes / {FormatInteger(maximumTubeLegs)} fit";
+    }
+
+    private string GetTubeCountRowLabel() => IsUTubeConstruction() ? "Tube legs" : "Tube count";
+
+    private string GetTubeCountConstraintLabel() => IsUTubeConstruction()
+        ? "Tube legs for shell"
+        : "Tube count for shell";
+
+    private double GetUTubeCount(Variable<UnitLess> tubeLegCount) =>
+        GetUnitLessValue(tubeLegCount) / 2d;
+
+    private string GetTubeCountDisplay(Variable<UnitLess> tubeLegCount)
+    {
+        var tubeLegs = GetUnitLessValue(tubeLegCount);
+        return IsUTubeConstruction()
+            ? $"{FormatInteger(tubeLegs / 2d)} U / {FormatInteger(tubeLegs)} legs"
+            : $"{FormatInteger(tubeLegs)} tubes";
+    }
+
+    private string GetTubeCapacityDisplay(Variable<UnitLess> maximumTubeLegCount)
+    {
+        var maximumTubeLegs = GetUnitLessValue(maximumTubeLegCount);
+        return IsUTubeConstruction()
+            ? $"{FormatInteger(maximumTubeLegs)} legs"
+            : $"{FormatInteger(maximumTubeLegs)} tubes";
+    }
+
+    private IEnumerable<(double X, double Y, double Radius)> GetInstalledTubeLayoutPoints() =>
+        Variables is null ? [] : GetTubeLayoutPoints(GetUnitLessValue(Variables.ActualTubeCount));
+
+    private IEnumerable<(double X, double Y, double Radius)> GetAvailableTubeLayoutPoints() =>
+        Variables is null ? [] : GetTubeLayoutPoints(GetUnitLessValue(Variables.MaximumTubeCount));
+
+    private IEnumerable<(double X, double Y, double Radius)> GetTubeLayoutPoints(double requestedCount)
+    {
+        if (Variables is null)
+        {
+            yield break;
+        }
+
+        var count = Math.Clamp((int)Math.Round(requestedCount), 0, 160);
+        var pitch = Variables.TubeLayout == ShellAndTubeTubeLayout.Triangular ? 15d : 14d;
+        var rowHeight = Variables.TubeLayout == ShellAndTubeTubeLayout.Triangular ? 13d : 14d;
+        var candidates = new List<(double X, double Y, double Radius, double Distance)>();
+
+        for (var row = -7; row <= 7; row++)
+        {
+            var y = 104 + row * rowHeight;
+            var offset = Variables.TubeLayout == ShellAndTubeTubeLayout.Triangular && Math.Abs(row) % 2 == 1 ? pitch / 2d : 0d;
+
+            for (var col = -8; col <= 8; col++)
+            {
+                var x = 130 + col * pitch + offset;
+                var dx = x - 130;
+                var dy = y - 104;
+                var distance = dx * dx + dy * dy;
+
+                if (Math.Sqrt(distance) <= 72)
+                {
+                    candidates.Add((x, y, 5.3, distance));
+                }
+            }
+        }
+
+        foreach (var tube in candidates
+            .OrderBy(tube => tube.Distance)
+            .ThenBy(tube => Math.Abs(tube.Y - 104))
+            .ThenBy(tube => Math.Abs(tube.X - 130))
+            .Take(count))
+        {
+            yield return (tube.X, tube.Y, tube.Radius);
+        }
+    }
+
+    private IEnumerable<double> GetPassLines()
+    {
+        var passes = Variables is null ? 1 : Math.Clamp((int)Math.Round(Math.Abs(GetUnitLessValue(Variables.TubePasses))), 1, 8);
+        var lines = Math.Max(3, passes + 2);
+        for (var i = 0; i < lines; i++)
+        {
+            yield return 64 + i * (34d / (lines - 1));
+        }
+    }
+
+    private IEnumerable<double> GetBaffleLines()
+    {
+        var length = Variables is null ? 16d : Math.Max(GetLengthValue(Variables.TubeLength, LengthUnits.Foot), 1d);
+        var spacing = Variables is null ? 2d : Math.Max(GetLengthValue(Variables.BaffleSpacing, LengthUnits.Foot), 0.25d);
+        var count = Math.Clamp((int)Math.Round(length / spacing), 2, 9);
+        for (var i = 1; i < count; i++)
+        {
+            yield return 70 + i * (280d / count);
+        }
+    }
+
+    private IEnumerable<CheckRow> GetConstraintRows(ShellAndTubeDesignVariables variables)
+    {
+        var actualTubes = GetUnitLessValue(variables.ActualTubeCount);
+        var maxTubes = GetUnitLessValue(variables.MaximumTubeCount);
+        var tubeVelocityFeetPerSecond = GetAmountValue(variables.TubeVelocity, VelocityUnits.FeetPerSecond);
+        var minTubeVelocityFeetPerSecond = GetAmountValue(variables.MinimumTubeVelocity, VelocityUnits.FeetPerSecond);
+        var tubeDropPsi = GetAmountValue(variables.TubeSidePressureDrop, PressureDropUnits.psi);
+        var shellDropPsi = GetAmountValue(variables.ShellSidePressureDrop, PressureDropUnits.psi);
+        var fouling = GetUnitLessValue(variables.CalculatedFoulingResistance);
+        var allowedFouling = GetUnitLessValue(variables.AllowedFoulingResistance);
+        var actualAreaSquareFeet = GetAmountValue(variables.ActualArea, SurfaceUnits.Foot2);
+        var requiredAreaSquareFeet = GetAmountValue(variables.RequiredArea, SurfaceUnits.Foot2);
+        var pitchInches = GetDiameterValue(variables.TubePitch, DiameterUnits.Inch);
+        var odInches = GetDiameterValue(variables.TubeOuterDiameter, DiameterUnits.Inch);
+
+        var areaUnit = variables.ActualArea.DisplayUnit;
+        var velocityUnit = variables.TubeVelocity.DisplayUnit;
+        var pressureDropUnit = variables.TubeSidePressureDrop.DisplayUnit;
+        var pitchUnit = variables.TubePitch.DisplayUnit;
+        var actualArea = GetAmountValue(variables.ActualArea, areaUnit);
+        var requiredArea = GetAmountValue(variables.RequiredArea, variables.RequiredArea.DisplayUnit);
+        var tubeVelocity = GetAmountValue(variables.TubeVelocity, velocityUnit);
+        var minTubeVelocity = GetAmountValue(variables.MinimumTubeVelocity, variables.MinimumTubeVelocity.DisplayUnit);
+        var tubeDrop = GetAmountValue(variables.TubeSidePressureDrop, pressureDropUnit);
+        var shellDrop = GetAmountValue(variables.ShellSidePressureDrop, variables.ShellSidePressureDrop.DisplayUnit);
+        var pitch = GetDiameterValue(variables.TubePitch, pitchUnit);
+        var maxTubeVelocity = new Velocity(10d, VelocityUnits.FeetPerSecond).GetValue(velocityUnit);
+        var maxTubeDrop = new PressureDrop(5d, PressureDropUnits.psi).GetValue(pressureDropUnit);
+        var maxShellDrop = new PressureDrop(5d, PressureDropUnits.psi).GetValue(variables.ShellSidePressureDrop.DisplayUnit);
+        var minimumTemaPitch = new Diameter(1.25d * odInches, DiameterUnits.Inch).GetValue(pitchUnit);
+
+        yield return BuildCheck("Tube count for shell", $"{FormatInteger(actualTubes)} tubes", $"<= {FormatInteger(maxTubes)} tubes", actualTubes <= maxTubes);
+        yield return BuildCheck("Installed area", $"{FormatNumber(actualArea)} {areaUnit.Symbol}", $">= {FormatNumber(requiredArea)} {variables.RequiredArea.DisplayUnit.Symbol}", actualAreaSquareFeet >= requiredAreaSquareFeet);
+        yield return BuildCheck("Tube velocity min", $"{FormatNumber(tubeVelocity)} {velocityUnit.Symbol}", $">= {FormatNumber(minTubeVelocity)} {variables.MinimumTubeVelocity.DisplayUnit.Symbol}", tubeVelocityFeetPerSecond >= minTubeVelocityFeetPerSecond);
+        yield return BuildCheck("Tube velocity max", $"{FormatNumber(tubeVelocity)} {velocityUnit.Symbol}", $"<= {FormatNumber(maxTubeVelocity)} {velocityUnit.Symbol}", tubeVelocityFeetPerSecond <= 10d);
+        yield return BuildCheck("Tube pressure drop", $"{FormatNumber(tubeDrop)} {pressureDropUnit.Symbol}", $"<= {FormatNumber(maxTubeDrop)} {pressureDropUnit.Symbol}", tubeDropPsi <= 5d);
+        yield return BuildCheck("Shell pressure drop", $"{FormatNumber(shellDrop)} {variables.ShellSidePressureDrop.DisplayUnit.Symbol}", $"<= {FormatNumber(maxShellDrop)} {variables.ShellSidePressureDrop.DisplayUnit.Symbol}", shellDropPsi <= 5d);
+        yield return BuildCheck("Fouling resistance", $"{FormatNumber(fouling)} hr ft2 F/BTU", $">= {FormatNumber(allowedFouling)} hr ft2 F/BTU", fouling >= allowedFouling);
+        yield return BuildCheck("TEMA pitch", $"{FormatNumber(pitch)} {pitchUnit.Symbol}", $">= {FormatNumber(minimumTemaPitch)} {pitchUnit.Symbol}", odInches <= 0d || pitchInches >= 1.25d * odInches);
+    }
+
+    private static CheckRow BuildCheck(string name, string actual, string limit, bool passed) =>
+        new(name, actual, limit, passed ? "Pass" : "Review", passed ? "status-pass" : "status-review");
+
+    private string GetOverallStatus()
+    {
+        if (Variables is null)
+        {
+            return "Review";
+        }
+
+        return GetConstraintRows(Variables).All(row => row.Status == "Pass") ? "Pass" : "Review";
+    }
+
+    private string GetConstraintClass() => GetOverallStatus() == "Pass"
+        ? "constraints pass"
+        : "constraints review";
+
+    private readonly record struct CheckRow(string Name, string Actual, string Limit, string Status, string StatusClass);
+
+}

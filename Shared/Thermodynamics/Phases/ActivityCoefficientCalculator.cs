@@ -17,7 +17,7 @@ namespace Shared.Thermodynamics.Phases
             switch (model)
             {
                 case LiquidPhaseModel.EA_Van_Laar: CalculateVanLaar(components, matrices); break;
-                case LiquidPhaseModel.Wilson:
+                
                 case LiquidPhaseModel.WilsonAspen: CalculateWilson(components, matrices, temperature); break;
                 case LiquidPhaseModel.NRTLAspen: CalculateNRTL(components, matrices, temperature); break;
                 default:

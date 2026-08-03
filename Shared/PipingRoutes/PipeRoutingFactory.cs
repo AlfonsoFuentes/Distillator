@@ -34,33 +34,7 @@ namespace Shared.PipingRoutes
             if (isDraft)
             {
                 var mousePt = new CanvasPoint(DraftMouseLogicalX, DraftMouseLogicalY);
-
-                // Determinamos si el puerto sale hacia arriba/abajo o izq/der
-                bool isVerticalPort = sourceCoords.Direction == PortDirection.Top ||
-                                      sourceCoords.Direction == PortDirection.Bottom;
-
-                List<CanvasPoint> draftRoute;
-
-                if (isVerticalPort)
-                {
-                    // Ruta en L: Salida Vertical -> Doble -> Llegada Horizontal al ratón
-                    draftRoute = new List<CanvasPoint> {
-                    sourcePoint,
-                    new CanvasPoint(sourcePoint.X, mousePt.Y),
-                    mousePt
-                };
-                }
-                else
-                {
-                    // Ruta en L: Salida Horizontal -> Doble -> Llegada Vertical al ratón
-                    draftRoute = new List<CanvasPoint> {
-                    sourcePoint,
-                    new CanvasPoint(mousePt.X, sourcePoint.Y),
-                    mousePt
-                };
-                }
-
-                // Retornamos inmediatamente
+                var draftRoute = OrthogonalPipeRouter.RouteDraft(sourcePoint, sourceCoords.Direction, mousePt);
                 return SvgRouteFormatter.FormatSinglePath(draftRoute);
             }
             else
@@ -75,6 +49,10 @@ namespace Shared.PipingRoutes
             }
 
             var sourceBox = GetScreenBoundingBox(pipe.SourceElement);
+            var sourcePort = GetPortOrDefault(pipe.SourceElement, pipe.SourcePortName, PortType.Outlet);
+            var targetPort = pipe.TargetElement is null
+                ? null
+                : GetPortOrDefault(pipe.TargetElement, pipe.TargetPortName, PortType.Inlet);
 
             // ─────────────────────────────────────────────────────────
             // 2. Normalizar A/B y Obstáculos
@@ -110,40 +88,37 @@ namespace Shared.PipingRoutes
                 else
                     ctx = ctx with { SafeEnd = ctx.B };   // El ratón quedó en B
             }
-            List<CanvasPoint> routePoints;
+            var obstacleBoxes = equipmentObstacles
+                .Select(GetScreenBoundingBox)
+                .ToList();
 
-            if (isDraft)
+            var sourceEndpoint = new OrthogonalRoutingEndpoint(
+                ctx.A,
+                ctx.ADir,
+                new ScreenBoundingBox(ctx.AEquipPos.X, ctx.AEquipPos.Y, ctx.AWidth, ctx.AHeight),
+                sourcePort.Type,
+                GetEndpointOwnerKind(pipe.SourceElement));
+
+            var targetEndpoint = new OrthogonalRoutingEndpoint(
+                ctx.B,
+                ctx.BDir,
+                new ScreenBoundingBox(ctx.BEquipPos.X, ctx.BEquipPos.Y, ctx.BWidth, ctx.BHeight),
+                targetPort?.Type ?? PortType.Inlet,
+                GetEndpointOwnerKind(pipe.TargetElement));
+
+            var routeSource = sourceEndpoint;
+            var routeTarget = targetEndpoint;
+            if (sourceEndpoint.PortType == PortType.Inlet && targetEndpoint.PortType == PortType.Outlet)
             {
-                // MODO DRAFT: Dibuja una 'L' limpia y predecible, ignorando colisiones.
-                routePoints = ctx.IsVerticalPrimary
-                    ? new List<CanvasPoint> { ctx.SafeStart, new CanvasPoint(ctx.SafeStart.X, ctx.SafeEnd.Y), ctx.SafeEnd }
-                    : new List<CanvasPoint> { ctx.SafeStart, new CanvasPoint(ctx.SafeEnd.X, ctx.SafeStart.Y), ctx.SafeEnd };
-            }
-            else
-            {
-                // MODO FINAL: Usa toda tu lógica pesada de evasión.
-                var _router = new TryAvoidRouter(ctx, _collision, _safeCalc);
-                routePoints = _router.CalculateRoute(ctx);
+                routeSource = targetEndpoint;
+                routeTarget = sourceEndpoint;
             }
 
-            // ─────────────────────────────────────────────────────────
-            // 4. Ensamblar ruta completa
-            // ─────────────────────────────────────────────────────────
-            var fullPath = new List<CanvasPoint>();
-
-            if (wasSwapped)
-            {
-                routePoints.Reverse();
-                fullPath.Add(ctx.B);
-                fullPath.AddRange(routePoints);
-                fullPath.Add(ctx.A);
-            }
-            else
-            {
-                fullPath.Add(ctx.A);
-                fullPath.AddRange(routePoints);
-                fullPath.Add(ctx.B);
-            }
+            var fullPath = TryBuildSameSideFlowTemplate(routeSource, routeTarget, obstacleBoxes)
+                ?? OrthogonalPipeRouter.Route(new OrthogonalRoutingRequest(
+                    routeSource,
+                    routeTarget,
+                    obstacleBoxes));
 
             if (!isDraft)
             {
@@ -173,13 +148,7 @@ namespace Shared.PipingRoutes
                     }
                 }
             }
-            var equipmentBoxes = equipmentObstacles
-               .Select(e => {
-                   var box = GetScreenBoundingBox(e);
-                   return (box.X, box.Y, box.Width, box.Height);
-               }).ToList();
-
-            return SvgRouteFormatter.FormatWithColisionBreaks(fullPath, horizontalSegments, equipmentBoxes);
+            return SvgRouteFormatter.FormatWithColisionBreaks(fullPath, horizontalSegments, new List<(double X, double Y, double Width, double Height)>());
         }
         public static SvgRenderData GetRoute2(PipeVisualElement pipe, bool isDraft, 
             double DraftMouseLogicalX, double DraftMouseLogicalY, List<IVisualElement> _Elements, 
@@ -311,30 +280,16 @@ namespace Shared.PipingRoutes
             IEnumerable<PipeVisualElement> pipeObstacles,
             out bool wasSwapped)
         {
-            wasSwapped = source.Point.X > target.Point.X;
+            wasSwapped = false;
 
-            if (!wasSwapped)
-            {
-                return new PipeRoutingContext(
-                    source.Point, source.Dir,
-                    new CanvasPoint(source.Box.X, source.Box.Y), source.Box.Width, source.Box.Height,
-                    target.Point, target.Dir,
-                    new CanvasPoint(target.Box.X, target.Box.Y), target.Box.Width, target.Box.Height,
-                    new CanvasPoint(0, 0), new CanvasPoint(0, 0),
-                    equipmentObstacles,
-                    pipeObstacles);
-            }
-            else
-            {
-                return new PipeRoutingContext(
-                    target.Point, target.Dir,
-                    new CanvasPoint(target.Box.X, target.Box.Y), target.Box.Width, target.Box.Height,
-                    source.Point, source.Dir,
-                    new CanvasPoint(source.Box.X, source.Box.Y), source.Box.Width, source.Box.Height,
-                    new CanvasPoint(0, 0), new CanvasPoint(0, 0),
-                    equipmentObstacles,
-                    pipeObstacles);
-            }
+            return new PipeRoutingContext(
+                source.Point, source.Dir,
+                new CanvasPoint(source.Box.X, source.Box.Y), source.Box.Width, source.Box.Height,
+                target.Point, target.Dir,
+                new CanvasPoint(target.Box.X, target.Box.Y), target.Box.Width, target.Box.Height,
+                new CanvasPoint(0, 0), new CanvasPoint(0, 0),
+                equipmentObstacles,
+                pipeObstacles);
         }
         private static ScreenBoundingBox GetScreenBoundingBox(IVisualElement el)
         {
@@ -363,6 +318,207 @@ namespace Shared.PipingRoutes
                 screenH - LABEL_SPACE - (INSET * 2)
             );
         }
+
+        private static EquipmentPort GetPortOrDefault(IVisualElement element, string portName, PortType fallbackType)
+        {
+            return element.Ports.FirstOrDefault(port => string.Equals(port.Name, portName, StringComparison.OrdinalIgnoreCase))
+                ?? new EquipmentPort
+                {
+                    Name = portName,
+                    Type = fallbackType,
+                    Direction = PortDirection.Right
+                };
+        }
+
+        private static OrthogonalEndpointOwnerKind GetEndpointOwnerKind(IVisualElement? element)
+        {
+            return element?.Type switch
+            {
+                EquipmentType.MaterialStream or EquipmentType.EnergyStream => OrthogonalEndpointOwnerKind.Stream,
+                EquipmentType.OffPageConnector => OrthogonalEndpointOwnerKind.OffPageConnector,
+                EquipmentType.None or null => OrthogonalEndpointOwnerKind.Other,
+                _ => OrthogonalEndpointOwnerKind.Equipment
+            };
+        }
+
+        private static List<CanvasPoint>? TryBuildSameSideFlowTemplate(
+            OrthogonalRoutingEndpoint source,
+            OrthogonalRoutingEndpoint target,
+            IReadOnlyCollection<ScreenBoundingBox> obstacleBoxes)
+        {
+            if (source.PortType != PortType.Outlet ||
+                target.PortType != PortType.Inlet ||
+                source.Direction != target.Direction ||
+                source.OwnerKind == OrthogonalEndpointOwnerKind.Other ||
+                target.OwnerKind == OrthogonalEndpointOwnerKind.Other)
+            {
+                return null;
+            }
+
+            var sourceEscape = CalculateSafePoint(source.Port, source.Direction);
+            var targetApproach = CalculateSafePoint(target.Port, target.Direction);
+            const double laneMargin = SAFE_MARGIN;
+
+            var route = source.Direction switch
+            {
+                PortDirection.Right => BuildSameSideHorizontalTemplate(
+                    source.Port,
+                    sourceEscape,
+                    targetApproach,
+                    target.Port,
+                    Math.Max(sourceEscape.X, targetApproach.X) + laneMargin),
+
+                PortDirection.Left => BuildSameSideHorizontalTemplate(
+                    source.Port,
+                    sourceEscape,
+                    targetApproach,
+                    target.Port,
+                    Math.Min(sourceEscape.X, targetApproach.X) - laneMargin),
+
+                PortDirection.Bottom => BuildSameSideVerticalTemplate(
+                    source.Port,
+                    sourceEscape,
+                    targetApproach,
+                    target.Port,
+                    Math.Max(sourceEscape.Y, targetApproach.Y) + laneMargin),
+
+                PortDirection.Top => BuildSameSideVerticalTemplate(
+                    source.Port,
+                    sourceEscape,
+                    targetApproach,
+                    target.Port,
+                    Math.Min(sourceEscape.Y, targetApproach.Y) - laneMargin),
+
+                _ => null
+            };
+
+            if (route is null)
+            {
+                return null;
+            }
+
+            var normalized = NormalizeRoute(route);
+            return IsRouteClear(normalized, obstacleBoxes) ? normalized : null;
+        }
+
+        private static List<CanvasPoint> BuildSameSideHorizontalTemplate(
+            CanvasPoint source,
+            CanvasPoint sourceEscape,
+            CanvasPoint targetApproach,
+            CanvasPoint target,
+            double laneX)
+        {
+            return new List<CanvasPoint>
+            {
+                source,
+                sourceEscape,
+                new(laneX, sourceEscape.Y),
+                new(laneX, targetApproach.Y),
+                targetApproach,
+                target
+            };
+        }
+
+        private static List<CanvasPoint> BuildSameSideVerticalTemplate(
+            CanvasPoint source,
+            CanvasPoint sourceEscape,
+            CanvasPoint targetApproach,
+            CanvasPoint target,
+            double laneY)
+        {
+            return new List<CanvasPoint>
+            {
+                source,
+                sourceEscape,
+                new(sourceEscape.X, laneY),
+                new(targetApproach.X, laneY),
+                targetApproach,
+                target
+            };
+        }
+
+        private static List<CanvasPoint> NormalizeRoute(List<CanvasPoint> route)
+        {
+            var result = new List<CanvasPoint>();
+            foreach (var point in route)
+            {
+                if (result.Count == 0 || !IsSamePoint(result[^1], point))
+                {
+                    result.Add(point);
+                }
+            }
+
+            for (var i = result.Count - 2; i > 0; i--)
+            {
+                if (IsRedundantCollinearPoint(result[i - 1], result[i], result[i + 1]))
+                {
+                    result.RemoveAt(i);
+                }
+            }
+
+            return result;
+        }
+
+        private static bool IsSamePoint(CanvasPoint a, CanvasPoint b) =>
+            Math.Abs(a.X - b.X) < 0.1 && Math.Abs(a.Y - b.Y) < 0.1;
+
+        private static bool IsRouteClear(List<CanvasPoint> route, IReadOnlyCollection<ScreenBoundingBox> obstacleBoxes)
+        {
+            for (var i = 0; i < route.Count - 1; i++)
+            {
+                if (obstacleBoxes.Any(box => SegmentIntersectsBoxInterior(route[i], route[i + 1], box)))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private static bool SegmentIntersectsBoxInterior(CanvasPoint start, CanvasPoint end, ScreenBoundingBox box)
+        {
+            var minX = Math.Min(start.X, end.X);
+            var maxX = Math.Max(start.X, end.X);
+            var minY = Math.Min(start.Y, end.Y);
+            var maxY = Math.Max(start.Y, end.Y);
+            var boxMaxX = box.X + box.Width;
+            var boxMaxY = box.Y + box.Height;
+
+            if (maxX <= box.X || minX >= boxMaxX || maxY <= box.Y || minY >= boxMaxY)
+            {
+                return false;
+            }
+
+            if (Math.Abs(start.X - end.X) < 0.1)
+            {
+                return start.X > box.X && start.X < boxMaxX;
+            }
+
+            if (Math.Abs(start.Y - end.Y) < 0.1)
+            {
+                return start.Y > box.Y && start.Y < boxMaxY;
+            }
+
+            return true;
+        }
+
+        private static bool IsRedundantCollinearPoint(CanvasPoint a, CanvasPoint b, CanvasPoint c)
+        {
+            var sameX = Math.Abs(a.X - b.X) < 0.1 && Math.Abs(b.X - c.X) < 0.1;
+            var sameY = Math.Abs(a.Y - b.Y) < 0.1 && Math.Abs(b.Y - c.Y) < 0.1;
+            if (!sameX && !sameY)
+            {
+                return false;
+            }
+
+            var betweenX = b.X >= Math.Min(a.X, c.X) - 0.1 &&
+                           b.X <= Math.Max(a.X, c.X) + 0.1;
+            var betweenY = b.Y >= Math.Min(a.Y, c.Y) - 0.1 &&
+                           b.Y <= Math.Max(a.Y, c.Y) + 0.1;
+
+            return betweenX && betweenY;
+        }
+
         private static ScreenBoundingBox GetScreenBoundingBox2(IVisualElement el)
         {
             double w = el.Width;

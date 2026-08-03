@@ -1,0 +1,330 @@
+@typeparam TEquation where TEquation : struct, Enum
+
+@using Shared.Thermodynamics.PureComponents
+@using Shared.Thermodynamics.PureComponents.Gas.Others
+@using Shared.Thermodynamics.PureComponents.Gas.Water
+@using Shared.Thermodynamics.PureComponents.Liquido.Others
+@using Shared.Thermodynamics.PureComponents.Liquido.Water
+
+<section class="correlation-evaluator">
+    <MudGrid Spacing="2">
+        <MudItem xs="12" md="6">
+            <div class="amount-field">
+                <span class="amount-label">Evaluation Temperature</span>
+                <AmountEdit T="Temperature"
+                            Amount="@_evaluationTemperature"
+                            AmountChanged="OnEvaluationTemperatureChanged" />
+            </div>
+        </MudItem>
+        <MudItem xs="12" md="6">
+            <div class="amount-field">
+                <span class="amount-label">Calculated Value</span>
+                <AmountEdit T="Amount"
+                            Amount="@_resultAmount"
+                            AmountChanged="OnResultAmountChanged"
+                            IsReadOnly="true"
+                            AllowUnitChangeWhenReadOnly="true" />
+            </div>
+            @if (!string.IsNullOrWhiteSpace(_resultMessage))
+            {
+                <MudText Typo="Typo.caption" Color="Color.Warning">@_resultMessage</MudText>
+            }
+        </MudItem>
+    </MudGrid>
+
+    <div class="chart-shell">
+        @if (ChartPoints.Count >= 2)
+        {
+            <svg class="correlation-chart" viewBox="0 0 720 280" preserveAspectRatio="none" role="img" aria-label="@($"{EquationName} value versus temperature")">
+                <line x1="86" y1="224" x2="690" y2="224" class="axis-line" />
+                <line x1="86" y1="28" x2="86" y2="224" class="axis-line" />
+                @foreach (var grid in HorizontalGridLines)
+                {
+                    <line x1="86" y1="@grid" x2="690" y2="@grid" class="grid-line" />
+                }
+                <polyline points="@PolylinePoints" class="data-line" />
+                @foreach (var point in ChartPoints)
+                {
+                    <circle cx="@point.X" cy="@point.Y" r="3.5" class="data-point" />
+                }
+                <text x="86" y="254" class="axis-text">@FormattedMinTemperature</text>
+                <text x="690" y="254" text-anchor="end" class="axis-text">@FormattedMaxTemperature</text>
+                <text x="78" y="32" text-anchor="end" class="axis-text">@FormattedMaxValue</text>
+                <text x="78" y="228" text-anchor="end" class="axis-text">@FormattedMinValue</text>
+            </svg>
+        }
+        else
+        {
+            <MudAlert Severity="Severity.Warning" Variant="Variant.Outlined" Dense="true">
+                The selected equation cannot be plotted with the current range and coefficients.
+            </MudAlert>
+        }
+    </div>
+</section>
+
+@code {
+    private const int SampleCount = 10;
+
+    private Temperature _evaluationTemperature = new(25.0, TemperatureUnits.DegreeCelcius);
+    private Amount _resultAmount = Amount.Zero(MolarEntropyUnits.KJ_Kgmol_C);
+    private string _resultMessage = string.Empty;
+    private Type? _lastEquationType;
+    private string _lastResultUnitFamily = string.Empty;
+
+    [Parameter] public string EquationName { get; set; } = string.Empty;
+    [Parameter] public CorrelationCoefficientsDto Model { get; set; } = new();
+    [Parameter] public TEquation EquationType { get; set; }
+    [Parameter] public ChemicalComponentDto? Component { get; set; }
+
+    private List<ChartPoint> ChartPoints => BuildChartPoints();
+    private string PolylinePoints => string.Join(" ", ChartPoints.Select(p => $"{p.X.ToString("0.###", CultureInfo.InvariantCulture)},{p.Y.ToString("0.###", CultureInfo.InvariantCulture)}"));
+    private double[] HorizontalGridLines => [77.0, 126.0, 175.0];
+
+    private string FormattedMinTemperature => FormatTemperature(GetPlotRange().MinK);
+    private string FormattedMaxTemperature => FormatTemperature(GetPlotRange().MaxK);
+    private string FormattedMinValue => ChartPoints.Count == 0 ? string.Empty : FormatValue(ChartPoints.Min(p => p.Value));
+    private string FormattedMaxValue => ChartPoints.Count == 0 ? string.Empty : FormatValue(ChartPoints.Max(p => p.Value));
+
+    protected override void OnParametersSet()
+    {
+        var defaultResultUnit = GetDefaultResultUnit();
+        if (_resultAmount.Unit is null || _resultAmount.Unit.Family != defaultResultUnit.Family || _lastResultUnitFamily != defaultResultUnit.Family)
+        {
+            _resultAmount = Amount.Zero(defaultResultUnit);
+            _lastResultUnitFamily = defaultResultUnit.Family;
+        }
+
+        if (_lastEquationType != typeof(TEquation))
+        {
+            var range = GetPlotRange();
+            _evaluationTemperature = new Temperature((range.MinK + range.MaxK) / 2.0, TemperatureUnits.Kelvin);
+            _lastEquationType = typeof(TEquation);
+        }
+
+        RefreshResultAmount();
+    }
+
+    private Task OnEvaluationTemperatureChanged(Temperature temperature)
+    {
+        _evaluationTemperature = temperature;
+        RefreshResultAmount();
+        return Task.CompletedTask;
+    }
+
+    private Task OnResultAmountChanged(Amount amount)
+    {
+        _resultAmount = amount;
+        RefreshResultAmount();
+        return Task.CompletedTask;
+    }
+
+    private EvaluationResult Evaluate(double temperatureValue, UnitMeasure temperatureUnit, UnitMeasure resultUnit)
+    {
+        try
+        {
+            var temperature = new Temperature(temperatureValue, temperatureUnit);
+            var value = EvaluateRaw(temperature).GetValue(resultUnit);
+
+            if (double.IsNaN(value) || double.IsInfinity(value))
+                return EvaluationResult.Invalid("Invalid result");
+
+            return EvaluationResult.Valid(value);
+        }
+        catch (Exception ex)
+        {
+            return EvaluationResult.Invalid(ex.Message);
+        }
+    }
+
+    private Amount EvaluateRaw(Temperature temperature)
+    {
+        object equation = EquationType;
+
+        if (equation is VaporPressureEquationType vaporPressure)
+        {
+            return vaporPressure == VaporPressureEquationType.IapwsSteamTables
+                ? new WaterVaporPressureEvaluator(CriticalPressure, CriticalTemperature).EvaluateAt(temperature)
+                : new ExtendedAntoineEvaluator(Model).EvaluateAt(temperature);
+        }
+
+        if (equation is HeatOfVaporizationEquationType heatOfVaporization)
+        {
+            return heatOfVaporization == HeatOfVaporizationEquationType.IapwsSteamTables
+                ? new WaterHeatOfVaporizationEvaluator().EvaluateAt(temperature)
+                : new DipprHeatOfVaporizationEvaluator(Model, CriticalTemperature).EvaluateAt(temperature);
+        }
+
+        if (equation is LiquidHeatCapacityEquationType liquidHeatCapacity)
+        {
+            return liquidHeatCapacity == LiquidHeatCapacityEquationType.IapwsSteamTables
+                ? new WaterLiquidCpEvaluator().EvaluateAt(temperature)
+                : new PolynomialLiquidCpEvaluator(Model).EvaluateAt(temperature);
+        }
+
+        if (equation is GasHeatCapacityEquationType gasHeatCapacity)
+        {
+            return gasHeatCapacity == GasHeatCapacityEquationType.IapwsSteamTables
+                ? new WaterGasCpEvaluator().EvaluateAt(temperature)
+                : new AlyLeeGasCpEvaluator(Model).EvaluateAt(temperature);
+        }
+
+        if (equation is LiquidViscosityEquationType liquidViscosity)
+        {
+            return liquidViscosity == LiquidViscosityEquationType.IapwsSteamTables
+                ? new WaterLiquidViscosityEvaluator().EvaluateAt(temperature)
+                : new AndradeLiquidViscosityEvaluator(Model).EvaluateAt(temperature);
+        }
+
+        if (equation is GasViscosityEquationType gasViscosity)
+        {
+            return gasViscosity == GasViscosityEquationType.IapwsSteamTables
+                ? new WaterGasViscosityEvaluator().EvaluateAt(temperature)
+                : new DipprGasViscosityEvaluator(Model).EvaluateAt(temperature);
+        }
+
+        if (equation is LiquidThermalConductivityEquationType liquidThermalConductivity)
+        {
+            return liquidThermalConductivity switch
+            {
+                LiquidThermalConductivityEquationType.IapwsSteamTables => new WaterLiquidThermalCondEvaluator().EvaluateAt(temperature),
+                LiquidThermalConductivityEquationType.Ppds8 => new Ppds8LiquidThermalCondEvaluator(Model, CriticalTemperature).EvaluateAt(temperature),
+                _ => new PolynomialLiquidThermalCondEvaluator(Model).EvaluateAt(temperature)
+            };
+        }
+
+        if (equation is GasThermalConductivityEquationType gasThermalConductivity)
+        {
+            return gasThermalConductivity == GasThermalConductivityEquationType.IapwsSteamTables
+                ? new WaterGasThermalCondEvaluator().EvaluateAt(temperature)
+                : new PolynomialGasThermalCondEvaluator(Model).EvaluateAt(temperature);
+        }
+
+        if (equation is LiquidDensityEquationType liquidDensity)
+        {
+            return liquidDensity == LiquidDensityEquationType.IapwsSteamTables
+                ? new WaterLiquidDensityEvaluator().EvaluateAt(temperature)
+                : new RackettLiquidDensityEvaluator(Model).EvaluateAt(temperature);
+        }
+
+        if (equation is SurfaceTensionEquationType surfaceTension)
+        {
+            return surfaceTension == SurfaceTensionEquationType.IapwsSteamTables
+                ? new WaterSurfaceTensionEvaluator(Model, CriticalTemperature).EvaluateAt(temperature)
+                : new DipprSurfaceTensionEvaluator(Model, CriticalTemperature).EvaluateAt(temperature);
+        }
+
+        throw new InvalidOperationException($"Evaluator not configured for {typeof(TEquation).Name}.");
+    }
+
+    private List<ChartPoint> BuildChartPoints()
+    {
+        var range = GetPlotRange();
+        var samples = new List<(double TempK, double Value)>();
+
+        for (int i = 0; i < SampleCount; i++)
+        {
+            double ratio = SampleCount == 1 ? 0 : (double)i / (SampleCount - 1);
+            double tempK = range.MinK + (range.MaxK - range.MinK) * ratio;
+            var result = Evaluate(tempK, TemperatureUnits.Kelvin, _resultAmount.Unit);
+
+            if (result.IsValid && result.Value > 0)
+                samples.Add((tempK, result.Value));
+        }
+
+        if (samples.Count < 2)
+            return [];
+
+        double minValue = samples.Min(p => p.Value);
+        double maxValue = samples.Max(p => p.Value);
+        double valueSpan = Math.Max(maxValue - minValue, Math.Abs(maxValue) * 0.05);
+        if (valueSpan <= 0)
+            valueSpan = 1.0;
+
+        return samples.Select(sample =>
+        {
+            double x = 86.0 + (sample.TempK - range.MinK) / (range.MaxK - range.MinK) * 604.0;
+            double y = 224.0 - (sample.Value - minValue) / valueSpan * 196.0;
+            return new ChartPoint(x, Math.Clamp(y, 28.0, 224.0), sample.Value);
+        }).ToList();
+    }
+
+    private (double MinK, double MaxK) GetPlotRange()
+    {
+        double minK = Model.Tmin.GetValue(TemperatureUnits.Kelvin);
+        double maxK = Model.Tmax.GetValue(TemperatureUnits.Kelvin);
+
+        if (minK > 1.0 && maxK > minK)
+            return (minK, maxK);
+
+        double criticalK = Component?.CriticalTemperature.GetValue(TemperatureUnits.Kelvin) ?? 0.0;
+        if (UsesSteamTables() && criticalK > 274.15)
+            return (273.15, Math.Min(criticalK - 1.0, 623.15));
+
+        return (273.15, 373.15);
+    }
+
+    private bool UsesSteamTables()
+        => EquationType.ToString().Equals("IapwsSteamTables", StringComparison.Ordinal);
+
+    private Temperature CriticalTemperature
+        => Component?.CriticalTemperature ?? new Temperature(0, TemperatureUnits.Kelvin);
+
+    private Pressure CriticalPressure
+        => Component?.CriticalPressure ?? new Pressure(0, PressureUnits.KiloPascala);
+
+    private void RefreshResultAmount()
+    {
+        var result = Evaluate(_evaluationTemperature.Value, _evaluationTemperature.Unit, _resultAmount.Unit);
+        _resultMessage = result.IsValid ? string.Empty : result.Message;
+        _resultAmount.SetValue(result.Value, _resultAmount.Unit);
+    }
+
+    private UnitMeasure GetDefaultResultUnit()
+    {
+        object equation = EquationType;
+
+        if (equation is VaporPressureEquationType)
+            return PressureUnits.Bara;
+
+        if (equation is HeatOfVaporizationEquationType)
+            return MolarEnergyUnits.KJ_Kgmol;
+
+        if (equation is LiquidHeatCapacityEquationType or GasHeatCapacityEquationType)
+            return MolarEntropyUnits.KJ_Kgmol_C;
+
+        if (equation is LiquidViscosityEquationType or GasViscosityEquationType)
+            return ViscosityUnits.cPoise;
+
+        if (equation is LiquidThermalConductivityEquationType or GasThermalConductivityEquationType)
+            return ThermalConductivityUnits.W_m_K;
+
+        if (equation is LiquidDensityEquationType)
+            return MolarDensityUnits.Kgmol_m3;
+
+        if (equation is SurfaceTensionEquationType)
+            return SuperficialTensionUnits.dyn_cm;
+
+        return UnitMeasure.None;
+    }
+
+    private string FormatTemperature(double tempK)
+    {
+        var temp = new Temperature(tempK, TemperatureUnits.Kelvin);
+        return $"{FormatValue(temp.GetValue(_evaluationTemperature.Unit))} {_evaluationTemperature.Unit.Symbol}";
+    }
+
+    private static string FormatValue(double value)
+    {
+        if (Math.Abs(value) >= 100000 || (Math.Abs(value) > 0 && Math.Abs(value) < 0.001))
+            return value.ToString("0.###E+0", CultureInfo.InvariantCulture);
+
+        return value.ToString("0.######", CultureInfo.InvariantCulture);
+    }
+
+    private sealed record ChartPoint(double X, double Y, double Value);
+    private sealed record EvaluationResult(bool IsValid, double Value, string Message)
+    {
+        public static EvaluationResult Valid(double value) => new(true, value, string.Empty);
+        public static EvaluationResult Invalid(string message) => new(false, 0.0, message);
+    }
+}

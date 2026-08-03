@@ -11,82 +11,42 @@ namespace Shared.Thermodynamics.PureComponents
     {
         public static PureComponentData CreateFromDto(ChemicalComponentDto dto)
         {
-            bool isWater = dto.Name.Equals("Agua", StringComparison.OrdinalIgnoreCase) ||
-                           dto.Name.Equals("Water", StringComparison.OrdinalIgnoreCase);
-
             // ========== PRESIÓN DE VAPOR ==========
-            IPropertyEvaluator<Temperature, Pressure> vpEval = isWater
-                ? new WaterVaporPressureEvaluator(dto.CriticalPressure, dto.CriticalTemperature)
-                : new ExtendedAntoineEvaluator(dto.VaporPressure);
+            IPropertyEvaluator<Temperature, Pressure> vpEval = CreateVaporPressureEvaluator(dto);
 
             // ========== TEMPERATURA DE SATURACIÓN ==========
             // Dependencia: vpEval inyectado en SecantSatTemperatureEvaluator
-            IPropertyEvaluator<Pressure, Temperature> tsatEval = isWater
-                ? new WaterSatTemperatureEvaluator()
-                : new SecantSatTemperatureEvaluator(vpEval, dto.VaporPressure, dto.CriticalTemperature, dto.CriticalPressure);
+            IPropertyEvaluator<Pressure, Temperature> tsatEval = CreateSaturationTemperatureEvaluator(dto, vpEval);
 
             // ========== RESTO DE EVALUADORES ==========
-            IPropertyEvaluator<Temperature, MolarEnergy> hvapEval = isWater
-                ? new WaterHeatOfVaporizationEvaluator()
-                : new DipprHeatOfVaporizationEvaluator(dto.HeatOfVaporization, dto.CriticalTemperature);
+            IPropertyEvaluator<Temperature, MolarEnergy> hvapEval = CreateHeatOfVaporizationEvaluator(dto);
 
-            IPropertyEvaluator<Temperature, MolarEntropy> liqCpEval = isWater
-                ? new WaterLiquidCpEvaluator()
-                : new PolynomialLiquidCpEvaluator(dto.LiquidHeatCapacity);
+            IPropertyEvaluator<Temperature, MolarEntropy> liqCpEval = CreateLiquidHeatCapacityEvaluator(dto);
 
-            IPropertyEvaluator<Temperature, MolarEntropy> gasCpEval = isWater
-                ? new WaterGasCpEvaluator()
-                : new AlyLeeGasCpEvaluator(dto.GasHeatCapacity);
+            IPropertyEvaluator<Temperature, MolarEntropy> gasCpEval = CreateGasHeatCapacityEvaluator(dto);
 
-            IPropertyEvaluator<Temperature, Viscosity> liqViscEval = isWater
-                ? new WaterLiquidViscosityEvaluator()
-                : new AndradeLiquidViscosityEvaluator(dto.LiquidViscosity);
+            IPropertyEvaluator<Temperature, Viscosity> liqViscEval = CreateLiquidViscosityEvaluator(dto);
 
-            IPropertyEvaluator<Temperature, Viscosity> gasViscEval = isWater
-                ? new WaterGasViscosityEvaluator()
-                : new DipprGasViscosityEvaluator(dto.GasViscosity);
+            IPropertyEvaluator<Temperature, Viscosity> gasViscEval = CreateGasViscosityEvaluator(dto);
 
-            IPropertyEvaluator<Temperature, ThermalConductivity> liqCondEval = isWater
-                ? new WaterLiquidThermalCondEvaluator()
-                : new PolynomialLiquidThermalCondEvaluator(dto.LiquidThermalCond);
+            IPropertyEvaluator<Temperature, ThermalConductivity> liqCondEval = CreateLiquidThermalConductivityEvaluator(dto);
 
-            IPropertyEvaluator<Temperature, ThermalConductivity> gasCondEval = isWater
-                ? new WaterGasThermalCondEvaluator()
-                : new PolynomialGasThermalCondEvaluator(dto.GasThermalCond);
+            IPropertyEvaluator<Temperature, ThermalConductivity> gasCondEval = CreateGasThermalConductivityEvaluator(dto);
 
-            IPropertyEvaluator<Temperature, MolarDensity> liqDensEval = isWater
-                ? new WaterLiquidDensityEvaluator()
-                : new RackettLiquidDensityEvaluator(dto.Density);
+            IPropertyEvaluator<Temperature, MolarDensity> liqDensEval = CreateLiquidDensityEvaluator(dto);
 
-            IPropertyEvaluator<Temperature, SuperficialTension> surfTensEval = isWater
-                ? new WaterSurfaceTensionEvaluator(dto.SurfaceTension, dto.CriticalTemperature)
-                : new DipprSurfaceTensionEvaluator(dto.SurfaceTension, dto.CriticalTemperature);
+            IPropertyEvaluator<Temperature, SuperficialTension> surfTensEval = CreateSurfaceTensionEvaluator(dto);
             // Agregar después de surfTensEval:
 
             // ========== ENTALPÍA LÍQUIDA ==========
-            IPropertyEvaluator<Temperature, MolarEnergy> liqEnthalpyEval = isWater
-                ? new WaterLiquidEnthalpyEvaluator()
-                : new LiquidEnthalpyEvaluator(dto.LiquidHeatCapacity, dto.MolecularWeight);
+            IPropertyEvaluator<Temperature, MolarEnergy> liqEnthalpyEval = CreateLiquidEnthalpyEvaluator(dto);
 
             // Agregar evaluador de volumen molar saturado
-            IPropertyEvaluator<Temperature, MolarVolumeSpecific> satVolEval = isWater
-                ? new WaterSaturatedMolarVolumeEvaluator()  // Necesitaría IAPWS
-                : new RackettSaturatedMolarVolumeEvaluator(
-                    dto.CriticalTemperature,
-                    dto.CriticalPressure,
-                    dto.AcentricFactor);
+            IPropertyEvaluator<Temperature, MolarVolumeSpecific> satVolEval = CreateSaturatedMolarVolumeEvaluator(dto);
 
 
             // ========== ENTALPÍA GAS (solo para no-agua por ahora) ==========
-            IPropertyEvaluator<Temperature, MolarEnergy> gasEnthalpyEval = isWater
-     ? new WaterGasEnthalpyEvaluator()
-     : new GasEnthalpyEvaluator(
-         dto.GasHeatCapacity,
-         dto.LiquidHeatCapacity,
-         hvapEval,
-         tsatEval,
-         new Pressure(1.01325, PressureUnits.Bara),
-         dto.MolecularWeight);
+            IPropertyEvaluator<Temperature, MolarEnergy> gasEnthalpyEval = CreateGasEnthalpyEvaluator(dto, hvapEval, tsatEval);
 
 
             // ========== ENSAMBLADO ==========
@@ -113,6 +73,141 @@ namespace Shared.Thermodynamics.PureComponents
                 gasEnthalpyEval , satVolEval
             );
         }
+
+        private static IPropertyEvaluator<Temperature, Pressure> CreateVaporPressureEvaluator(ChemicalComponentDto dto)
+            => dto.VaporPressureEquationType switch
+            {
+                VaporPressureEquationType.IapwsSteamTables => new WaterVaporPressureEvaluator(dto.CriticalPressure, dto.CriticalTemperature),
+                VaporPressureEquationType.ExtendedAntoine => new ExtendedAntoineEvaluator(dto.VaporPressure),
+                _ => throw Unsupported(dto.Name, nameof(dto.VaporPressureEquationType), dto.VaporPressureEquationType)
+            };
+
+        private static IPropertyEvaluator<Pressure, Temperature> CreateSaturationTemperatureEvaluator(
+            ChemicalComponentDto dto,
+            IPropertyEvaluator<Temperature, Pressure> vaporPressureEvaluator)
+            => dto.SaturationTemperatureEquationType switch
+            {
+                SaturationTemperatureEquationType.IapwsSteamTables => new WaterSatTemperatureEvaluator(),
+                SaturationTemperatureEquationType.FromVaporPressureSecant => new SecantSatTemperatureEvaluator(
+                    vaporPressureEvaluator,
+                    dto.VaporPressure,
+                    dto.CriticalTemperature,
+                    dto.CriticalPressure),
+                _ => throw Unsupported(dto.Name, nameof(dto.SaturationTemperatureEquationType), dto.SaturationTemperatureEquationType)
+            };
+
+        private static IPropertyEvaluator<Temperature, MolarEnergy> CreateHeatOfVaporizationEvaluator(ChemicalComponentDto dto)
+            => dto.HeatOfVaporizationEquationType switch
+            {
+                HeatOfVaporizationEquationType.IapwsSteamTables => new WaterHeatOfVaporizationEvaluator(),
+                HeatOfVaporizationEquationType.Dippr106 => new DipprHeatOfVaporizationEvaluator(dto.HeatOfVaporization, dto.CriticalTemperature),
+                _ => throw Unsupported(dto.Name, nameof(dto.HeatOfVaporizationEquationType), dto.HeatOfVaporizationEquationType)
+            };
+
+        private static IPropertyEvaluator<Temperature, MolarEntropy> CreateLiquidHeatCapacityEvaluator(ChemicalComponentDto dto)
+            => dto.LiquidHeatCapacityEquationType switch
+            {
+                LiquidHeatCapacityEquationType.IapwsSteamTables => new WaterLiquidCpEvaluator(),
+                LiquidHeatCapacityEquationType.Polynomial => new PolynomialLiquidCpEvaluator(dto.LiquidHeatCapacity),
+                _ => throw Unsupported(dto.Name, nameof(dto.LiquidHeatCapacityEquationType), dto.LiquidHeatCapacityEquationType)
+            };
+
+        private static IPropertyEvaluator<Temperature, MolarEntropy> CreateGasHeatCapacityEvaluator(ChemicalComponentDto dto)
+            => dto.GasHeatCapacityEquationType switch
+            {
+                GasHeatCapacityEquationType.IapwsSteamTables => new WaterGasCpEvaluator(),
+                GasHeatCapacityEquationType.AlyLee => new AlyLeeGasCpEvaluator(dto.GasHeatCapacity),
+                _ => throw Unsupported(dto.Name, nameof(dto.GasHeatCapacityEquationType), dto.GasHeatCapacityEquationType)
+            };
+
+        private static IPropertyEvaluator<Temperature, Viscosity> CreateLiquidViscosityEvaluator(ChemicalComponentDto dto)
+            => dto.LiquidViscosityEquationType switch
+            {
+                LiquidViscosityEquationType.IapwsSteamTables => new WaterLiquidViscosityEvaluator(),
+                LiquidViscosityEquationType.Dippr101 => new AndradeLiquidViscosityEvaluator(dto.LiquidViscosity),
+                _ => throw Unsupported(dto.Name, nameof(dto.LiquidViscosityEquationType), dto.LiquidViscosityEquationType)
+            };
+
+        private static IPropertyEvaluator<Temperature, Viscosity> CreateGasViscosityEvaluator(ChemicalComponentDto dto)
+            => dto.GasViscosityEquationType switch
+            {
+                GasViscosityEquationType.IapwsSteamTables => new WaterGasViscosityEvaluator(),
+                GasViscosityEquationType.Dippr102 => new DipprGasViscosityEvaluator(dto.GasViscosity),
+                _ => throw Unsupported(dto.Name, nameof(dto.GasViscosityEquationType), dto.GasViscosityEquationType)
+            };
+
+        private static IPropertyEvaluator<Temperature, ThermalConductivity> CreateLiquidThermalConductivityEvaluator(ChemicalComponentDto dto)
+            => dto.LiquidThermalConductivityEquationType switch
+            {
+                LiquidThermalConductivityEquationType.IapwsSteamTables => new WaterLiquidThermalCondEvaluator(),
+                LiquidThermalConductivityEquationType.Ppds8 => new Ppds8LiquidThermalCondEvaluator(dto.LiquidThermalCond, dto.CriticalTemperature),
+                LiquidThermalConductivityEquationType.Polynomial4 => new PolynomialLiquidThermalCondEvaluator(dto.LiquidThermalCond),
+                _ => throw Unsupported(dto.Name, nameof(dto.LiquidThermalConductivityEquationType), dto.LiquidThermalConductivityEquationType)
+            };
+
+        private static IPropertyEvaluator<Temperature, ThermalConductivity> CreateGasThermalConductivityEvaluator(ChemicalComponentDto dto)
+            => dto.GasThermalConductivityEquationType switch
+            {
+                GasThermalConductivityEquationType.IapwsSteamTables => new WaterGasThermalCondEvaluator(),
+                GasThermalConductivityEquationType.PolynomialRational => new PolynomialGasThermalCondEvaluator(dto.GasThermalCond),
+                _ => throw Unsupported(dto.Name, nameof(dto.GasThermalConductivityEquationType), dto.GasThermalConductivityEquationType)
+            };
+
+        private static IPropertyEvaluator<Temperature, MolarDensity> CreateLiquidDensityEvaluator(ChemicalComponentDto dto)
+            => dto.LiquidDensityEquationType switch
+            {
+                LiquidDensityEquationType.IapwsSteamTables => new WaterLiquidDensityEvaluator(),
+                LiquidDensityEquationType.Rackett => new RackettLiquidDensityEvaluator(dto.Density),
+                _ => throw Unsupported(dto.Name, nameof(dto.LiquidDensityEquationType), dto.LiquidDensityEquationType)
+            };
+
+        private static IPropertyEvaluator<Temperature, SuperficialTension> CreateSurfaceTensionEvaluator(ChemicalComponentDto dto)
+            => dto.SurfaceTensionEquationType switch
+            {
+                SurfaceTensionEquationType.IapwsSteamTables => new WaterSurfaceTensionEvaluator(dto.SurfaceTension, dto.CriticalTemperature),
+                SurfaceTensionEquationType.Dippr106 => new DipprSurfaceTensionEvaluator(dto.SurfaceTension, dto.CriticalTemperature),
+                _ => throw Unsupported(dto.Name, nameof(dto.SurfaceTensionEquationType), dto.SurfaceTensionEquationType)
+            };
+
+        private static IPropertyEvaluator<Temperature, MolarEnergy> CreateLiquidEnthalpyEvaluator(ChemicalComponentDto dto)
+            => dto.LiquidEnthalpyEquationType switch
+            {
+                LiquidEnthalpyEquationType.IapwsSteamTables => new WaterLiquidEnthalpyEvaluator(),
+                LiquidEnthalpyEquationType.IntegratedLiquidCp => new LiquidEnthalpyEvaluator(dto.LiquidHeatCapacity, dto.MolecularWeight),
+                _ => throw Unsupported(dto.Name, nameof(dto.LiquidEnthalpyEquationType), dto.LiquidEnthalpyEquationType)
+            };
+
+        private static IPropertyEvaluator<Temperature, MolarVolumeSpecific> CreateSaturatedMolarVolumeEvaluator(ChemicalComponentDto dto)
+            => dto.SaturatedMolarVolumeEquationType switch
+            {
+                SaturatedMolarVolumeEquationType.IapwsSteamTables => new WaterSaturatedMolarVolumeEvaluator(),
+                SaturatedMolarVolumeEquationType.Rackett => new RackettSaturatedMolarVolumeEvaluator(
+                    dto.CriticalTemperature,
+                    dto.CriticalPressure,
+                    dto.AcentricFactor),
+                _ => throw Unsupported(dto.Name, nameof(dto.SaturatedMolarVolumeEquationType), dto.SaturatedMolarVolumeEquationType)
+            };
+
+        private static IPropertyEvaluator<Temperature, MolarEnergy> CreateGasEnthalpyEvaluator(
+            ChemicalComponentDto dto,
+            IPropertyEvaluator<Temperature, MolarEnergy> heatOfVaporizationEvaluator,
+            IPropertyEvaluator<Pressure, Temperature> saturationTemperatureEvaluator)
+            => dto.GasEnthalpyEquationType switch
+            {
+                GasEnthalpyEquationType.IapwsSteamTables => new WaterGasEnthalpyEvaluator(),
+                GasEnthalpyEquationType.IntegratedGasCpWithHvap => new GasEnthalpyEvaluator(
+                    dto.GasHeatCapacity,
+                    dto.LiquidHeatCapacity,
+                    heatOfVaporizationEvaluator,
+                    saturationTemperatureEvaluator,
+                    new Pressure(1.01325, PressureUnits.Bara),
+                    dto.MolecularWeight),
+                _ => throw Unsupported(dto.Name, nameof(dto.GasEnthalpyEquationType), dto.GasEnthalpyEquationType)
+            };
+
+        private static NotSupportedException Unsupported<TEnum>(string componentName, string propertyName, TEnum equationType)
+            where TEnum : struct, Enum
+            => new($"Equation type '{equationType}' is not supported for {propertyName} on component '{componentName}'.");
     }
 
 

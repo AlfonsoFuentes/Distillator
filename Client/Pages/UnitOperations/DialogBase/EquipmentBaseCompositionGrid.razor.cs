@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
+using Distillator.Domain.Inputs;
 using Shared.ProcessFlowDiagram;
 using Shared.SolverConsecutive;
 using Shared.SolverQwen.Stream;
@@ -14,6 +15,7 @@ namespace Client.Pages.UnitOperations.DialogBase
         [Parameter] public List<EquipmentPort> Ports { get; set; } = new();
         [Parameter] public EventCallback OnEquipmentUpdated { get; set; }
         [CascadingParameter(Name = "IsProjectReadOnly")] public bool IsProjectReadOnly { get; set; }
+        [Inject] private CompositionInputCommandHandler CompositionInputCommandHandler { get; set; } = null!;
 
 
 
@@ -92,7 +94,7 @@ namespace Client.Pages.UnitOperations.DialogBase
 
         private double? GetGlValue(IFacadeStream facade, ComponentFacade comp)
         {
-            if (comp.MassFraction.IsDefined && comp.MassFraction.GetDisplayValue() > 0 && comp.MassFraction.GetDisplayValue() <= 100)
+            if (comp.MassFraction.IsDefined && comp.MassFraction.GetDisplayValue() >= 0 && comp.MassFraction.GetDisplayValue() <= 100)
             {
                 return GetGLEtanol(comp.MassFraction.GetDisplayValue());
             }
@@ -200,6 +202,45 @@ namespace Client.Pages.UnitOperations.DialogBase
             var val = value.Value;
             return val == 0 ? "0.00" : (Math.Abs(val) >= 1.0 ? val.ToString("F2") : val.ToString("F6").TrimEnd('0').TrimEnd('.'));
         }
+
+        private string FormatReadonlyFraction(IFacadeStream facade, Variable<Percentage> variable, bool isMass)
+        {
+            if (ShouldHideOppositeBasis(facade, isMass))
+            {
+                return "<Not defined>";
+            }
+
+            return variable.IsDefined
+                ? FormatFraction(variable.GetDisplayValue())
+                : "<Not defined>";
+        }
+
+        private bool ShouldHideOppositeBasis(IFacadeStream facade, bool isMass)
+        {
+            var activeInputType = facade.Composition.InputType;
+            if (activeInputType == ComponentInputType.None) return false;
+
+            var isOppositeBasis =
+                activeInputType == ComponentInputType.MassFraction && !isMass ||
+                activeInputType == ComponentInputType.MolarFraction && isMass;
+
+            return isOppositeBasis && !IsCompositionComplete(facade.Composition, activeInputType);
+        }
+
+        private static bool IsCompositionComplete(
+            CompositionOrchestrator composition,
+            ComponentInputType inputType)
+        {
+            var variables = inputType == ComponentInputType.MassFraction
+                ? composition.Components.Select(component => component.MassFraction)
+                : composition.Components.Select(component => component.MolarFraction);
+
+            var values = variables.ToList();
+            return values.Count > 0 &&
+                   values.All(variable => variable.IsDefined) &&
+                   Math.Abs(values.Sum(variable => variable.GetDisplayValue()) - 100) <= 1.0e-6;
+        }
+
         private string GetInputValue(IFacadeStream facade, ComponentFacade comp, bool isMass)
         {
             bool isEditingThis = _editingFacade == facade && _editingComponent == comp && ((isMass && _isEditingMass) || (!isMass && _isEditingMolar));
@@ -346,30 +387,35 @@ namespace Client.Pages.UnitOperations.DialogBase
                 if (water != null)
                 {
                     var user = AuthProvider.CurrentUser;
-                    comp.MassFraction.SetValueFromUI(new Percentage(massFraction, PercentageUnits.Percentage), user?.Id.ToString(), user?.DisplayName);
-                    water.MassFraction.SetValueFromUI(new Percentage(100 - massFraction, PercentageUnits.Percentage), user?.Id.ToString(), user?.DisplayName);
-                    composition.InputType = ComponentInputType.MassFraction;
+                    var glResult = CompositionInputCommandHandler.Apply(
+                        new SetEthanolWaterMassCompositionCommand(
+                            composition,
+                            comp,
+                            water,
+                            massFraction,
+                            user?.Id.ToString(),
+                            user?.DisplayName));
+                    if (glResult.ShouldRunSimulation)
+                    {
+                        FSM.RunSimulation();
+                    }
                 }
             }
             else
             {
                 var user = AuthProvider.CurrentUser;
-                if (isMass)
-                    comp.MassFraction.SetValueFromUI(new Percentage(_tempInputValue.Value, PercentageUnits.Percentage), user?.Id.ToString(), user?.DisplayName);
-                else
-                    comp.MolarFraction.SetValueFromUI(new Percentage(_tempInputValue.Value, PercentageUnits.Percentage), user?.Id.ToString(), user?.DisplayName);
-
-                composition.InputType = isMass ? ComponentInputType.MassFraction : ComponentInputType.MolarFraction;
-            }
-
-            var sum = composition.Components
-                .Sum(c => (composition.InputType == ComponentInputType.MassFraction)
-                    ? c.MassFraction.GetDisplayValue()
-                    : c.MolarFraction.GetDisplayValue());
-
-            if (sum >= 99 && sum <= 101)
-            {
-                FSM.RunSimulation();
+                var result = CompositionInputCommandHandler.Apply(
+                    new SetCompositionFractionCommand(
+                        composition,
+                        comp,
+                        isMass ? ComponentInputType.MassFraction : ComponentInputType.MolarFraction,
+                        _tempInputValue.Value,
+                        user?.Id.ToString(),
+                        user?.DisplayName));
+                if (result.ShouldRunSimulation)
+                {
+                    FSM.RunSimulation();
+                }
             }
 
             ResetEditingState();
@@ -383,9 +429,11 @@ namespace Client.Pages.UnitOperations.DialogBase
             var composition = facade.Composition;
             if (composition == null) return;
 
-            composition.Clear();
-            composition.InputType = ComponentInputType.None;
-            FSM.RunSimulation();
+            var result = CompositionInputCommandHandler.Apply(new ClearCompositionInputCommand(composition));
+            if (result.ShouldRunSimulation)
+            {
+                FSM.RunSimulation();
+            }
 
             ResetEditingState();
             if (OnEquipmentUpdated.HasDelegate) await OnEquipmentUpdated.InvokeAsync();
@@ -444,6 +492,23 @@ namespace Client.Pages.UnitOperations.DialogBase
                 if (pm > masico) sup = GL; else inf = GL;
             }
             return GL;
+        }
+
+        private static string DebugCompositionSnapshot(IFacadeStream facade)
+        {
+            if (facade.Composition == null)
+            {
+                return "composition=null";
+            }
+
+            return $"inputType={facade.Composition.InputType} source={facade.Composition.Source} comps={string.Join(" | ", facade.Composition.Components.Select(component => $"{component.Name}:MF={DebugVariable(component.MassFraction)},MOF={DebugVariable(component.MolarFraction)},MFlow={DebugVariable(component.MassFlow)},NFlow={DebugVariable(component.MolarFlow)}"))}";
+        }
+
+        private static string DebugVariable<T>(Variable<T> variable) where T : Amount
+        {
+            return variable.IsDefined
+                ? $"{variable.GetDisplayValue():G10} {variable.GetDisplayUnit()}[{variable.DataProcedence}]"
+                : $"undef[{variable.DataProcedence}]";
         }
 
     }

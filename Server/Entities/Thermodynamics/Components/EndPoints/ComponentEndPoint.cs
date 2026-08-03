@@ -185,6 +185,20 @@ namespace Server.Endpoints
             ent.GasThermalCond = MapCorrDtoToEnt(dto.GasThermalCond);
             ent.Density = MapCorrDtoToEnt(dto.Density);
             ent.SurfaceTension = MapCorrDtoToEnt(dto.SurfaceTension);
+            ent.VaporPressureEquationType = dto.VaporPressureEquationType;
+            ent.SaturationTemperatureEquationType = dto.SaturationTemperatureEquationType;
+            ent.HeatOfVaporizationEquationType = dto.HeatOfVaporizationEquationType;
+            ent.LiquidHeatCapacityEquationType = dto.LiquidHeatCapacityEquationType;
+            ent.GasHeatCapacityEquationType = dto.GasHeatCapacityEquationType;
+            ent.LiquidViscosityEquationType = dto.LiquidViscosityEquationType;
+            ent.GasViscosityEquationType = dto.GasViscosityEquationType;
+            ent.LiquidThermalConductivityEquationType = dto.LiquidThermalConductivityEquationType;
+            ent.GasThermalConductivityEquationType = dto.GasThermalConductivityEquationType;
+            ent.LiquidDensityEquationType = dto.LiquidDensityEquationType;
+            ent.SurfaceTensionEquationType = dto.SurfaceTensionEquationType;
+            ent.LiquidEnthalpyEquationType = dto.LiquidEnthalpyEquationType;
+            ent.GasEnthalpyEquationType = dto.GasEnthalpyEquationType;
+            ent.SaturatedMolarVolumeEquationType = dto.SaturatedMolarVolumeEquationType;
         }
 
         private EditChemicalComponent MapEntityToDto(ChemicalComponent ent)
@@ -226,7 +240,21 @@ namespace Server.Endpoints
                 LiquidThermalCond = MapCorrEntToDto(ent.LiquidThermalCond),
                 GasThermalCond = MapCorrEntToDto(ent.GasThermalCond),
                 Density = MapCorrEntToDto(ent.Density),
-                SurfaceTension = MapCorrEntToDto(ent.SurfaceTension)
+                SurfaceTension = MapCorrEntToDto(ent.SurfaceTension),
+                VaporPressureEquationType = ent.VaporPressureEquationType,
+                SaturationTemperatureEquationType = ent.SaturationTemperatureEquationType,
+                HeatOfVaporizationEquationType = ent.HeatOfVaporizationEquationType,
+                LiquidHeatCapacityEquationType = ent.LiquidHeatCapacityEquationType,
+                GasHeatCapacityEquationType = ent.GasHeatCapacityEquationType,
+                LiquidViscosityEquationType = ent.LiquidViscosityEquationType,
+                GasViscosityEquationType = ent.GasViscosityEquationType,
+                LiquidThermalConductivityEquationType = ent.LiquidThermalConductivityEquationType,
+                GasThermalConductivityEquationType = ent.GasThermalConductivityEquationType,
+                LiquidDensityEquationType = ent.LiquidDensityEquationType,
+                SurfaceTensionEquationType = ent.SurfaceTensionEquationType,
+                LiquidEnthalpyEquationType = ent.LiquidEnthalpyEquationType,
+                GasEnthalpyEquationType = ent.GasEnthalpyEquationType,
+                SaturatedMolarVolumeEquationType = ent.SaturatedMolarVolumeEquationType
             };
         }
 

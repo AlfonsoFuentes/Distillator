@@ -24,7 +24,7 @@ namespace Shared.PropertiesDtos.Enums
         None = 0,
         IdealLiquid = 1,
         NRTLAspen = 2,
-        Wilson = 3,
+      
         SteamTables = 4,
         EA_Van_Laar = 5,
         WilsonAspen = 6,
@@ -41,6 +41,8 @@ namespace Shared.PropertiesDtos.Enums
         Wilson_A = 4,
         Wilson_B = 5,
         VanLaar_Aij = 6,  // ✅ Agregar esto
-        VanLaar_Aji = 7   // ✅ Agregar esto
+        VanLaar_Aji = 7,  // ✅ Agregar esto
+        SRK_Kij = 8,
+        PengRobinson_Kij = 9
     }
 }

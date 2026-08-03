@@ -10,7 +10,7 @@
     display: flex;
     flex-direction: column;
     z-index: 50;
-    overflow: hidden;
+    overflow: visible;
 }
 
 .palette-header {
@@ -35,6 +35,10 @@
     gap: 8px;
     max-height: calc(100vh - 160px);
     overflow-y: auto;
+}
+
+.palette-body:has(.palette-item:hover) {
+    overflow: visible;
 }
 
 .thermo-warning {
@@ -97,9 +101,9 @@
 
 .item-tooltip {
     position: absolute;
-    top: calc(100% + 6px);
-    left: 50%;
-    transform: translateX(-50%);
+    top: 50%;
+    right: calc(100% + 8px);
+    transform: translateY(-50%);
     background: #1E293B;
     color: #F8FAFC;
     font-size: 0.7rem;
@@ -114,10 +118,10 @@
     .item-tooltip::after {
         content: '';
         position: absolute;
-        bottom: 100%;
-        left: 50%;
-        transform: translateX(-50%);
+        top: 50%;
+        left: 100%;
+        transform: translateY(-50%);
         border-width: 4px;
         border-style: solid;
-        border-color: transparent transparent #1E293B transparent;
+        border-color: transparent transparent transparent #1E293B;
     }

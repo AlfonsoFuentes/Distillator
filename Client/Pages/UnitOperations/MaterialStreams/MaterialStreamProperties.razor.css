@@ -1,44 +1,18 @@
-﻿/* ==================== CONTENEDOR SCROLLABLE ==================== */
-.scrollable-container {
-    overflow-x: auto;
-    overflow-y: auto;
-    max-height: 420px;
-    width: 100%;
-    border: 1px solid #b0b0b0;
-    border-radius: 4px;
-    background-color: #ffffff;
-    margin-top: 8px;
+.stream-properties-panel {
+    width: min(728px, 100%);
+    margin: 0 auto;
 }
 
-    /* Scrollbars personalizados industriales */
-    .scrollable-container::-webkit-scrollbar {
-        width: 6px;
-        height: 6px;
-    }
-
-    .scrollable-container::-webkit-scrollbar-track {
-        background: #f1f1f1;
-    }
-
-    .scrollable-container::-webkit-scrollbar-thumb {
-        background: #c1c1c1;
-        border-radius: 3px;
-    }
-
-        .scrollable-container::-webkit-scrollbar-thumb:hover {
-            background: #a8a8a8;
-        }
-
-/* ==================== GRID 2 COLUMNAS (Sincronizado con Conditions) ==================== */
 .data-grid.properties-grid-two-col {
     display: grid;
-    grid-template-columns: 180px 1fr; /* 👈 Alineación perfecta con la otra pestaña */
+    grid-template-columns: 210px minmax(300px, 1fr);
     gap: 0;
     width: 100%;
+    border-top: 1px solid #b0b0b0;
+    border-left: 1px solid #b0b0b0;
     background-color: #b0b0b0;
 }
 
-/* Headers */
 .grid-header {
     background-color: #e4e4e4 !important;
     font-weight: bold;
@@ -55,9 +29,8 @@
     box-sizing: border-box;
 }
 
-/* Títulos de Grupo (Span 2 columnas) */
 .grid-cell.group-title {
-    grid-column: span 2; /* 👈 CRÍTICO: Ahora son 2 columnas, no 3 */
+    grid-column: span 2;
     background-color: #e8e8e8 !important;
     font-weight: bold !important;
     padding: 4px 8px !important;
@@ -69,4 +42,9 @@
     display: flex;
     align-items: center;
     min-height: 26px;
+}
+
+.stream-properties-panel ::deep .variable-container.mode-compact:nth-last-child(-n+2) .unit-popup {
+    top: auto;
+    bottom: calc(100% + 4px);
 }

@@ -1,0 +1,43 @@
+@typeparam TEquation where TEquation : struct, Enum
+
+<CorrelationTabEditor EquationName="@EquationName"
+                      Model="@Model"
+                      ShowCoefficientInputs="@ShowCoefficientInputs">
+    <EquationTypeSelector>
+        <EquationTypeSelect TEnum="TEquation"
+                            Value="@EquationType"
+                            ValueChanged="@OnEquationTypeChanged" />
+    </EquationTypeSelector>
+    <ChildContent>
+        @if (EquationTemplate is not null)
+        {
+            @EquationTemplate(EquationType)
+        }
+    </ChildContent>
+    <EvaluatorContent>
+        <CorrelationEvaluatorPanel TEquation="TEquation"
+                                   EquationName="@EquationName"
+                                   Model="@Model"
+                                   EquationType="@EquationType"
+                                   Component="@Component" />
+    </EvaluatorContent>
+</CorrelationTabEditor>
+
+@code {
+    [CascadingParameter] public ChemicalComponentDto? Component { get; set; }
+
+    [Parameter] public string EquationName { get; set; } = string.Empty;
+    [Parameter] public CorrelationCoefficientsDto Model { get; set; } = new();
+    [Parameter] public TEquation EquationType { get; set; }
+    [Parameter] public EventCallback<TEquation> EquationTypeChanged { get; set; }
+    [Parameter] public RenderFragment<TEquation>? EquationTemplate { get; set; }
+
+    private bool ShowCoefficientInputs
+        => !EquationType.ToString().Equals("IapwsSteamTables", StringComparison.Ordinal);
+
+    private async Task OnEquationTypeChanged(TEquation value)
+    {
+        EquationType = value;
+        await EquationTypeChanged.InvokeAsync(value);
+    }
+}

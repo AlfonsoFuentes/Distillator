@@ -6,7 +6,7 @@ using UnitSystem;
 
 namespace Shared.SolverConsecutive
 {
-    public sealed class MainSolver : IMainSolver
+    public sealed class MainSolver : IMainSolver, INewtonSolverObserver
     {
         private static readonly SolverEquationType[] DefaultEquationTypes =
         [
@@ -20,6 +20,11 @@ namespace Shared.SolverConsecutive
         ];
 
         private readonly INewtonSolver _solver;
+        private readonly HashSet<IVariable> _solverCalculatedVariables = new();
+        private readonly object _simulationSyncRoot = new();
+        private Task? _simulationCoordinatorTask;
+        private bool _simulationRerunRequested;
+        private TaskCompletionSource<SimulationRunResult>? _rerunCompletion;
 
         public MainSolver()
             : this(new NewtonSolver())
@@ -29,8 +34,9 @@ namespace Shared.SolverConsecutive
         public MainSolver(INewtonSolver solver)
         {
             _solver = solver;
+            _solver.Subscribe(this);
             AtmosphericPressure = new Pressure(101325, PressureUnits.Pascala);
-            Altitude = new Length(0, LengthUnits.Meter);
+            _altitude = new Length(0, LengthUnits.Meter);
         }
 
         public event Action? OnSimulationCompleted;
@@ -74,24 +80,81 @@ namespace Shared.SolverConsecutive
             Equipments.Remove(equipment);
         }
 
-        public void RunSimulation()
+        public Task<SimulationRunResult> RunSimulationAsync()
         {
-            _ = Task.Run(RunSimulationAsync);
+            lock (_simulationSyncRoot)
+            {
+                if (_simulationCoordinatorTask is null || _simulationCoordinatorTask.IsCompleted)
+                {
+                    var firstRunCompletion = NewTaskCompletionSource();
+                    _simulationCoordinatorTask = Task.Run(() => RunCoalescedSimulationLoopAsync(firstRunCompletion));
+                    return firstRunCompletion.Task;
+                }
+
+                _simulationRerunRequested = true;
+                _rerunCompletion ??= NewTaskCompletionSource();
+                return _rerunCompletion.Task;
+            }
         }
 
-        private async Task RunSimulationAsync()
+        private async Task RunCoalescedSimulationLoopAsync(TaskCompletionSource<SimulationRunResult> firstRunCompletion)
         {
+            var currentRunCompletion = firstRunCompletion;
+
+            while (true)
+            {
+                var result = await ExecuteSimulationAsync();
+
+                lock (_simulationSyncRoot)
+                {
+                    if (!_simulationRerunRequested)
+                    {
+                        currentRunCompletion.TrySetResult(result);
+                        _simulationCoordinatorTask = null;
+                        return;
+                    }
+
+                    currentRunCompletion.TrySetResult(result.Supersede());
+
+                    _simulationRerunRequested = false;
+                    currentRunCompletion = _rerunCompletion ?? NewTaskCompletionSource();
+                    _rerunCompletion = null;
+                }
+            }
+        }
+
+        private static TaskCompletionSource<SimulationRunResult> NewTaskCompletionSource()
+        {
+            return new TaskCompletionSource<SimulationRunResult>(TaskCreationOptions.RunContinuationsAsynchronously);
+        }
+
+        public void RunSimulation()
+        {
+            _ = RunSimulationAsync();
+        }
+
+        private async Task<SimulationRunResult> ExecuteSimulationAsync()
+        {
+            var runId = Guid.NewGuid();
+            var diagnostics = new List<string>();
+            var converged = false;
+
             try
             {
                 ClearCalculatedBySolver();
                 var solvePlan = BuildFullSolvePlan();
-                ExecuteSolvePlan(solvePlan);
-                await ExecutePostSolveCalculationsAsync();
+                converged = ExecuteSolvePlan(solvePlan, diagnostics);
+                var postSolveSucceeded = await ExecutePostSolveCalculationsAsync(diagnostics);
+                return postSolveSucceeded
+                    ? SimulationRunResult.Completed(runId, converged, diagnostics)
+                    : SimulationRunResult.Failed(runId, diagnostics);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[MainSolver] Error en simulacion: {ex.Message}");
+                var message = $"[MainSolver] Error en simulacion: {ex.Message}";
+                diagnostics.Add(message);
                 OnSimulationCompleted?.Invoke();
+                return SimulationRunResult.Failed(runId, diagnostics);
             }
         }
 
@@ -366,7 +429,7 @@ namespace Shared.SolverConsecutive
             };
         }
 
-        private void ExecuteSolvePlan(SolvePlan solvePlan)
+        private bool ExecuteSolvePlan(SolvePlan solvePlan, List<string> diagnostics)
         {
             var pendingTypes = solvePlan.EquationTypesWithPendingWork().ToList();
             var hasGlobalProgress = true;
@@ -386,7 +449,6 @@ namespace Shared.SolverConsecutive
                     if (equations.Count == 0)
                     {
                         pendingTypes.Remove(equationType);
-                        Console.WriteLine($"[MainSolver] Tipo '{equationType}' resuelto. Pendientes: {pendingTypes.Count}");
                     }
                 }
 
@@ -398,7 +460,7 @@ namespace Shared.SolverConsecutive
                 iteration++;
             }
 
-            LogSolvePlanResult(pendingTypes, iteration);
+            return LogSolvePlanResult(pendingTypes, iteration, diagnostics);
         }
 
         private bool ResolveEquationType(List<ISolverEquation> equations)
@@ -528,29 +590,40 @@ namespace Shared.SolverConsecutive
             sourceEquations.Remove(solvedEquation);
         }
 
-        private static void LogSolvePlanResult(IReadOnlyCollection<SolverEquationType> pendingTypes, int iteration)
+        private static bool LogSolvePlanResult(
+            IReadOnlyCollection<SolverEquationType> pendingTypes,
+            int iteration,
+            List<string> diagnostics)
         {
             if (pendingTypes.Count == 0)
             {
-                Console.WriteLine($"[MainSolver] Todas las ecuaciones resueltas en {iteration} iteraciones globales");
-                return;
+                var message = $"[MainSolver] Todas las ecuaciones resueltas en {iteration} iteraciones globales";
+                diagnostics.Add(message);
+                return true;
             }
 
-            Console.WriteLine($"[MainSolver] Convergencia incompleta. Tipos sin resolver: {string.Join(", ", pendingTypes)}");
+            var diagnostic = $"[MainSolver] Convergencia incompleta. Tipos sin resolver: {string.Join(", ", pendingTypes)}";
+            diagnostics.Add(diagnostic);
+            return false;
         }
 
         private void ClearCalculatedBySolver()
         {
-            var variables = Equipments
-                .SelectMany(equipment => equipment.Equations)
-                .SelectMany(equation => equation.Variables)
-                .Where(variable => variable.DataProcedence == VariableDefinedBy.Solver)
-                .Distinct()
-                .ToList();
+            var variables = _solverCalculatedVariables.ToList();
 
             foreach (var variable in variables)
             {
                 variable.Clear(VariableDefinedBy.Solver);
+            }
+
+            _solverCalculatedVariables.Clear();
+        }
+
+        public void OnVariableSolved(IVariable variable)
+        {
+            if (variable.DataProcedence == VariableDefinedBy.Solver)
+            {
+                _solverCalculatedVariables.Add(variable);
             }
         }
 
@@ -596,7 +669,7 @@ namespace Shared.SolverConsecutive
             }
         }
 
-        private async Task ExecutePostSolveCalculationsAsync()
+        private async Task<bool> ExecutePostSolveCalculationsAsync(List<string> diagnostics)
         {
             try
             {
@@ -605,10 +678,13 @@ namespace Shared.SolverConsecutive
                 facades.AddRange(Streams);
 
                 await Task.WhenAll(facades.Select(facade => facade.PostSolveAsync()));
+                return true;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[MainSolver] Error en post-calculos: {ex.Message}");
+                var diagnostic = $"[MainSolver] Error en post-calculos: {ex.Message}";
+                diagnostics.Add(diagnostic);
+                return false;
             }
             finally
             {

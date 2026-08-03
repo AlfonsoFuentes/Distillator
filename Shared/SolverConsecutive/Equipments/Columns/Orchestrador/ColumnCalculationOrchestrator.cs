@@ -1,4 +1,4 @@
-﻿using Shared.SolverQwen.Stream;
+using Shared.SolverQwen.Stream;
 using System.Collections.Immutable;
 using System.Data.Common;
 using UnitSystem;
@@ -85,7 +85,6 @@ namespace Shared.SolverConsecutive.Equipments.Columns.Orchestrador
             _cachedDistillationParams = parameters;
             _currentResult = _currentResult with { DistillationParameters = parameters };
             FUGChanged = true;
-            Console.WriteLine($"📥 Orquestador recibió DistillationParameters (FUGChanged=true)");
         }
 
         public void SetVLECurveResult(VLECurveResult curveResult)
@@ -93,7 +92,6 @@ namespace Shared.SolverConsecutive.Equipments.Columns.Orchestrador
             _cachedVLECurve = curveResult;
             _currentResult = _currentResult with { VLECurve = curveResult };
             VLEChanged = true;
-            Console.WriteLine($"📥 Orquestador recibió VLECurveResult (VLEChanged=true)");
         }
 
         public void SetStages(ImmutableList<StageResult> stages)
@@ -101,7 +99,6 @@ namespace Shared.SolverConsecutive.Equipments.Columns.Orchestrador
             _cachedStages = stages;
             _currentResult = _currentResult with { Stages = stages };
             PlatesChanged = true;
-            Console.WriteLine($"📥 Orquestador recibió {stages.Count} Stages (PlatesChanged=true)");
         }
 
         public void SetMcCabeThieleData(McCabeThieleData mcCabeThieleData)
@@ -109,7 +106,6 @@ namespace Shared.SolverConsecutive.Equipments.Columns.Orchestrador
             _cachedMcCabeThiele = mcCabeThieleData;
             _currentResult = _currentResult with { McCabeThiele = mcCabeThieleData };
             McCabeThieleChanged = true;
-            Console.WriteLine($"📥 Orquestador recibió McCabeThieleData (McCabeThieleChanged=true)");
         }
 
         // ═══════════════════════════════════════════════════════════════════
@@ -181,7 +177,6 @@ namespace Shared.SolverConsecutive.Equipments.Columns.Orchestrador
         {
             try
             {
-                Console.WriteLine($"🚀 Iniciando cálculo completo de {_column.Name}");
 
                 // 🔥 Detectar cambios ANTES de resetear nada
                 var currentSnapshot = CreateSnapshot(_column);
@@ -194,7 +189,6 @@ namespace Shared.SolverConsecutive.Equipments.Columns.Orchestrador
 
                 if (!pressureIsValid)
                 {
-                    Console.WriteLine($"⚠️ Orquestador: Presión inválida ({currentSnapshot.TopPressure}), no se calculará VLE");
                 }
 
                 // 🔥 NUEVO: Banderas individuales por servicio
@@ -206,17 +200,11 @@ namespace Shared.SolverConsecutive.Equipments.Columns.Orchestrador
                 // 🔥 Si NADA cambió, retornar el caché directamente
                 if (!TopologyChanged && !ColumnPressureChanged && _cachedDistillationParams != null)
                 {
-                    Console.WriteLine($"✅ Todo en caché, retornando resultado anterior");
                     return _currentResult;
                 }
 
                 // 🔥 Solo resetear si algo cambió
                 _stages.Clear();
-
-                if (TopologyChanged)
-                    Console.WriteLine($"🔄 Topología cambió, recalculando todo");
-                else
-                    Console.WriteLine($"✅ Topología sin cambios");
 
                 // 🔥 Ejecutar calculadores en orden
                 // 🔥 Ejecutar FUG, VLE y Platos en PARALELO (son independientes)
@@ -243,14 +231,12 @@ namespace Shared.SolverConsecutive.Equipments.Columns.Orchestrador
 
                 _lastSnapshot = currentSnapshot;
 
-                Console.WriteLine($"✅ Cálculo completo de {_column.Name} finalizado");
 
                 return _currentResult;
             }
 
             catch (Exception ex)
             {
-                Console.WriteLine($"❌ Error crítico en orquestador: {ex.Message}");
                 _currentResult = new ColumnResult
                 {
                     ColumnName = _column.Name,
@@ -269,7 +255,6 @@ namespace Shared.SolverConsecutive.Equipments.Columns.Orchestrador
         {
             try
             {
-                Console.WriteLine($"🚀 Iniciando cálculo completo de {_column.Name}");
 
                 // 🔥 Resetear resultado actual
                 _currentResult = CreateEmptyColumnResult();
@@ -280,11 +265,6 @@ namespace Shared.SolverConsecutive.Equipments.Columns.Orchestrador
                 TopologyChanged = _lastSnapshot == null || !_lastSnapshot.Equals(currentSnapshot);
                 ColumnPressureChanged = _lastSnapshot == null ||
                     Math.Abs(_lastSnapshot.TopPressure - currentSnapshot.TopPressure) > 1e-6;
-
-                if (TopologyChanged)
-                    Console.WriteLine($"🔄 Topología cambió, recalculando todo");
-                else
-                    Console.WriteLine($"✅ Topología sin cambios, usando caché");
 
                 // 🔥 Ejecutar calculadores en orden
                 foreach (var calculator in _calculators)
@@ -303,13 +283,11 @@ namespace Shared.SolverConsecutive.Equipments.Columns.Orchestrador
 
                 _lastSnapshot = currentSnapshot;
 
-                Console.WriteLine($"✅ Cálculo completo de {_column.Name} finalizado");
 
                 return _currentResult;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"❌ Error crítico en orquestador: {ex.Message}");
                 _currentResult = new ColumnResult
                 {
                     ColumnName = _column.Name,
@@ -435,7 +413,6 @@ namespace Shared.SolverConsecutive.Equipments.Columns.Orchestrador
         {
             var stages = _stages.ToImmutableList();
             SetStages(stages);
-            Console.WriteLine($"📥 Orquestador notificó que los platos están listos: {stages.Count} etapas");
         }
     }
 

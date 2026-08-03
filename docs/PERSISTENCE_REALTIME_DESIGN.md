@@ -494,6 +494,24 @@ Regla:
 
 El Hub recibe el cambio, valida usuario, llama un servicio de aplicación, y emite eventos. El Hub no debe saber cómo renombrar equipos, cómo resolver el solver ni cómo validar reglas profundas.
 
+### Deuda De Optimizacion - Reconciliacion Autoritativa
+
+Estado actual probado:
+
+- `ProjectAuthoritativeSyncService` usa `GetProjectRequest` cada 3 segundos como respaldo autoritativo.
+- Este polling resolvio el caso offline-online donde SignalR o el navegador podian perder eventos.
+- La regla actual es funcional y fue validada manualmente, pero produce muchas llamadas HTTP visibles en consola.
+
+Riesgo:
+
+- Si se mantiene siempre activo, puede generar ruido, carga innecesaria en backend y potencial impacto de UX en proyectos grandes.
+
+Tarea futura:
+
+- Medir frecuencia, duracion y peso de `GetProjectRequest`.
+- Reducir el polling con backoff, ventanas de recuperacion post-desconexion, version hints o activacion solo cuando SignalR este inestable.
+- Mantener la garantia funcional: B debe recuperar cambios perdidos sin cambiar de proyecto/diagrama ni refrescar la pagina.
+
 ---
 
 ## Servicios Propuestos
@@ -827,6 +845,18 @@ Estado validado adicional:
 - Solver:
   - limpia variables calculadas por ecuaciones antes de reintentar;
   - no conserva residuos viejos como `DeltaP` de bomba cuando desaparece una especificación/condición requerida.
+
+Validación manual final 2026-07-20:
+
+- Persistencia multiusuario confirmada por Alfonso:
+  - otro usuario abre el proyecto y ve topología, inputs UI, specifications y resultados esperados;
+  - autosave/realtime no pisa valores definidos por UI.
+- Reconexion de corrientes confirmada:
+  - `FacadeStream.SetThermodynamicMethod` se hizo idempotente para no reconstruir
+    `Composition` cuando el método efectivo ya es el mismo;
+  - `S-106` conserva composición UI al desconectar/reconectar.
+- Solver de equipos, `SolverStreamMixer`, specifications, realtime/autosave y UX de
+  conexión quedaron cerrados funcionalmente por prueba manual en UI.
 
 ## Avance - Specifications Por Formula 2026-07-13
 

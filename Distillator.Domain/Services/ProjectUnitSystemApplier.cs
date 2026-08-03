@@ -1,5 +1,6 @@
 using Distillator.Domain.Configuration;
 using Distillator.Domain.Models;
+using Shared.ProcessFlowDiagram.Designs;
 using Shared.SolverConsecutive;
 using Shared.UnitOperations.Basiss;
 using System.Collections;
@@ -55,6 +56,12 @@ public static class ProjectUnitSystemApplier
         ApplyToObjectGraph(facade, units, new HashSet<object>(ReferenceEqualityComparer.Instance));
     }
 
+    public static void ApplyToDesignVariables(IDesignVariables? variables, IUnitConfiguration? units, bool overrideDisplayUnits = false)
+    {
+        if (variables == null || units == null) return;
+        ApplyToObjectGraph(variables, units, new HashSet<object>(ReferenceEqualityComparer.Instance), overrideDisplayUnits);
+    }
+
     public static void ApplyToProject(IProject project)
     {
         if (project == null) throw new ArgumentNullException(nameof(project));
@@ -66,7 +73,11 @@ public static class ProjectUnitSystemApplier
         }
     }
 
-    private static void ApplyToObjectGraph(object? value, IUnitConfiguration units, HashSet<object> visited)
+    private static void ApplyToObjectGraph(
+        object? value,
+        IUnitConfiguration units,
+        HashSet<object> visited,
+        bool overrideDisplayUnits = false)
     {
         if (value == null) return;
         if (value is string or Amount or UnitMeasure) return;
@@ -77,7 +88,7 @@ public static class ProjectUnitSystemApplier
 
         if (value is IVariable variable)
         {
-            ApplyToVariable(variable, units);
+            ApplyToVariable(variable, units, overrideDisplayUnits);
             return;
         }
 
@@ -85,7 +96,7 @@ public static class ProjectUnitSystemApplier
         {
             foreach (var item in enumerable)
             {
-                ApplyToObjectGraph(item, units, visited);
+                ApplyToObjectGraph(item, units, visited, overrideDisplayUnits);
             }
 
             return;
@@ -107,11 +118,11 @@ public static class ProjectUnitSystemApplier
                 continue;
             }
 
-            ApplyToObjectGraph(propertyValue, units, visited);
+            ApplyToObjectGraph(propertyValue, units, visited, overrideDisplayUnits);
         }
     }
 
-    private static void ApplyToVariable(IVariable variable, IUnitConfiguration units)
+    private static void ApplyToVariable(IVariable variable, IUnitConfiguration units, bool overrideDisplayUnits)
     {
         var amountType = variable
             .GetType()
@@ -124,7 +135,15 @@ public static class ProjectUnitSystemApplier
         if (amountType == null) return;
         if (!UnitByAmountType.TryGetValue(amountType, out var resolveUnit)) return;
 
-        variable.SetProjectDefaultDisplayUnit(resolveUnit(units));
+        var unit = resolveUnit(units);
+
+        if (overrideDisplayUnits)
+        {
+            variable.SetDisplayUnit(unit);
+            return;
+        }
+
+        variable.SetProjectDefaultDisplayUnit(unit);
     }
 
     private static bool ShouldInspectType(Type type)

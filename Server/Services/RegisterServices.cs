@@ -53,9 +53,18 @@ namespace Server.Services
         }
         internal static IServiceCollection AddForwarding(this IServiceCollection services, IConfiguration configuration)
         {
-            var applicationSettingsConfiguration = configuration.GetSection(nameof(AppConfiguration));
-            var config = applicationSettingsConfiguration.Get<AppConfiguration>();
-            if (config!.BehindSSLProxy)
+            var config = configuration.GetSection("AppConfiguration").Get<AppConfiguration>() ?? new AppConfiguration();
+            if (config == null)
+            {
+                config = new AppConfiguration
+                {
+                    BehindSSLProxy = true,
+                    ProxyIP = string.Empty,
+                    Secret = "YcxjOMewdFfeZFQm5iGAYxTjR23Z93rLbyZucty3",
+                    ApplicationUrl = "https://www.distillatorpro.com"
+                };
+            }
+            if (config.BehindSSLProxy)
             {
                 services.Configure<ForwardedHeadersOptions>(options =>
                 {

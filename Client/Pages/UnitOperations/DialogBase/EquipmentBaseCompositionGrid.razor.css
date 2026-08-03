@@ -4,7 +4,7 @@
    ================================================= */
 .scrollable-container {
     overflow: auto;
-    max-height: 500px;
+    max-height: 460px;
     border: 1px solid var(--border-color, #b0b0b0);
     border-radius: 4px;
     background: #ffffff;

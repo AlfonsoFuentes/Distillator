@@ -48,126 +48,216 @@ public class InterFlowsheetConnectionService : IInterFlowsheetConnectionService
         IVisualElement targetStream)
     {
         var localPort = sourceEquipment.Ports.FirstOrDefault(p => p.Name == sourcePortName);
-        if (localPort == null) return null;
+        if (localPort == null || localPort.ConnectedElementId.HasValue) return null;
+        if (!CanCreateInterFlowsheetConnection(
+                project,
+                sourceFlowsheet,
+                sourceEquipment,
+                localPort,
+                targetFlowsheet,
+                targetStream,
+                out var remotePortName,
+                out var remoteStreamPort))
+        {
+            return null;
+        }
 
         bool isFlowEnteringSource = localPort.Type == PortType.Inlet;
+        OffPageConnectorElement? localOpc = null;
+        OffPageConnectorElement? remoteOpc = null;
+        IInterFlowsheetConnection? connection = null;
+        var previousLocalConnection = localPort.ConnectedElementId;
+        var previousRemoteConnection = remoteStreamPort!.ConnectedElementId;
 
-        // Calcular dimensiones efectivas
-        double sourceEffectiveWidth = GetEffectiveWidth(sourceFlowsheet);
-        double targetEffectiveWidth = GetEffectiveWidth(targetFlowsheet);
-        double arrowOffset = _placementRules.Snap(60, sourceFlowsheet.GridSize);
-        double opcWidth = 200;
-
-        // Crear OPC local
-        double localX = isFlowEnteringSource ? arrowOffset : sourceEffectiveWidth - opcWidth - arrowOffset;
-        double localY = _placementRules.Snap(sourceEquipment.Y, sourceFlowsheet.GridSize);
-
-        var localOpc = new OffPageConnectorElement(!isFlowEnteringSource)
+        try
         {
-            Width = opcWidth,
-            TargetAreaId = targetFlowsheet.Id,
-            TargetConnectorId = Guid.NewGuid(),
-            Label = targetFlowsheet.Name,
-            TargetAreaName = targetFlowsheet.Name,
-            ConnectedEquipmentName = sourceEquipment.Label,
-            X = localX,
-            Y = localY
-        };
-        localOpc.RefreshPorts();
+            // Calcular dimensiones efectivas
+            double sourceEffectiveWidth = GetEffectiveWidth(sourceFlowsheet);
+            double targetEffectiveWidth = GetEffectiveWidth(targetFlowsheet);
+            double arrowOffset = _placementRules.Snap(60, sourceFlowsheet.GridSize);
+            double opcWidth = 200;
+            var localAnchorSide = isFlowEnteringSource ? OffPageConnectorPortSide.Left : OffPageConnectorPortSide.Right;
+            var remoteAnchorSide = isFlowEnteringSource ? OffPageConnectorPortSide.Right : OffPageConnectorPortSide.Left;
+            var localPortSide = GetInwardPortSide(localAnchorSide);
+            var remotePortSide = GetInwardPortSide(remoteAnchorSide);
 
-        // Crear OPC remoto
-        double remoteX = isFlowEnteringSource ? targetEffectiveWidth - opcWidth - arrowOffset : arrowOffset;
-        double remoteY = _placementRules.Snap(targetStream.Y, targetFlowsheet.GridSize);
+            // Crear OPC local
+            double localX = GetConnectorX(localAnchorSide, sourceEffectiveWidth, opcWidth, arrowOffset);
+            double localY = _placementRules.Snap(sourceEquipment.Y, sourceFlowsheet.GridSize);
 
-        var remoteOpc = new OffPageConnectorElement(isFlowEnteringSource)
-        {
-            Width = opcWidth,
-            TargetAreaId = sourceFlowsheet.Id,
-            TargetConnectorId = localOpc.Id,
-            Id = localOpc.TargetConnectorId.Value,
-            Label = sourceFlowsheet.Name,
-            TargetAreaName = sourceFlowsheet.Name,
-            ConnectedEquipmentName = targetStream.Label,
-            X = remoteX,
-            Y = remoteY
-        };
-        remoteOpc.RefreshPorts();
-
-        // Asignar nombres
-        var opcName = _namingService.GenerateNextName("OffPageConnector", project, sourceFlowsheet);
-        localOpc.Name = opcName;
-        localOpc.Label = opcName;
-        remoteOpc.Name = opcName;
-        remoteOpc.Label = opcName;
-
-        // Registrar equipos y referencias
-        project.AddEquipment(localOpc);
-        project.AddEquipment(remoteOpc);
-        sourceFlowsheet.AddElementReference(new OffPageConnectorReference(localOpc.Id, localOpc.X, localOpc.Y, !isFlowEnteringSource)
-        {
-            TargetFlowsheetId = targetFlowsheet.Id,
-            TargetConnectorId = remoteOpc.Id,
-            TargetFlowsheetName = targetFlowsheet.Name,
-            ConnectedEquipmentName = sourceEquipment.Label
-        });
-        targetFlowsheet.AddElementReference(new OffPageConnectorReference(remoteOpc.Id, remoteOpc.X, remoteOpc.Y, isFlowEnteringSource)
-        {
-            TargetFlowsheetId = sourceFlowsheet.Id,
-            TargetConnectorId = localOpc.Id,
-            TargetFlowsheetName = sourceFlowsheet.Name,
-            ConnectedEquipmentName = targetStream.Label
-        });
-
-        // Conectar cerebros termodinámicos
-        string remotePortName = isFlowEnteringSource ? "Outlet" : "Inlet";
-        if (sourceEquipment.Facade is IEquipmentFacade localEquipment && targetStream.Facade is IFacadeStream remoteFacade)
-        {
-            sourceEquipment.AttachConnection(sourcePortName, remoteFacade);
-        }
-        else if (targetStream.Facade is IEquipmentFacade remoteEquipment && sourceEquipment.Facade is IFacadeStream localStream)
-        {
-            sourceEquipment.AttachConnection(remotePortName, localStream);
-        }
-
-        // Ocupar puertos
-        localPort.ConnectedElementId = localOpc.Id;
-        localOpc.Ports.First(p => p.Name == "Transfer").ConnectedElementId = sourceEquipment.Id;
-
-        var remoteStreamPort = targetStream.Ports.FirstOrDefault(p => p.Name == remotePortName);
-        if (remoteStreamPort != null) remoteStreamPort.ConnectedElementId = remoteOpc.Id;
-        remoteOpc.Ports.First(p => p.Name == "Transfer").ConnectedElementId = targetStream.Id;
-
-        // Crear pipes visuales respetando la dirección real del flujo.
-        var localPipe = isFlowEnteringSource
-            ? new Models.PipeReference(localOpc.Id, sourceEquipment.Id, "Transfer", sourcePortName)
-            : new Models.PipeReference(sourceEquipment.Id, localOpc.Id, sourcePortName, "Transfer");
-
-        var remotePipe = isFlowEnteringSource
-            ? new Models.PipeReference(targetStream.Id, remoteOpc.Id, remotePortName, "Transfer")
-            : new Models.PipeReference(remoteOpc.Id, targetStream.Id, "Transfer", remotePortName);
-
-        sourceFlowsheet.AddPipe(localPipe);
-        targetFlowsheet.AddPipe(remotePipe);
-
-        // Registrar el stream remoto en el solver sin romper los pipes OPC.
-        if (targetStream.Facade is IFacadeStream facadeStream)
-        {
-            if (!_simulationService.Solver.Streams.Contains(facadeStream))
+            localOpc = new OffPageConnectorElement(!isFlowEnteringSource, localPortSide)
             {
-                _simulationService.Solver.AddStream(facadeStream);
+                Width = opcWidth,
+                TargetAreaId = targetFlowsheet.Id,
+                TargetConnectorId = Guid.NewGuid(),
+                Label = targetFlowsheet.Name,
+                TargetAreaName = targetFlowsheet.Name,
+                ConnectedEquipmentName = sourceEquipment.Label,
+                X = localX,
+                Y = localY
+            };
+            localOpc.RefreshPorts();
+
+            // Crear OPC remoto
+            double remoteX = GetConnectorX(remoteAnchorSide, targetEffectiveWidth, opcWidth, arrowOffset);
+            double remoteY = _placementRules.Snap(targetStream.Y, targetFlowsheet.GridSize);
+
+            remoteOpc = new OffPageConnectorElement(isFlowEnteringSource, remotePortSide)
+            {
+                Width = opcWidth,
+                TargetAreaId = sourceFlowsheet.Id,
+                TargetConnectorId = localOpc.Id,
+                Id = localOpc.TargetConnectorId.Value,
+                Label = sourceFlowsheet.Name,
+                TargetAreaName = sourceFlowsheet.Name,
+                ConnectedEquipmentName = targetStream.Label,
+                X = remoteX,
+                Y = remoteY
+            };
+            remoteOpc.RefreshPorts();
+
+            // Asignar nombres
+            var opcName = _namingService.GenerateNextName("OffPageConnector", project, sourceFlowsheet);
+            localOpc.Name = opcName;
+            localOpc.Label = opcName;
+            remoteOpc.Name = opcName;
+            remoteOpc.Label = opcName;
+
+            // Registrar equipos y referencias
+            project.AddEquipment(localOpc);
+            project.AddEquipment(remoteOpc);
+            sourceFlowsheet.AddElementReference(new OffPageConnectorReference(localOpc.Id, localOpc.X, localOpc.Y, !isFlowEnteringSource, localPortSide)
+            {
+                TargetFlowsheetId = targetFlowsheet.Id,
+                TargetConnectorId = remoteOpc.Id,
+                TargetFlowsheetName = targetFlowsheet.Name,
+                ConnectedEquipmentName = sourceEquipment.Label
+            });
+            targetFlowsheet.AddElementReference(new OffPageConnectorReference(remoteOpc.Id, remoteOpc.X, remoteOpc.Y, isFlowEnteringSource, remotePortSide)
+            {
+                TargetFlowsheetId = sourceFlowsheet.Id,
+                TargetConnectorId = localOpc.Id,
+                TargetFlowsheetName = sourceFlowsheet.Name,
+                ConnectedEquipmentName = targetStream.Label
+            });
+
+            // Conectar cerebros termodinámicos
+            if (sourceEquipment.Facade is IEquipmentFacade localEquipment && targetStream.Facade is IFacadeStream remoteFacade)
+            {
+                sourceEquipment.AttachConnection(sourcePortName, remoteFacade);
             }
+            else if (targetStream.Facade is IEquipmentFacade remoteEquipment && sourceEquipment.Facade is IFacadeStream localStream)
+            {
+                sourceEquipment.AttachConnection(remotePortName, localStream);
+            }
+
+            // Ocupar puertos
+            localPort.ConnectedElementId = localOpc.Id;
+            localOpc.Ports.First(p => p.Name == "Transfer").ConnectedElementId = sourceEquipment.Id;
+
+            remoteStreamPort.ConnectedElementId = remoteOpc.Id;
+            remoteOpc.Ports.First(p => p.Name == "Transfer").ConnectedElementId = targetStream.Id;
+
+            // Crear pipes visuales respetando la dirección real del flujo.
+            var localPipe = isFlowEnteringSource
+                ? new Models.PipeReference(localOpc.Id, sourceEquipment.Id, "Transfer", sourcePortName)
+                : new Models.PipeReference(sourceEquipment.Id, localOpc.Id, sourcePortName, "Transfer");
+
+            var remotePipe = isFlowEnteringSource
+                ? new Models.PipeReference(targetStream.Id, remoteOpc.Id, remotePortName, "Transfer")
+                : new Models.PipeReference(remoteOpc.Id, targetStream.Id, "Transfer", remotePortName);
+
+            sourceFlowsheet.AddPipe(localPipe);
+            targetFlowsheet.AddPipe(remotePipe);
+
+            // Registrar el stream remoto en el solver sin romper los pipes OPC.
+            if (targetStream.Facade is IFacadeStream facadeStream)
+            {
+                if (!_simulationService.Solver.Streams.Contains(facadeStream))
+                {
+                    _simulationService.Solver.AddStream(facadeStream);
+                }
+            }
+
+            // Crear conexión inter-flowsheet
+            connection = new InterFlowsheetConnection(
+                sourceFlowsheet.Id,
+                targetFlowsheet.Id,
+                localOpc.Id,
+                remoteOpc.Id);
+
+            project.AddInterFlowsheetConnection(connection);
+
+            return connection;
+        }
+        catch
+        {
+            localPort.ConnectedElementId = previousLocalConnection;
+            remoteStreamPort!.ConnectedElementId = previousRemoteConnection;
+            RemovePartialConnectionArtifacts(project, sourceFlowsheet, targetFlowsheet, localOpc?.Id, remoteOpc?.Id, connection?.Id);
+            throw;
+        }
+    }
+
+    private static bool CanCreateInterFlowsheetConnection(
+        IProject project,
+        IFlowsheet sourceFlowsheet,
+        IVisualElement sourceEquipment,
+        EquipmentPort localPort,
+        IFlowsheet targetFlowsheet,
+        IVisualElement targetStream,
+        out string remotePortName,
+        out EquipmentPort? remoteStreamPort)
+    {
+        var requiredRemotePortName = localPort.Type == PortType.Inlet ? "Outlet" : "Inlet";
+        remotePortName = requiredRemotePortName;
+        remoteStreamPort = targetStream.Ports.FirstOrDefault(p => p.Name == requiredRemotePortName);
+
+        return sourceFlowsheet.Project.Id == project.Id &&
+               targetFlowsheet.Project.Id == project.Id &&
+               sourceFlowsheet.Id != targetFlowsheet.Id &&
+               sourceFlowsheet.Elements.Any(reference => reference.ElementId == sourceEquipment.Id) &&
+               targetFlowsheet.Elements.Any(reference => reference.ElementId == targetStream.Id) &&
+               targetStream.Facade is IFacadeStream &&
+               remoteStreamPort != null &&
+               !remoteStreamPort.ConnectedElementId.HasValue;
+    }
+
+    private static void RemovePartialConnectionArtifacts(
+        IProject project,
+        IFlowsheet sourceFlowsheet,
+        IFlowsheet targetFlowsheet,
+        Guid? localConnectorId,
+        Guid? remoteConnectorId,
+        Guid? connectionId)
+    {
+        if (localConnectorId.HasValue)
+        {
+            RemoveConnectorArtifacts(project, sourceFlowsheet, localConnectorId.Value);
         }
 
-        // Crear conexión inter-flowsheet
-        var connection = new InterFlowsheetConnection(
-            sourceFlowsheet.Id,
-            targetFlowsheet.Id,
-            localOpc.Id,
-            remoteOpc.Id);
+        if (remoteConnectorId.HasValue)
+        {
+            RemoveConnectorArtifacts(project, targetFlowsheet, remoteConnectorId.Value);
+        }
 
-        project.AddInterFlowsheetConnection(connection);
+        if (connectionId.HasValue)
+        {
+            project.RemoveInterFlowsheetConnection(connectionId.Value);
+        }
+    }
 
-        return connection;
+    private static void RemoveConnectorArtifacts(IProject project, IFlowsheet flowsheet, Guid connectorId)
+    {
+        foreach (var pipe in flowsheet.Pipes
+                     .Where(candidate => candidate.SourceElementId == connectorId || candidate.TargetElementId == connectorId)
+                     .ToList())
+        {
+            flowsheet.RemovePipe(pipe.Id);
+        }
+
+        flowsheet.RemoveElementReference(connectorId);
+        project.RemoveEquipment(connectorId);
     }
 
     public void RemoveInterFlowsheetConnection(IProject project, Guid connectionId)
@@ -207,4 +297,20 @@ public class InterFlowsheetConnectionService : IInterFlowsheetConnectionService
                 ? flowsheet.Elements.Max(e => e.X + 100)
                 : 600);
     }
+
+    private static double GetConnectorX(
+        OffPageConnectorPortSide anchorSide,
+        double effectiveWidth,
+        double connectorWidth,
+        double offset)
+    {
+        return anchorSide == OffPageConnectorPortSide.Left
+            ? offset
+            : effectiveWidth - connectorWidth - offset;
+    }
+
+    private static OffPageConnectorPortSide GetInwardPortSide(OffPageConnectorPortSide anchorSide) =>
+        anchorSide == OffPageConnectorPortSide.Left
+            ? OffPageConnectorPortSide.Right
+            : OffPageConnectorPortSide.Left;
 }

@@ -49,7 +49,7 @@
                         @if (IsCellReadOnly(state))
                         {
                             <span class="readonly-value">
-                                @(comp.MassFraction.IsDefined ? FormatFraction(comp.MassFraction.GetDisplayValue()) : "<Not defined>")
+                                @FormatReadonlyFraction(facade, comp.MassFraction, true)
                             </span>
                         }
                         else
@@ -90,7 +90,7 @@
                         @if (IsCellReadOnly(state))
                         {
                             <span class="readonly-value">
-                                @(comp.MolarFraction.IsDefined ? FormatFraction(comp.MolarFraction.GetDisplayValue()) : "<Not defined>")
+                                @FormatReadonlyFraction(facade, comp.MolarFraction, false)
                             </span>
                         }
                         else

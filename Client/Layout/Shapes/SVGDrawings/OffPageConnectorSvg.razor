@@ -1,5 +1,6 @@
-﻿@* OffPageConnectorSvg.razor — SVG dinámico según Width *@
 @using System.Globalization
+@using Shared.ProcessFlowDiagram
+
 <svg width="@Width.ToString(CultureInfo.InvariantCulture)" height="@Height.ToString(CultureInfo.InvariantCulture)" viewBox="0 0 @Width.ToString(CultureInfo.InvariantCulture) @Height.ToString(CultureInfo.InvariantCulture)" class="opc-container @CssClass">
     <defs>
         <filter id="opc-shadow-@_uid" x="-20%" y="-20%" width="140%" height="140%">
@@ -8,40 +9,42 @@
     </defs>
 
     @{
-        double bodyEnd = Width - 10;   // Donde termina el cuerpo plano antes de la punta
-        double tip = Width - 5;        // Punta de la flecha
-        double centerY = Height / 2;   // 20 para Height=40
-        double textX = Width / 2;      // Centro horizontal del texto
+        double left = 5;
+        double right = Width - 5;
+        double leftBody = 10;
+        double rightBody = Width - 10;
+        double centerY = Height / 2;
+        double textX = Width / 2;
+        double portX = PortSide == OffPageConnectorPortSide.Left ? left : right;
+        bool pointsRight = ShouldPointRight();
+        string bodyPath = pointsRight
+            ? $"M {left.ToString(CultureInfo.InvariantCulture)} 5 L {rightBody.ToString(CultureInfo.InvariantCulture)} 5 L {right.ToString(CultureInfo.InvariantCulture)} {centerY.ToString(CultureInfo.InvariantCulture)} L {rightBody.ToString(CultureInfo.InvariantCulture)} 35 L {left.ToString(CultureInfo.InvariantCulture)} 35 Z"
+            : $"M {leftBody.ToString(CultureInfo.InvariantCulture)} 5 L {right.ToString(CultureInfo.InvariantCulture)} 5 L {right.ToString(CultureInfo.InvariantCulture)} 35 L {leftBody.ToString(CultureInfo.InvariantCulture)} 35 L {left.ToString(CultureInfo.InvariantCulture)} {centerY.ToString(CultureInfo.InvariantCulture)} Z";
     }
 
     @if (IsOutlet)
     {
-        @* 🚩 Banderita de Salida *@
         <path class="opc-body outlet-body"
-              d="M 5 5 L @bodyEnd.ToString(CultureInfo.InvariantCulture) 5 L @tip.ToString(CultureInfo.InvariantCulture) @centerY.ToString(CultureInfo.InvariantCulture) L @bodyEnd.ToString(CultureInfo.InvariantCulture) 35 L 5 35 Z"
+              d="@bodyPath"
               fill="#FFFFFF"
               stroke="#64748B"
               stroke-width="1.5"
               filter="url(#opc-shadow-@_uid)" />
 
-        @* Puerto en la parte plana izquierda (Azul) *@
-        <circle class="opc-port outlet-port" cx="5" cy="@centerY.ToString(CultureInfo.InvariantCulture)" r="3" fill="#3B82F6" />
+        <circle class="opc-port outlet-port" cx="@portX.ToString(CultureInfo.InvariantCulture)" cy="@centerY.ToString(CultureInfo.InvariantCulture)" r="3" fill="#3B82F6" />
     }
     else
     {
-        @* 🚩 Banderita de Entrada *@
         <path class="opc-body inlet-body"
-              d="M 5 5 L @bodyEnd.ToString(CultureInfo.InvariantCulture) 5 L @tip.ToString(CultureInfo.InvariantCulture) @centerY.ToString(CultureInfo.InvariantCulture) L @bodyEnd.ToString(CultureInfo.InvariantCulture) 35 L 5 35 Z"
+              d="@bodyPath"
               fill="#FFFFFF"
               stroke="#64748B"
               stroke-width="1.5"
               filter="url(#opc-shadow-@_uid)" />
 
-        @* Puerto en la punta derecha (Verde) *@
-        <circle class="opc-port inlet-port" cx="@tip.ToString(CultureInfo.InvariantCulture)" cy="@centerY.ToString(CultureInfo.InvariantCulture)" r="3" fill="#10B981" />
+        <circle class="opc-port inlet-port" cx="@portX.ToString(CultureInfo.InvariantCulture)" cy="@centerY.ToString(CultureInfo.InvariantCulture)" r="3" fill="#10B981" />
     }
 
-    @* Texto centrado dinámicamente según ancho real *@
     <text class="opc-label"
           x="@textX.ToString(CultureInfo.InvariantCulture)" y="24"
           text-anchor="middle"
@@ -58,6 +61,7 @@
     [Parameter] public double Height { get; set; } = 40;
     [Parameter] public string CssClass { get; set; } = "";
     [Parameter] public bool IsOutlet { get; set; } = true;
+    [Parameter] public OffPageConnectorPortSide PortSide { get; set; } = OffPageConnectorPortSide.Left;
     [Parameter] public string TargetAreaName { get; set; } = "";
 
     private string _uid = Guid.NewGuid().ToString("N").Substring(0, 8);
@@ -65,8 +69,14 @@
     private string GetDisplayText()
     {
         if (string.IsNullOrWhiteSpace(TargetAreaName)) return "?";
-        // ~7px por carácter a font-size 11px, con 20px de padding
         int maxChars = Math.Max(3, (int)((Width - 20) / 7.0));
         return TargetAreaName.Length > maxChars ? TargetAreaName.Substring(0, maxChars) + "." : TargetAreaName;
+    }
+
+    private bool ShouldPointRight()
+    {
+        return IsOutlet
+            ? PortSide == OffPageConnectorPortSide.Left
+            : PortSide == OffPageConnectorPortSide.Right;
     }
 }

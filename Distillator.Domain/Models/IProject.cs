@@ -3,6 +3,7 @@ using Distillator.Domain.Core;
 using Distillator.Domain.Services;
 using Shared.ProcessFlowDiagram;
 using Shared.PropertiesDtos.Methods;
+using Shared.SolverConsecutive;
 
 namespace Distillator.Domain.Models;
 
@@ -65,6 +66,7 @@ public interface IProject
     void RemoveInterFlowsheetConnection(Guid connectionId);
 
     // Simulación
+    Task<SimulationRunResult> RunSimulationAsync();
     void RunSimulation();
     void ClearDomainEvents();
 }

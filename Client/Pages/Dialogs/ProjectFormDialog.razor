@@ -4,7 +4,7 @@
 
 <MudDialog Gutters="false" ContentClass="pa-0">
     <DialogContent>
-        <div class="stream-dialog" style="min-width: 650px;">
+        <div class="stream-dialog">
 
             <div class="dialog-header">
                 <span class="dialog-title">@DialogTitle</span>
@@ -21,10 +21,10 @@
                 
             </div>
 
-            <div class="tab-content" style="background-color: #ffffff;">
+            <div class="project-dialog-body">
                 @if (_activeTab == "General")
                 {
-                    <div class="tab-content active" style="padding: 0;">
+                    <div class="project-tab-panel">
                         <ProjectGeneralTab @bind-ProjectName="_projectName"
                                            ValidateName="ValidateName"
                                            NameError="@_nameError"
@@ -39,7 +39,7 @@
                 }
                 @if (_activeTab == "Units")
                 {
-                    <div class="tab-content active" style="padding: 0;">
+                    <div class="project-tab-panel">
                         <ProjectUnitsTab UnitSystems="_unitSystems"
                                          @bind-ActiveUnitSystemName="_activeUnitSystemName"
                                          IsCreatingUnitSystem="_isCreatingUnitSystem"
@@ -56,7 +56,7 @@
                 }
                 @if (_activeTab == "Camera")
                 {
-                    <div class="tab-content active" style="padding: 0;">
+                    <div class="project-tab-panel">
                         <ProjectCameraTab @bind-DefaultZoom="_defaultZoom"
                                           @bind-GlobalScale="_globalScale"
                                           @bind-DefaultPanX="_defaultPanX"
@@ -68,21 +68,21 @@
                 }
                 @if (_activeTab == "Reports")
                 {
-                    <div class="tab-content active" style="padding: 0;">
+                    <div class="project-tab-panel">
                         <ProjectReportsTab @bind-DefaultFormat="_reportDefaultFormat"
                                            @bind-AutoExportOnSimulation="_autoExportOnSimulation" />
                     </div>
                 }
                 @if (_activeTab == "Equipment Design")
                 {
-                    <div class="tab-content active" style="padding: 0;">
+                    <div class="project-tab-panel">
                         <ProjectEquipmentDesignTab @bind-Standard="_equipmentDesignStandard"
                                                    @bind-RatingBasis="_equipmentDesignRatingBasis" />
                     </div>
                 }
                 @if (_activeTab == "Naming")
                 {
-                    <div class="tab-content active" style="padding: 0;">
+                    <div class="project-tab-panel">
                         <ProjectNamingTab SelectedNamingSlot="_selectedNamingSlot"
                                           SelectNamingSlot="SelectNamingSlot"
                                           GetNamingSlotCss="GetNamingSlotCss"

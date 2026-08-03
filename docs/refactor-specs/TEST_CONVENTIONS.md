@@ -1,6 +1,6 @@
 # Convenciones E Infraestructura De Pruebas
 
-Estado: En revision M02
+Estado: Aprobada
 
 ## Objetivo
 
@@ -22,14 +22,19 @@ todos los proyectos de pruebas desde el inicio.
 Estos archivos se conservan como referencia legacy. Sus escenarios se migraran de
 forma gradual y no se borraran en M03.
 
-## Decisiones Propuestas M02
+## Decisiones Aprobadas M02
+
+Decisiones aprobadas por Alfonso en M02 el 2026-07-15.
 
 ### Framework Base
 
 - Usar xUnit como framework principal.
 - Ejecutar la suite mediante `dotnet test`.
 - Mantener `Nullable` e `ImplicitUsings` habilitados y usar `net10.0`.
-- Fijar versiones exactas de paquetes en M03, al crear y restaurar el primer proyecto.
+- Versiones iniciales fijadas en M03:
+  - `Microsoft.NET.Test.Sdk` 17.14.1;
+  - `xunit` 2.9.3;
+  - `xunit.runner.visualstudio` 3.1.4.
 - No agregar inicialmente una libreria de mocks ni una libreria de aserciones.
   Preferir fakes pequenos y `Assert` de xUnit hasta que exista una necesidad repetida.
 

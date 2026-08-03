@@ -38,6 +38,8 @@ Antes de Newton se valida:
 
 - numero de ecuaciones;
 - numero de incognitas ajustables;
+- grados de libertad de la ecuacion o cluster;
+- independencia/rango de las ecuaciones cuando los residuales pueden ser dependientes;
 - variables duplicadas;
 - ecuaciones sin residual;
 - valores iniciales finitos;
@@ -47,6 +49,46 @@ Antes de Newton se valida:
 `NewtonSolver` no se modifica para aceptar sistemas no cuadrados ni para retirar
 ecuaciones por residual casualmente bajo. Se corrige el armado o se devuelve un
 diagnostico estructural.
+
+## Grados De Libertad Por Ecuacion
+
+El solver opera por intencion: un equipo puede entregar varias ecuaciones candidatas y
+solo converge la que este estructuralmente lista en esa ronda. Cada ecuacion debe
+decidir si representa un caso resoluble antes de exponer residuales y variables.
+
+Reglas vigentes para balances de equipos:
+
+- Una ecuacion no debe intentar ser universal; debe representar un modo resolutivo
+  concreto.
+- Si faltan datos requeridos para ese modo, `Residuals` y `Variables` devuelven listas
+  vacias.
+- `Variables` puede exponer el universo de variables de esa ecuacion; `NewtonSolver`
+  filtra las ajustables con `!IsDefined`.
+- La ecuacion si puede usar `IsDefined` para decidir sus datos requeridos y sus grados
+  de libertad.
+- `CanSolve` debe equivaler a: incognitas candidatas igual a ecuaciones
+  independientes.
+- En balances de componente, `ncomp` no garantiza independencia; se valida rango.
+
+Ejemplos aprobados:
+
+- `ComponentMassBalanceEquation`: resuelve fracciones masicas cuando todos los flujos
+  masicos estan definidos y las fracciones faltantes cierran DOF.
+- `ComponentMassBalanceByMassFlowEquation`: resuelve flujos masicos cuando las
+  composiciones estan definidas y la matriz de composiciones de los flujos
+  desconocidos tiene rango completo.
+- `ComponentMassBalanceMixedEquation`: resuelve casos mixtos solo si el total de
+  flujos/fracciones faltantes iguala el rango independiente del balance.
+- `GlobalMassEnergyBalanceEquation`: resuelve flujos masicos con balances de
+  componentes + energia; la matriz de DOF usa filas de fracciones masicas y entalpia
+  masica.
+- `GlobalEnergyBalanceByMassEnthalpyEquation`: resuelve una unica entalpia masica
+  faltante en cualquier corriente cuando todos los flujos masicos estan definidos y el
+  flujo de esa corriente no es cero.
+
+Casos degenerados son resultados esperados, no errores de Newton. Por ejemplo, dos
+salidas con igual composicion y dos flujos desconocidos producen rango uno aunque haya
+dos componentes; el solver no debe inventar una solucion con flujo negativo.
 
 ## Convergencia
 
@@ -138,4 +180,3 @@ estrategia lo controla y el resultado final se valida.
 - Cambiar modelos termodinamicos sin validacion independiente.
 - Optimizar rendimiento antes de tener resultados de referencia.
 - Aceptar sistemas estructuralmente invalidos para evitar un fallo visible.
-

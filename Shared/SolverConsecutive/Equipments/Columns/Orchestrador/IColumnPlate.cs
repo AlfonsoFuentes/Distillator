@@ -1,4 +1,4 @@
-﻿using Shared.SolverQwen.Stream;
+using Shared.SolverQwen.Stream;
 using Shared.UnitOperations.Streams;
 using UnitSystem;
 
@@ -360,9 +360,8 @@ namespace Shared.SolverConsecutive.Equipments.Columns.Orchestrador
                 {
                     SolvePlate(currentPlate);
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
-                    Console.WriteLine($" ERROR EN PLATO {nPlate}: {ex.Message}");
                     break;
                 }
 
@@ -373,7 +372,6 @@ namespace Shared.SolverConsecutive.Equipments.Columns.Orchestrador
                 if (currentPlate.LiquidOutlet.State != StreamStateType.Calculated ||
                     currentPlate.VaporInlet.State != StreamStateType.Calculated)
                 {
-                    Console.WriteLine($"❌ ERROR CRÍTICO: Termodinámica colapsó en Plato {nPlate}");
                     break;
                 }
                 if (column.Orchestrator != null)
@@ -410,7 +408,6 @@ namespace Shared.SolverConsecutive.Equipments.Columns.Orchestrador
             // 8. Mensaje final
             if (!targetReached && nPlate > maxSafetyPlates)
             {
-                Console.WriteLine($"\n⚠️ ADVERTENCIA: Límite de {maxSafetyPlates} platos alcanzado");
             }
         }
 
@@ -455,19 +452,14 @@ namespace Shared.SolverConsecutive.Equipments.Columns.Orchestrador
             // F. Procesar resultado
             if (stoppingResult.Level == StopLevel.Success)
             {
-                Console.WriteLine($"\n✅ {stoppingResult.Reason}");
-                Console.WriteLine($"   Total de platos teóricos: {nPlate}");
                 targetReached = true;
             }
             else if (stoppingResult.Level == StopLevel.HardStop)
             {
-                Console.WriteLine($"\n❌ PARADA DURA: {stoppingResult.Reason}");
-                Console.WriteLine($"   Platos calculados: {nPlate}");
                 return true;  // 🔥 Retornar inmediatamente para hacer break
             }
             else if (stoppingResult.Level == StopLevel.Warning)
             {
-                Console.WriteLine($"\n⚠️ ADVERTENCIA: {stoppingResult.Reason}");
             }
 
             return targetReached;
@@ -679,7 +671,6 @@ namespace Shared.SolverConsecutive.Equipments.Columns.Orchestrador
                     targetList.Add(stream);
                     pending.RemoveAt(i);
                     injected = true;
-                    Console.WriteLine($"[Topología] {logType} '{stream.Name}' asignada al Plato {nPlate}");
                 }
             }
 

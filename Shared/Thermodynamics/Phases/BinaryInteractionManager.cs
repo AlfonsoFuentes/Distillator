@@ -39,15 +39,28 @@ namespace Shared.Thermodynamics.Phases
         {
             if (db == null) return null;
 
-            // En este punto, podrías necesitar un BinaryParameterType específico para EoS 
-            // Si no lo tienes en el Enum aún, asumo que usas una lógica de filtrado por modelo o un valor genérico.
-            // Por ahora, buscaremos si existe algún parámetro que no sea de actividad para estos IDs.
+            var expectedType = GetEosBinaryParameterType(model);
+            if (!expectedType.HasValue) return null;
 
             var param = db.FirstOrDefault(p =>
+                p.ParameterType == expectedType.Value &&
                 ((p.ComponentI_Id == idI && p.ComponentJ_Id == idJ) ||
                  (p.ComponentI_Id == idJ && p.ComponentJ_Id == idI)));
 
             return param?.Value;
+        }
+
+        private static BinaryParameterType? GetEosBinaryParameterType(VaporPhaseModel model)
+        {
+            return model switch
+            {
+                VaporPhaseModel.PengRobinson => BinaryParameterType.PengRobinson_Kij,
+                VaporPhaseModel.SoaveRedlichKwong1972 or
+                VaporPhaseModel.SoaveRedlichKwong1984 or
+                VaporPhaseModel.SoaveRedlichKwong1995 or
+                VaporPhaseModel.RedlichKwong => BinaryParameterType.SRK_Kij,
+                _ => null
+            };
         }
 
         // =========================================================================

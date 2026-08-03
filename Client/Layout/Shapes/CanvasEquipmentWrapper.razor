@@ -159,13 +159,11 @@
 
     private async Task HandleSingleClick()
     {
-        Console.WriteLine($"[DEBUG] HandleSingleClick on: {Element?.Label} ({Element?.GetType().Name})");
         await OnSelect.InvokeAsync(Element);
     }
 
     private async Task HandleDoubleClick()
     {
-        Console.WriteLine($"[DEBUG] DoubleClick on: {Element?.Label} ({Element?.GetType().Name})");
         await OnOpenDetails.InvokeAsync(Element);
     }
 

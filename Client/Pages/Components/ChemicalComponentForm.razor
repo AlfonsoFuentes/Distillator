@@ -25,6 +25,7 @@
     {
         @if (_model != null)
         {
+            <CascadingValue Value="_model">
             <MudTabs Position="Position.Left"
                      Rounded="true"
                      Border="true"
@@ -68,76 +69,230 @@
                     
                     <ChildContent>
                         @* Solo se renderiza el componente si el panel se carga de verdad *@
-                        <CorrelationTabEditor EquationName="Vapor Pressure" Model="_model.VaporPressure">
-                            <EquationVaporPressure></EquationVaporPressure>
-                        </CorrelationTabEditor>
+                        <CorrelationEquationEditor TEquation="VaporPressureEquationType"
+                                                   EquationName="Vapor Pressure"
+                                                   Model="_model.VaporPressure"
+                                                   EquationType="_model.VaporPressureEquationType"
+                                                   EquationTypeChanged="@((VaporPressureEquationType value) => _model.VaporPressureEquationType = value)">
+                            <EquationTemplate Context="equationType">
+                                @switch (equationType)
+                                {
+                                    case VaporPressureEquationType.IapwsSteamTables:
+                                        <EquationSteamTables />
+                                        break;
+                                    case VaporPressureEquationType.ExtendedAntoine:
+                                    default:
+                                        <EquationVaporPressure />
+                                        break;
+                                }
+                            </EquationTemplate>
+                        </CorrelationEquationEditor>
                     </ChildContent>
                 </MudTabPanel>
                 <MudTabPanel Text="Heat of Vaporization">
                     <ChildContent>
-                        <CorrelationTabEditor EquationName="Heat of Vaporization" Model="_model.HeatOfVaporization">
-                            <EquationHeatVaporization></EquationHeatVaporization>
-                        </CorrelationTabEditor>
+                        <CorrelationEquationEditor TEquation="HeatOfVaporizationEquationType"
+                                                   EquationName="Heat of Vaporization"
+                                                   Model="_model.HeatOfVaporization"
+                                                   EquationType="_model.HeatOfVaporizationEquationType"
+                                                   EquationTypeChanged="@((HeatOfVaporizationEquationType value) => _model.HeatOfVaporizationEquationType = value)">
+                            <EquationTemplate Context="equationType">
+                                @switch (equationType)
+                                {
+                                    case HeatOfVaporizationEquationType.IapwsSteamTables:
+                                        <EquationSteamTables />
+                                        break;
+                                    case HeatOfVaporizationEquationType.Dippr106:
+                                    default:
+                                        <EquationHeatVaporization />
+                                        break;
+                                }
+                            </EquationTemplate>
+                        </CorrelationEquationEditor>
                     </ChildContent>
                 </MudTabPanel>
                 <MudTabPanel Text="Liquid Heat Capacity">
                     <ChildContent>
-                        <CorrelationTabEditor EquationName="Liquid Heat Capacity" Model="_model.LiquidHeatCapacity">
-                            <EquationLiquidHeatCapacity></EquationLiquidHeatCapacity>
-                        </CorrelationTabEditor>
+                        <CorrelationEquationEditor TEquation="LiquidHeatCapacityEquationType"
+                                                   EquationName="Liquid Heat Capacity"
+                                                   Model="_model.LiquidHeatCapacity"
+                                                   EquationType="_model.LiquidHeatCapacityEquationType"
+                                                   EquationTypeChanged="@((LiquidHeatCapacityEquationType value) => _model.LiquidHeatCapacityEquationType = value)">
+                            <EquationTemplate Context="equationType">
+                                @switch (equationType)
+                                {
+                                    case LiquidHeatCapacityEquationType.IapwsSteamTables:
+                                        <EquationSteamTables />
+                                        break;
+                                    case LiquidHeatCapacityEquationType.Polynomial:
+                                    default:
+                                        <EquationLiquidHeatCapacity />
+                                        break;
+                                }
+                            </EquationTemplate>
+                        </CorrelationEquationEditor>
                     </ChildContent>
                 </MudTabPanel>
                 <MudTabPanel Text="Gas Heat Capacity">
                     <ChildContent>
-                        <CorrelationTabEditor EquationName="Gas Heat Capacity" Model="_model.GasHeatCapacity">
-                            <EquationGasHeatCapacity></EquationGasHeatCapacity>
-                        </CorrelationTabEditor>
+                        <CorrelationEquationEditor TEquation="GasHeatCapacityEquationType"
+                                                   EquationName="Gas Heat Capacity"
+                                                   Model="_model.GasHeatCapacity"
+                                                   EquationType="_model.GasHeatCapacityEquationType"
+                                                   EquationTypeChanged="@((GasHeatCapacityEquationType value) => _model.GasHeatCapacityEquationType = value)">
+                            <EquationTemplate Context="equationType">
+                                @switch (equationType)
+                                {
+                                    case GasHeatCapacityEquationType.IapwsSteamTables:
+                                        <EquationSteamTables />
+                                        break;
+                                    case GasHeatCapacityEquationType.AlyLee:
+                                    default:
+                                        <EquationGasHeatCapacity />
+                                        break;
+                                }
+                            </EquationTemplate>
+                        </CorrelationEquationEditor>
                     </ChildContent>
                 </MudTabPanel>
                 <MudTabPanel Text="Liquid Viscosity">
                     <ChildContent>
-                        <CorrelationTabEditor EquationName="Liquid Viscosity" Model="_model.LiquidViscosity">
-                            <EquationLiquidViscosity></EquationLiquidViscosity>
-                        </CorrelationTabEditor>
+                        <CorrelationEquationEditor TEquation="LiquidViscosityEquationType"
+                                                   EquationName="Liquid Viscosity"
+                                                   Model="_model.LiquidViscosity"
+                                                   EquationType="_model.LiquidViscosityEquationType"
+                                                   EquationTypeChanged="@((LiquidViscosityEquationType value) => _model.LiquidViscosityEquationType = value)">
+                            <EquationTemplate Context="equationType">
+                                @switch (equationType)
+                                {
+                                    case LiquidViscosityEquationType.IapwsSteamTables:
+                                        <EquationSteamTables />
+                                        break;
+                                    case LiquidViscosityEquationType.Dippr101:
+                                    default:
+                                        <EquationLiquidViscosity />
+                                        break;
+                                }
+                            </EquationTemplate>
+                        </CorrelationEquationEditor>
                     </ChildContent>
                 </MudTabPanel>
                 <MudTabPanel Text="Gas Viscosity">
                     <ChildContent>
-                        <CorrelationTabEditor EquationName="Gas Viscosity" Model="_model.GasViscosity">
-                            <EquationGasViscosity></EquationGasViscosity>
-                        </CorrelationTabEditor>
+                        <CorrelationEquationEditor TEquation="GasViscosityEquationType"
+                                                   EquationName="Gas Viscosity"
+                                                   Model="_model.GasViscosity"
+                                                   EquationType="_model.GasViscosityEquationType"
+                                                   EquationTypeChanged="@((GasViscosityEquationType value) => _model.GasViscosityEquationType = value)">
+                            <EquationTemplate Context="equationType">
+                                @switch (equationType)
+                                {
+                                    case GasViscosityEquationType.IapwsSteamTables:
+                                        <EquationSteamTables />
+                                        break;
+                                    case GasViscosityEquationType.Dippr102:
+                                    default:
+                                        <EquationGasViscosity />
+                                        break;
+                                }
+                            </EquationTemplate>
+                        </CorrelationEquationEditor>
                     </ChildContent>
                 </MudTabPanel>
                 <MudTabPanel Text="Liquid Thermal Cond.">
                     <ChildContent>
-                        <CorrelationTabEditor EquationName="Liquid Thermal Conductivity" Model="_model.LiquidThermalCond">
-                            <EquationLiquidThermalConductivity></EquationLiquidThermalConductivity>
-                        </CorrelationTabEditor>
+                        <CorrelationEquationEditor TEquation="LiquidThermalConductivityEquationType"
+                                                   EquationName="Liquid Thermal Conductivity"
+                                                   Model="_model.LiquidThermalCond"
+                                                   EquationType="_model.LiquidThermalConductivityEquationType"
+                                                   EquationTypeChanged="@((LiquidThermalConductivityEquationType value) => _model.LiquidThermalConductivityEquationType = value)">
+                            <EquationTemplate Context="equationType">
+                                @switch (equationType)
+                                {
+                                    case LiquidThermalConductivityEquationType.IapwsSteamTables:
+                                        <EquationSteamTables />
+                                        break;
+                                    case LiquidThermalConductivityEquationType.Ppds8:
+                                        <EquationLiquidThermalConductivityPpds8 />
+                                        break;
+                                    case LiquidThermalConductivityEquationType.Polynomial4:
+                                    default:
+                                        <EquationLiquidThermalConductivity />
+                                        break;
+                                }
+                            </EquationTemplate>
+                        </CorrelationEquationEditor>
                     </ChildContent>
                 </MudTabPanel>
                 <MudTabPanel Text="Gas Thermal Cond.">
                     <ChildContent>
-                        <CorrelationTabEditor EquationName="Gas Thermal Conductivity" Model="_model.GasThermalCond">
-                            <EquationGasThermalConductivity></EquationGasThermalConductivity>
-                        </CorrelationTabEditor>
+                        <CorrelationEquationEditor TEquation="GasThermalConductivityEquationType"
+                                                   EquationName="Gas Thermal Conductivity"
+                                                   Model="_model.GasThermalCond"
+                                                   EquationType="_model.GasThermalConductivityEquationType"
+                                                   EquationTypeChanged="@((GasThermalConductivityEquationType value) => _model.GasThermalConductivityEquationType = value)">
+                            <EquationTemplate Context="equationType">
+                                @switch (equationType)
+                                {
+                                    case GasThermalConductivityEquationType.IapwsSteamTables:
+                                        <EquationSteamTables />
+                                        break;
+                                    case GasThermalConductivityEquationType.PolynomialRational:
+                                    default:
+                                        <EquationGasThermalConductivity />
+                                        break;
+                                }
+                            </EquationTemplate>
+                        </CorrelationEquationEditor>
                     </ChildContent>
                 </MudTabPanel>
                 <MudTabPanel Text="Density">
                     <ChildContent>
-                        <CorrelationTabEditor EquationName="Density" Model="_model.Density">
-                            <EquationLiquidDensity></EquationLiquidDensity>
-                        </CorrelationTabEditor>
+                        <CorrelationEquationEditor TEquation="LiquidDensityEquationType"
+                                                   EquationName="Density"
+                                                   Model="_model.Density"
+                                                   EquationType="_model.LiquidDensityEquationType"
+                                                   EquationTypeChanged="@((LiquidDensityEquationType value) => _model.LiquidDensityEquationType = value)">
+                            <EquationTemplate Context="equationType">
+                                @switch (equationType)
+                                {
+                                    case LiquidDensityEquationType.IapwsSteamTables:
+                                        <EquationSteamTables />
+                                        break;
+                                    case LiquidDensityEquationType.Rackett:
+                                    default:
+                                        <EquationLiquidDensity />
+                                        break;
+                                }
+                            </EquationTemplate>
+                        </CorrelationEquationEditor>
                     </ChildContent>
                 </MudTabPanel>
                 <MudTabPanel Text="Surface Tension">
                     <ChildContent>
-                        <CorrelationTabEditor EquationName="Surface Tension" Model="_model.SurfaceTension">
-                            <EquationSurfaceTension></EquationSurfaceTension>
-                        </CorrelationTabEditor>
+                        <CorrelationEquationEditor TEquation="SurfaceTensionEquationType"
+                                                   EquationName="Surface Tension"
+                                                   Model="_model.SurfaceTension"
+                                                   EquationType="_model.SurfaceTensionEquationType"
+                                                   EquationTypeChanged="@((SurfaceTensionEquationType value) => _model.SurfaceTensionEquationType = value)">
+                            <EquationTemplate Context="equationType">
+                                @switch (equationType)
+                                {
+                                    case SurfaceTensionEquationType.IapwsSteamTables:
+                                        <EquationSteamTables />
+                                        break;
+                                    case SurfaceTensionEquationType.Dippr106:
+                                    default:
+                                        <EquationSurfaceTension />
+                                        break;
+                                }
+                            </EquationTemplate>
+                        </CorrelationEquationEditor>
                     </ChildContent>
                 </MudTabPanel>
 
             </MudTabs>
+            </CascadingValue>
 
             @* ACCIONES DEL FORMULARIO *@
             @* ACCIONES DEL FORMULARIO CON ESTILO INDUSTRIAL *@

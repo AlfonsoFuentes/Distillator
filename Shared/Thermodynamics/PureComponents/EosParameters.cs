@@ -34,7 +34,8 @@ namespace Shared.Thermodynamics.PureComponents
             double tKelvin,
             double pKpa)
         {
-            if (vaporModel == VaporPhaseModel.IdealGas)
+            if (vaporModel == VaporPhaseModel.IdealGas ||
+                vaporModel == VaporPhaseModel.SteamTables)
             {
                 return new EosParameters(); // Todo en cero, comportamiento ideal
             }

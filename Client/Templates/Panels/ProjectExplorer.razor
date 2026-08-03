@@ -222,6 +222,11 @@
             }
 
             var projects = await SessionService.LoadUserProjectsAsync();
+            if (projects == null)
+            {
+                return;
+            }
+
             _projects = projects;
             await SessionService.InitializeFromProjectsAsync(_projects);
 
@@ -313,7 +318,7 @@
 
     private async Task EditProject(Project project)
     {
-        var projectToEdit = await SessionService.LoadProjectAsync(project.Id);
+        var projectToEdit = await SessionService.LoadProjectAsync(project.Id, recalculate: false);
         if (projectToEdit == null)
         {
             await LoadProjectsAsync(force: true);
@@ -351,7 +356,10 @@
                 _projects[updatedIndex] = updatedProject;
             }
 
-            await SelectProject(updatedProject);
+            if (SessionService.CurrentProject?.Id == updatedProject.Id)
+            {
+                await OnProjectSelected.InvokeAsync(updatedProject);
+            }
             SnackbarService?.ShowSuccess($"Project '{updatedProject.Name}' updated.");
         }
     }
