@@ -1,5 +1,7 @@
 <Solution>
-  <Folder Name="/tests/" />
+  <Folder Name="/tests/">
+    <Project Path="tests/Distillator.HeatExchangerDesign.Tests/Distillator.HeatExchangerDesign.Tests.csproj" />
+  </Folder>
   <Project Path="Client/Client.csproj" />
   <Project Path="Distillator.Domain/Distillator.Domain.csproj" />
   <Project Path="Server/Server.csproj" />

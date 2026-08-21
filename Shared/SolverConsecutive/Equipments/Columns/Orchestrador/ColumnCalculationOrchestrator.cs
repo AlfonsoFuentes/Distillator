@@ -175,6 +175,7 @@ namespace Shared.SolverConsecutive.Equipments.Columns.Orchestrador
         // ═══════════════════════════════════════════════════════════════════
         public async Task<ColumnResult> CalculateAsync(CancellationToken cancellationToken = default)
         {
+            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
             try
             {
 
@@ -189,6 +190,7 @@ namespace Shared.SolverConsecutive.Equipments.Columns.Orchestrador
 
                 if (!pressureIsValid)
                 {
+                    Trace("Column orchestrator pressure invalid", $"topPressure={currentSnapshot.TopPressure}");
                 }
 
                 // 🔥 NUEVO: Banderas individuales por servicio
@@ -200,11 +202,17 @@ namespace Shared.SolverConsecutive.Equipments.Columns.Orchestrador
                 // 🔥 Si NADA cambió, retornar el caché directamente
                 if (!TopologyChanged && !ColumnPressureChanged && _cachedDistillationParams != null)
                 {
+                    stopwatch.Stop();
+                    Trace("Column orchestrator cache hit", $"elapsedMs={stopwatch.ElapsedMilliseconds}");
                     return _currentResult;
                 }
 
                 // 🔥 Solo resetear si algo cambió
                 _stages.Clear();
+
+                Trace(
+                    "Column orchestrator started",
+                    $"state={_column.State}; topologyChanged={TopologyChanged}; pressureChanged={ColumnPressureChanged}; topPressure={currentSnapshot.TopPressure}");
 
                 // 🔥 Ejecutar calculadores en orden
                 // 🔥 Ejecutar FUG, VLE y Platos en PARALELO (son independientes)
@@ -231,6 +239,10 @@ namespace Shared.SolverConsecutive.Equipments.Columns.Orchestrador
 
                 _lastSnapshot = currentSnapshot;
 
+                stopwatch.Stop();
+                Trace(
+                    "Column orchestrator finished",
+                    $"success={_currentResult.Success}; FUG={FUGChanged}; VLE={VLEChanged}; plates={PlatesChanged}; McCabe={McCabeThieleChanged}; elapsedMs={stopwatch.ElapsedMilliseconds}");
 
                 return _currentResult;
             }
@@ -248,8 +260,15 @@ namespace Shared.SolverConsecutive.Equipments.Columns.Orchestrador
                     Success = false,
                     ErrorMessage = ex.Message
                 };
+                stopwatch.Stop();
+                Trace("Column orchestrator failed", $"elapsedMs={stopwatch.ElapsedMilliseconds}; error={ex.Message}");
                 return _currentResult;
             }
+        }
+
+        private void Trace(string message, string? detail = null)
+        {
+            _column.TraceSink?.TraceSolver($"Column {_column.Name}: {message}", detail);
         }
         public async Task<ColumnResult> CalculateAsync2(CancellationToken cancellationToken = default)
         {

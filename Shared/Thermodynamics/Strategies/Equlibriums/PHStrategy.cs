@@ -19,9 +19,9 @@ namespace Shared.Thermodynamics.Strategies.Equlibriums
            
 
             // 3. Registrar en Facade
-            _facade.Temperature.SetValue(_facade.MaterialStream.Temperature, SolverConsecutive.VariableDefinedBy.StreamCalculated);
+            CalculatedVariableSetter.SetStreamCalculated(_facade.Temperature, _facade.MaterialStream.Temperature);
 
-            _facade.VaporFraction.SetValue(_facade.MaterialStream.VaporFraction, SolverConsecutive.VariableDefinedBy.StreamCalculated);
+            CalculatedVariableSetter.SetStreamCalculated(_facade.VaporFraction, _facade.MaterialStream.VaporFraction);
             _facade.MaterialStream.CalculateBulkProperties();
 
         }

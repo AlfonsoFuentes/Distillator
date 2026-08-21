@@ -18,9 +18,9 @@ namespace Shared.SolverConsecutive
         Length Altitude { get; set; }
         Pressure AtmosphericPressure { get; set; }
         ThermodynamicMethodFullDto ThermoMethod { get; set; }
+        ISolverTraceSink? TraceSink { get; set; }
 
         Task<SimulationRunResult> RunSimulationAsync();
-        void RunSimulation();
 
         event Action? OnSimulationCompleted;
         void ClearOrphanStream(IFacadeStream stream);

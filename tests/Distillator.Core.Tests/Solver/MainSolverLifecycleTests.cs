@@ -111,6 +111,39 @@ public sealed class MainSolverLifecycleTests
     [Fact]
     [Trait("Spec", "01")]
     [Trait("Level", "Unit")]
+    public async Task RunSimulationAsync_WhenEquationHasNoAdjustableVariablesAndResidualIsSolved_ShouldNotCallNewton()
+    {
+        var newton = new FixedNewtonSolver(converged: false);
+        var solver = new MainSolver(newton);
+        solver.AddEquipment(new EquationEquipment(new TestEquation(residual: 1e-8)));
+
+        var result = await solver.RunSimulationAsync();
+
+        Assert.Equal(SimulationRunStatus.Completed, result.Status);
+        Assert.True(result.Converged);
+        Assert.Equal(0, newton.CallCount);
+    }
+
+    [Fact]
+    [Trait("Spec", "01")]
+    [Trait("Level", "Unit")]
+    public async Task RunSimulationAsync_WhenEquationHasNoAdjustableVariablesAndResidualIsOpen_ShouldNotCallNewton()
+    {
+        var newton = new FixedNewtonSolver(converged: true);
+        var solver = new MainSolver(newton);
+        solver.AddEquipment(new EquationEquipment(new TestEquation(residual: 1.0)));
+
+        var result = await solver.RunSimulationAsync();
+
+        Assert.Equal(SimulationRunStatus.Completed, result.Status);
+        Assert.False(result.Converged);
+        Assert.Equal(0, newton.CallCount);
+    }
+
+
+    [Fact]
+    [Trait("Spec", "01")]
+    [Trait("Level", "Unit")]
     public async Task RunSimulationAsync_WhenPostSolveThrows_ShouldCompleteWithFailedResult()
     {
         var solver = new MainSolver();
@@ -244,9 +277,16 @@ public sealed class MainSolverLifecycleTests
 
     private sealed class TestEquation : ISolverEquation
     {
+        private readonly double _residual;
+
+        public TestEquation(double residual = 1.0)
+        {
+            _residual = residual;
+        }
+
         public string Name => "Test equation";
         public SolverEquationType EquationType => SolverEquationType.MassBalance;
-        public List<double> Residuals => [1.0];
+        public List<double> Residuals => [_residual];
         public List<IVariable> Variables => [];
         public SolverEquationTypeModifier EquationTypeModifer => SolverEquationTypeModifier.Regular;
     }
@@ -260,12 +300,15 @@ public sealed class MainSolverLifecycleTests
             _converged = converged;
         }
 
+        public int CallCount { get; private set; }
+
         public void Subscribe(INewtonSolverObserver observer)
         {
         }
 
         public SolverResult Solve(ISolverEquation mainSolver, double _alpha = 1.0)
         {
+            CallCount++;
             return new SolverResult(_converged, iterations: 1, finalError: _converged ? 0 : 1);
         }
     }

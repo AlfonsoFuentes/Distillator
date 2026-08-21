@@ -63,14 +63,19 @@
     [Parameter] public bool IsOutlet { get; set; } = true;
     [Parameter] public OffPageConnectorPortSide PortSide { get; set; } = OffPageConnectorPortSide.Left;
     [Parameter] public string TargetAreaName { get; set; } = "";
+    [Parameter] public string ConnectedEquipmentName { get; set; } = "";
 
     private string _uid = Guid.NewGuid().ToString("N").Substring(0, 8);
 
     private string GetDisplayText()
     {
-        if (string.IsNullOrWhiteSpace(TargetAreaName)) return "?";
+        var displayText = string.IsNullOrWhiteSpace(ConnectedEquipmentName)
+            ? TargetAreaName
+            : $"{TargetAreaName} / {ConnectedEquipmentName}";
+
+        if (string.IsNullOrWhiteSpace(displayText)) return "?";
         int maxChars = Math.Max(3, (int)((Width - 20) / 7.0));
-        return TargetAreaName.Length > maxChars ? TargetAreaName.Substring(0, maxChars) + "." : TargetAreaName;
+        return displayText.Length > maxChars ? displayText.Substring(0, maxChars) + "." : displayText;
     }
 
     private bool ShouldPointRight()

@@ -66,7 +66,6 @@ public sealed class FlowsheetEquipmentEditServiceTests
         var project = CreateProject();
         var flowsheet = project.CreateFlowsheet("PFD 1", "PFD");
         var service = new FlowsheetEquipmentEditService();
-        var connectionService = new RemovingConnectionService();
         var pump = new PumpVisualElement { X = 120, Y = 80, Name = "P-101" };
         var stream = new StreamVisualElement { X = 220, Y = 80, Name = "S-101" };
         service.TryAddEquipment(project, flowsheet, pump);
@@ -74,10 +73,10 @@ public sealed class FlowsheetEquipmentEditServiceTests
         var pipe = new PipeReference(pump.Id, stream.Id, "Discharge", "Inlet");
         flowsheet.AddPipe(pipe);
 
-        var result = service.TryDeleteEquipment(project, flowsheet, pump, connectionService);
+        var result = service.TryDeleteEquipment(project, flowsheet, pump, out var affectedFlowsheets);
 
         Assert.True(result);
-        Assert.Equal(new[] { pipe.Id }, connectionService.DisconnectedPipeIds);
+        Assert.Equal(new[] { flowsheet.Id }, affectedFlowsheets.Select(candidate => candidate.Id));
         Assert.Null(project.EquipmentRegistry.GetById(pump.Id));
         Assert.DoesNotContain(project.SimulationService.Solver.Equipments, equipment => ReferenceEquals(equipment, pump.Facade));
         Assert.Null(flowsheet.GetElementReference(pump.Id));
@@ -85,7 +84,7 @@ public sealed class FlowsheetEquipmentEditServiceTests
 
         Assert.Same(stream, project.EquipmentRegistry.GetById(stream.Id));
         Assert.NotNull(flowsheet.GetElementReference(stream.Id));
-        Assert.Single(project.SimulationService.Solver.Streams);
+        Assert.Empty(project.SimulationService.Solver.Streams);
     }
 
     private static Project CreateProject()
@@ -94,31 +93,4 @@ public sealed class FlowsheetEquipmentEditServiceTests
         return new Project("Topology edit test", owner);
     }
 
-    private sealed class RemovingConnectionService : IConnectionService
-    {
-        public List<Guid> DisconnectedPipeIds { get; } = new();
-
-        public IPipeReference? Connect(
-            IFlowsheet flowsheet,
-            IVisualElement source,
-            string sourcePortName,
-            IVisualElement? target,
-            string? targetPortName,
-            double dropX,
-            double dropY)
-        {
-            return null;
-        }
-
-        public void Disconnect(IFlowsheet flowsheet, Guid pipeId)
-        {
-            DisconnectedPipeIds.Add(pipeId);
-            flowsheet.RemovePipe(pipeId);
-        }
-
-        public bool CanConnect(IFlowsheet flowsheet, IVisualElement source, string sourcePortName, IVisualElement target, string targetPortName)
-        {
-            return false;
-        }
-    }
 }

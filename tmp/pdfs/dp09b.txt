@@ -1,0 +1,2044 @@
+
+--- PAGE 1 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+DESIGN CONSIDERATIONS FOR ALL IX-B 1 of 40
+TYPES OF HEAT EXCHANGERS
+DESIGN PRACTICES
+PROPRIETARY INFORMATION - For Authorized Company Use Only December, 2002
+Changes shown by ➧
+CONTENTS
+Section Page
+SCOPE ............................................................................................................................................................3
+REFERENCES.................................................................................................................................................3
+DESIGN PRACTICES .............................................................................................................................3
+GLOBAL PRACTICES.............................................................................................................................3
+OTHER COMPANY LITERATURE..........................................................................................................3
+OTHER REFERENCES ..........................................................................................................................3
+GENERAL .......................................................................................................................................................4
+ACTUAL OVERALL HEAT TRANSFER COEFFICIENT - UO (FOR ALL BUT DIRECT-CONTACT
+HEAT EXCHANGERS)....................................................................................................................................4
+OPERATING TEMPERATURES .....................................................................................................................6
+TEMPERATURE OF STREAMS TO STORAGE.....................................................................................6
+COOLING WATER TEMPERATURES....................................................................................................7
+EFFECTIVE TEMPERATURE DIFFERENCE .................................................................................................7
+NO CHANGE OF PHASE........................................................................................................................7
+CHANGE OF PHASE ..............................................................................................................................7
+TEMPERATURE APPROACH ................................................................................................................8
+HEAT INTEGRATION USING PINCH TECHNOLOGY ..................................................................................9
+APPLICABILITY ......................................................................................................................................9
+HEAT RECOVERY ANALYSIS FOR A PROCESS UNIT......................................................................10
+SITE-WIDE STEAM SUPPLY/DEMAND PROFILING...........................................................................11
+FOULING FACTORS.....................................................................................................................................11
+RECOMMENDED GOOD PRACTICE...................................................................................................12
+PRESSURE DROP ........................................................................................................................................13
+DESIGN PRESSURE, DESIGN TEMPERATURE, AND CRITICAL EXPOSURE TEMPERATURE (CET)..13
+FLOW ARRANGEMENT ...............................................................................................................................13
+NOZZLE SHELLS AND FLANGE RATING ..................................................................................................13
+NOZZLE SIZE .......................................................................................................................................13
+FLANGE RATING..................................................................................................................................14
+POSITIONING OF UNITS, NOZZLE LOCATIONS AND PIPING..................................................................14
+POSITIONING .......................................................................................................................................14
+NOZZLE LOCATION .............................................................................................................................14
+PIPING ..................................................................................................................................................14
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 2 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+DESIGN CONSIDERATIONS FOR ALL
+IX-B 2 of 40
+TYPES OF HEAT EXCHANGERS
+DESIGN PRACTICES
+December, 2002 PROPRIETARY INFORMATION - For Authorized Company Use Only
+CONTENTS
+Section Page
+BYPASSES AND BLOCK VALVES..............................................................................................................14
+PROCESS CONTROL ..........................................................................................................................14
+LEAKAGE .............................................................................................................................................14
+MAINTENANCE ....................................................................................................................................14
+SPECIAL REQUIREMENTS .........................................................................................................................15
+CAUSTIC STREAMS ............................................................................................................................15
+STREAMS REQUIRING SPECIAL MATERIAL CONSIDERATIONS....................................................15
+CONDENSER LOCATION AT GRADE.................................................................................................15
+DRUMLESS CONDENSERS ................................................................................................................15
+TABLES
+Table 1 Typical Overall Heat Transfer Coefficients - Uo...........................................................16
+Table 2 Design Inlet Cooling Water Temperatures ...................................................................20
+Table 3 Typical Fouling Factors For Cooling Water..................................................................21
+Table 4 Typical Fouling Factors For Crude And Vacuum Liquids .............................................22
+Table 5 Typical Fouling Factors................................................................................................23
+Table 6 Furnace/Boiler Data Template .....................................................................................27
+Table 7 Exchanger Data Template For Process-To-Process Heat Exchange ..........................28
+Table 8 Exchanger Data Template For Process-To-Utility Heat Exchange ..............................29
+Table 9 Data Template For Direct Steam Injection To The Process.........................................30
+Table 10 Targeting ∆T Guidelines .........................................................................................31
+min
+Table 11 Typical Pressure Drops................................................................................................31
+FIGURES
+Figure 1 Heat Exchanger Design Logic .....................................................................................32
+Figure 2 Flow Patterns, Temperature Driving Force, And Temperature Cross ..........................33
+Figure 3 Heat Recovery Analysis For Individual Process Unit Logic..........................................35
+Figure 4 Establishment Of Energy Targets And Pinch...............................................................36
+Figure 5 Site-Wide Steam Supply/Demand Profiling Logic ........................................................37
+Figure 6 Site Source-Sink Profiles .............................................................................................38
+Figure 7 Reviewing Designs Of Shell And Tube Heat Exchangers With Fouling.......................39
+Figure 8 Relationship Between Fouling Resistance And Layer Thickness ................................40
+Revision Memo
+12/2002 This is not considered a full DP Update. Change only addresses an EMESOC
+(00-02) follow-up item. Added a requirement to designate exchangers in cyclic
+service. This specification will assist in the selection of a suitable gasket type for
+the girth flange joints.
+12/99 Highlights of this revision are:
+1. Replaced Pinch Technology Section with Heat Integration Using Pinch
+Technology.
+2. Renumbered the tables and figures.
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 3 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+DESIGN CONSIDERATIONS FOR ALL IX-B 3 of 40
+TYPES OF HEAT EXCHANGERS
+DESIGN PRACTICES
+PROPRIETARY INFORMATION - For Authorized Company Use Only December, 2002
+SCOPE
+This section presents basic design considerations for all types of heat exchange equipment.
+REFERENCES
+DESIGN PRACTICES
+Other sections of Section IX
+Section II Design Temperature, Design Pressure and Flange Rating
+Section XII Instrumentation
+Section XIV Fluid Flow
+Section XV Safety in Plant Design
+Section XXII Storage Facilities
+GLOBAL PRACTICES
+GP 3-2-4, Pressure Relieving Systems
+GP 3-6-4, Vents and Drains, Flushing and Cleaning Connections
+GP 6-1-1, TEMA Type Shell and Tube Heat Exchangers
+GP 6-2-1, Double Pipe Heat Exchangers
+GP 6-3-1, Brazed Aluminum Heat Exchangers
+GP 6-4-1, Air-Cooled Heat Exchangers
+GP 18-4-1, Postweld Heat Treatment of Equipment Handling Alkaline Solutions
+OTHER COMPANY LITERATURE
+Refinery Construction Materials Manual, EETD028
+Chemical Cleaning Manual, ER&E Report No. EE.40ER.68, November 1968.
+Chemical and Mechanical Cleaning Manual, EETD 052.
+Fouling in Heat Exchangers: New Developments, ER&E Report No. EE.92E.89, December 1989.
+Update to Fouling in Heat Exchangers: Incentives for Applying Heat Exchanger On-line Mechanical Cleaning Devices, ER&E
+Report No. EE.117E.90, December 1990.
+OTHER REFERENCES
+API Bulletin 25 - 16 (low-pressure tanks)
+API Bulletin 25 - 17 (floating roof tanks)
+API Bulletin 25 - 18 (cone-roof tanks)
+API Bulletin 11k (Data Sheet for the Design of Air Exchange Coolers)
+API Standard 660, Shell-and-Tube Heat Exchangers for General Refinery Services
+API Standard 661, Air-Cooled Heat Exchangers for Refinery Services
+API Standard 662, Plate Heat Exchangers for General Refinery Services
+Standards for the Tubular Exchanger Manufacturer's Association (TEMA), 7th Ed. 1988
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 4 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+DESIGN CONSIDERATIONS FOR ALL
+IX-B 4 of 40
+TYPES OF HEAT EXCHANGERS
+DESIGN PRACTICES
+December, 2002 PROPRIETARY INFORMATION - For Authorized Company Use Only
+GENERAL
+Figure 1 outlines the logic for all types of heat exchange equipment design. It is an iterative procedure involving
+thermodynamic, thermal, mechanical and economic considerations. The purpose of the following section is to introduce the
+designer to the analytic methods used in the thermal design as well as some mechanical aspects of heat exchange equipment
+design.
+In addition, the Energy Management System (EMS) has Design Leading Pratices on instrumentation requirements and
+cleaning considerations for the energy critical exchangers. Refer to the EMS leading practices books for these practices and
+for a procedure to identify energy critical exchangers.
+The rate of heat transfer from one fluid to another across a heat transfer surface is the product of the overall heat transfer
+coefficient, the area of the surface, and the effective temperature difference between the hot and cold fluids:
+Q = U A MTD Eq. (1)
+o e
+where: Q = Rate of heat transfer, Btu/h (W)
+U = Overall heat transfer coefficient based on surface area A, Btu/h • ft2 • °F (W/m2 • °C)
+o
+A = Heat transfer surface area across which heat is exchanged, ft2 (m2)
+MTD = Effective mean temperature difference between hot and cold fluids, °F (°C)
+e
+When specifying a heat exchanger, the designer nearly always knows or can readily calculate the Q and MTD terms from the
+e
+process conditions. It is necessary only to evaluate the actual overall heat transfer coefficient U in order to find the required
+o
+heat transfer area. Unfortunately, U is a function of the actual exchanger design as well as of the fluid properties and fouling
+o
+rates. For this reason, the design of a heat exchanger is an iterative procedure.
+The general procedure used in heat exchanger design is as follows:
+1. Establish Q from process considerations.
+2. Establish MTD from process considerations. Exchanger type and tube arrangement will have some effect on MTD as
+e e
+explained in the section titled EFFECTIVE TEMPERATURE DIFFERENCE.
+3. Assume U the actual overall heat transfer coefficient (see Table 1 for typical values).
+o
+4. Calculate an assumed A from the assumed U using Eq. (1).
+o
+5. Determine the physical dimensions of the applicable type of heat exchanger from the calculated A.
+6. Calculate the fluid pressure drops (described later in this section) and velocities through the exchanger and modify the
+internals, if required, to obtain a reasonable balance between pressure drop, velocities, and exchanger size.
+7. Calculate U (see below) from the physical properties of the fluids, fouling factors and the exchanger geometry.
+o
+8. Calculate A based on Q and the calculated values of U and MTD using Eq. (1).
+o e
+9. Compare A calculated with A assumed and repeat the calculations until they are approximately equal. For almost any
+value of U there is an exchanger design that satisfies the criterion that A calculated equals A assumed. However, only a
+o
+few of these designs are reasonable.
+ACTUAL OVERALL HEAT TRANSFER COEFFICIENT - U
+o
+(FOR ALL BUT DIRECT-CONTACT HEAT EXCHANGERS)
+When heat flows from a fluid on one side of a surface to a fluid on the other side of the surface, it must overcome the following
+thermal resistances:
+• R is the resistance to the convection of heat on the inside of the surface, referenced to the outside surface area. For a
+io
+shell and tube heat exchanger, R is called the tube side film resistance referenced to the outside surface area of the tube.
+io
+• r is the resistance (fouling factor) of foreign material deposited on the inside of the surface, referenced to the outside
+io
+surface area.
+• r is the resistance due to the conduction of heat through the barrier separating the two fluids.
+w
+• r is the resistance (fouling factor) of foreign material deposited on the outside of the surface.
+o
+• R is the resistance to the convection of heat on the outside of the surface. For a shell and tube heat exchanger, R is
+o o
+called the shell side film resistance.
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 5 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+DESIGN CONSIDERATIONS FOR ALL IX-B 5 of 40
+TYPES OF HEAT EXCHANGERS
+DESIGN PRACTICES
+PROPRIETARY INFORMATION - For Authorized Company Use Only December, 2002
+ACTUAL OVERALL HEAT TRANSFER COEFFICIENT - U (Cont)
+o
+(FOR ALL BUT DIRECT-CONTACT HEAT EXCHANGERS)
+R
+o
+r o ∆ T
+1
+m
+Fil
+n g ∆ T
+o
+uli r
+w
+2
+F
+all
+W
+e ri
+b o
+u
+T ∆ T
+n g 3
+F o
+uli Ri
+o ∆ T
+m 4
+Fil
+∆ T
+5
+∆ T
+o
+DP9Bf0
+A A A A A
+fo o m i fi
+The sum of these five resistances is R , the total resistance; and:
+t
+1
+U = Eq. (2)
+o
+R
+t
+The fouling factors r and r are estimated based on experience or taken from typical values listed in Tables 3-5. The term r
+io o w
+is calculated from the thickness and thermal conductivity of the wall. R and R are functions of mass velocity and physical
+io o
+properties of the fluid; they are evaluated from the applicable correlations given in the following sections. These correlations
+are in terms of h and h , where 1 / R = h , and 1 / R = h . The “h" terms are the film coefficients. (The symbol ∝ has been
+io o o io o o
+used recently to designate “film coefficients" in S.I. - based publications.)
+The resistance terms contain an area dimension (i.e., sq ft) which usually refers to the surface area at which the resistance
+occurs. Since the resistance terms must be added to obtain the overall resistance, the area dimensions of each term must
+refer to the same surface area rather than to its own area. This rationalizes the terms and makes them additive. For shell and
+tube heat exchangers, standard practice is to use the outside tube area (Ao) as the basis for calculation and specification of
+exchangers. As shown above, the usual nomenclature indicates this by the subscript “io." For example, “h ” is the “inside
+io
+coefficient" based on the outside tube area. For a tube or pipe, h = h (d / d ), where h is the “inside coefficient" based on the
+io i i o i
+inside tube area. This factor is already included in the correlations present in this manual.
+Two overall coefficients should be calculated: a commercially clean coefficient and an actual overall heat transfer coefficient
+(described above). The commercially clean coefficient is the overall coefficient that can be expected when a new exchanger is
+first placed into service, before process fouling of the tube occurs. It is calculated according to the following:
+1 1
+U = = Eq. (3a)
+c R R + R + r
+c io o w
+Alternatively, the clean coefficient may be calculated by subtracting the fouling resistances from the total resistance:
+1 1
+= − r − r Eq. (3b)
+io o
+U U
+c o
+Heat transfer correlations used in ER&E computer programs are based on data taken from commercially clean equipment.
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 6 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+DESIGN CONSIDERATIONS FOR ALL
+IX-B 6 of 40
+TYPES OF HEAT EXCHANGERS
+DESIGN PRACTICES
+December, 2002 PROPRIETARY INFORMATION - For Authorized Company Use Only
+OPERATING TEMPERATURES
+The operating temperatures of the exchanger are usually set by process conditions. However, in certain cases, the exchanger
+designer will establish the operating temperatures. In a typical refinery or petrochemical plant, exchangers may be operating at
+temperatures as high as 1000°F (540°C) or as low as -200°F (-130°C). These limits are dictated by material considerations,
+safety, economics and ASME Code requirements.
+TEMPERATURE OF STREAMS TO STORAGE
+The maximum (or sometimes minimum) temperature of a stream going to atmospheric storage generally is set by safety,
+economics or special process conditions. See Section XV, Safety in Plant Design. See also Offsite DP Section XXII, Storage
+Facilities.
+Safety Considerations - The temperature of a stream going to an atmospheric tank at sea level should not exceed that
+temperature at which its true vapor pressure is equal to the values listed below.
+TRUE VAPOR PRESSURE
+TANK TYPE
+(psia) (kPa abs)
+Cone Roof (without vapor recovery) 1.5 10.5
+Floating Roof 13.0* 90.0*
+Hemispheric 20.0 138.0
+Note:
+* For U.S. application, use 11.0 psia (76.0 kPa) to meet EPA regulation.
+This value is reduced 0.5 psia for each 1000 ft elevation (11.3 kPa abs for each 1000 m elevation).
+For heavy streams whose true vapor pressure is difficult to determine, the maximum temperature to tankage should be the
+lower value of either 50°F (28°C) below the ASTM initial boiling point or 15°F (8°C) below the minimum flash point.
+Streams should not be sent to tankage at temperatures above 200°F (90°C) for API 650 tanks, and below 250°F (120°C) for
+hot tanks. Operation in the 200 to 250°F (90 to 120°C) temperature range could result in condensation when the tank cools
+forming a water heel which could subsequently flash to steam, resulting in a boilover.
+Economics - The selection of the optimum temperature of a stream going to cone-roof tankage is generally based on an
+economic balance between the cost of incremental cooler surface and cooling water and the savings due to reduced vapor
+losses. The method of determining vapor losses is given in the following API Bulletins:
+• API Bulletin 25 - 16 (low pressure tanks)
+• API Bulletin 25 - 17 (floating roof tanks)
+• API Bulletin 25 - 18 (cone roof tanks)
+• API Bulletin 25 - 19 (internal floating roof tanks)
+Since the losses from a floating roof tank can be negligible, the optimum temperature is sometimes the maximum allowed by
+safety considerations (consult the EETD Safety, Risk and Site Inspection Section).
+Special Considerations - Opportunity for optimizing the temperature of a stream going to storage is greatest for intermediate
+products. However, special considerations are required for the following cases.
+1. Streams that are stored prior to a process requiring refrigeration of the feed.
+2. Streams whose properties are permanently degraded by high storage temperatures.
+3. Streams that are stored before blending. The storage temperatures for such streams should be chosen after considering
+the properties and temperature of the blend, assuming no heat loss in intermediate tankage.
+In addition to the limitations given above, the temperature of a stream going to final storage is normally limited to a maximum of
+135°F (57°C) if the product is to be shipped by barge or tanker. However, temperatures up to 150°F (66°C) are sometimes
+used, provided that the high-temperature operating procedure is approved by shipping personnel.
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 7 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+DESIGN CONSIDERATIONS FOR ALL IX-B 7 of 40
+TYPES OF HEAT EXCHANGERS
+DESIGN PRACTICES
+PROPRIETARY INFORMATION - For Authorized Company Use Only December, 2002
+COOLING WATER TEMPERATURES
+The maximum allowable cooling water outlet bulk (or “mixing-cup") temperatures, set by fouling considerations, for coolers
+other than box coolers (or worm coolers) are:
+• Salt water: 120°F (48°C)
+• Brackish water: 125°F (51°C)
+• Fresh water: 130°F (54°C)
+The maximum temperature used for a project should be checked with the affiliate, since this has an important bearing on
+materials selection.
+Another important criterion is the maximum allowable cooling water outlet film temperature. The maximum film temperature is
+the water temperature at the liquid-metal interface occurring at the hot end of the exchanger. A conservative estimate of this
+film temperature is the tube metal temperature at the hot end of the exchanger. These limits are:
+• Salt water: 140°F (60°C)
+• Fresh water: 150°F (65°C)
+Note: For box coolers, the maximum cooling water outlet temperature is 150°F (65°C) for both salt water and fresh water.
+If water film temperatures are allowed to exceed these values, severe fouling and corrosion could result.
+In those cases where the hot stream outlet temperature is equal to or lower than the maximum allowable cooling water outlet
+temperature, a brief economic study may be required to set the optimum cooling water outlet temperature. The study would
+compare material versus cooling water requirements for varying water outlet temperatures. However, the cooling water outlet
+temperature is normally determined by designing the exchanger so that the log mean temperature difference correction factor
+(F , discussed in the section titled EFFECTIVE TEMPERATURE DIFFERENCE) is equal to the minimum allowable value (0.8).
+n
+Keep in mind the possibility of using a two-shell pass unit or two shells in a series.
+At times, a condenser or cooler might be designed that uses a large amount of cooling water with a relatively low outlet
+temperature. Consideration should be given to reuse this water in other coolers where the water outlet temperature may be the
+maximum permissible. Box coolers always operate with reused water.
+A list of recommended cooling water inlet temperatures at various refinery and chemical plant locations is given in Table 2.
+EFFECTIVE TEMPERATURE DIFFERENCE
+The driving force for heat transfer is the “effective temperature difference," MTD , between the hot and cold fluids. This
+e
+temperature difference is calculated from the counter-current log mean temperature difference with a correction factor applied
+to account for the actual flow arrangement.
+For exchangers where the flow of hot and cold fluids is truly counter-current or co-current, MTD is equal to the log mean
+e
+temperature difference, LMTD. A chart for calculating LMTD appears in Section IX-D. Almost all exchanger designs attempt to
+achieve counter-current flow since this flow arrangement has the highest obtainable value of MTD for any given set of fluid
+e
+temperatures.
+In most commercial exchangers, however, using multiple tube passes or shell baffles causes the fluid to flow partially counter-
+current and partially co-current. Since co-current flow results in lower LMTDs, a correction factor must be applied to the
+counter-current LMTD. This correction factor, called F , is a function of the particular exchanger design, the number of units in
+n
+series and stream temperatures.
+MTD = F (LMTD) Eq. (4)
+e n
+NO CHANGE OF PHASE
+Values for F for shell and tube exchangers can be obtained from Figures 2A through 2F of Section IX-D. On these charts, the
+n
+number of shell passes refers to the number of single-pass shells or the total number of shell passes connected in series.
+These charts are valid only when Q is a linear (or approximately linear) function of temperature.
+The correction factor F for other types of exchangers may differ from that for shell and tube units. Methods for obtaining F
+n n
+are given in the appropriate sections.
+CHANGE OF PHASE
+In the case of condensation or vaporization, the relationship between Q and the temperature of the fluid usually deviates
+appreciably from a straight line. It is necessary to divide the exchanger into zones so that Q is approximately linear with the
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 8 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+DESIGN CONSIDERATIONS FOR ALL
+IX-B 8 of 40
+TYPES OF HEAT EXCHANGERS
+DESIGN PRACTICES
+December, 2002 PROPRIETARY INFORMATION - For Authorized Company Use Only
+temperature for each zone. Based on the logarithmic mean temperature differences and heat duties for the individual zones, a
+weighted MTD is obtained for the entire exchanger. Methods for obtaining a weighted MTD are discussed in the sections on
+e e
+change of phase, Sections IX-E and F.
+TEMPERATURE APPROACH
+Temperature approach is the difference of the hotside and coldside fluid temperatures at any point within a given exchanger.
+In a counter-current flow heat exchanger, it is possible for the exit temperature of the cold fluid to be higher than the exit
+temperature of the hot fluid. This condition is known as a temperature cross and is illustrated in Figures 2A through 2C. Three
+cases are depicted:
+Figure 2A: Temperature distribution in a purely co-current flow heat exchanger (i.e., double pipe exchanger) with no
+temperature cross.
+Figure 2B: Temperature distribution in a double pipe exchanger with a temperature cross.
+Figure 2C: Temperature distribution in a shell and tube exchanger with a single shell-pass and two tube-passes with a
+temperature cross.
+A temperature cross indicates a negative driving force for heat transfer between the fluids. It requires either a large area for
+heat transfer or high fluid velocities to increase the overall heat transfer coefficient.
+If outlet temperatures form a cross in a multi-tubepass heat exchanger, a lower than desirable LMTD correction factor (F -
+n
+factor) will occur. A simple way to avoid this is to use more exchanger shells in series. To determine how many shells to use in
+series, refer to Figure 2A through 2F in Section IX-D, with F = 0.8 criterion, or use the graphical method illustrated in Figure
+min
+2D of this section. An exchanger design with an F < 0.8 will have outlet temperatures that cross. These exchangers require a
+n
+large increase in surface area for a small increase in heat duty.
+Although there is no definite value of minimum F -factor for design, an F -factor less than 0.75 should not be used. An
+n n
+engineering judgement must be made based on economic and technical factors. Adding more shells in series will increase cost
+significantly, and the designer may choose to use a larger-size single unit with a slight temperature cross. A general guideline
+for minimum F -factor, especially when designing new exchangers, is to use 0.8 which is a widely accepted engineering
+n
+practice.
+For an economical design of exchangers, several factors should also be considered such as incremental area and shell costs,
+overall heat transfer coefficient, fluid heat capacities, inlet temperature difference and the savings/investment ratio, etc. An
+analysis based on these factors to determine temperature approach and number of shells is presented in Exxon Technical
+Report EE.6E.83, Incremental Heat Flux Method for Heat Exchanger Optimization dated January 1983 by Ghamarian, Thomas
+and Sideropoulos.
+In some cases (existing exchangers), a small temperature cross may be tolerated [up to 5°F (-15°C)], as shown in Figure 2C.
+However, for all new designs a temperature cross should be avoided if possible. A temperature cross might occur for an
+oversurfaced or cleaned exchanger service since the outlet temperature will probably exceed the design operating
+temperatures where there is no temperature control. The sharp drop of the F -factor (and of course the effective MTD), due to
+n
+closer temperature approach, will offset the extra surface of the exchanger.
+Although the co-current flow arrangement (Figure 2A) does not allow any temperature cross and results in a lower MTD , it has
+e
+some unique characteristics:
+1. Co-current flow produces a more uniform tube wall temperature.
+2. The highest tube wall temperature is comparatively lower than that for counter-current flow.
+3. Since the cold end of the hot stream meets the warmer end of the coolant medium, co-current flow is often used to avoid a
+freezing problem of the warmer fluid (e.g., airfin coolers in pitch service).
+4. Since the MTD is higher at the entrance region, it will initiate an earlier nucleate boiling in vaporizing service. The
+possibility of excessive heat flux must be explored in this case (vapor blanketing).
+The minimum temperature difference between the fluids is the minimum temperature approach or temperature pinch. Some
+general rules apply:
+1. Typical values of temperature approach are shown in the table below.
+2. Excessive MTD [> 110°F (60°C)] should be avoided in heating and boiling systems.
+3. The temperatures listed for recuperative exchangers are minimum sustained temperatures.
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 9 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+DESIGN CONSIDERATIONS FOR ALL IX-B 9 of 40
+TYPES OF HEAT EXCHANGERS
+DESIGN PRACTICES
+PROPRIETARY INFORMATION - For Authorized Company Use Only December, 2002
+The following table lists the minimum recommended temperature approach for heat exchanger equipment:
+MINIMUM TEMPERATURE APPROACH
+HEAT EXCHANGER TYPE
+°F °C
+Shell and Tube 15 9
+Double Pipe 10 6
+Air-cooled 25 14
+Plate-fin, Plate Frame, Spiral 5 3
+Recuperative Exchangers 36 20
+Note: Examples of recuperative exchangers are exhaust-gas/air preheaters.
+A more rigorous method exists to determine the minimum approach temperature. This technology is described in more detail in
+the following section titled Pinch Technology.
+HEAT INTEGRATION USING PINCH TECHNOLOGY
+This section provides the procedures to evaluate heat integration and guide development of more efficient systems, both within
+a given unit and across an entire site using pinch technology. Pinch technology is based on fundamental thermodynamic
+principles. This section also provides a procedure to apply pinch technology to optimize heat integration and process-to-utility
+heat exchange on capital projects.
+APPLICABILITY
+While heat recovery analysis using pinch technology can be completed for any process unit, Energy Management System
+(EMS) rollouts will use one or more of the following criteria to select process units for analysis:
+• Total thermal energy consumption is $3 M/yr or greater
+• There are margin incentives due to heat input or recovery constraints
+• There is close proximity to a unit with a potential of inter-unit heat integration
+The capital element of EMS provides guidance on when it is relevant to apply this technology to capital projects. In this case, a
+heat integration analysis should be performed as soon as the heat and material balance is available. The capital project could
+be
+• A grassroots unit
+• Revamp with significant change in heat and material balance (e.g., when de-bottleneckiing or when installing or modifying
+heat transfer networks)
+Site-wide steam supply/demand profiling can be used in any of the following situations:
+• When a site-wide energy survey/analysis is performed. For example, during an EMS site integration process (SIP)
+analysis
+• When an existing process unit with significant interaction with utilities undergoes major revamp
+• When a new process unit with significant interaction with utilities is being installed at a site
+• When the utility system undergoes a major revamp.
+The Heat Transfer and Energy Section of ER&E should be contacted for the following advanced concepts not covered here:
+• Steps to configure a grassroots heat exchanger network to meet energy targets
+• Methods to modify the existing heat exchanger network to improve the energy utilization efficiency
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 10 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+DESIGN CONSIDERATIONS FOR ALL
+IX-B 10 of 40
+TYPES OF HEAT EXCHANGERS
+DESIGN PRACTICES
+December, 2002 PROPRIETARY INFORMATION - For Authorized Company Use Only
+HEAT RECOVERY ANALYSIS FOR A PROCESS UNIT
+The heat recovery analysis on a process unit would calculate the ideal heat recovery target, compare it with the current usage
+to determine the gap, identify specific inefficiencies, and develop alternatives to close the gap. The identified modifications are
+checked to ensure the technical and economical feasibility. The procedure given below of applying heat recovery analysis
+using pinch technology on individual process unit is used in conjunction with Figure 3.
+Collect accurate and consistent data to perform a successful process heat integration analysis using pinch technology.
+The data required for process units are
+• Process Flow Diagram
+• Prices for utilities and exchangers
+• Furnaces and Boilers
+• Process-process and process-utility exchangers
+− Temperatures in and out of each exchanger
+− Exchanger duty
+− Existing exchanger area
+The source of data could be
+• Plant Measurement
+• Simulation (HEXTRAN, PRO II or equivalent)
+• Heat & Material Balance
+The templates in Tables 6 - 9 can be used for organizing data collected from the plant.
+Perform the following steps to calculate the heat recovery targets:
+1. Separate all streams requiring heating ("cold" streams) and all streams requiring cooling ("hot" streams).
+2. Calculate composite cold and hot curves, representing all the heat required and available at each temperature level
+using the temperature - enthalpy data collected.
+3. Select the appropriate minimum temperature difference, ∆T . A list of experience based ∆T for retrofit designs are
+min min
+provided in Table 10. The ∆T value can be optimized for grassroots designs using energy to capital trade off. For
+min
+details, refer to the Pinch Technology course or contact the Heat Transfer and Energy Section of ER&E.
+4. Move the two composite curves horizontally until ∆T is reached at one point, known as the "pinch point", as
+min
+presented in Figure 4.
+5. Calculate maximum feasible heat recovery and minimum external heating and cooling requirements from the
+composite T - H graph at a given ∆T , shown in Figure 4. This establishes the targets, thermodynamically optimal
+min
+utility requirement.
+HEXTRAN or other pinch technology software can be used to perform these steps. Contact the Heat Transfer and Energy
+Section of ER&E for current recommendations on tools.
+Synthesize the heat exchanger network to meet the targets for first of a kind grassroots project. Details of the synthesis
+method are outside the scope of this design practice. Contact the Heat Transfer and Energy Section of ER&E for
+assistance. A grassroots project based on a previous heat exchanger network design can use that design as the starting
+point and follow the retrofit work process.
+Determine the energy utilization gap as the difference between the targets and actual usage. This is the opportunity to
+improve heat recovery in the process unit. The design is satisfactory if the gap is less then 15 MBtu/hr (4 MW). No further
+analysis is required. In case of larger gap, proceed to next step below. The one exception is for the analysis of a
+grassroots unit based on a previous design. In this case the satisfactory gap is 5 MBtu/hr (1.5 MW) or 2% of the total heat
+recovery, whichever is larger.
+Identify the inefficiencies and non-countercurrencies in the heat exchanger network using ESCORT or heat-across-the-
+pinch analysis. Consider an exchanger for improvement if the inefficiency or heat across the pinch in the exchanger is
+greater than 5 MBtu/hr (1.5 MW) for retrofits and 2 MBtu/hr (0.6 MW) for a grassroots unit with an existing design.
+Identify modifications to the heat exchanger network that would eliminate or reduce the inefficiencies, non-
+countercurrencies, and heat across the pinch. If major modifications are needed to a grassroots process unit heat
+exchanger network then synthesize a new network to meet the target. Contact Heat Transfer and Energy Section of ER&E
+for assistance with modifying the existing or synthesizing new heat exchanger network.
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 11 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+DESIGN CONSIDERATIONS FOR ALL IX-B 11 of 40
+TYPES OF HEAT EXCHANGERS
+DESIGN PRACTICES
+PROPRIETARY INFORMATION - For Authorized Company Use Only December, 2002
+Check each modification for process constraints such as stream pressure drop and pumparound duties, temperatures, and
+flows and for mechanical constraints such as available pump head, design pressures and temperatures, and flange rating.
+All the process constraints should be satisfied. Evaluate the economics for technically feasible modifications.
+SITE-WIDE STEAM SUPPLY/DEMAND PROFILING
+The site-wide steam supply/demand profiling, known as total-site analysis in the literature, identifies opportunities to
+increase/decrease steam usage at each level, to increase/decrease steam pressures/levels and to implement heat integration
+between different units. The site-wide steam supply/demand profiling procedure given below is used in conjunction with Figure
+5
+Select the units to be included in the site-wide steam supply/demand profiling.
+Collect data (duty, process side Tin and Tout, utility level, and area) for utility exchangers in these units. Utility exchanger
+data are organized using the template in Table 8.
+Generate site source/sink curves using pinch software. These are site-wide composite curves for the process streams
+currently served by utility heaters or coolers. They are utilized to determine optimum utility generation and consumption
+profile or targets by utility level.
+Determine the gap as the difference between the targets and actual usage at each level. This is the opportunity to
+improve the energy utilization. The gaps are shown in Figure 6. The design is satisfactory if the gap is less then 15
+MBtu/hr (4 MW). No further analysis is required. In case of a larger gap, proceed to the next step below.
+Identify any possible gap closure alternatives such as steam level switching, changing steam pressure/level, adding new
+steam level, and inter-unit heat integration.
+Check appropriate process units for technical feasibility and applicability of these alternatives.
+Evaluate economics for the feasible alternatives using the preliminary utility pricing. Develop a short list of economic
+alternatives.
+Simulate the utility system with the economic alternatives included to confirm the technical feasibility. The economics are
+re-checked with the revised utility pricing.
+FOULING FACTORS
+The increased resistance to both heat transfer and fluid flow caused by deposits on a heat transfer surface is called fouling.
+The following categories of fouling have been recognized:
+1. Precipitation Fouling - Most frequently observed as a crystallization on the heat transfer surface of a relatively insoluble
+salt dissolved in a stream (e.g., calcium carbonate).
+2. Particulate Fouling - Often seen as sedimentation where particles suspended in the fluid, such as sand or rust, deposit on
+the heat transfer surface.
+3. Chemical Reaction Fouling - Coking, the deposit of hydrocarbons on high temperature heat transfer surfaces, is the most
+prevalent form observed in the refinery or chemical plant.
+4. Corrosion Fouling - Deposits, such as iron oxide, formed by a chemical reaction involving the heat transfer surface.
+5. Biological Fouling - The adherence and growth of organic organisms on heat transfer surfaces where untreated water is
+present. An example is the formation of algae from sea water.
+6. Freezing Fouling - The solidification of a liquid onto a heat transfer surface.
+Combinations of these categories often exist.
+Fouling works as an insulating layer on the heat transfer surface, reducing heat transfer efficiency (reduced duty) or decreasing
+available flow area (reduced throughput). The increased resistance to heat transfer is represented by a quantity referred to as
+the fouling thermal resistance, which is added to the total thermal resistance. The values of fouling thermal resistance have
+generally been observed to increase with time. To account for the effect of fouling on pressure drop requires an estimate of the
+fouling layer thickness.
+For design purposes a maximum permissible or expected value of the time-varying thermal resistance is used. This quantity is
+the fouling factor (denoted by the symbols r and r described in the beginning of the section). The net effect of the fouling
+io o
+factor is to increase the required amount of heat transfer surface area. At startup, the exchanger is oversized while just before
+scheduled cleaning, it is barely adequate.
+The assignment of fouling factors allows the designer to identify where fouling dominates in a heat exchanger (shell side or
+tube side for a shell and tube exchanger). Fouling resistances can be compared to the other thermal resistances (such as film
+resistances R and R ). Based on this comparison, one may be able to alter the design to reduce fouling. In addition, one can
+io o
+determine the amount of surface area allocated for fouling.
+Fouling factors should not be used as safety factors to account for some uncertainties in the design.
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 12 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+DESIGN CONSIDERATIONS FOR ALL
+IX-B 12 of 40
+TYPES OF HEAT EXCHANGERS
+DESIGN PRACTICES
+December, 2002 PROPRIETARY INFORMATION - For Authorized Company Use Only
+RECOMMENDED GOOD PRACTICE
+Physical factors that affect fouling include:
+1. Fluid Properties and the Tendency for Fouling - For example, the feed to hydroformers, catalytic reformers and catalytic
+cracking plants is sometimes severely fouling due to organic reactions with oxygen that take place while the feed is in
+intermediate tankage. Inert gas blanketing of the tankage is often used to reduce the fouling tendencies of the fluid.
+2. Surface and Bulk Temperatures - Higher temperatures generally result in faster rates of fouling.
+3. Fluid and Velocities - Higher velocities reduce fouling rates, while stagnant regions or “dead zones" lead to higher rates
+of fouling. This is especially true for cooling water that contains salt, crude with sand, slurry solutions and dusty gases.
+Shell side velocities are limited by flow-induced vibration while tube side velocities are restricted by erosion considerations.
+4. Material Selection and Configuration - Selecting the proper tube material may strongly affect corrosion. Finned tubing
+may not be appropriate for heavy fouling services. It has been found that algae growth on titanium surfaces in seawater
+service is much less than that on copper alloys.
+5. Exchanger Geometry and Orientation - The geometry of the exchanger can affect the distribution of tube side and shell
+side flows. The orientation of the exchanger and pitch of the tubes can be altered for easy cleaning.
+6. Mode of Heat Transfer - Fouling for a particular fluid may be significantly different depending on the mode of heat transfer
+(single-phase heating or cooling, boiling or condensing). Vaporization, for example, can cause severe precipitation fouling
+by concentrating the foulants in the remaining liquid to the point of supersaturation.
+7. Fluid Purity and Treatment - Filtering streams to remove impurities and treating fluids (such as with additives) can
+drastically alter fouling. Crude oils, which normally contain salt-bearing water and suspended solids, are often placed in a
+desalter or a flash drum to remove water before the crude reaches the “salting-out" temperature.
+8. Placement of the More Heavily Fouling Fluid - Cleaning of the tube side is generally easier than the shell side. Also,
+there is less chance of stagnant or “dead zones" on the tube side. Therefore, the more heavily fouling fluid should be
+placed on the tube side.
+9. Cleaning Method and Schedules - The cleaning method (such as online mechanical cleaning, offline cleaning, bundle
+removal or in-place) should be determined at the design stage. Access to the exchanger should be considered to allow
+easy cleaning.
+The best source of values for the fouling factor is plant data obtained from heat exchangers in similar services under similar
+operating conditions. Often these data are not available and the designer must rely on the values in Tables 3-5. Tables 3-5
+gives normal fouling factors for a variety of process services, as recommended by the Tubular Exchanger Manufacturers
+Association (TEMA) and modified by experience. Note that the resistances given apply to the surface on which the fouling
+occurs. Although it appears to be somewhat ridiculous to adjust a value of such crude precision to a reference area, this step is
+required for computer calculations and is done during manual calculations for consistency. The tabulated fouling factors are
+intended to protect the exchanger from delivering less than the required process heat load for a period of about a year to a year
+and a half. However, this table is only a guide, and if site- (and unit-) specific data are available to determine a more accurate
+fouling factor for a particular service, the data should be used in preference to the values in Tables 3-5.
+The actual importance of the fouling factors depends on the value of the clean coefficient U ; the larger the coefficient, the
+c
+larger the effect of the fouling factor. After a preliminary calculation of U , it is easy to determine the effect of doubling (or
+c
+halving) the assumed fouling factors on the size of the exchangers. If this effect is small (5% or less), it is not worthwhile to try
+to determine a more accurate fouling factor. There are many times, however, when U is so large that the size of the
+c
+exchanger depends almost entirely on the value of the fouling factor. For these cases, plant data, when available, should be
+closely examined.
+The precision of the fouling factors used in the design should be weighed against the importance of the exchanger in its
+service. For example, one would want very precise fouling factors for an exchanger in a critical service. On the other hand,
+less accurate fouling factors may suffice where backup exchangers or bypass lines are available.
+Figure 7 provides a decision tree for the designer who wishes to evaluate the effects of fouling on the design of a shell and tube
+heat exchanger. After selecting values of the fouling thermal resistance, the designer is asked to run the HEXTRAN computer
+program. The output is first examined for the percentage of overall thermal resistance due to fouling. Next, hydraulic effects
+are considered. A fouling deposit is simulated using either data from operating experience, the values shown on Figure 8, or by
+increasing the tube OD by an amount which results in a 10% decrease in tube to tube gap and/or decreasing the tube ID by
+specifying the next lower tube gauge. HEXTRAN is again run and tube side and shell side pressure drops are checked to see
+if they have exceeded the maximum allowable pressure drop. Also, tube side and shell side velocities are compared with those
+published in the TEMA manual or Exxon Design Practices. Finally, additional guidance can be provided by either local heat
+exchanger experts or the Heat Transfer Equipment Section at ER&E.
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 13 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+DESIGN CONSIDERATIONS FOR ALL IX-B 13 of 40
+TYPES OF HEAT EXCHANGERS
+DESIGN PRACTICES
+PROPRIETARY INFORMATION - For Authorized Company Use Only December, 2002
+PRESSURE DROP
+The pressure drop through an exchanger is made up of three losses: the frictional loss due to flow, the losses due to changes
+in direction of flow and losses due to expansion and contraction into and out of nozzles and tubes. In some exchangers, a
+change in the vertical elevation of the fluid as it passes through the exchanger may cause a hydrostatic pressure loss or gain.
+The method of calculating pressure drop is different for each type of exchanger and will be discussed under the appropriate
+sections. Refer to Table 11 for typical exchanger pressure drop values.
+The design of a heat exchanger is usually based on an economic balance between the cost of exchanger surface and the cost
+of pumps or compressors. The cost of a utility such as water may often enter into the economic balance. High utility mass
+velocities through the exchanger give a higher coefficient and a smaller surface area, but require a higher pressure drop, or an
+increase in utility flow rates. This in turn results in an installation with higher than optimum investment and operating costs for
+the pump or compressor and lower exchanger investment cost. Occasionally, a particular system may have excess pressure
+drop available; in such cases, this pressure drop should be utilized to minimize the cost of the exchanger.
+In general, the necessity for a detailed economic balance between pressure drop and exchanger surface can be determined
+from looking at the effect of the individual film coefficient on the overall heat transfer coefficient. Little can be gained by
+specifying increased pressure drop for one fluid in an exchanger when the other fluid has a significantly lower film coefficient.
+For such cases, a detailed economic balance is unnecessary.
+High pressure drops are not desirable if they contribute to erosion, require excessively thick pass partitions or other internals, or
+result in uprating valves, fittings or piping in the heat exchanger circuit.
+DESIGN PRESSURE, DESIGN TEMPERATURE, CRITICAL EXPOSURE TEMPERATURE (CET), AND
+CYCLIC SERVICE
+The design pressure, design temperature and CET of the hot and cold sides of an exchanger are determined independently.
+The considerations outlined in Section II of this manual, Design Temperature, Pressure and Flange Ratings, should be followed
+in setting the design conditions. Exchangers should be pressure tested in accordance with GP 5-3-1.
+Occasionally, an exchanger is immediately followed in the circuit by a second exchanger (i.e., a cooler), with a bypass provided
+around the exchanger. Refer to Section II of this manual for guidance on specifying the design pressure and design
+temperature for normal and contingency operation.
+If the shell side design pressure is quite low, the tube side (water) design pressure should be reduced, if possible, taking into
+consideration pump discharge pressure and distribution losses, to prevent an increase in shell design pressure and still meet
+the requirements of the 2/3 rule.
+The critical exposure temperature (CET) should be specified in accordance with Section II of this manual.
+➧ If the exchanger is in cyclic service as defined in Section II of this manual, this should be specified in the exchanger design
+specifications.
+FLOW ARRANGEMENT
+Multiple shell and tube exchangers are usually connected for series flow because of the advantage in the effective temperature
+difference, MTD . Normally the only reason for arranging multiple units in parallel is to avoid exceeding the allowable pressure
+e
+drop. Parallel arrangements are frequently required in vapor services such as low-pressure [20 to 25 psia (140 to 170 kPa) or
+less] overhead condensers. It is desirable to minimize the number of parallel shells and to use symmetrical piping to avoid
+distribution problems, especially in vaporizing and condensing services.
+NOZZLE SHELLS AND FLANGE RATING
+NOZZLE SIZE
+Nozzles for exchangers other than manufacturers' standard units, such as double pipe exchangers, are ordinarily made the
+same size as the corresponding line. Because of pressure drop and velocity considerations, the size of lines and nozzles in
+vapor service is usually more critical than in liquid service. Nozzle ∆P in low pressure-drop services should also be checked.
+Nozzles are limited to a diameter no greater than half the diameter of the exchanger, but not to exceed 20 in. per ASME,
+Section VIII, Division 1.
+Piping systems around exchangers that incorporate multiple valves, especially those with high ∆P control valves, should be
+critically examined. In such cases, a substantial saving may be realized by reducing the size of the exchanger nozzles and the
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 14 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+DESIGN CONSIDERATIONS FOR ALL
+IX-B 14 of 40
+TYPES OF HEAT EXCHANGERS
+DESIGN PRACTICES
+December, 2002 PROPRIETARY INFORMATION - For Authorized Company Use Only
+accompanying valves. However, the exchanger nozzle size should not be reduced to a point at which incipient impingement
+problems are created or excessive nozzle pressure drop occurs.
+FLANGE RATING
+Flange ratings are selected based on the design conditions of each side of the exchanger in accordance with the information
+presented under Section II of this manual.
+POSITIONING OF UNITS, NOZZLE LOCATIONS AND PIPING
+POSITIONING
+Normally, heat exchangers are positioned horizontally. They may be positioned vertically, however, for minimizing solids
+deposition (such as in flue gas exchangers) and for vertical thermosiphon reboilers with boiling in the tubes.
+NOZZLE LOCATION
+The following rules are suggested as a guide for locating heat exchanger nozzles:
+1. Streams being heated or vaporized should flow from bottom to top, whether on the tube side or the shell side.
+2. Streams being condensed should flow from top to bottom, whether on the tube side or the shell side.
+3. The direction of flow of streams being cooled should be dictated by piping economics.
+4. For multi-tube-pass exchangers the last tube pass should be in counter current flow with the shellside fluid.
+5. U-tube exchangers: Where possible, the shell inlet nozzle should be placed beyond the U-bend to avoid removing tubes to
+allow for an impingement plate.
+PIPING
+Information on piping and valving around water coolers or condensers is given in Section XIV.
+BYPASSES AND BLOCK VALVES
+Bypasses and block valves are used on an exchanger for one or more of the following reasons:
+PROCESS CONTROL
+When it is necessary to control the heat transfer in an exchanger, use either:
+1. A simple bypass valve and two block valves or
+2. A bypass and a three-way valve (or two butterfly valves), an arrangement that splits the flow between the bypass and the
+exchanger. See Section XII-F. A three-way valve is necessary when the exchanger pressure drop is so small that
+insufficient fluid diversion would take place through a simple bypass in the wide open position.
+In single phase services the set ups described above are most frequently used to control heat transfer, however, for two
+phase services other methods of heat transfer control exist and can be used such as flooding the bundle and throttling a
+steam inlet.
+LEAKAGE
+Where leaking of one side of a heat exchanger would result in intolerable contamination of the other fluid (as in an overhead
+vapor-feed exchanger of a pipestill), blocks and bypasses may be installed to permit isolating the leaking unit from the system.
+In addition, welded tube-to-tubesheet joints or double tubesheets should be considered.
+MAINTENANCE
+Blocks and bypasses may be installed on both sides of the exchanger to permit temporary removal of the unit for maintenance.
+When the fouling rates are known and cleaning is the only maintenance consideration, the decision to use blocks and bypasses
+depends on an economic balance between incremental exchanger surface (or cost of downtime) and the bypass facilities.
+Exchanger tube bundles may be cleaned either in place or removed from the shell. When the fouling compound can be
+removed by chemical action or solution, cleaning time and costs are reduced (refer to the Chemical Cleaning Manual for
+further information). When chemical cleaning is to be employed, 1-1/2 in. (40 mm) chemical cleaning connections are required
+(refer to GP 3-6-4 and GP 6-1-1). These connections will be provided on the exchanger nozzles.
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 15 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+DESIGN CONSIDERATIONS FOR ALL IX-B 15 of 40
+TYPES OF HEAT EXCHANGERS
+DESIGN PRACTICES
+PROPRIETARY INFORMATION - For Authorized Company Use Only December, 2002
+Mechanical cleaning requires dismantling; on the tube side this involves removal of the channel or channel cover, shell cover
+and floating head for in-place cleaning by rodding or rotary cleaning tools. If high-pressure water jet cleaning is used on the
+tube side, only the channel end need be opened. The inside of the tubes can also be cleaned mechanically after removing the
+bundle from the shell. Mechanical cleaning of the outside of the tube bundle can only be done outside the shell. Since the type
+of maintenance affects the mechanical design of the exchanger purchased, this information is listed on the specification sheet.
+Online cleaning devices, such as brush and basket and recirculating sponge rubber balls (see Section IX-A), should be
+considered for water-side exchangers that need frequent cleaning. Particularly good candidates are those exchangers that use
+once-through cooling water. The largest savings may be realized for heat exchangers used in services where there is a
+substantial credit for lower sink temperatures. Online cleaning devices, including the oscillating wire device, should also be
+considered for high fouling exchangers in hydrocarbon service, such as the high temperature portion of crude preheat trains.
+Contact the Heat Transfer Equipment Section of EETD for more details.
+SPECIAL REQUIREMENTS
+CAUSTIC STREAMS
+When an exchanger handles an alkaline solution stream, the concentration must be indicated on the specification sheet to
+determine the need for postweld heat treatment. For further information, refer to the Refinery Construction Materials
+Manual, Section IV-C, Corrosion and Metallurgical Phenomenon, and to GP 18-4-1.
+STREAMS REQUIRING SPECIAL MATERIAL CONSIDERATIONS
+When an exchanger handles any corrosive, lethal, cryogenic, or wet H S stream, special consideration should be given to
+2
+material selection. For further information contact the Materials Engineering Section of the Equipment Engineering Division.
+CONDENSER LOCATION AT GRADE
+The location of a condenser at grade lower than the distillate drum (“submerged" condenser) reduces the amount of structural
+steel required and simplifies maintenance. However, for a constant distillate drum pressure, the submerging of a condenser
+causes an increase in system pressure over that for elevated condensers because of the static head of fluid in the line
+connecting the condenser with the distillate drum. This pressure increase results in a higher boiling temperature. An increased
+boiling temperature may be significant in low pressure towers, affecting units handling materials subject to temperature
+degradation and those with reboilers having a close temperature approach or operating close to critical temperature at tower
+bottoms. Do not locate low-pressure [less than 20 psia (140 kPa)] condensers at grade.
+Total Condensers - Some total condensers are located at grade when the increase in temperature due to submerging is not
+objectionable. Each submerged shell and tube unit requires a 1 in. (25.4 mm) valved vent connection to the vapor space of the
+distillate drum. This vent is used to bleed off any noncondensibles that might accumulate in the shell of the condenser and
+blank off heat transfer surface.
+If total condensers on a tower overhead system are elevated, a flooded bundle is used for pressure control.
+Partial Condensers - Pressure elevation to avoid submergence is negligible for some partial condensers because of the low
+effluent density. However, the line connecting the condenser to the distillate drum should be designed for “spray" or “annular"
+two-phase flow (see Section XIV). Operation of a condenser at varying conditions resulting in differing outlet vapor rates can
+give unstable flow conditions and pressure surges in the effluent line.
+In systems where the condenser serves a distillation column, these surges are reflected in tower pressure and can result in
+poor tower operation, especially with sieve trays or jet trays. For this reason, submerging of partial condensers is
+recommended only for cases in which the condenser effluent rate and composition for all reasonably expected operations do
+not vary to the extent that the flow in the condenser outlet line becomes unstable. For all other cases, a partial condenser
+serving a fractionating tower should be elevated above the distillate drum.
+Partial condensers in systems in which the vapors are generated by means other than a distillation tower, such as a reactor,
+should be located at grade unless pressure surges from unstable flow conditions in the condenser effluent line would be
+detrimental to the process.
+DRUMLESS CONDENSERS
+Since drumless condensers do not employ distillate drums for vapor-liquid separation, there are special design requirements
+necessary for proper operation of such units. The design requirements affect the sizing of the condenser and the pump suction
+line (refer to Section IX-F, Calculation Procedure, Condensation, for specific information pertaining to the design of these units).
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 16 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+DESIGN CONSIDERATIONS FOR ALL
+IX-B 16 of 40
+TYPES OF HEAT EXCHANGERS
+DESIGN PRACTICES
+December, 2002 PROPRIETARY INFORMATION - For Authorized Company Use Only
+TABLE 1
+TYPICAL OVERALL HEAT TRANSFER COEFFICIENTS - U
+o
+Uo (1)
+FLUID BEING COOLED FLUID BEING HEATED
+Btu W
+hr ft 2 °F m 2 °C
+Shell and Tube Exchangers with Smooth Tubes
+Atmospheric P/S Top Pumparound Crude 60 - 70 340 - 400
+Atmospheric P/S No. 3 S/S Crude 45 - 58 270 - 330
+Atmospheric P/S Bottom Pumparound Crude 55 - 85 310 - 480
+Atmospheric P/S Bottoms Crude 26 - 45 150 - 260
+Reduced Crude Flashed Crude 25 140
+Lean Oil Fat Oil 60 340
+Hydrocracker Effluent Hydrocracker Feed 75 430
+Hydrogenation Reactor Effluent Hydrogenation Reactor Feed 51 - 55 290 - 310
+HYDROFINING Unit Effluent HYDROFINING Unit Feed 50 - 68 280 - 390
+Debutanizer Effluent Debutanizer Feed 70 400
+POWERFORMING Unit Effluent POWERFORMING Unit Feed 50 - 80 280 - 450
+Acetylene Converter Feed Acetylene Converter Effluent 22 - 30 120 - 170
+Regenerated DEA Foul DEA 110 630
+Catalyst-Oil Slurry Gas Oil Feed 40 230
+Cracking Coil Vapors Gas Oil 30 170
+Rerun Still Overhead Rerun Still Feed 50 280
+Splitter Overhead Debutanizer Feed 55 310
+Coolers:
+Water Water 150 - 210(2) 850 - 1190
+Brine Sour Water 100 - 115 570 - 650
+Debutanizer Bottoms Water 68 - 75 390 - 430
+Debutanizer Overhead Products Water 85 - 90 480 - 510
+Depentanizer Bottom Products Water 43 240
+Vacuum P/S Bottoms Water 20 - 25 110 - 140
+Absorber Oil Water 80 450
+Lean Oil Water 70 400
+Heavy Gas Oil Water 40 230
+Regenerated DEA Water 110 630
+Reduced Crude Water 29 - 32 160 - 180
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 17 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+DESIGN CONSIDERATIONS FOR ALL IX-B 17 of 40
+TYPES OF HEAT EXCHANGERS
+DESIGN PRACTICES
+PROPRIETARY INFORMATION - For Authorized Company Use Only December, 2002
+TABLE 1 (Cont)
+TYPICAL OVERALL HEAT TRANSFER COEFFICIENTS - U
+o
+Uo (1)
+FLUID BEING COOLED FLUID BEING HEATED
+Btu W
+hr ft 2 °F m 2 °C
+Gas Coolers:
+Air, 27 psig (186 kPa gage) Water 13 70
+105 psig (724 kPa gage) Water 17 100
+320 psig (2206 kPa gage) Water 23 130
+Primary Fractionator Gas Water 27 150
+Hydrocarbon Vapors (30 M.W.) Water 38 - 43 220 - 240
+Hydrocarbon Vapors (25 M.W.) Water 55 - 60 310 - 340
+Propylene Water 50 280
+Ethylene Water 31 180
+Condensers:
+Atmospheric P/S Overhead Water 80 - 90 450 - 510
+Atmospheric P/S Overhead Crude 35 - 45 200 - 260
+Atmospheric P/S Overhead Water 70 - 80 400 - 450
+Vacuum P/S Overhead Water 115 - 130 650 - 740
+Debutanizer Overhead Water 90 - 100 510 - 570
+Deethanizer Overhead Water 90 - 113 510 - 640
+Depentanizer Overhead Water 110 620
+LPG Tower Overhead Water 99 560
+HYDROFINING Unit Effluent Water 91 - 105 510 - 600
+Stabilizer Overhead Water 75 - 85 430 - 480
+Splitter Overhead Water 85 - 113 480 - 640
+Rerun Still Overhead Water 70 400
+DEA Regenerator Overhead Water 100 570
+Primary Fractionator Overhead Water 40 (50% cond) 230
+Primary Fractionator Overhead and Products Water 60 (25% cond) 340
+POWERFORMING Unit Effluent Water 55 - 60 310 - 340
+Hydrocracker Effluent Water 85 480
+Propylene Water 120 680
+Steam(3) Water 400 - 600 2270 - 3410
+Chillers:
+Ethylene(4) Propylene 98 560
+Dementhanizer Overhead(4) Ethylene 107 610
+Deethanizer Overhead(4) Propylene 113 640
+Depropanizer Overhead(4) Propylene 115 650
+Ethylene Ethylene 99 - 105 560 - 600
+Demethanizer Feed Ethylene 96 - 113 550 - 640
+Demethanizer Feed Propylene 100 - 122 570 - 690
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 18 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+DESIGN CONSIDERATIONS FOR ALL
+IX-B 18 of 40
+TYPES OF HEAT EXCHANGERS
+DESIGN PRACTICES
+December, 2002 PROPRIETARY INFORMATION - For Authorized Company Use Only
+TABLE 1 (Cont)
+TYPICAL OVERALL HEAT TRANSFER COEFFICIENTS - U
+o
+Uo (1)
+FLUID BEING COOLED FLUID BEING HEATED
+Btu W
+hr ft 2 °F m 2 °C
+Reboilers:
+Steam Demethanizer Bottoms 75 430
+Lean Oil Demethanizer Bottoms 60 340
+Steam Deethanizer Bottoms 73 - 86 410 - 490
+Atmospheric P/S Top Pumparound Deethanizer Bottoms 66 370
+Steam Depropanizer Bottoms 89 510
+Steam Debutanizer Bottoms 74 - 100 420 - 570
+Atmospheric P/S Top Pumparound Debutanizer Bottoms 65 370
+Atmospheric P/S Bottoms Debutanizer Bottoms 56 320
+Steam Depentanizer Bottoms 81 460
+Steam Debenzenizer Bottoms 102 580
+Steam Detoluenizer Bottoms 77 440
+Steam Splitter Bottoms 80 450
+Dowtherm Splitter Bottoms 70 400
+Steam Stripper Bottoms 82 470
+Steam Stabilizer Bottoms 115 650
+Steam Rerun Tower Bottoms 74 420
+Dowtherm Return Tower Bottoms 47 270
+Steam LPG Bottoms 70 400
+POWERFORMING Unit Effluent POWERFORMING Unit 75 - 77 430 - 440
+Stabilizer Bottoms
+Steam K3PO4 Stripper Bottoms 145 820
+Steam DEA Regenerator Bottoms 240 1360
+Dowtherm Phenol 65 370
+Preheaters:
+Steam Isobutane Tower Feed 92 520
+Steam Rerun Tower Feed 80 - 100 450 - 570
+Steam Debutanizer Tower Feed 110 620
+Steam Hydrogenation Reactor Feed 75 - 89 430 - 510
+POWERFORMING Unit Stabilizer POWERFORMING Unit 47 270
+Bottoms Stabilizer Feed
+Steam Generators:
+Vacuum P/S Bottoms Feed Water 35 200
+Vacuum P/S Bottom Pumparound Feed Water 67 - 86 380 - 490
+Primary Fractionator Slurry Feed Water 30 - 55 170 - 310
+Flue Gas Feed Water 8 - 15 50 - 90
+Reformer Effluent Feed Water 45 - 60 260 - 340
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 19 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+DESIGN CONSIDERATIONS FOR ALL IX-B 19 of 40
+TYPES OF HEAT EXCHANGERS
+DESIGN PRACTICES
+PROPRIETARY INFORMATION - For Authorized Company Use Only December, 2002
+TABLE 1 (Cont)
+TYPICAL OVERALL HEAT TRANSFER COEFFICIENTS - U
+o
+Uo (1)
+FLUID BEING COOLED FLUID BEING HEATED
+Btu W
+hr ft 2 °F m 2 °C
+Longitudinal Fin Units (Coefficients based on total outside surface)
+Heavy Naphtha Water:
+6 ft/sec (1.8 m/s) in annulus 25 140
+3 ft/sec (0.9 m/s) in annulus 20 110
+Light Naphtha Water:
+6 ft/sec (1.8 m/s) in annulus 30 170
+3 ft/sec (0.9 m/s) in annulus 25 140
+Clean K3PO4 Water 40 230
+Clean K3PO4 Foul K3PO4 42 240
+Notes:
+(1) Coefficients given represent a range of typical coefficients. Where only one coefficient is given, typical coefficients can be higher or
+lower than the tabulated value.
+(2) Coefficient highly dependent on fouling factors.
+(3) Steam surface condenser. Refer to Heat Exchange Institute Standards for Steam Surface Condensers.
+(4) Condensing service.
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 20 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+DESIGN CONSIDERATIONS FOR ALL
+IX-B 20 of 40
+TYPES OF HEAT EXCHANGERS
+DESIGN PRACTICES
+December, 2002 PROPRIETARY INFORMATION - For Authorized Company Use Only
+TABLE 2
+DESIGN INLET COOLING WATER TEMPERATURES
+AVERAGE MINIMUM AVERAGE MAXIMUM USE FOR DESIGN(1)(5)
+LOCATION TYPE OF WATER
+°°°°F °°°°C °°°°F °°°°C °°°°F °°°°C
+Altona Cooling Tower — — — — 80 27
+Amuay Salt Water 77 25 85 29 (2) (2)
+Antwerp Cooling Tower — — — — 77 25
+Augusta Cooling Tower — — — — 86 30
+Baton Rouge River Water 40 4 88 31 87 31
+Cooling Tower 65 18 — — 87 31
+Well Water (650 ft) — — — — 74(3) 23(3)
+Well Water (1600 ft) — — — — 80(3) 27(3)
+Bayonne Salt Water 35 2 76 24 80 24
+Baytown Cooling Water 75 24 90 32 90 32
+Bayway Salt Water 34 1 83 28 81 27
+Cooling Tower — — — — 93(3) 34(3)
+Benicia Cooling Tower — — — — 75 24
+Billings River Water 45(4) 7(4) — — 70 21
+Campana River Water — — — — 82 28
+Daharki Cooling Tower — — — — 93 34
+Dartmouth Sea Water 35 72 60
+Fawley Salt Water 35 2 69 21 66 19
+Fos Cooling Tower — — — — 80 27
+Halifax Salt Water — — — — 60 16
+Ingolstadt Cooling Tower — — — — 75 24
+Ioco Cooling Tower — — — — 75 24
+Karlsruhe Cooling Tower — — — — 80 27
+Kawasaki (GSS) Cooling Tower — — — — 88 31
+Kawasaki (Tonen) Cooling Tower — — — — 86 30
+Koln Cooling Tower — — — — 81 27
+Okinawa Cooling Tower (Salt) — — — — 88 31
+Port Jerome Cooling Tower — — — — 77 25
+River Water — — — — 77 25
+Rotterdam Cooling Tower — — — — 77 25
+Sakai Cooling Tower — — — — 85 29
+Sarnia River Water 32 0 — — 80 27
+Singapore Cooling Tower (Salt) — — — — 87 31
+Strathcona Cooling Tower — — — — 75 24
+Trecate Cooling Tower — — — — 80 27
+Notes: (1) The temperature recommended for use in the design of coolers and condensers is an economic optimum for an average plant. It
+is exceeded by a few degrees for about 3 weeks of the year. During this period, if the coolers have not been cleaned in
+anticipation of warm weather, it will be necessary to operate the plant at slightly less than design capacity and/or to increase
+product battery limit temperatures. In cold climates, it may be desirable to provide a bypass around the oil side of the cooler.
+Otherwise, the low tube-side velocities (caused by the small water requirement) might result in excessive silt deposits.
+(2) Use inlet cooling water temperature of 80°F (27°C) for coolers and 85°F (29°C) for condensers. Maximum allowable outlet
+temperature is 120°F (49°C) at Amuay's request.
+(3) For special users.
+(4) Tempered water.
+(5) All temperatures should be confirmed with each site at the time of final design.
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 21 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+DESIGN CONSIDERATIONS FOR ALL IX-B 21 of 40
+TYPES OF HEAT EXCHANGERS
+DESIGN PRACTICES
+PROPRIETARY INFORMATION - For Authorized Company Use Only December, 2002
+TABLE 3
+TYPICAL FOULING FACTORS FOR COOLING WATER(1)(2) ✶✶✶✶
+The fouling resistances listed in this table refer to the surface on which they occur. For inside surface fouling these values
+should be multiplied by the outside/inside surface ratio as indicated in the calculation procedures of the following subsections.
+Fouling Factor, r = Base Fouling Factor + Environment Factor
+0.0050
+3 F/S
+F
+°
+2
+hr
+tf
+U
+B T 0.0040
+5 F/S
+0.0030
+g
+n
+i F u o l o c r t 0.0020 10 F/S
+e F
+a
+s
+a
+B 0.0010
+0
+100 200 300 400 500 600
+Mean Temperature of Heating Medium, °F
+0.80 Multiply Base Fouling 0.9 M/S
+W Resistance by 1 x 10-3
+C/ 0.70
+•
+2 m 0.60 1.4 M/S
+or , 0.50
+ct
+a
+F 0.40
+g
+n i ul 0.30 3.0 M/S
+o
+F
+e
+0.20
+s
+a
+B 0.10
+0
+50 100 150 200 250 300
+Mean Temperature of Heating Medium, °C DP9BT03
+hr ft 2 ° F m 2 ° C
+ENVIRONMENT FACTORS FOR TUBE MATERIAL WATER TYPE
+Btu W
+Non-ferrous (Admiralty and other alloys with copper content over 50%) Chlorinated salt 0 0
+Non-ferrous Unchlorinated salt + 0.0005 + 0.0001
+Non-ferrous Untreated fresh + 0.0005 + 0.0001
+Non-ferrous Treated cooling water - 0.0005 - 0.0001
+Carbon steel Treated cooling water + 0.0005 + 0.0001
+Monel (alloys with copper content less than 50%) All salt water + 0.0010 + 0.0002
+Any Muddy or silty + 0.0010 + 0.0002
+✶ Refer to Notes after Table 5, which are applicable for Tables 3 through 5.
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 22 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+DESIGN CONSIDERATIONS FOR ALL
+IX-B 22 of 40
+TYPES OF HEAT EXCHANGERS
+DESIGN PRACTICES
+December, 2002 PROPRIETARY INFORMATION - For Authorized Company Use Only
+TABLE 4
+TYPICAL FOULING FACTORS FOR CRUDE AND VACUUM LIQUIDS(1)(2) ✶✶✶✶
+Fouling Resistance for Oil Refinery Streams
+0.0080
+= < 2 F/S
+0.0070
+0.0060
+F 3 F/S
+°
+2
+hr
+t f
+U
+B T
+0.0050
+τ
+or
+-
+0.0040
+= < 5 F/S
+ct
+a = < 2 F/S
+F 3 F/S
+g
+n 0.0030
+uli
+o
+F = < 5 F/S
+0.0020
+0.0010
+Salt Bearing
+Dry
+0
+100 200 300 400 500 600
+Mean Temperature - °F
+1.40
+= < 0.6 M/S
+1.30 Multiply Base Fouling
+by 1 x 10-3
+1.20
+1.10
+0.9 M/S
+1.00
+m 0.90
+τ
+or
+-
+,
+0.80
+= < 1.5 M/S
+ct
+a 0.70
+F
+g 0.60
+= < 0.6 M/S 0.9 M/S
+n
+uli
+o 0.50
+F
+= < 1.5 M/S
+0.40
+0.30
+0.20
+0.10 Salt Bearing
+Dry
+0
+50 100 150 200 250 300
+Mean Temperature - °C DP9BT04
+✶ Refer to Notes after Table 5, which are applicable for Tables 3 through 5.
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 23 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+DESIGN CONSIDERATIONS FOR ALL IX-B 23 of 40
+TYPES OF HEAT EXCHANGERS
+DESIGN PRACTICES
+PROPRIETARY INFORMATION - For Authorized Company Use Only December, 2002
+TABLE 5
+TYPICAL FOULING FACTORS(1)
+FOULING FACTORS
+SERVICE hr ft 2 ° F m 2 ° C
+Btu W
+FOULING RESISTANCE FOR REFINING PROCESS STREAMS
+Gasoline 0.0020 0.0004
+Naphtha and Light Distillate 0.0020 - 0.0030 0.0004 - 0.0005
+Kerosene 0.0020 - 0.0030 0.0004 - 0.0005
+Light Gas Oil 0.0020 - 0.0030 0.0004 - 0.0005
+Heavy Gas Oil 0.0030 - 0.0050 0.0005 - 0.0009
+Heavy Fuel Oils 0.0050-0.0070 0.0009-0.0012
+Crude and Vacuum Unit Gases and Vapors:
+Atmospheric Tower Overhead Vapors 0.0010 0.0002
+Light Naphthas 0.0010 0.0002
+Vacuum Overhead Vapors 0.0020 0.0004
+Asphalt and Residuum:
+Vacuum Tower Bottoms 0.0100 0.0018
+Atmospheric Tower Bottoms 0.0070 0.0012
+Cracking and Coking Unit Streams:
+Overhead Vapors 0.0020 0.0004
+Light Cycle Oil 0.0020 - 0.0030 0.0004 - 0.0005
+Heavy Cycle Oil 0.0030 - 0.0040 0.0005 - 0.0007
+Light Coker Gas Oil 0.0030 - 0.0040 0.0005 - 0.0007
+Heavy Coker Gas Oil 0.0040 - 0.0050 0.0007 - 0.0009
+Bottoms Slurry Oil [4.5 ft/sec (1.4 m/sec) minimum] 0.0030 0.0005
+Light Liquid Products 0.0020 0.0004
+Hydrocracking:
+Feed 0.0020 0.0004
+Effluent 0.0020 0.0004
+Recycle Gas 0.0010 0.0002
+HYDROFINING Units:
+Feed 0.0020 0.0004
+Effluent 0.0020 0.0004
+Overhead Vapors 0.0010 0.0002
+Depropanizer, Debutanizer, Depentanizers Alkylation and
+Polymerization:
+Feed 0.0010 0.0002
+Overhead Vapors 0.0010 0.0002
+Product 0.0010 0.0002
+Reboilers(4) 0.0020 - 0.0030 0.0004 - 0.0005
+Reactor Feed 0.0020 0.0004
+Catalytic Hydro Desulfurizer:
+Charge 0.0040 - 0.0050 0.0007 - 0.0009
+Effluent 0.0020 0.0004
+H.T. Sep. Overhead 0.0020 0.0004
+Stripper Charge 0.0030 0.0005
+Liquid Products 0.0020 0.0004
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 24 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+DESIGN CONSIDERATIONS FOR ALL
+IX-B 24 of 40
+TYPES OF HEAT EXCHANGERS
+DESIGN PRACTICES
+December, 2002 PROPRIETARY INFORMATION - For Authorized Company Use Only
+TABLE 5 (Cont)
+TYPICAL FOULING FACTORS(1)
+FOULING FACTORS
+SERVICE hr ft 2 ° F m 2 ° C
+Btu W
+HF Alky Unit – Alkylate, Deprop Bottoms, Main Fract:
+Overhead Main Fract Feed 0.0030 0.0005
+All Other Process Streams 0.0020 0.0004
+Visbreaker:
+Overhead Vapor 0.0030 0.0005
+Visbreaker Bottoms 0.0010 0.0018
+Naphtha Hydrotreater:
+Feed 0.0030 0.0005
+Effluent 0.0020 0.0004
+Naphthas 0.0020 0.0004
+Overhead Vapors 0.0015 0.0003
+Absorbers:
+Gas Feed 0.0020 0.0004
+Lean Oil 0.0020 - 0.0030 0.0004 - 0.0005
+Fat Oil 0.0020 - 0.0030 0.0004 - 0.0005
+Overhead Vapors 0.0010 0.0002
+Distillate 0.0005 0.0001
+Stabilizers:
+Feed 0.0010 0.0002
+Overhead Vapors 0.0010 0.0002
+Product 0.0010 0.0002
+Reboilers(4) 0.0010 0.0002
+Cat Cracking Feed (with inert gas blanketing of feed tankage):
+Under 250°F 0.0010 0.0002
+250°F and over 0.0025 0.0004
+Feed (without gas blanketing):
+Under 250°F 0.0020 0.0004
+250°F and over(3) 0.0050 0.0009
+Fractionator Overhead: 0.0010 0.0002
+Fractionator Sidestreams: 0.0020 0.0004
+Residuum: 0.0100 0.0018
+POWERFORMING Units:
+Feed Heating (with inert gas blanketing of feed tankage):
+Under 250°F 0.0010 0.0002
+250°F and over 0.0020 0.0004
+Feed Heating (without inert blanketing):
+Under 250°F 0.0035 0.0006
+250°F and over(3) 0.0060 0.0011
+Effluent: 0.0015 0.0003
+Powerformate: 0.0010 0.0002
+Rerun Bottoms: 0.0025 0.0004
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 25 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+DESIGN CONSIDERATIONS FOR ALL IX-B 25 of 40
+TYPES OF HEAT EXCHANGERS
+DESIGN PRACTICES
+PROPRIETARY INFORMATION - For Authorized Company Use Only December, 2002
+TABLE 5 (Cont)
+TYPICAL FOULING FACTORS(1)
+FOULING FACTORS
+SERVICE hr ft 2 ° F m 2 ° C
+Btu W
+Dewaxing:
+Oil Feed Heating 0.0010 0.0002
+Oil Feed Cooling 0.0030(5) 0.0005(5)
+Solvent 0.0010 0.0002
+Dewaxed Oil 0.0010 0.0002
+Deasphalting:
+Oil Feed 0.0020 0.0004
+Solvent 0.0010 0.0002
+Refined Oil:
+To water 0.0030(5) 0.0005(5)
+Other 0.0010 0.0002
+Asphalt and Resin:
+To water 0.0030 0.0005
+Other 0.0050 0.0009
+Steam Cracking Light Ends:
+Feed 0.0010 0.0002
+Product 0.0010 0.0002
+Reboilers(4) 0.0060 0.0011
+H2S Removal (Girbotol):
+Overhead Vapors 0.0010 0.0002
+Solution 0.0015 0.0003
+Solution Reboilers 0.0020 0.0004
+Lube Treating:
+Solvent 0.0010 0.0002
+Solvent-Oil Mixed Feed 0.0020 0.0004
+Overhead Vapors 0.0010 0.0002
+Refined Oil 0.0010 0.0002
+Refined Oil Coolers(5) 0.0030 0.0005
+Extract 0.0030(6) 0.0005(6)
+Wax Slurries 0.0030(6) 0.0005(6)
+FOULING RESISTANCES FOR CHEMICAL PROCESSING STREAMS
+Gases and Vapors:
+Acid Gases 0.0020 - 0.0030 0.0004 - 0.0005
+Solvent Vapors 0.0010 0.0002
+Stable Overhead Products 0.0010 0.0002
+Liquids:
+MEA and DEA Solutions 0.0020 0.0004
+DEG and TEG Solutions 0.0020 0.0004
+Stable Side Draw and Bottom Product 0.0010 - 0.0020 0.0002 - 0.0004
+Caustic Solutions 0.0020 0.0004
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 26 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+DESIGN CONSIDERATIONS FOR ALL
+IX-B 26 of 40
+TYPES OF HEAT EXCHANGERS
+DESIGN PRACTICES
+December, 2002 PROPRIETARY INFORMATION - For Authorized Company Use Only
+TABLE 5 (Cont)
+TYPICAL FOULING FACTORS(1)
+FOULING FACTORS
+SERVICE hr ft 2 ° F m 2 ° C
+Btu W
+FOULING RESISTANCE FOR NATURAL GAS - GASOLINE PROCESSING
+STREAMS
+Gases and Vapors:
+Natural Gas 0.0010 - 0.0020 0.0002 - 0.0004
+Overhead Products 0.0010 - 0.0020 0.0002 - 0.0004
+Liquids:
+Lean Oil 0.0020 0.0004
+Rich Oil 0.0010 - 0.0020 0.0002 - 0.0004
+Natural Gasoline and Liquefied Petroleum Gases 0.0010 - 0.0020 0.0002 - 0.0004
+MISCELLANEOUS
+Steam:
+Oil Bearing 0.0010 0.0002
+Non-oil bearing 0.0005 0.0001
+Air (atmospheric): 0.0020 0.0004
+Fuel Oil Heater: 0.0050 0.0009
+Organic Vapors: 0.0005 0.0001
+Organic Liquids: 0.0010 0.0002
+Refrigerant Liquids (Heating, Cooling or Evaporating): 0.0010 0.0002
+Refrigerant Vapors Condensing from:
+Lubricated Reciprocating Compressors 0.0020 0.0004
+Others 0.0005 0.0001
+Brine (cooling): 0.0010 0.0002
+Condensate: 0.0005 0.0001
+Boiler Feed Water [steam pressure ≥ 650 psig (4500 kPa gage)] 0.0010 0.0002
+Boiler Feed Water [steam pressure < 650 psig (4500 kPa gage)] 0.0005 0.0001
+Notes for Tables 3, 4 and 5:
+(1) Fouling factors shown are for a period of operation of about a year and a half, except where noted. The fouling factors have a range of
+± 0.0005 hr ft 2 ° F (cid:4) (cid:4) (cid:6) ± 0.0001 m2 ° C (cid:1) (cid:1) (cid:3) .
+Btu (cid:5) W (cid:2)
+hr ft 2 ° F (cid:4) (cid:6) m2 ° C (cid:1) (cid:3)
+(2) It is recommended that the charts be read to the nearest ± 0.0005 (cid:4) ± 0.0001 (cid:1) .
+Btu (cid:5) W (cid:2)
+(3) Experience has shown that it is desirable to provide block valves and a bypass for these services. Long runs are expected and the
+fouling rate and pressure drop buildup are considerable.
+(4) For unsaturated compounds where polymerization has been found to occur or is expected, individual consideration must be given to the
+fouling allowance, with the possibility of providing a spare reboiler.
+(5) Precautions must be taken against deposition of wax, where present. If there is no wax, the fouling factor can be reduced to
+hr ft 2 ° F (cid:4) (cid:6) m2 ° C (cid:1) (cid:3)
+± 0.0010 (cid:4) ± 0.0002 (cid:1) .
+Btu (cid:5) W (cid:2)
+(6) Precautions must be taken against deposition of wax on cold tube walls.
+Portions of Table 5 reprinted with permission of TEMA, © 1988 by Tubular Exchanger Manufacturers Association.
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 27 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+DESIGN CONSIDERATIONS FOR ALL IX-B 27 of 40
+TYPES OF HEAT EXCHANGERS
+DESIGN PRACTICES
+PROPRIETARY INFORMATION - For Authorized Company Use Only December, 2002
+TABLE 6
+FURNACE/BOILER DATA TEMPLATE
+Process:______________________ Contact Person:__________________ Date:________
+Notes: 1. If furnace fires multiple fuels, list each separately with its fired duty units used.
+2. If heat is absorbed by more than one heat sink (e.g. process plus steam generation), list each separately
+with its absorbed duty. In case the furnace serves a process function (e.g. hydrogen generation,
+steam cracking), extract the convection section data only.
+3. Indicate which units are used.
+4. Use Lower Heating Values (LHV) for duties. Typical conversions from higher heating value (LHV/HHV)
+are 0.90 for plant fuel gas and 0.94 for liquid fuel oil. Specific conversions are 0.90 for methane,
+0.915 for ethane, 0.92 for propane, and 0.845 for hydrogen.
+Furnace Fuel fired (1) Coil inlet Coil outlet Combustion Heat Stack gas Flue gas Excess Overall
+Number (MBTU/h or temperature temperature Air absorbed (2) temperature flow rate oxygen (%) furnace
+MW) (°F or °C) (°F or °C) Temperature (MBTU/h or (°F or °C) (lb/h or efficiency
+if Air MW) kg/s) (%)
+Preheater
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 28 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+DESIGN CONSIDERATIONS FOR ALL
+IX-B 28 of 40
+TYPES OF HEAT EXCHANGERS
+DESIGN PRACTICES
+December, 2002 PROPRIETARY INFORMATION - For Authorized Company Use Only
+TABLE 7
+EXCHANGER DATA TEMPLATE FOR PROCESS-TO-PROCESS HEAT EXCHANGE
+Process:______________________ Contact Person:__________________ Date:________
+Notes: 1. Designate units used.
+2. Only require data for the overall service with multiple shells; however, note in the "exchanger number column" the
+number of shells (e.g, E-205 (4) to indicate 4 shells in the E-205 service)
+3. Include Boiler Feedwater (BFW) Exchangers in above Template. Complete information above for BFW stream as well.
+4. Duty shown should be normal operating, not "design". Note that both Hot Stream and Cold Stream enthalpy change
+should match exchanger duty shown above.
+5. For multiple stream exchangers such as in steam cracker cold boxes, use multiple lines for the given exchanger.
+6. Include refrigeration exchangers in the table.
+Hot Stream Cold Stream Exchanger Exchanger
+Area (ft2 or Duty
+Exchanger m2) (MBtu/hr or
+Number Stream Inlet Temp Outlet Phase Stream Inlet Temp Outlet Phase MW)
+Name (°F or °C) Temp (°F Change Name (°F or °C) Temp (°F Change
+or °C) (y/n?) or °C) (y/n?)
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 29 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+DESIGN CONSIDERATIONS FOR ALL IX-B 29 of 40
+TYPES OF HEAT EXCHANGERS
+DESIGN PRACTICES
+PROPRIETARY INFORMATION - For Authorized Company Use Only December, 2002
+TABLE 8
+EXCHANGER DATA TEMPLATE FOR PROCESS-TO-UTILITY HEAT EXCHANGE
+Process:______________________ Contact Person:__________________ Date:________
+Notes: 1. Designate units used.
+2. Duty shown should be normal operating, not "design". Note that Process Stream enthalpy change should match
+Utility duty shown above.
+3. For multiple stream exchangers such as in steam cracker cold boxes, use multiple lines for the given exchanger.
+4. Include all air or water cooled exchangers, except for air or water cooled TOWER OVERHEAD CONDENSERS WITH
+PROCESS INLET TEMPERATURE BELOW 100C
+5. Note if fuel and steam temperatures and pressures are not the same as the overall levels to be provided by the site
+utility group (e.g., in cases where onsite desuperheating, superheating, etc).
+Process Stream Utility Stream Duty (MBtu/hr or MW)
+Exchanger
+Exchanger
+Area (ft2 or Stream Inlet Temp Outlet Phase High Medium Low Air Cooling
+Number
+m2) Name (°F or °C) Temp (°F Change Pressure Pressure Pressure Water
+or °C) (y/n?) Steam Steam Steam
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 30 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+DESIGN CONSIDERATIONS FOR ALL
+IX-B 30 of 40
+TYPES OF HEAT EXCHANGERS
+DESIGN PRACTICES
+December, 2002 PROPRIETARY INFORMATION - For Authorized Company Use Only
+TABLE 9
+DATA TEMPLATE FOR DIRECT STEAM INJECTION TO THE PROCESS
+Process:______________ Contact Person:__________________ Date:________
+Notes: 1. Designate units used.
+2. Include steam direct to process (e.g., stripping steam, vacuum ejectors,
+Pipestill coil steam, FCC reactor/stripping steam, etc)
+3. Include steam injection to firebox / burners for NOx control.
+Process Stream Steam Information
+Equipment
+Stream Temperature Pressure Temperature Flow (lbs/hr
+Number
+Name (°F or °C) (psig or (°F or °C) or kg/hr)
+kpag)
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 31 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+DESIGN CONSIDERATIONS FOR ALL IX-B 31 of 40
+TYPES OF HEAT EXCHANGERS
+DESIGN PRACTICES
+PROPRIETARY INFORMATION - For Authorized Company Use Only December, 2002
+TABLE 10
+TARGETING ∆∆∆∆T GUIDELINES
+MIN
+A. BY SECTOR
+Industrial Sector ∆∆∆∆T (oF) ∆∆∆∆T (oC) Comments
+min min
+Oil Refining, General 50 - 70 30 - 40
+Atmospheric Crude 50 - 60 30 - 35 Low heat transfer coefficient, Parallel composite, Fouling
+Vacuum Crude 35 - 45 20 - 25 Low heat transfer coefficient, Wider composite
+NHF/Reformer 50 - 70 30 - 40 Feed/effluent exchangers dominate, Packinox to 10oC or 20oF
+FCCUs 50 - 70 30 - 40 Low heat transfer coefficient, Parallel composite, Fouling
+Gas Oil Hydrotreators 50 - 70 30 - 40 Feed/effluent exchangers dominate, Packinox to 10oC or 20oF
+H2 Plant 35 - 50 20 - 30 Reformer section 30-50oC or 50-90oF; remainder 15-20oC or 25-35oF
+Petrochemical 20 - 35 10 - 20 High heat transfer coefficient, low fouling, well define pinch
+Low-temp Processes 5 - 10 3 - 5 Shaftwork is expensive - decrease as refrigeration temp goes down
+B. TYPICAL MATCHES
+Match Type ∆∆∆∆T (oF) ∆∆∆∆T (oC) Comments
+min min
+Steam vs. Process 20 - 35 10 - 20 Good heat transfer coefficient for steam condensing/evaporation
+Process vs. Refrig. 5 - 10 3 - 5 Expensive cooling - justifies additional heat transfer area
+Flue Gas vs. Process 70 40 Low heat transfer coefficient for flue gas - large DTmin
+Flue Gas vs. Steam Gen. 45 - 70 25 - 40 Good heat transfer coefficient for steam
+Flue Gas vs. Air 90 50 Low heat transfer coefficient on both sides
+Process vs. CW 25 - 35 15 - 20 May use smaller to lower refrigeration. Consider summer/winter oper.
+Data above provides general guideline only. Represents experienced-based efficient design.
+TABLE 11
+TYPICAL PRESSURE DROPS
+TYPICAL PRESSURE DROPS
+SHELL AND TUBE, AIR COOLED, PLATE
+AND FRAME, SPIRAL, AND DOUBLE PIPE EXCHANGERS
+CUSTOMARY METRIC
+Gases and Vapors (high pressure) 5 - 10 psi (35 - 70 kPa)
+Gases and Vapors (low pressure) 2 - 5 psi (15 - 35 kPa)
+Gases and Vapors (atmospheric pressure) 0.5 - 2 psi (3.5 - 14 kPa)
+Vapors (vacuum) < 0.5 psi (< 3.5 kPa)
+Vapors (vacuum tower condensers) 3 - 12 mm HG (0.4 - 1.6 kPa)
+Liquids 10 - 25 psi (70 - 170 kPa)
+Special Requirement:
+F shell, shell side stream 5 - 10 psi maximum* (35 - 70 kPa maximum)
+PLATE FIN EXCHANGERS
+Gases and Vapors 1 - 3 psi (5 - 20 kPa)
+Liquids 3 - 8 psi (20 - 55 kPa)
+Note:
+* Depending on shell diameter.
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 32 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+DESIGN CONSIDERATIONS FOR ALL
+IX-B 32 of 40
+TYPES OF HEAT EXCHANGERS
+DESIGN PRACTICES
+December, 2002 PROPRIETARY INFORMATION - For Authorized Company Use Only
+FIGURE 1
+HEAT EXCHANGER DESIGN LOGIC
+Problem
+Identifcation
+Selection of
+a Basic Heat
+Exchanger Type*
+Selection of Tentative
+Exchanger Construction, Operating
+Flow Arrangement, Material, Conditions
+and Surface Selection
+Surface Thermo-
+Heat Transfer and Physical Props,
+Characteristics
+Pressure Drop Analysis of Fluids and
+and Geometry
+Materials
+Evaluation of the Unacceptable Modification of
+Design: Q, ∆ P the Design
+Acceptable? Parameters
+Acceptable Mechanical Design:
+Headers, Thermal Stresses,
+Thermal Expansion
+Vibrations, Fouling
+Optimized
+Optional
+Solutions
+Manufacturing
+Evaluation Considerations and Costing
+Criteria
+Cost Estimates
+Trade-Offs
+* i.e., S & T, Spiral, Plate,
+Double-pipe, Air-Cooled
+Optimized
+Solutions
+DP9BF01
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 33 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+DESIGN CONSIDERATIONS FOR ALL IX-B 33 of 40
+TYPES OF HEAT EXCHANGERS
+DESIGN PRACTICES
+PROPRIETARY INFORMATION - For Authorized Company Use Only December, 2002
+FIGURE 2
+FLOW PATTERNS, TEMPERATURE DRIVING FORCE, AND TEMPERATURE CROSS
+A. Co-Current (Parallel) Flow
+T 1 Double-Pipe
+Exchanger
+t t
+1 2
+T
+2
+T
+1
+T - t =
+2 2
+Approach Temperature
+∆
+Temperature
+T
+2
+t
+1
+Length DP9BF2a
+B. Counter-Current Flow with Temperature Cross
+T
+1
+Double-Pipe Exchanger
+t t
+1 1
+T
+2
+T
+1
+t
+Temperature 2 ∆
+T
+2
+t Cross When
+1
+t > T
+2 2
+DP9BF2b Length
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 34 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+DESIGN CONSIDERATIONS FOR ALL
+IX-B 34 of 40
+TYPES OF HEAT EXCHANGERS
+DESIGN PRACTICES
+December, 2002 PROPRIETARY INFORMATION - For Authorized Company Use Only
+FIGURE 2 (Cont)
+FLOW PATTERNS, TEMPERATURE DRIVING FORCE, AND TEMPERATURE CROSS
+C. Mixed Flow with Temperature Cross
+T
+1
+t 2 t L
+t
+1
+T
+2
+T
+1
+Temperature t ∆
+2
+T Cross When
+2
+t > T
+2 2
+t
+L
+t
+1
+Length DP9BF2c
+D. Multi-Shell in Series For Temperature Cross
+T
+1
+T
+m2
+t
+2
+T
+mt
+T t m2
+T
+2
+t
+mt
+t
+1
+DP9BF2d Q
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 35 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+DESIGN CONSIDERATIONS FOR ALL IX-B 35 of 40
+TYPES OF HEAT EXCHANGERS
+DESIGN PRACTICES
+PROPRIETARY INFORMATION - For Authorized Company Use Only December, 2002
+FIGURE 3
+HEAT RECOVERY ANALYSIS FOR INDIVIDUAL PROCESS UNIT LOGIC
+Collect Data:
+• Heat & Material Balance
+• Exchangers Details
+- Q,T,& A or Simulation
+• Prices - Utilities & Area
+Calculate Heat Recovery Targets:
+• Select (cid:1) Tmin
+• Composite Curves
+• Utility Targets
+First of
+Grass Roots or a Kind Synthesize a Heat
+Exchanger Network
+Retrofit Desgin
+to Meet Targets
+Retrofit or
+Grassroots with
+Existing Network
+Identify Inefficiencies
+using ESCORT Large Determine Small Heat Recovery
+Energy Utilization
+or Heat Across Analysis Complete
+Gap
+Pinch Analysis
+Identify Exchanger Network Modifications
+to close the Gap and Check Modifications
+for Technical and Economic Feasibility
+DP9Bf03
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 36 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+DESIGN CONSIDERATIONS FOR ALL
+IX-B 36 of 40
+TYPES OF HEAT EXCHANGERS
+DESIGN PRACTICES
+December, 2002 PROPRIETARY INFORMATION - For Authorized Company Use Only
+FIGURE 4
+ESTABLISHMENT OF ENERGY TARGETS AND PINCH
+Temperature
+External
+Pinch
+Heating
+DT
+min
+External
+Cooling
+Process to
+Process
+Heat exchanges
+Enthalpy DP9Bf04
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 37 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+DESIGN CONSIDERATIONS FOR ALL IX-B 37 of 40
+TYPES OF HEAT EXCHANGERS
+DESIGN PRACTICES
+PROPRIETARY INFORMATION - For Authorized Company Use Only December, 2002
+FIGURE 5
+SITE-WIDE STEAM SUPPLY/DEMAND PROFILING LOGIC
+Select Units for
+Totalsite Analysis
+Collect Data:
+• Utility Exchangers
+- Q,Tin, Tout, & A.
+• Utility Levels
+• Preliminary prices
+Generate Site Source/Sink
+Curves for Utility Targets
+Determine Small Site-wide steam
+the Gap at Supply/Demond
+Each Level Profiling Complete
+Large
+Consider Alternatives
+to Close Gap
+Check Process Units
+for Technical Feasibility
+Develop a Short
+List of Economic
+Alternatives
+Simulate Utility System to
+Comfirm Feasibility & Economics
+DP9Bf05
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 38 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+DESIGN CONSIDERATIONS FOR ALL
+IX-B 38 of 40
+TYPES OF HEAT EXCHANGERS
+DESIGN PRACTICES
+December, 2002 PROPRIETARY INFORMATION - For Authorized Company Use Only
+FIGURE 6
+SITE SOURCE-SINK PROFILES
+Source Sink
+GAP
+HP
+MP
+IP
+LP
+GAP
+ExxonMobil Research and Engineering Company – Fairfax, VA
+erutarepmeT
+Enthalpy DP9Bf06
+--- PAGE 39 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+DESIGN CONSIDERATIONS FOR ALL IX-B 39 of 40
+TYPES OF HEAT EXCHANGERS
+DESIGN PRACTICES
+PROPRIETARY INFORMATION - For Authorized Company Use Only December, 2002
+FIGURE 7
+REVIEWING DESIGNS OF SHELL AND TUBE HEAT EXCHANGERS WITH FOULING
+Select Fouling Resistance From:
+No No No
+Exxon Operating Exxon Design TEMA
+Experience Practices1 Manual 2
+Yes Yes
+Yes
+Run HEXTRAN Computer Program for Design Calcs
+Check % of Overall Thermal Resistance for Fouling3
+< 20% > 40%
+20% - 40% Indicates Significant Impact of
+Indicates Minimum Fouling. Investigate:
++ Pressure Drops
+Effect of Fouling.
++ Other Operating Experience
+Rf Input Correctly? Indicates Typical
++ On-Line Mech.4 Cleaning
+Effect of Fouling
+Yes + Other HX Types
+No
+Will Fouled Unit Exceed Allowable Pressure Drop?
+Correct Input • Estimate Fouling Layer Thickness:
++ Operating Experience, or
++ Input Deposit Thickness from Attached Figure 4A
+• Or if Material is Not Listed
++ Simulate Deposit by:
+Increasing Tube O. D. by an Amount Which Causes a 10%
+Decrease in Tube to Tube Gap (Shellside Fouling) and/or
+Decreasing Tube I. D. by Specifying the Next Lower Tube
+Gauge (Tubeside Fouling)
+• Re-Run HEXTRAN
+Check Tubeside/Shellside Velocities2,5
+Low High
+• Increase Velocity by Changing:
++ Number of Tube Passes
+Consider Detrimental Effects:
++ Tube Diameters
++ Errosion on Tubeside
++ Shell Baffle Spacing
++ Vibration on Shellside
++ Tubepitch
+• Consider Turbulence Promoters,
+On-Line Mechanical Cleaning
+For Additional Guidance, Consult
+Develop Final HX Design + Local HX Experts, or
++ ER&E Unfired HT Group
+DP9BF07
+Notes:
+(1) Exxon Design Practices, Section IX-B, Tables 3-5.
+(2) TEMA, 7th Edition, Page 208-215.
+(3) See HEXTRAN Computer Program Output, Line 27, 2nd Column.
+(4) See Exxon Design Practices, Section IX-A.
+(5) For cooling water, see Exxon Design Practices, Section IX-D, Table 3.
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 40 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+DESIGN CONSIDERATIONS FOR ALL
+IX-B 40 of 40
+TYPES OF HEAT EXCHANGERS
+DESIGN PRACTICES
+December, 2002 PROPRIETARY INFORMATION - For Authorized Company Use Only
+FIGURE 8
+RELATIONSHIP BETWEEN FOULING RESISTANCE AND LAYER THICKNESS
+Thickness of Fouling Layer, mm
+0 0.25 0.50 0.75 1.00 1.25
+0.005
+u 0.0008
+Bt
+F/ 0.004 W
+°
+2
+tf
+hr
+1 2 3 4
+5 0.0006 2m
+k/
+e c , 0.003 6 e c ,
+n n
+a st 7 a st
+si
+R e 0.002 8 0.0004
+si
+R e
+g g
+n n
+uli 9 uli
+F o 0.001 0.0002 F o
+10
+0
+0 0.01 0.02 0.03 0.04 0.05
+Thickness of Fouling Layer, in.
+Thermal Conductivity
+Typical Fouling
+Curve
+Material
+W/m °K Btu/hr ft °F
+1 0.066 0.038 Lamp Black
+2 0.144 0.083 Lubricating Oil
+3 0.235 0.136 Paraffin Wax
+4 0.346 0.200
+5 0.450 0.260 —
+6 0.625 0.361
+—
+7 0.900 0.520
+Asphalt
+8 1.385 0.800
+Cement
+9 2.510 1.450
+Cooling Tower Water
+10 5.481 3.167
+CaSO Boiler Scale
+4
+Cracking Coil Coke
+DP9BF08
+ExxonMobil Research and Engineering Company – Fairfax, VA

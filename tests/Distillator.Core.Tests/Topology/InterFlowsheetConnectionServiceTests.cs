@@ -44,6 +44,35 @@ public sealed class InterFlowsheetConnectionServiceTests
     [Fact]
     [Trait("Spec", "05")]
     [Trait("Level", "Unit")]
+    public void CreateInterFlowsheetConnection_WhenCanvasIsWide_ShouldPlaceOpcAfterRightMostRealElement()
+    {
+        var (project, sourceFlowsheet, targetFlowsheet, service) = CreateContext();
+        sourceFlowsheet.DiagramWidth = 2500;
+        targetFlowsheet.DiagramWidth = 2500;
+        var pump = new PumpVisualElement { Name = "P-101", X = 120, Y = 80 };
+        var remoteStream = new StreamVisualElement { Name = "S-201", X = 240, Y = 140 };
+        AddEquipment(project, sourceFlowsheet, pump);
+        AddEquipment(project, targetFlowsheet, remoteStream);
+
+        var connection = service.CreateInterFlowsheetConnection(
+            project,
+            sourceFlowsheet,
+            pump,
+            "Discharge",
+            targetFlowsheet,
+            remoteStream);
+
+        Assert.NotNull(connection);
+        var sourceOpc = sourceFlowsheet.Elements.OfType<IOffPageConnectorReference>().Single();
+        var targetOpc = targetFlowsheet.Elements.OfType<IOffPageConnectorReference>().Single();
+
+        Assert.Equal(260, sourceOpc.X);
+        Assert.Equal(360, targetOpc.X);
+    }
+
+    [Fact]
+    [Trait("Spec", "05")]
+    [Trait("Level", "Unit")]
     public void CreateInterFlowsheetConnection_WhenLocalPortIsOccupied_ShouldLeaveBothFlowsheetsUnchanged()
     {
         var (project, sourceFlowsheet, targetFlowsheet, service) = CreateContext();

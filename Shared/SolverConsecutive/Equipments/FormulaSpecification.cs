@@ -186,6 +186,10 @@ namespace Shared.SolverConsecutive.Equipments
             .Distinct()
             .ToList();
 
+        public IReadOnlyCollection<IVariable> LeftVariables { get; } = left.Variables
+            .Distinct()
+            .ToList();
+
         public IReadOnlyCollection<IVariable> Variables { get; } = left.Variables
             .Concat(right.Variables)
             .Distinct()
@@ -237,6 +241,8 @@ namespace Shared.SolverConsecutive.Equipments
             Equation.TryGetResidual(out var residual) ? residual : double.NaN;
 
         public List<IVariable> GetVariables() => Equation.Variables.ToList();
+
+        public List<IVariable> GetTargetVariables() => Equation.LeftVariables.ToList();
     }
 
     public sealed class FormulaParser

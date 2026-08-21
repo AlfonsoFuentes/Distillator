@@ -25,7 +25,8 @@ public sealed class ProjectWorkspaceSelectionService
             : null;
         project ??= projects[0];
 
-        return SelectProject(project, session?.LastFlowsheetId);
+        var preferredFlowsheetId = ResolvePreferredFlowsheetId(project.Id, session);
+        return SelectProject(project, preferredFlowsheetId);
     }
 
     public ProjectWorkspaceSelection SelectProject(Project project, Guid? preferredFlowsheetId = null)
@@ -38,5 +39,15 @@ public sealed class ProjectWorkspaceSelectionService
         flowsheet ??= project.Flowsheets.FirstOrDefault();
 
         return new ProjectWorkspaceSelection(project, flowsheet);
+    }
+
+    public Guid? ResolvePreferredFlowsheetId(Guid projectId, IUserSessionState? session)
+    {
+        if (session?.LastFlowsheetIdsByProject.TryGetValue(projectId, out var flowsheetId) == true)
+        {
+            return flowsheetId;
+        }
+
+        return session?.LastProjectId == projectId ? session.LastFlowsheetId : null;
     }
 }

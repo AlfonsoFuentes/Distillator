@@ -29,9 +29,9 @@ namespace Shared.Thermodynamics.Strategies.Equlibriums
 
            
             // ✅ 4. Actualizar UI con resultado calculado
-            _facade.Pressure.SetValue(_facade.MaterialStream.Pressure, SolverConsecutive.VariableDefinedBy.StreamCalculated);
+            CalculatedVariableSetter.SetStreamCalculated(_facade.Pressure, _facade.MaterialStream.Pressure);
             _facade.MaterialStream.CalculateBulkProperties();
-            _facade.MassEnthalpy.SetValue(_facade.MaterialStream.MassEnthalpy, SolverConsecutive.VariableDefinedBy.StreamCalculated);
+            CalculatedVariableSetter.SetStreamCalculated(_facade.MassEnthalpy, _facade.MaterialStream.MassEnthalpy);
         }
 
 

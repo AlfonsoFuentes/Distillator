@@ -11,16 +11,16 @@
 
             @* PESTAÑAS *@
             <div class="tabs-header">
-                <div class="tab @(activeTab == "Main" ? "active" : "")" @onclick='() => SetTab("Main")'>Main</div>
-                <div class="tab @(activeTab == "Specs" ? "active" : "")" @onclick='() => SetTab("Specs")'>Specs</div>
+                <div class="tab @(activeTab == "Main" ? "active" : "")" @onclick='() => SetTabAsync("Main")'>Main</div>
+                <div class="tab @(activeTab == "Specs" ? "active" : "")" @onclick='() => SetTabAsync("Specs")'>Specs</div>
                 @if (ProfilesSlot!=null)
                 {
-                    <div class="tab @(activeTab == "Profiles" ? "active" : "")" @onclick='() => SetTab("Profiles")'>Profiles</div>
+                    <div class="tab @(activeTab == "Profiles" ? "active" : "")" @onclick='() => SetTabAsync("Profiles")'>Profiles</div>
                 }
               
-                <div class="tab @(activeTab == "Design" ? "active" : "")" @onclick='() => SetTab("Design")'>Design</div>
-                <div class="tab @(activeTab == "Streams" ? "active" : "")" @onclick='() => SetTab("Streams")'>Streams</div>
-                <div class="tab @(activeTab == "Composition" ? "active" : "")" @onclick='() => SetTab("Composition")'>Composition</div>
+                <div class="tab @(activeTab == "Design" ? "active" : "")" @onclick='() => SetTabAsync("Design")'>Design</div>
+                <div class="tab @(activeTab == "Streams" ? "active" : "")" @onclick='() => SetTabAsync("Streams")'>Streams</div>
+                <div class="tab @(activeTab == "Composition" ? "active" : "")" @onclick='() => SetTabAsync("Composition")'>Composition</div>
             </div>
 
             @* CONTENIDO DINÁMICO *@
@@ -111,6 +111,7 @@
     [Parameter] public RenderFragment? PropertiesSlot { get; set; }
     [Parameter] public RenderFragment? DesignSlot { get; set; }
     [Parameter] public RenderFragment? ProfilesSlot { get; set; }
+    [Parameter] public Func<Task>? OnProfilesTabActivated { get; set; }
     
     private string activeTab = "Main";
     List<EquipmentPort> _Ports => Equipment.Ports;
@@ -145,10 +146,21 @@
             restoreProjectDefaultDisplayUnits: true);
     }
 
-    private void SetTab(string tabName) { activeTab = tabName; StateHasChanged(); }
+    private async Task SetTabAsync(string tabName)
+    {
+        activeTab = tabName;
+
+        if (tabName == "Profiles" && OnProfilesTabActivated != null)
+        {
+            await OnProfilesTabActivated();
+        }
+
+        StateHasChanged();
+    }
     private void Cancel() => MudDialog.Cancel();
     private void HandleEquipmentUpdate()
     {
+        FSM.MarkFacadeStateChanged();
         StateHasChanged();
     }
 }

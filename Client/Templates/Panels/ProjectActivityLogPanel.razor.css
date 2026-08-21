@@ -50,6 +50,96 @@
     background: #ffffff;
 }
 
+.activity-actions {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    padding: 2px 0 8px;
+    background: #ffffff;
+}
+
+.activity-filters {
+    position: sticky;
+    top: 29px;
+    z-index: 1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+    padding: 0 0 6px;
+    background: #ffffff;
+    border-bottom: 1px solid #f1f5f9;
+    margin-bottom: 4px;
+}
+
+.activity-action {
+    border: 1px solid #b6c7df;
+    border-radius: 4px;
+    background: #eef6ff;
+    color: #315f9c;
+    font-size: 0.74rem;
+    font-weight: 700;
+    padding: 3px 8px;
+    cursor: pointer;
+}
+
+.activity-action:hover {
+    background: #e1efff;
+}
+
+.activity-action.secondary {
+    background: #f8fafc;
+    color: #64748b;
+}
+
+.activity-toggle-option {
+    display: inline-flex;
+    gap: 5px;
+    align-items: center;
+    color: #475569;
+    font-size: 0.74rem;
+    font-weight: 700;
+}
+
+.activity-toggle-option input {
+    margin: 0;
+}
+
+.activity-filter {
+    display: inline-flex;
+    gap: 5px;
+    align-items: center;
+    border: 1px solid #d6e0ec;
+    border-radius: 4px;
+    background: #ffffff;
+    color: #475569;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 2px 8px;
+    cursor: pointer;
+}
+
+.activity-filter span {
+    color: #7b8aa0;
+    font-weight: 600;
+}
+
+.activity-filter.selected {
+    border-color: #8fb3de;
+    background: #e7f1ff;
+    color: #315f9c;
+}
+
+.activity-copy-status {
+    color: #64748b;
+    font-size: 0.74rem;
+    margin-left: 2px;
+}
+
 .activity-empty {
     color: #64748b;
     padding: 8px 2px;

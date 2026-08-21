@@ -1,0 +1,3217 @@
+--- PAGE 1 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+CALCULATION PROCEDURE, IX-D 1 of 55
+DESIGN PRACTICES NO CHANGE OF PHASE
+December, 2001
+Changes shown by ➧
+CONTENTS
+Section Page
+SCOPE............................................................................................................................................................3
+REFERENCES.................................................................................................................................................3
+GENERAL.......................................................................................................................................................3
+COMPUTER PROGRAMS......................................................................................................................3
+SHELL SIDE MANUAL METHOD...........................................................................................................3
+ESTIMATION METHOD..........................................................................................................................3
+EFFECTIVE DESIGN SPECIFICATIONS........................................................................................................4
+DESIGN PARAMETERS.........................................................................................................................4
+RELATIONSHIPS BETWEEN HEAT TRANSFER COEFFICIENTS AND PRESSURE DROPS............4
+MEANS OF INCREASING HEAT TRANSFER WHEN PRESSURE DROP IS LESS THAN THE
+MAXIMUM ALLOWED.............................................................................................................................5
+Tube Side.............................................................................................................................................5
+Shell Side.............................................................................................................................................5
+MEANS OF MOST EFFICIENTLY DECREASING PRESSURE DROP..................................................5
+Tube Side.............................................................................................................................................6
+Shell Side.............................................................................................................................................6
+ESTIMATION METHOD CALCULATION PROCEDURE................................................................................6
+NOMENCLATURE...........................................................................................................................................8
+TABLES
+Table 1A Estimation Method Calculation Form, U.S. Customary Units Shell And
+Tube Heat Exchangers (No Change Of Phase)...........................................................11
+Table 2A Estimation Method Sample Calculation, U.S. Customary Units Shell And
+Tube Heat Exchangers (No Change Of Phase)...........................................................25
+Table 2B Estimation Method Sample Calculation Metric Units Shell And Tube Heat
+Exchangers (No Change Of Phase).............................................................................32
+Table 3 Proration Factors..........................................................................................................39
+Table 4 Design Constants For Shell And Tube Exchanger Calculations..................................40
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 2 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+IX-D 2 of 55 CALCULATION PROCEDURE,
+NO CHANGE OF PHASE DESIGN PRACTICES
+December, 2001
+CONTENTS (Cont)
+Section Page
+FIGURES
+Figure 1.1 Normal Crossflow Fraction.........................................................................................42
+Figure 1.2 Baffle Spacing Correction..........................................................................................42
+Figure 1.3 Low Reynolds Number Correction.............................................................................42
+Figure 1.4 Friction Factor And Heat Transfer “J” Factor..............................................................43
+Figure 1.5 Factor γ* As A Function Of Grashof Number.............................................................44
+ε
+Figure 1.6 Short Tube Correction Factor, .................................................................................45
+Figure 1.7 Low Prandtl Number Correction Factor Ψ..................................................................45
+Figure 1.8 Isothermal Friction Factor Inside Tubes.....................................................................46
+Figure 1.9 Viscosity Gradient Correction Factor.........................................................................47
+Figure 1.10 Natural Convection Correction Factor........................................................................47
+Figure 2 LMTD Correction Factors Illustration Of Shell Arrangements...................................48
+Figure 2A LMTD Correction Factors...........................................................................................49
+Figure 2B LMTD Correction Factors...........................................................................................50
+Figure 2C LMTD Correction Factors...........................................................................................51
+Figure 2D LMTD Correction Factors...........................................................................................52
+Figure 2E LMTD Correction Factors...........................................................................................53
+Figure 2F LMTD Correction Factors...........................................................................................54
+Figure 3 Flow Streams For Stream Analysis Method...............................................................55
+Revision Memo
+12/01 Reaffirmation of previous revision of DP IX-D, December, 1995.
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 3 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+CALCULATION PROCEDURE, IX-D 3 of 55
+DESIGN PRACTICES NO CHANGE OF PHASE
+December, 2001
+SCOPE
+The following subsection presents the recommended procedures for sizing shell and tube heat exchangers in which there is no
+change of phase; i.e., vapor/vapor, vapor/liquid, or liquid/liquid exchangers.
+REFERENCES
+1. Standards of Tubular Exchanger Manufacturer's Association (TEMA).
+2. Heat Transfer Research, Inc. (HTRI) Design Manual.
+3. Heat Transfer Research, Inc. (HTRI) Report S–SS–3–1, Stream Analysis Method for Prediction of Shellside Heat Transfer
+and Pressure Drop in Segmentally-Baffled Exchangers, January 1967.
+4. Heat Transfer Research, Inc. (HTRI) Report S–SS–3–2, Parametric Response Study of Segmentally Baffled Shell and
+Tube Exchanger Performance, September 1967.
+5. Users' Manual for the Hextran computer program.
+GENERAL
+COMPUTER PROGRAMS
+ExxonMobil's heat transfer programs (see Section IX–K) will perform the following calculations for shell and tube heat
+exchangers in which there is no change of phase:
+1. Rating of a dimensionally specified exchanger with or without a given heat duty.
+2. Design of all essential dimensions of an exchanger to specified process and geometric parameters.
+The programs employ the HTRI-developed “Stream Analysis Method" for shell side calculations and refinement of existing
+correlations for tube side calculations.
+The HTRI Stream Analysis Method is the most rigorous means available for calculating shell side pressure drop and heat
+transfer. Although the method is based on theoretically deduced equations, the correlations are empirical because the
+constants in the equations were obtained from experimental data. The most notable features of the Stream Analysis Method
+are:
+1. The ability to predict with reasonable accuracy the amount of flow leaking through baffle clearances and bypassing the
+tube bundle.
+2. The ability to predict accurately the effects of variations in exchanger geometry on heat transfer and pressure drop.
+3. The recognition of a temperature profile distortion effect because leakage streams undergo different temperature changes
+than the cross flow stream.
+4. The demonstrated ability to predict shell side heat transfer and pressure drop over a wide range of geometry and Reynolds
+Number variations.
+SHELL SIDE MANUAL METHOD
+A detailed manual calculation method is presented in the HTRI Design Manual. The procedure is very time-consuming for day-
+to-day use and therefore is not included. The detailed procedure should be referred to only for a more complete understanding
+of the leakage streams and interpretation of the HTRI program outputs.
+ESTIMATION METHOD
+The estimation procedure provides a quick but still fairly accurate method to size an exchanger to meet given process
+requirements within the constraints of the specified pressure drops.
+The estimation method will produce results that are reasonably accurate when all of the following conditions are met:
+1. The tube side is in turbulent flow (Reynolds Number > 10,000) at both the inlet and the outlet. For 10,000 > Reynolds
+Number >2,000 at either inlet or outlet the HTRI computer program using the ten-step option is recommended. For
+Reynolds Number <2,000 at either inlet or outlet, the HTRI computer program is strongly recommended.
+2. Baffle cuts of 20% to 30% (h/D) for segmental baffles or 35% to 45% (area) for double segmental baffles.
+3. Baffle spacing/shell diameter ratio between 0.25 and 0.8.
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 4 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+IX-D 4 of 55 CALCULATION PROCEDURE,
+NO CHANGE OF PHASE DESIGN PRACTICES
+December, 2001
+GENERAL (Cont)
+4. Number of sealing strips: The exchanger has at least one pair of sealing strips for every five to seven tube rows crossed.
+Sealing strips are not required for typically designed fixed tube sheet or U-tube exchangers with horizontal cut baffles. F-
+stream seal rods/bars - The exchanger has F-stream seal rods/bars for every five to seven rows crossed. This is
+especially important for U-tube exchangers when the shell side cross flow passes through the lane formed by the
+innermost U-bends. In this case crisscrossing the inner row of U-bends is highly recommended. For crisscrossed U-
+bends, assume that F-stream seals are used, and note on the specification sheet that the innermost rows should be
+crisscrossed.
+5. Tube pitch ratio (PR) between 1.25 and 1.33.
+Table 1 shows the calculation procedure for the estimation method. A sample calculation is given in Table 2.
+EFFECTIVE DESIGN SPECIFICATIONS
+DESIGN PARAMETERS
+The following general specifications give the most efficient conversion of pressure drop to heat transfer for no-change-of-phase
+heat exchangers.
+1. Tube Length: Various exchanger geometries, that is, various combinations of shell diameters and tube lengths, can be
+found to satisfy given process requirements. The exchanger having the smallest amount of heat transfer surface area is
+not necessarily the most economical solution. The cost of a typical exchanger having a fixed tube diameter, metallurgy,
+and tube pitch can be approximately represented by the following relations as a function of shell diameter and tube length.
+Cost of Exchanger ∝ (Shell Diameter)1.9
+Cost of Exchanger ∝ (Tube Length)0.55
+Based on the equations, for most cases the economical solution would be an exchanger with long tubes and small shell
+diameter. There are, however, some restrictions on the tube length such as bundle pulling facilities, availability of tubes,
+and ease of maintenance. In the absence of specific guidelines, a standard tube length of 20 ft (6090 mm) should be
+used, unless the design is to retrofit an existing plant where a different tube length is standard.
+2. Baffle cut: 20% to 30% for segmental baffles; 35% to 45% for double segmental baffles.
+3. Baffle spacing/shell diameter: 0.3 to 0.5.
+4. Number of sealing strips: The number of pairs of sealing strips per tube row crossed between baffle tips should be about
+0.14 to 0.20, or about 5 to 7 tube rows per pair of sealing strips for floating head exchangers. Sealing strips are needed for
+typically designed fixed tube sheets or U-tube exchangers only when vertical cut baffles are specified.
+5. Tube layout patterns: If inline arrangements are required for cleaning, use a 90° layout for turbulent flow and a 45° layout
+for transition and laminar flow. If mechanical cleaning is not required, use 30° layout for both laminar and turbulent flow.
+Do not use 60° layout since it exhibits inferior heat transfer or pressure drop characteristics when compared to a 30°
+layout.
+RELATIONSHIPS BETWEEN HEAT TRANSFER COEFFICIENTS AND PRESSURE DROPS
+The heat transfer mechanism in the shell and tube heat exchangers is convective heat transfer, whereby a fluid receives or
+supplies heat to a heat transfer surface through a film. The film is perceived as a static fluid (viscous) membrane that coats the
+heat transfer surface; heat is transferred through the film by conduction. Therefore, thicker films provide lower heat transfer
+coefficients, and thinner films provide higher heat transfer coefficients.
+The velocity of the fluid passing over the surface determines the thickness of the film. The higher the velocity, the thinner the
+film, resulting in a larger heat transfer coefficient. The fluid experiences some pressure drop in order to maintain this velocity.
+The pressure drop increases with increased velocity and tube length.
+This description holds for tube side fluids. For shell side fluids, leakage streams complicate the simple model. On the shell
+side of an exchanger, all of the fluid does not pass over the tubes because there are other paths available. Extensive work on
+these leakage streams has been done by HTRI and in the Delaware research projects. An exact evaluation is impossible
+without a computer program because of the various streams present. Figure 3 shows the leakage streams. The C, E and F
+streams bypass the heat transfer surface (tubes) completely. The tube to baffle leakage stream (A) passes over some tubes
+but bypasses others. All of these streams are hydraulically in balance; i.e., the pressure drop from any one point in the shell to
+another is the same. The amount of each leakage stream is determined by using such a hydraulic balance. To complicate
+matters further, a leakage stream mixes with the part of the fluid flowing over the tube bundle at some point. The complexity of
+the flows make complete manual analysis impractical without simplifying assumptions based on test data and experience. The
+estimation method presented here is based on such factors.
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 5 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+CALCULATION PROCEDURE, IX-D 5 of 55
+DESIGN PRACTICES NO CHANGE OF PHASE
+December, 2001
+EFFECTIVE DESIGN SPECIFICATIONS (Cont)
+Table 3 provides satisfactory results in most instances in prorating shell side and tube side heat transfer and pressure drops.
+A well designed exchanger utilizes the pressure drop in a way that maximizes the overall heat transfer coefficient. Arriving at a
+practical and economic solution is an iterative procedure. As a starting point, use the overall coefficients given Table 1 of
+Section IX-B. Calculate the MTD as discussed in the estimation method calculation sheets (As a starting point one may
+( ) ( )
+approximate MTD= T −t x T −t ) to arrive at the approximate required surface for the given service, and then go
+1 2 2 1
+through the estimation procedure, calculating heat transfer and pressure drops. Compare the shell side coefficient, tube side
+coefficient, and (fouling + wall) coefficient. If the shell side coefficient is much smaller than the tube side coefficient, then the
+shell side coefficient is controlling. If the tube side coefficient is much smaller than the shell side coefficient, then the tube side
+coefficient is controlling. If (fouling + wall) coefficient is controlling, then fouling is controlling.
+When fouling is controlling, it generally does not help to utilize all of the allowable pressure drops unless shell size can be
+reduced, or the pressure drop is very much underutilized. (Refer to Section IX-A for a discussion of online cleaning devices
+which can be used to reduce fouling.) When the shell side coefficient is controlling, it helps to maximize shell side pressure
+drop to reduce shell size. Maximizing tube side pressure drop normally does not help. When the tube side coefficient is
+controlling, it helps to maximize tube side pressure drop but not shell side pressure drop. When all the coefficients are in the
+same range, it helps to maximize both shell side and tube side pressure drop.
+MEANS OF INCREASING HEAT TRANSFER WHEN PRESSURE DROP IS
+LESS THAN THE MAXIMUM ALLOWED
+A design with the optimum parameters that satisfies heat transfer requirements but does not use up the total allowable
+pressure drop is considered inefficient. For such cases, one can always make the exchanger smaller by taking one or more of
+the following steps to increase the pressure drop and heat transfer.
+Tube Side
+1. Increase the tube length.
+2. Decrease the tube diameter.
+3. Increase the number of tube passes, up to a maximum as specified in Table 4 of Section IX-C and within the restriction of
+tube side velocities.
+4. Try integral fin tubes, which has the effect of decreased tube diameter on pressure drop only.
+Shell Side
+1. Decrease the shell diameter. This can be done by reducing tube pitch to the minimum allowed by construction practice
+and refinery limitations. Reducing shell diameter without changing tube pitch will result in fewer tubes and thus lower heat
+transfer area. In cases where the exchanger has enough excess surface, this could be the best solution.
+2. Decrease the baffle pitch, but to a point that is never less than 20% shell diameter or 2 in. (50 mm), whichever is smaller.
+3. Try TEMA F type shell if the process parameters and refinery practice permit the use of an F shell. In general, F shells
+should not be used when the shellside pressure drop is greater than 10 psi or the shellside temperature change is greater
+than 350°F (195°C), due to the thermal and hydraulic leakage across the shell partition. A new design for certain U-tube
+exchangers with a welded-in shell partition plate is available but lacks a proven performance record. Consult plant
+maintenance and the Heat Transfer Equipment Section of ER&E regarding the acceptability of an F shell for a given
+application.
+MEANS OF MOST EFFICIENTLY DECREASING PRESSURE DROP
+Sometimes a design requires more surface than is necessary for heat transfer in order to provide sufficient flow area to prevent
+exceeding the allowable pressure drop. Two courses of correction are possible.
+1. Adjust the “allowable" pressure drop. Possibly the pressure drop to which the unit is designed is arbitrarily low and can be
+increased.
+2. Adjust the geometry so as to provide the smallest decrease in heat transfer per unit decrease in pressure drop, by making
+one or more of the following changes:
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 6 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+IX-D 6 of 55 CALCULATION PROCEDURE,
+NO CHANGE OF PHASE DESIGN PRACTICES
+December, 2001
+EFFECTIVE DESIGN SPECIFICATIONS (Cont)
+Tube Side
+a. Decrease the number of tube passes within the limits of minimum tube side velocities. This option should always be
+considered when the number of tube passes is 10 or more or when shell side heat transfer is controlling and the
+number of tube passes is 6 or more. Never decrease the number of tube passes if the result will change the tube side
+flow regime from turbulent to laminar flow, or if the velocities will fall below the minimum required due to fouling or salt
+deposition consideration.
+b. Increase the tube diameter, within practical limits. Normally tubes up to 1-1/2 in. (38.1 mm) diameter (2 in. ( 50.8 mm)
+for carbon steel) are readily available in the market.
+c. Decrease the tube length. This is an attractive option when an exchanger has excess surface. Normally, decrease
+tube length by 2 ft (610 mm) increments for tube lengths over 10 ft (3048 mm), or 1 ft (305 mm) increments for smaller
+tube lengths.
+d. Increase tube I.D. by using a thinner tube wall and a metallurgy with better corrosion resistance. This may be an
+expensive option, but it should be considered when an existing exchanger is retrofitted to avoid even more expensive
+piping changes.
+e. If an exchanger does not have enough excess surface, then increase the shell diameter, within allowable limits set by
+the refinery, normally 60 in. (1525 mm).
+Shell Side
+a. If an exchanger has enough excess surface, consider the following options.
+• Decrease the tube length.
+• Increase the baffle pitch, but to not more than 80% of the shell diameter.
+• Use double segmental baffles.
+• Increase the tube pitch. Note that increasing the tube pitch will reduce the number of tubes for a given shell size
+and will affect tube side heat transfer and pressure drop.
+• Use a TEMA J shell.
+b. If an exchanger does not have enough excess surface then increase the shell diameter within allowable limits set by
+the refinery, normally 60 in. (1525 mm). Note that shell diameter could also be limited by the maximum permissible
+weight.
+c. Other ways of reducing shell side pressure drop, for which calculation methods are not provided in this section
+because they require more complex design procedures include:
+• Use a rod baffle design (useful for large flow rates on shell side).
+• Use a low finned tube design. (Overhead condensers, lube oil product coolers). Refer to Section IX–G.
+• Use a no-tubes-in-the-window designs. (Usually very useful for gas-plant feed effluent exchangers).
+• Use shell side longitudinal flow with or without longitudinal fins.
+• Use a TEMA X shell. (Usually most useful for very large flow rates on the shell side with nozzle sizes > 50% shell
+diameter.).
+If none of the actions listed here will give the desired results, consider the use of units in parallel.
+ESTIMATION METHOD CALCULATION PROCEDURE
+1. Based on the hot and cold fluid conditions select tube metallurgy.
+2. Get fouling factors for the hot and cold fluids from Table 3 of Section IX–B.
+3. Select tube side fluid per page 10 of Section IX–C. Place the other fluid on the shell side.
+4. Determine the heat duty “Q" and/or the missing fluid condition based on a duty balance. The heat received by the cold
+fluid should equal the heat lost by the hot fluid.
+5. Calculate the minimum number of shell passes using the graphical method in Figure 2D of Section IX–B. As a first
+approximation use this number as the number of shells in series, Ns. Assume number of shell is parallel, N = 1.
+p
+6. Based on the tube metallurgy and tube side fouling, determine the tube diameter and the tube wall thickness per pages 4
+and 5 of Section IX–C.
+7. Based on shell side fouling, select the tube pitch and layout, per page 7 of Section IX–C. Check that the selected tube
+wall thickness is acceptable.
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 7 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+CALCULATION PROCEDURE, IX-D 7 of 55
+DESIGN PRACTICES NO CHANGE OF PHASE
+December, 2001
+ESTIMATION METHOD CALCULATION PROCEDURE (Cont)
+8. Select the channel and tube bundle types per pages 6 and 7 of Section IX–C. For the trial use an “E" shell with two tube
+passes.
+9. Select the initial overall heat transfer coefficient “U " from Table 1 of Section IX–B.
+o
+10. Get the single tube external surface per unit length “A " from Table 1 of Section IX–C.
+T
+11. Per step 1 of Table 1A (1B metric) calculate the corrected log mean temperature difference “MTD".
+12. Assume effective tube length “L " to be 19.5 ft (5.95 m) and calculate required number of tubes per bundle “NTT" as
+e
+follows
+Q
+NTT=
+U ⋅MTD⋅Ns⋅Np⋅A ⋅L
+o T e
+13. Start with the maximum permissible shell diameter. Then using Table 5 of Section IX-C get the maximum number of
+tubes per bundle. If this number of tubes calculated is greater than the number calculated in step 12, proceed to step 14.
+Otherwise, increase the number of shells in series, and go back to step 11.
+14. For the initial guess use line size nozzles, and use an impingement plate.
+15. Use proration factors given in Table 3, calculate the shell size, and confirm the number of tubes by calculations per Table
+5 of Section IX–C. Repeat the procedure if required till calculated number of tubes is within ±5% of the number of tubes
+required. This may not be possible for pipe size shells, in which case use the shell size that gives the number of tubes
+closest to the number calculated in step 12. For rolled and welded shells select shell I.D. as an integer number. Use the
+shell diameter, bundle diameter and number of tubes calculated in this step for further calculation of initial trial.
+16. For the initial guess use 25% cut single segmental baffles at a pitch equal to 40% of the bundle diameter.
+17. Using this initial guess go through the complete calculation procedure per Table 1A (1B for metric).
+18. Check nozzle pressure drops, and if excessive, increase nozzle sizes. The limits for maximum nozzle pressure drops are
+as follows:
+a. Shellside Gases - Use 35% of the allowable pressure drop for the inlet & outlet nozzles, total.
+b. Shellside Liquids - Use 15% of the allowable pressure drop for inlet and outlet nozzles, total.
+c. Shellside Nozzle pVn2 value should never exceed TEMA maximum limits.
+d. Tube side inlet and outlet nozzle pressure drop should be less than 40% of the calculated tube side pressure drop for
+a single tube pass unit, or, 35% of the calculated tube side pressure drop for a multiple tube pass unit.
+19. Check the results for overdesign and pressure drop utilization. Follow the guidelines described earlier in this DP and the
+proration factors given in Table 3 to arrive at the optimum design. It may take a few more iterations. While selecting a
+new exchanger during optimization, note the following limitations.
+a. Cooling water velocity inside tubes must meet the requirements of Table 4.
+b. Special requirements for intube velocity, may be applicable, e.g., slurry service.
+c. Maintain Baffle Pitch/Bundle Diameter ratio between 0.25 and 0.8.
+d. Try to maintain turbulent flow on the tube side.
+e. Maintain the tubewall temperature below or above criterion set by fouling or pour point. For example, cooling water or
+waxy services.
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 8 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+IX-D 8 of 55 CALCULATION PROCEDURE,
+NO CHANGE OF PHASE DESIGN PRACTICES
+December, 2001
+NOMENCLATURE
+a = Tube row spacing factor, dimensionless
+A = Total effective heat transfer area, ft2 (m2)
+A = Effective heat transfer area per shell, ft2 (m2)
+s
+A = Single tube outside surface area per unit length ft2/ft (m2/m)
+T
+C = Heat capacity, Btu/lb-°F (kJ/kg-°C)
+p
+DI = Tube I.D., in. (mm)
+DO = Tube O.D., in. (mm)
+DN = Nominal nozzle I.D., in. (mm)
+DOTL = Diameter of bundle outer tube limit, in. (mm)
+DS = Shell I.D., in. (mm)
+DSNI = Shell side inlet nozzle I.D., in. (mm)
+DSNO = Shell side outlet nozzle I.D., in. (mm)
+DTNI = Tube side inlet nozzle I.D., in. (mm)
+DTNO = Tube side outlet nozzle I.D., in. (mm)
+f = Non-isothermal friction factor, dimensionless
+f = Isothermal friction factor, dimensionless
+is
+F = Correction factor for log mean temperature difference, dimensionless
+n
+F = Shell side pressure drop correction factor, dimensionless
+s
+Gr = Grashof Number, dimensionless
+G = Total cross flow mass velocity, lb/hr-ft2 (kg/s-m2)
+xt
+h = Inside film coefficient based on tube outside surface area, Btu/hr-ft2-°F (W/m2- °C)
+io
+h = Outside film coefficient, Btu/hr-ft2--°F (W/m2-°C)
+s
+HF = Shell side friction term, dimensionless
+HM = Shell side momentum term, dimensionless
+j = Stanton Number type heat transfer factor, dimensionless
+k = Thermal conductivity of fluid, Btu/hr-ft2-°F/ft (W/m-°C)
+k = Thermal conductivity of tube wall at average tube temperature, Btu/hr-ft2-°F (W/m-°C)
+w
+K = Tube side pressure drop coefficient, dimensionless
+e
+(cid:1) = Tube wall thickness, in. (mm)
+L = Tube length, ft (m)
+L = Effective tube length, ft (m)
+e
+LBCC = Central baffle pitch, in. (mm)
+LI = Tube flow length, in. (mm)
+LMTD = Log mean temperature difference for true counter current flow, °F (°C)
+m = Shell side flow factor, dimensionless
+MTD = Corrected log mean temperature difference, °F (°C)
+n = Baffle spacing to bundle diameter ratio, dimensionless
+N = Number of tube passes
+N
+p
+= Number of shells in parallel
+N
+s
+= Number of shells in series
+N = Total number of shells
+T
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 9 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+CALCULATION PROCEDURE, IX-D 9 of 55
+DESIGN PRACTICES NO CHANGE OF PHASE
+December, 2001
+NOMENCLATURE (Cont)
+NTP = Number of tube passes per shell
+NTT = Number of tubes in a bundle
+p = Baffle flow factor, dimensionless
+P = Prandtl Number, dimensionless
+r
+PR = Tube pitch ratio, dimensionless
+PT = Tube pitch, in. (mm)
+∆P = Tube entrance, expansion, and turnaround pressure drop, psi (kPa)
+e
+∆P = Total nozzle to nozzle shell side pressure drop, psi (kPa)
+exch
+∆P = Tube side nozzle pressure drop, psi (kPa)
+n
+∆P = Shell side pressure drop (excluding nozzles), psi (kPa)
+s
+∆P = Shell side nozzle pressure drop, psi (kPa)
+sn
+∆P = Tube side frictional pressure drop, psi (kPa)
+t
+(∆P) = Total tube side nozzle pressure drop, psi (kPa)
+tnn
+Q = Rate of heat transfer, Btu/hr (W)
+r = Inside fouling factor referred to inside surface area, hr-ft2-°F/Btu (m2-°C/W)
+I
+r = Inside fouling factor referred to outside surface area, hr-ft2-°F/Btu (m2-°C/W)
+io
+r = Shell side fouling factor, hr-ft2-°F/Btu (m2-°C/W)
+o
+r = Resistance of tube wall at average wall temperature, hr-ft2-°F/Btu (m2-°C/W)
+w
+R = Total resistance (clean) to heat transfer, hr-ft2-°F/Btu (m2-°C/W)
+c
+R = Inside resistance to heat transfer corrected to outside area, hr-ft2-°F/Btu (m2-°C/W)
+io
+R = Outside film resistance to heat transfer, hr-ft2-°F/Btu (m2-°C/W)
+o
+R = Total resistance (duty) to heat transfer, hr-ft2-°F/Btu (m2-°C/W)
+t
+Re = Reynolds Number, dimensionless
+Re = Shell side total flow Reynolds Number, dimensionless
+xt
+Re = Cross flow Reynolds number for heat transfer, dimensionless
+xh
+Re = Cross flow Reynolds Number for pressure drop, dimensionless
+xp
+RC = Reynolds number correction factor, dimensionless
+SC = Baffle spacing correction factor, dimensionless
+S = Tube sheet material allowable stress at design temperature, lb/sq in. (kPa)
+TT
+t = Tube wall thickness, in. (mm)
+t = Inlet temperature of fluid being heated, °F (°C)
+1
+t = Outlet temperature of fluid being heated, °F (°C)
+2
+T = Average wall temperature, °F (°C)
+w
+T = Shell side design temperature, °F (°C)
+DS
+T = Tube side design temperature, °F (°C)
+DT
+T = Tube sheet design temperature, °F (°C)
+M
+T = Inlet temperature of fluid being cooled, °F (°C)
+1
+T = Outlet temperature of fluid being cooled, °F (°C)
+2
+TS = Bulk temperature of shell side fluid, °F (°C)
+b
+TS = Inlet temperature of shell side fluid, °F (°C)
+in
+TS = Outlet temperature of shell side fluid, °F (°C)
+out
+TT = Bulk temperature of tube side fluid, °F (°C)
+b
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 10 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+IX-D 10 of 55 CALCULATION PROCEDURE,
+NO CHANGE OF PHASE DESIGN PRACTICES
+December, 2001
+NOMENCLATURE (Cont)
+TT = Inlet temperature of tube side fluid, °F (°C)
+in
+TT = Outlet temperature of tube side fluid, °F (°C)
+out
+TTT = Total tube sheet thickness, ft (m)
+∆T = Terminal temperature difference, °F (°C)
+a
+∆T = Shell side temperature difference, °F (°C)
+s
+U = Overall clean coefficient of heat transfer, Btu/hr-ft2-°F (W/m2-°C)
+c
+U = Calculated overall fouled coefficient of heat transfer, Btu/hr-ft2-°F (W/m2-°C)
+d
+U = Overall duty coefficient of heat transfer, Btu/hr-ft2-°F (W/m2-°C)
+o
+V = Tube side average nozzle fluid velocity, ft/sec (m/s)
+n
+V
+t
+= Fluid velocity in tubes, ft/sec (m/s)
+W = Tube side mass rate per shell, lb/hr (kg/s)
+W = Shell side mass rate per shell, lb/hr (kg/s)
+s
+β′ = Coefficient of thermal expansion used in Grashof Number, °F-1 (C-1)
+γ* = Natural convection factor, dimensionless
+ε = Short tube laminar flow correction factor, dimensionless
+η = Transitional flow heat transfer proration factor, dimensionless
+λ = Tube length geometry factor, dimensionless
+µ = Viscosity at bulk temperature, centipoise (Pa-S)
+b
+µ = Viscosity at wall temperature, centipoise (Pa-S)
+W
+ξ = Baffle correction factor, dimensionless
+ρ = Density, lb/ft3 (kg/m3)
+ψ = Low Prandtl Number correction factor, dimensionless
+ψ ρ = Natural convection correction factor, dimensionless
+φ = Viscosity correction for wall temperature
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 11 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+CALCULATION PROCEDURE, IX-D 11 of 55
+DESIGN PRACTICES NO CHANGE OF PHASE
+December, 2001
+TABLE 1A
+ESTIMATION METHOD CALCULATION FORM (CUSTOMARY UNITS)
+SHELL AND TUBE HEAT EXCHANGERS (NO CHANGE OF PHASE)
+PROCESS REFINERY AND LOCATION CALC. BY
+EXCHANGER NO. E DATE
+1. Terminal Conditions and MTD
+Fluid Being T 1 = __________, T 2 = __________, T 1 - T 2 = __________, R= T 1 −T 2 =__________
+Cooled t −t
+2 1
+Fluid Being t 2 = ___________, t 1 = ___________, t 2 - t 1 = ___________, P= t 1 −t 1 =__________
+Heated T −t
+1 1
+T - t = _________, T - t = _________, T - t = __________
+1 2 2 1 1 1
+(T −t )−(T −t )
+LMTD= 1 2 2 1 =__________
+(cid:6)T −t (cid:3)
+ln(cid:4) 1 2(cid:1)
+(cid:5)T −t (cid:2)
+2 1
+Ns Np
+F = __________ for ____________ shells in series ____________ shells in parallel
+n
+(Figure 2) __________ for ____________ shells in series ____________ shells in parallel
+__________ for ____________ shells in series ____________ shells in parallel
+MTD = F (LMTD) = ( ) ( ) = ____________.
+n
+= ( ) ( ) = ____________.
+= ( ) ( ) = ____________.
+2. Bulk Temperatures
+Tubeside Fluid (Heated) TT =_______________,TT __________.
+in out
+(Cooled)
+TT + TT
+TT = in out = _______________.
+b
+2
+Shellside (Heated) TS =__________,TS =__________.
+in out
+Fluids (Cooled)
+TS + TS
+TS = in out = ______________.
+b
+2
+Estimated Wall temperature T =TT +0.6(TS −TT )=________________.
+w b b b
+3. Properties of Fluids
+Tubes Shell
+ρ = __________ lb/ft3 __________ lb/ft3
+µ = __________ cP __________ cP
+b
+C p = __________ Btu/lb-°F __________ Btu/lb-°F
+k = __________ Btu/hr-ft2-°F/ft __________ Btu/hr-ft2-°F/ft
+µ = __________ cP __________ cP
+w
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 12 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+IX-D 12 of 55 CALCULATION PROCEDURE,
+NO CHANGE OF PHASE DESIGN PRACTICES
+December, 2001
+TABLE 1A (Cont)
+ESTIMATION METHOD CALCULATION FORM (CUSTOMARY UNITS)
+SHELL AND TUBE HEAT EXCHANGERS (NO CHANGE OF PHASE)
+4. Flow Rates and Names of Fluids
+Tube Shell
+Fluid
+Name/Phase = ______/______ ______/______
+Total Mass rate _____________ lb/hr _____________ lb/hr
+W = Total mass rate/Np = ______ lb/hr W = Total mass rate/Np = ______ lb/hr
+s
+5. Fouling Factors
+r = __________ hr-ft2-°F/Btu
+i
+r
+o
+= _________ hr-ft2-°F/Btu
+6. Mechanical Design Features
+TEMA Type Tubes Shell
+Design Temperature = __________ °F __________ °F
+Design Pressure = __________ psig __________ psig
+Nozzle Size DTNI = __________ in. DSNI = __________ in.
+DTNO = __________ in. DSNO = __________ in.
+7. Exchanger Geometry First Trial Second Trial Third Trial
+Tube O.D. (DO), in. __________ __________ __________
+Tube I.D. (DI), in. __________ __________ __________
+Tube pitch (PT), in. __________ __________ __________
+DO−DI __________ __________ __________
+Tube wall thickness ((cid:1))=
+2
+Tube length (L), ft __________ __________ __________
+Tube flow length (LI), ft __________ __________ __________
+LI = (24) for U tubes
+LI = (12) for all others
+TEMA exchanger type __________ __________ __________
+Single tube area/length, A ,ft2 __________ __________ __________
+T
+(π)(DO) __________ __________ __________
+A =
+T
+12
+Baffle spacing (LBCC), in. __________ __________ __________
+Baffle type (Segmental or Double Segmental) __________ __________ __________
+Bundle Diameter (DOTL), in. __________ __________ __________
+Shell Diameter (DS), in. __________ __________ __________
+Number of tube side passes (NTP) (for U tubes __________ __________ __________
+minimum number is 2)
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 13 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+CALCULATION PROCEDURE, IX-D 13 of 55
+DESIGN PRACTICES NO CHANGE OF PHASE
+December, 2001
+TABLE 1A (Cont)
+ESTIMATION METHOD CALCULATION FORM (CUSTOMARY UNITS)
+SHELL AND TUBE HEAT EXCHANGERS (NO CHANGE OF PHASE)
+8. Iteration, Tube Side First Trial Second Trial Third Trial
+a. Heat Duty = Q = __________ __________ __________
+b. Assumed value of U = __________ __________ __________
+o
+c. A = Q/U (MTD) = __________ __________ __________
+o
+d. A = A/N = __________ __________ __________
+s T
+e. Tube Metal = ______; K = ______, DO = ______ in., DI = ______ in., (cid:1)= ______ in., L = ______ ft
+w
+f. Tube Pitch (PT) and Layout = __________ __________ __________
+g. r = (DO/DI) r = __________ __________ __________
+io i
+h. r = (cid:1)/12k = __________ __________ __________
+w w
+i. NTT = __________ __________ __________
+j. N = NTT/NTP = __________ __________ __________
+W = __________ __________ __________
+k. V =
+t 19.625 ρ N (DI)2
+l. Heat Transfer Coefficient
+6.32 W 124 ρ V (DI) = __________ __________ __________
+(1) Re = = t
+µ (DI) N µ
+b b
+(2) For Water __________ __________ __________
+368 (cid:6)TT (cid:3)0.26
+h = (V DI)0.7 (cid:4) b(cid:1)
+io DO t (cid:5)100(cid:2) =
+(3) Fluids other than water
+2.42 c µ = __________ __________ __________
+p b
+(a) Pr =
+k
+(b)IfRe ≥10,000 = __________ __________ __________
+0.2642 k
+h = Re0.8 Pr0.4φP
+io
+DO
+φP = (µ /µ )0.167forliquids
+b w
+(cid:6)TT + 460(cid:3)0.5
+= (cid:4) (cid:4) b (cid:1) (cid:1) forheating gases
+(cid:5) T + 460 (cid:2)
+w
+=1.0forcooling gases
+(c) If Re < 10,000
+(1) ∆T =  T - TT  = __________ __________ __________
+w b
+1 1
+−
+ρ ρ
+(2) β' = x y = __________ __________ __________
+(t − t )(1/ρ )
+x y av
+(3) Gr = 413(104) (cid:4) (cid:4) (cid:5)
+(cid:6) DI3 ρ
+µ
+2
+2
+β' ∆T
+(cid:1) (cid:1) (cid:2)
+(cid:3)
+= __________ __________ __________
+b
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 14 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+IX-D 14 of 55 CALCULATION PROCEDURE,
+NO CHANGE OF PHASE DESIGN PRACTICES
+December, 2001
+TABLE 1A (Cont)
+ESTIMATION METHOD CALCULATION FORM (CUSTOMARY UNITS)
+SHELL AND TUBE HEAT EXCHANGERS (NO CHANGE OF PHASE)
+8. Iteration, Tube Side (Cont) First Trial Second Trial Third Trial
+(3) Gr = 413(104) (cid:4)
+(cid:6) DI3 ρ2 β' ∆T(cid:1) (cid:3) = __________ __________ __________
+(cid:4) (cid:5) µ 2 (cid:1) (cid:2)
+b
+(d) If Re ≤2000
+(1) From Figure 1.5 determine γ* = __________ __________ __________
+(2) From Figure 1.6 determine ε = __________ __________ __________
+(3) λ = DI/LI + ε = __________ __________ __________
+(4) From Figure 1.7 determine ψ = __________ __________ __________
+(5) h io = 1 D 2 O k (cid:1) (cid:5) (cid:1) (cid:6) (cid:7) 2.5 + 4.5 [(Re + γ*) λ]0.37Pr b 0.17 (cid:11) (cid:11) (cid:12) (cid:13) µ µ w b (cid:8) (cid:8) (cid:9) (cid:10)0.14 (cid:1) (cid:2) (cid:1) (cid:3) (cid:4) ψ
+(e) If 2000 < Re < 10,000
+(1) (h ) @Re=10,000(fromb)) = __________ __________ __________
+io turb
+(2) (h ) @Re=2,000(fromd)) = __________ __________ __________
+io lam
+(3) η = 1.25 - Re/8000 = __________ __________ __________
+(4) h =η (h ) + (1−η)(h ) = __________ __________ __________
+io io lam io turb
+(f) T =TT +U (R )(TS −TT ) = __________ __________ __________
+w b o io b b
+(g) Evaluate (µ /µ )0.14for laminar flow or φP for = __________ __________ __________
+b w
+turbulent flow and make necessary corrections to
+heat transfer coefficients
+m. Pressure Drop
+(1) Nozzle Pressure Drop,
+0.051W = __________ __________ __________
+(a) V =
+n (DTNI)(DTNO)ρ
+ρ V2 = __________ __________ __________
+(b) ∆P = n
+n
+5152
+(2) Entrance, Expansion, and Turn-around
+(a) From Table 4 determine K = __________ __________ __________
+e
+K ρ V2 = __________ __________ __________
+(b) ∆P = e t
+e
+9274
+(3) Frictional Pressure Drop
+(a) From Figure 1.8 evaluate f = __________ __________ __________
+is
+(b) From Figure 1.9 evaluate ϕ = __________ __________ __________
+(c) From Figure 1.10 evaluate ψρ = __________ __________ __________
+(d) f =f is ϕψ ρ = __________ __________ __________
+(e) ∆P = 5.19 f (cid:4) (cid:6)ρ V2 t (NTP)L (cid:1) (cid:3) = __________ __________ __________
+t 103 (cid:4)
+(cid:5)
+DI (cid:1)
+(cid:2)
+(4) (∆P ) = N [∆P + ∆P + (F ) (∆P )] = __________ __________ __________
+t nn s n e t t
+get value of F from Table 4
+t
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 15 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+CALCULATION PROCEDURE, IX-D 15 of 55
+DESIGN PRACTICES NO CHANGE OF PHASE
+December, 2001
+TABLE 1A (Cont)
+ESTIMATION METHOD CALCULATION FORM (CUSTOMARY UNITS)
+SHELL AND TUBE HEAT EXCHANGERS (NO CHANGE OF PHASE)
+9. Iteration, Shell Side First Trial Second Trial Third Trial
+Tube row spacing factor
+a = 1.0 for Square Pitch __________ __________ __________
+a = 0.867 for all others
+Pitch Ratio (PR) = PT/DO __________ __________ __________
+Baff. Space to Bundle Dia. Ratio (n)
+n = LBCC/DOTL __________ __________ __________
+Shell side flow factor (m)
+m = 0.5 for J shell
+m = 2.0 for F shell
+m = 1.0 for E shell __________ __________ __________
+Baffle flow factor (p)
+p = 1.0 for segmental baffles
+p = 0.5 for double-segmental baffles __________ __________ __________
+Baffle Correction Factor (ξ)
+ξ = 1.0 for segmental baffles
+ξ = 0.8 for double-segmental baffles __________ __________ __________
+Estimated tube wall temperature (T ), °F
+w
+T =TS − 0.3 (TS − TT ) __________ __________ __________
+w b b b
+Wall viscosity correction (ϕ)
+ϕ = (µ /µ )0.14 __________ __________ __________
+b w
+Total cross flow mass velocity, (G ),lb/hr−ft2
+xt
+(cid:6) PR (cid:3) (cid:6)(m)(p)(cid:3) (cid:6) W (cid:3)
+G xt = 144 (cid:4) (cid:5)PR − 1 (cid:1) (cid:2) (cid:4) (cid:5) n (cid:1) (cid:2) (cid:4) (cid:4) (cid:5)(DOT s L)2(cid:1) (cid:1) (cid:2)
+__________ __________ __________
+Total flow Reynolds Number (Re )
+xt
+(DO) (G )
+R = xt
+ext (29) (µ b ) __________ __________ __________
+Nominal Crossflow fraction (FFB ) Figure 1.1 __________ __________ __________
+n
+Baffle Spacing Correction (SC) Figure 1.2 __________ __________ __________
+Reynolds Number Correction (RC) Figure 1.3 __________ __________ __________
+Cross flow fraction for pressure drop (FFB )
+p
+FFBp = (FFBn) (SC)(RC) (Maximum = 1.0) __________ __________ __________
+Cross flow Reynolds Number for ∆P (Re )
+xp
+(Re = (Re ) (FFB ) __________ __________ __________
+xp xt p
+Shell side friction for factor (f) Figure 1.4 __________ __________ __________
+Cross flow fraction for heat transfer (FFB )
+h
+FFB = FFB + 0.125 (Maximum = 1.0) __________ __________ __________
+h p
+Cross flow Reynolds Number for heat transfer (Re )
+xh
+Re = (Re ) (FFB ) __________ __________ __________
+xh xt h
+Shell side heat transfer factor (j) Figure 1.4 __________ __________ __________
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 16 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+IX-D 16 of 55 CALCULATION PROCEDURE,
+NO CHANGE OF PHASE DESIGN PRACTICES
+December, 2001
+TABLE 1A (Cont)
+ESTIMATION METHOD CALCULATION FORM (CUSTOMARY UNITS)
+SHELL AND TUBE HEAT EXCHANGERS (NO CHANGE OF PHASE)
+9. Iteration, Shell Side (Cont) First Trial Second Trial Third Trial
+Shell side film coefficient (h ) Btu/hr-ft2-°F
+s
+(cid:6) (cid:3)2/3
+h = (0.415)(C )(G )(FFB )(j) (cid:4) k (cid:1) (φ)(ξ) __________ __________ __________
+s p xt h (cid:4)(cid:5)(C
+p
+)(µ)(cid:1)(cid:2)
+Shell side Fraction Term (HF)
+(cid:12) (f)(L)(m)(12) (cid:9) (cid:6)1(cid:3)
+HF = 0.00875 (cid:10) (cid:11)(a)(PR)(DO)(n) (cid:7) (cid:8) (cid:4) (cid:4) (cid:5)φ (cid:1) (cid:1) (cid:2) F s
+__________ __________ __________
+(F from Table 4)
+s
+Shell side momentum term (HM)
+(cid:6)(L)(m)(12) (cid:3)
+HM = 0.0168(n)2.6 (cid:4) − 1.0(cid:1)
+(cid:5)(n)(DOTL) (cid:2) __________ __________ __________
+Shell side pressure drop without Nozzle (∆P ), psi
+s
+∆P s = (0.3)[H ρ F +H M ] (cid:10) (cid:11) (cid:12)(G x 1 t 0 )( 0 F 0 F 0 B p ) (cid:7) (cid:8) (cid:9)2 (cid:4) (cid:4) (cid:5) (cid:6) ξ 1 (cid:1) (cid:1) (cid:2) (cid:3) __________ __________ __________
+Nominal shell nozzle I.D. (DN), in.
+DN = (DSNI)(DSNO) __________ __________ __________
+Shell side nozzle pressure drop (∆P ), psi
+SSN
+(cid:6) (cid:3)2
+0.84 W
+∆P = (cid:4) s (cid:1) __________ __________ __________
+SN ρ (cid:4)(cid:5)(1000)(DN)2(cid:1)(cid:2)
+Total shell pressure drop (∆P ), psi
+exch
+∆P = N [∆P +∆P ] __________ __________ __________
+exch S S SN
+Calculated Tube wall temperature (T ), °F
+w
+T w = TS b − U o(cid:4) (cid:4)
+(cid:6)1.0
+(cid:1) (cid:1)
+(cid:3)
+(TS b − TT b ) __________ __________ __________
+(cid:5) h (cid:2)
+s
+Calculated viscosity correction (φ)
+φ = (µ /µ )0.14 __________ __________ __________
+b w
+Using calculated value of φ correct h & ∆P __________ __________ __________
+s S
+10. Overall calculations
+Inside resistance referred to outside area (R ), hr-ft2-°F/Btu
+io
+R = 1/h __________ __________ __________
+io io
+Outside resistance (R ), hr-ft2-°F/Btu
+o
+R = 1/h __________ __________ __________
+o s
+Total clean resistance (R ), hr-ft2-°F/Btu
+c
+R =R +R +r __________ __________ __________
+c io o w
+Calculated overall clean coefficient (U ), hr-ft2-°F/Btu
+c
+U =1/R __________ __________ __________
+c c
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 17 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+CALCULATION PROCEDURE, IX-D 17 of 55
+DESIGN PRACTICES NO CHANGE OF PHASE
+December, 2001
+TABLE 1A (Cont)
+ESTIMATION METHOD CALCULATION FORM (CUSTOMARY UNITS)
+SHELL AND TUBE HEAT EXCHANGERS (NO CHANGE OF PHASE)
+10. Overall calculations (Cont) First Trial Second Trial Third Trial
+Calculated overall fouled coefficient (U ), Btu/hr-ft2-°F
+D
+1 __________ __________ __________
+U =
+D R + R + r + r + r
+io o w o io
+Tubesheet thickness (TTT), ft
+(C )(DS + 2.5)(P/S )0.5 + 1.0 __________ __________ __________
+TTT = 1 TT
+12.0
+C = 0.625 for U-tubes, 10 for all others
+1
+P = higher of shell side or tube side design pressure.
+Effective tube length (L ), ft
+e
+__________ __________ __________
+L = L − TTT
+e
+Effective heat transfer area per shell (A ), ft2
+s
+A = (NTT)(L )(A ) __________ __________ __________
+s e T
+Total effective heat transfer area (A), ft2
+A = (A )(N ) __________ __________ __________
+s T
+Overall duty coefficient (U ), Btu/hr-ft2-°F)
+o
+Q __________ __________ __________
+U =
+o
+(A)(MTD)
+U − U __________ __________ __________
+% Overdesign = D o x 100
+U
+o
+11. Tubesheet design temperature
+(Normally required for Copper alloys)
+a. For coolers. (Cooling Water on tube side)
+(1) Clean conditions, °F
+R __________ __________ __________
+T = T + io (T − T )
+M DT DS DT
+R
+c
+(2) Fouled conditions, °F
+T =T +U (R +r )(T −T ) __________ __________ __________
+M DT o io io DS DT
+(3) Controlling case, °F
+Larger of the clean or fouled __________ __________ __________
+b. For exchanges
+(1) Tube side fluid being cooled
+T = T − 0.1(T − T ) __________ __________ __________
+M DT DT DS
+(2) Shell side fluid being cooled
+T = T + 0.3(T − T ) __________ __________ __________
+M DT DS DT
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 18 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+IX-D 18 of 55 CALCULATION PROCEDURE,
+NO CHANGE OF PHASE DESIGN PRACTICES
+December, 2001
+TABLE 1B
+ESTIMATION METHOD CALCULATION FORM (METRIC UNITS)
+SHELL AND TUBE HEAT EXCHANGERS (NO CHANGE OF PHASE)
+PROCESS REFINERY AND LOCATION CALC. BY
+EXCHANGER NO. E DATE
+1. Terminal Conditions and MTD
+Fluid Being T 1 = __________, T 2 = __________, T 1 - T 2 = __________, R= T 1 −T 2 =__________
+Cooled t −t
+2 1
+Fluid Being t 2 = ___________, t 1 = ___________, t 2 - t 1 = ___________, P= t 2 −T 1=__________
+Heated T −t
+1 1
+T - t = _________, T - t = _________, T - t = __________
+1 2 2 1 1 1
+(T −t )−(T −t )
+LMTD= 1 2 2 1 =__________
+(cid:6)T −t (cid:3)
+ln(cid:4) 1 2(cid:1)
+(cid:5)T −t (cid:2)
+2 1
+Ns Np
+F = __________ for ____________ shells in series ____________ shells in parallel
+n
+(Figure 2) __________ for ____________ shells in series ____________ shells in parallel
+__________ for ____________ shells in series ____________ shells in parallel
+MTD = F (LMTD) = ( ) ( ) = ____________.
+n
+= ( ) ( ) = ____________.
+= ( ) ( ) = ____________.
+2. Bulk Temperatures
+Tubeside Fluid (Heated) TT =_______________,TT __________.
+in out
+(Cooled)
+TT +TT
+TT = in out =___________________.
+b
+2
+Shellside (Heated) TS =__________,TS =______________.
+in out
+Fluids (Cooled)
+TS +TS
+TS = in out =__________________.
+b
+2
+Estimated Wall temperature T =TT +0.6(TS −TT )=______________________.
+w b b b
+3. Properties of Fluids
+Tubes Shell
+ρ = __________ (kg/m3) __________ (kg/m3)
+µ = __________ Pa - s __________ Pa - s
+b
+C p = __________ kJ/kg - °C __________ kJ/kg - °C
+k = __________ W/m - °C __________ W/m - °C
+µ = __________ Pa - s __________ Pa - s
+w
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 19 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+CALCULATION PROCEDURE, IX-D 19 of 55
+DESIGN PRACTICES NO CHANGE OF PHASE
+December, 2001
+TABLE 1B (Cont)
+ESTIMATION METHOD CALCULATION FORM (METRIC UNITS)
+SHELL AND TUBE HEAT EXCHANGERS (NO CHANGE OF PHASE)
+4. Flow Rates and Names of Fluids
+Tube Shell
+Fluid
+Name/Phase = ______/______ ______/______
+Total Mass rate _____________ kg/s _____________ kg/s
+W = Total mass rate/Np = ______ kg/s W = Total mass rate/Np = ______ kg/s
+s
+5. Fouling Factors
+r = __________ m2 - °C/W
+i
+r
+o
+= _________ m2 - °C/W
+6. Mechanical Design Features
+TEMA Type Tubes Shell
+Design Temperature = __________ °C __________ °C
+Design Pressure = __________ kPa __________ kPa
+Nozzle Size DTNI = __________ mm DSNI = __________ mm
+DTNO = __________ mm DSNO = __________ mm
+7. Exchanger Geometry First Trial Second Trial Third Trial
+Tube O.D. (DO), mm __________ __________ __________
+Tube I.D. (DI), mm __________ __________ __________
+Tube pitch (PT), mm __________ __________ __________
+DO−DI __________ __________ __________
+Tube wall thickness ((cid:1))=
+2
+Tube length (L), m __________ __________ __________
+Tube flow length (LI), mm __________ __________ __________
+LI = (2000) L for U tubes
+LI = (1000) L for all others
+TEMA exchanger type __________ __________ __________
+Single tube area/length, A ,m2/m __________ __________ __________
+T
+(π)(DO) __________ __________ __________
+A =
+T
+1000
+Baffle spacing (LBCC), mm __________ __________ __________
+Baffle type (Segmental or Double Segmental) __________ __________ __________
+Bundle Diameter (DOTL),mm __________ __________ __________
+Shell Diameter (DS), mm __________ __________ __________
+Number of tube side passes (NTP) __________ __________ __________
+(for U tubes minimum number is 2)
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 20 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+IX-D 20 of 55 CALCULATION PROCEDURE,
+NO CHANGE OF PHASE DESIGN PRACTICES
+December, 2001
+TABLE 1B (Cont)
+ESTIMATION METHOD CALCULATION FORM (METRIC UNITS)
+SHELL AND TUBE HEAT EXCHANGERS (NO CHANGE OF PHASE)
+8. Iteration, Tube Side First Trial Second Trial Third Trial
+= __________ __________ __________
+= __________ __________ __________
+= __________ __________ __________
+= __________ __________ __________
+e. Tube Metal = ______; K = ______, DO = ______ mm, DI = ______ mm, (cid:1)= ______ mm, L = ______ m
+w
+f. Tube Pitch (PT) and Layout = __________ __________ __________
+g. r =(DO/D) r = __________ __________ __________
+io i
+( )
+h. r = 1000 k = __________ __________ __________
+w w
+i. NTT = __________ __________ __________
+j. N = NTT/NTP = __________ __________ __________
+W ×1.273 ×106 = __________ __________ __________
+k. V =
+t ρN(DI)2
+l. Heat Transfer Coefficient
+(1) Re = 1273W = ρV t (DI) ×10 −3 = __________ __________ __________
+µ (DI)N µ
+b b
+(2) For Water __________ __________ __________
+( )
+1.27 ×104 (cid:6)1.8TT + 32(cid:3)0.26
+h = (VDI)0.7(cid:4) b (cid:1)
+io DO t (cid:5) 100 (cid:2) =
+(3) Fluids other than water
+(a) Pr = c p µ b ×103 = __________ __________ __________
+k
+(b) IfRe ≥ 10,000 = __________ __________ __________
+22k
+h = Re0.8 Pr0.4φP
+io
+DO
+φP = (µ /µ )0.167for liquids
+b w
+(cid:6)TT + 273(cid:3)0.5
+= (cid:4) (cid:4) b (cid:1) (cid:1) for heating gases
+(cid:5) T + 273 (cid:2)
+w
+= 1.0 for cooling gases
+(c) If Re < 10,000
+(1) ∆T =  T - TT  = __________ __________ __________
+w b
+1 − 1 = __________ __________ __________
+ρ ρ
+(2) β' = x y
+(t − t )(1/ρ )
+x y av
+(3) Gr = 9•82 (10 −9) (cid:4)
+(cid:6) DI3ρ2β'∆T(cid:1) (cid:3) = __________ __________ __________
+(cid:4) (cid:5) µ 2 (cid:1) (cid:2)
+b
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 21 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+CALCULATION PROCEDURE, IX-D 21 of 55
+DESIGN PRACTICES NO CHANGE OF PHASE
+December, 2001
+TABLE 1B (Cont)
+ESTIMATION METHOD CALCULATION FORM (METRIC UNITS)
+SHELL AND TUBE HEAT EXCHANGERS (NO CHANGE OF PHASE)
+8. Iteration, Tube Side (Cont) First Trial Second Trial Third Trial
+(d) If Re ≤ 2000
+(1) From Figure 1.5 determine γ* = __________ __________ __________
+(2) From Figure 1.6 determine ε = __________ __________ __________
+(3) λ = DI/LI + ε = __________ __________ __________
+(4) From Figure 1.7 determine ψ = __________ __________ __________
+(5) h io = 1 D 0 O 3k (cid:1) (cid:5) (cid:1) (cid:6) (cid:7) 2.5 + 4.5[(Re + γ*)λ]0.37Pr b 0.17 (cid:11) (cid:11) (cid:12) (cid:13) µ µ w b (cid:8) (cid:8) (cid:9) (cid:10)0.14 (cid:1) (cid:2) (cid:1) (cid:3) (cid:4) ψ
+(e) If 2000 < Re < 10,000
+(1) (h ) @ Re = 10,000(fromb)) = __________ __________ __________
+io turb
+(2) (h ) @ Re = 2,000(fromd)) = __________ __________ __________
+io lam
+(3) η = 1.25-Re/8000 = __________ __________ __________
+(4) h = η(h ) + (1− η)(h ) = __________ __________ __________
+io io lam io turb
+(f) T = TT + U (R )(TS − TT ) = __________ __________ __________
+w b o io b b
+(g) Evaluate (µ /µ )0.14for laminar flow or φP for = __________ __________ __________
+b w
+turbulent flow and make necessary corrections to
+heat transfer coefficients
+m. Pressure Drop
+(1) Nozzle Pressure Drop
+1.273W ×106 = __________ __________ __________
+(a) V =
+n (DTNI)(DTNO)ρ
+ρV2 = __________ __________ __________
+(b) ∆P = n
+n
+1112
+(2) Entrance, Expansion, and Turn-around
+(a) From Table 4 determine K = __________ __________ __________
+e
+K ρV2 = __________ __________ __________
+(b) ∆P = e t
+e
+2000
+(3) Frictional Pressure Drop
+(a) From Figure 1.8 evaluate f = __________ __________ __________
+is
+(b) From Figure 1.9 evaluate ϕ = __________ __________ __________
+(c) From Figure 1.10 evaluate ψρ = __________ __________ __________
+(d) f =f is ϕψ ρ = __________ __________ __________
+(cid:6)ρV2(NTP)L (cid:3) = __________ __________ __________
+(e) ∆P = 2f(cid:4) t (cid:1)
+t (cid:4) DI (cid:1)
+(cid:5) (cid:2)
+(4) (∆P) = N [∆P + ∆P + (F)(∆P)] = __________ __________ __________
+t nn s n e t t
+get value of F from Table 4
+t
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 22 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+IX-D 22 of 55 CALCULATION PROCEDURE,
+NO CHANGE OF PHASE DESIGN PRACTICES
+December, 2001
+TABLE 1B (Cont)
+ESTIMATION METHOD CALCULATION FORM (METRIC UNITS)
+SHELL AND TUBE HEAT EXCHANGERS (NO CHANGE OF PHASE)
+9. Iteration, Shell Side First Trial Second Trial Third Trial
+Tube row spacing factor
+a = 1.0 for Square Pitch
+a = 0.867 for all others
+Pitch Ratio (PR) = PT/DO __________ __________ __________
+Baff. Space to Bundle Dia. Ratio (n)
+n = LBCC/DOTL __________ __________ __________
+Shell side flow factor (m)
+m = 0.5 for J shell
+m = 2.0 for F shell
+m = 1.0 for E shell
+__________ __________ __________
+Baffle flow factor (p)
+p = 1.0 for segmental baffles
+p = 0.5 for double-segmental baffles
+__________ __________ __________
+Baffle Correction Factor (ξ)
+ξ = 1.0 for segmental baffles
+ξ = 0.8 for double-segmental baffles __________ __________ __________
+Estimated tube wall temperature (T ), °C
+w
+T =TS −0.3(TS −TT ) __________ __________ __________
+w b b b
+Wall viscosity correction (ϕ)
+ϕ = (µ /µ )0.14 __________ __________ __________
+b w
+Total cross flow mass velocity, (G ),kg/s−m2
+xt
+(cid:6) PR (cid:3)(cid:6)(m)(p)(cid:3)(cid:6) W (cid:3)
+G xt = 106(cid:4) (cid:5)PR−1 (cid:1) (cid:2) (cid:4) (cid:5) n (cid:1) (cid:2)(cid:4) (cid:4) (cid:5)(DOT s L)2(cid:1) (cid:1) (cid:2)
+__________ __________ __________
+Total flow Reynolds Number (Re )
+xt
+Re = (DO) (G xt ) ×10 −3
+xt (µ ) __________ __________ __________
+b
+Nominal Crossflow fraction (FFB ) Figure 1.1 __________ __________ __________
+n
+Baffle Spacing Correction (SC) Figure 1.2 __________ __________ __________
+Reynolds Number Correction (RC) Figure 1.3 __________ __________ __________
+Cross flow fraction for pressure drop (FFB )
+p
+FFB = (FFB ) (SC)(RC) (Maximum = 1.0) __________ __________ __________
+p n
+Cross flow Reynolds Number for ∆P (Re )
+xp
+(Re = (Re )(FFB ) __________ __________ __________
+xp xt p
+Shell side friction for factor (f) Figure 1.4 __________ __________ __________
+Cross flow fraction for heat transfer (FFB )
+h
+FFB = FFB + 0.125 (Maximum = 1.0) __________ __________ __________
+h p
+Cross flow Reynolds Number for heat transfer (Re )
+xh
+Re = (Re )(FFB ) __________ __________ __________
+xh xt h
+Shell side heat transfer factor (j) Figure 1.4 __________ __________ __________
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 23 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+CALCULATION PROCEDURE, IX-D 23 of 55
+DESIGN PRACTICES NO CHANGE OF PHASE
+December, 2001
+TABLE 1B (Cont)
+ESTIMATION METHOD CALCULATION FORM (METRIC UNITS)
+SHELL AND TUBE HEAT EXCHANGERS (NO CHANGE OF PHASE)
+9. Iteration, Shell Side (Cont) First Trial Second Trial Third Trial
+Shell side film coefficient (h ) W/m2-°C
+s
+(cid:6) (cid:3)2/3
+h = (7.5)(C )(G )(FFB )(j)(cid:4) k (cid:1) (φ)(ξ) __________ __________ __________
+s p xt h (cid:4)(cid:5)(C
+p
+)(µ)(cid:1)(cid:2)
+Shell side Fraction Term (HF)
+( )
+(cid:12) f (L)(m)(1000)(cid:9)(cid:6)1(cid:3)
+HF = 0.00875(cid:10)
+(cid:11)
+(
+a
+)
+(PR)(DO)
+(
+n
+)(cid:7)
+(cid:8)
+(cid:4) (cid:4)
+(cid:5)
+φ(cid:1) (cid:1)
+(cid:2)
+F s
+__________ __________ __________
+(F from Table 4)
+s
+Shell side momentum term (HM)
+(cid:6)(L)(m)(1000) (cid:3)
+HM = 0.0168(n)2.6(cid:4) − 1.0(cid:1)
+(cid:5) (n)(DOTL) (cid:2) __________ __________ __________
+Shell side pressure drop without Nozzle (∆P ), kPa
+s
+(0.18)[H +H ] [ ] (cid:6)1(cid:3)
+∆P s = ρ F M (G xt )(FFB p ) 2 (cid:4) (cid:4) (cid:5) ξ(cid:1) (cid:1) (cid:2) __________ __________ __________
+Nominal shell nozzle I.D. (DN), mm
+DN = (DSNI)(DSNO) __________ __________ __________
+Shell side nozzle pressure drop (∆P ), kPa
+SN
+24.31
+(cid:6)
+W
+×104(cid:3)2
+∆P = (cid:4) s (cid:1) __________ __________ __________
+SN ρ (cid:4)(cid:5) (DN)2 (cid:1)(cid:2)
+Total shell pressure drop (∆P ), kPa
+exch
+∆P = N [∆P + ∆P ] __________ __________ __________
+exch S S SN
+Calculated Tube wall temperature (T ), °C
+w
+T w = TS b − U o(cid:4) (cid:4)
+(cid:6)1.0
+(cid:1) (cid:1)
+(cid:3)
+(TS b − TT b ) __________ __________ __________
+(cid:5) h (cid:2)
+s
+Calculated viscosity correction (φ)
+φ = (µ /µ )0.14 __________ __________ __________
+b w
+Using calculated value of φ correct h & ∆P __________ __________ __________
+s S
+10. Overall calculations
+Inside resistance referred to outside area (R ), m2-°C/W
+io
+R =1/h __________ __________ __________
+io io
+Outside resistance (R ), m2-°C/W
+o
+R =1/h __________ __________ __________
+o s
+Total clean resistance (R ), m2-°C/W
+c
+R =R +R +r __________ __________ __________
+c io o w
+Calculated overall clean coefficient (U ), W/m2-°C)
+c
+U =1/R __________ __________ __________
+c c
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 24 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+IX-D 24 of 55 CALCULATION PROCEDURE,
+NO CHANGE OF PHASE DESIGN PRACTICES
+December, 2001
+TABLE 1B (Cont)
+ESTIMATION METHOD CALCULATION FORM (METRIC UNITS)
+SHELL AND TUBE HEAT EXCHANGERS (NO CHANGE OF PHASE)
+10. Overall calculations (Cont) First Trial Second Trial Third Trial
+Calculated overall fouled coefficient (U ), W/m2-°C
+D
+1 __________ __________ __________
+U =
+D R +R +r +r +r
+io o w o io
+Tubesheet thickness (TTT), m
+(C )(DS+64)(P/S )0.5+25.0 __________ __________ __________
+TTT= 1 TT
+1000
+C = 0.625 for U-tubes, 1.0 for all others
+1
+P = higher of shell side or tube side design pressure.
+Effective tube length (L ), m
+e
+__________ __________ __________
+L =L−TTT
+e
+Effective heat transfer area per shell (A ), m2
+s
+A =(NTT)(L )(A ) __________ __________ __________
+s e T
+Total effective heat transfer area (A), m2
+A=(A )(N ) __________ __________ __________
+s T
+Overall duty coefficient (U ), W/m2-°C)
+o
+Q __________ __________ __________
+U =
+o
+(A)(MTD)
+U −U __________ __________ __________
+% Overdesign = D o x100
+U
+o
+11. Tubesheet design temperature
+(Normally required for Copper alloys)
+a. For coolers. (Cooling Water on tube side)
+(1) Clean conditions, °C
+R __________ __________ __________
+T =T + io (T −T )
+M DT DS DT
+R
+c
+(2) Fouled conditions, °C
+T =T +U (R +r )(T −T ) __________ __________ __________
+M DT o io io DS DT
+(3) Controlling case, °C
+Larger of the clean or fouled __________ __________ __________
+b. For exchanges
+(1) Tube side fluid being cooled
+T =T −0.1(T −T ) __________ __________ __________
+M DT DT DS
+(2) Shell side fluid being cooled
+T =T +0.3(T −T ) __________ __________ __________
+M DT DS DT
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 25 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+CALCULATION PROCEDURE, IX-D 25 of 55
+DESIGN PRACTICES NO CHANGE OF PHASE
+December, 2001
+TABLE 2A
+ESTIMATION METHOD SAMPLE CALCULATION (CUSTOMARY UNITS)
+SHELL AND TUBE HEAT EXCHANGERS (NO CHANGE OF PHASE)
+PROCESS Trim Cooler REFINERY AND LOCATION CALC. BY
+EXCHANGER NO. E - X (Existing Check Rate) DATE
+1. Terminal Conditions and MTD
+Fluid Being T 1 = 149 , T 2 = 104 , T 1 - T 2 = 45 , R= T 1 −T 2 = 45 = 2.5
+Cooled t −t 18
+2 1
+Fluid Being t 2 = 104 , t 1 = 86 , t 2 - t 1 = 18 , P= t 2 −T 1= 18 = 0.286
+Heated T −t 63
+1 1
+T - t = 45 , T - t = 18 , T - t = 63
+1 2 2 1 1 1
+( ) ( )
+(T −t )−(T −t ) 45 − 18
+LMTD= 2 2 2 1 = = 29.5
+(cid:12)T −t (cid:9) (cid:6)45(cid:3)
+ln(cid:10) 1 2(cid:7) ln(cid:4) (cid:1)
+(cid:11)T −t (cid:8) (cid:5)18(cid:2)
+2 1
+Ns Np
+F = 0.8 for 1 shells in series 1 shells in parallel
+n
+( Figure 2 ) __________ for ____________ shells in series ___________ shells in parallel
+__________ for ____________ shells in series ___________ shells in parallel
+MTD = F (LMTD) = ( 0.8 ) (29.5) = 23.6 .
+n
+= ( ) ( ) = ____________.
+= ( ) ( ) = ____________.
+2. Bulk Temperatures
+Tubeside Fluid: (Heated) TT = 86 , TT = 104 .
+in out
+(Cooled) TT +TT
+TT = in out = 95 .
+b
+2
+Shellside Fluid: (Heated) TS = 149 , TS = 104 .
+in out
+(Cooled) TS +TS
+TS = in out = 126.5 .
+b
+2
+Estimated Wall temperature T =TT +0.6(TS −TT )= 114 .
+w b b b
+3. Properties of Fluids
+Tubes Shell
+ρ = 62 lb/ft3 46.8 lb/ft3
+µ = 0.74 cP 0.8 cP
+b
+C p = 1.0 Btu/lb-°F 0.54 Btu/lb-°F
+k = 0.358 Btu/hr-ft2-°F/ft 0.072 Btu/hr-ft2-°F/ft
+µ = 0.69 cP 0.81 cP
+w
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 26 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+IX-D 26 of 55 CALCULATION PROCEDURE,
+NO CHANGE OF PHASE DESIGN PRACTICES
+December, 2001
+TABLE 2A (Cont)
+ESTIMATION METHOD SAMPLE CALCULATION (CUSTOMARY UNITS)
+SHELL AND TUBE HEAT EXCHANGERS (NO CHANGE OF PHASE)
+4. Flow Rates and Names of Fluids
+Tube Shell
+Fluid
+Name/Phase = WATER/LIQUID HCBN/LIQUID
+Total Mass rate 268,000 lb/hr 198,410 lb/hr
+W = Total mass rate/Np = 268,000 lb/hr W = Total mass rate/Np = 198,410 lb/hr
+s
+5. Fouling Factors
+r = __0.002_ hr-ft2-°F/Btu
+i
+r
+o
+= _0.003_ hr-ft2-°F/Btu
+6. Mechanical Design Features
+TEMA Type Tubes Shell
+Design Temperature = 160 °F 200 °F
+Design Pressure = 100 psig 200 psig
+Nozzle Size DTNI = 5.761 in. DSNI = 5.761 in.
+DTNO = 5.761 in. DSNO = 5.761 in.
+7. Exchanger Geometry First Trial Second Trial Third Trial
+Tube O.D. (DO), in. 0.72 __________ __________
+Tube I.D. (DI), in. 0.62 __________ __________
+Tube pitch (PT), in. 1.0 __________ __________
+DO−DI 0.065 __________ __________
+Tube wall thickness ((cid:1))=
+2
+Tube length (L), ft 20 __________ __________
+Tube flow length (LI), ft 240 __________ __________
+LI = (24) L for U tubes
+LI = (12) L for all others
+TEMA exchanger type AES __________ __________
+Single tube area/length, A ,ft2 0.1963 __________ __________
+T
+(π)(DO)
+A =
+T
+12
+Baffle spacing (LBCC), in. 7.0 __________ __________
+Baffle type (Segmental or Double Segmental) SEGMENTAL __________ __________
+Bundle Diameter (DOTL), in. 31.25 __________ __________
+Shell Diameter (DS), in. 33.0 __________ __________
+Number of tube side passes (NTP) (for U tubes 6 __________ __________
+minimum number is 2)
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 27 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+CALCULATION PROCEDURE, IX-D 27 of 55
+DESIGN PRACTICES NO CHANGE OF PHASE
+December, 2001
+TABLE 2A (Cont)
+ESTIMATION METHOD SAMPLE CALCULATION (CUSTOMARY UNITS)
+SHELL AND TUBE HEAT EXCHANGERS (NO CHANGE OF PHASE)
+8. Iteration, Tube Side First Trial Second Trial Third Trial
+a. Heat Duty = Q = 4,824,000 __________ __________
+b. Assumed value of U = 80 __________ __________
+o
+c. A = Q/U (MTD) = 2555 __________ __________
+o
+d. A = A/N = 2555 __________ __________
+s T
+e. Tube Metal = CuNi ; K = 18 , DO = 0.75 in., DI = 0.62 in., (cid:1)= 0.065 in., L = 20 ft
+w
+f. Tube Pitch (PT) and Layout = 1.0 SQUARE __________ __________
+g. r =(DO/DI) r = 0.00242 __________ __________
+io i
+h. r =(cid:1)/12k = 0.0003 __________ __________
+w w
+i. NTT = 690 __________ __________
+j. N = NTT/NTP = 115 __________ __________
+W = 4.98 __________ __________
+k. V =
+t 19.625ρN(DI)2
+l. Heat Transfer Coefficient
+6.32W 124ρV (DI) = 32,077 __________ __________
+(1) Re= = t
+µ (DI)N µ
+b b
+(2) For Water 1066 __________ __________
+368 (cid:6)TT (cid:3)0.26
+h io = DO (V t DI)0.7(cid:4) (cid:5)100 b(cid:1) (cid:2) =
+(3) Fluids other than water = —
+2.42c µ = — __________ __________
+p b
+(a) Pr =
+k
+(b) IfRe≥10,000 = — __________ __________
+0.2642k
+h = Re0.8 Pr0.4φP
+io
+DO
+φP = (µ /µ )0.167forliquids
+b w
+(cid:6)TT +460(cid:3)0.5
+= (cid:4) (cid:4) b (cid:1) (cid:1) forheating gases
+(cid:5) T +460 (cid:2)
+w
+= 1.0forcooling gases
+(c) If Re < 10,000
+(1) ∆T =  T - TT  = — __________ __________
+w b
+1 1
+−
+ρ ρ = — __________ __________
+(2) β' = x y
+(t − t )(1/ρ )
+x y av
+(3) Gr=4.13(104) (cid:4)
+(cid:6) DI3ρ2β'∆T(cid:1) (cid:3) =
+— — ---
+(cid:4) (cid:5) µ 2 (cid:1) (cid:2)
+b
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 28 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+IX-D 28 of 55 CALCULATION PROCEDURE,
+NO CHANGE OF PHASE DESIGN PRACTICES
+December, 2001
+TABLE 2A (Cont)
+ESTIMATION METHOD SAMPLE CALCULATION (CUSTOMARY UNITS)
+SHELL AND TUBE HEAT EXCHANGERS (NO CHANGE OF PHASE)
+8. Iteration, Tube Side (Cont) First Trial Second Trial Third Trial
+(d) If Re ≤2000
+(1) From Figure 1.5 determine γ* = — __________ __________
+(2) From Figure 1.6 determine ε = — __________ __________
+(3) λ = DI/LI + ε = — __________ __________
+(4) From Figure 1.7 determine ψ = — __________ __________
+(5) h io = 1 D 2 O k (cid:1) (cid:5) (cid:1) (cid:6) (cid:7) 2.5+4.5[(Re+γ*)λ]0.37Pr b 0.17 (cid:11) (cid:11) (cid:12) (cid:13) µ µ w b (cid:8) (cid:8) (cid:9) (cid:10)0.14 (cid:1) (cid:2) (cid:1) (cid:3) (cid:4) ψ
+(e) If 2000 < Re < 10,000
+(1) (h ) @Re=10,000(fromb)) = — __________ __________
+io turb
+(2) (h ) @Re=2,000(fromd)) = — __________ __________
+io lam
+(3) η = 1.25-Re/8000 = — __________ __________
+(4) h =η(h ) +(1−η)(h ) = — __________ __________
+io io lam io turb
+(f) T =TT +U (R )(TS −TT ) = — __________ __________
+w b o io b b
+(g) Evaluate (µ /µ )0.14for laminar flow or φP for = — __________ __________
+b w
+turbulent flow and make necessary corrections to heat
+transfer coefficients
+m. Pressure Drop
+(1) Nozzle Pressure Drop,
+0.051W = 6.64 __________ __________
+(a) V =
+n (DTNI)(DTNO)ρ
+ρV2 = 0.53 __________ __________
+(b) ∆P = n
+n
+5152
+(2) Entrance, Expansion, and Turn-around
+(a) From Table 4 determine K = 9.6 __________ __________
+e
+K ρV2 = 1.6 __________ __________
+(b) ∆P = e t
+e
+9274
+(3) Frictional Pressure Drop
+(a) From Figure 1.8 evaluate f = 0.007 __________ __________
+is
+(b) From Figure 1.9 evaluate ϕ = 1.0 __________ __________
+(c) From Figure 1.10 evaluate ψ ρ = 1.0 __________ __________
+(d) f =f is ϕψ ρ = 0.007 __________ __________
+(e) ∆P = 5.19 f(cid:4)
+(cid:6)ρV2
+t (NTP)L (cid:1)
+(cid:3) = 10.8 __________ __________
+t 103 (cid:4)
+(cid:5)
+DI (cid:1)
+(cid:2)
+(4) (∆P) =N [∆P +∆P +(F)(∆P)] = 14.8 __________ __________
+t nn s n e t t
+get value of F from Table 4.
+t
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 29 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+CALCULATION PROCEDURE, IX-D 29 of 55
+DESIGN PRACTICES NO CHANGE OF PHASE
+December, 2001
+TABLE 2A (Cont)
+ESTIMATION METHOD SAMPLE CALCULATION (CUSTOMARY UNITS)
+SHELL AND TUBE HEAT EXCHANGERS (NO CHANGE OF PHASE)
+9. Iteration, Shell Side First Trial Second Trial Third Trial
+Tube row spacing factor
+a = 1.0 for Square Pitch
+a = 0.867 for all others 1.0 __________ __________
+Pitch Ratio (PR) = PT/DO 1.33 __________ __________
+Baff. Space to Bundle Dia. Ratio (n)
+n = LBCC/DOTL 0.224 __________ __________
+Shell side flow factor (m)
+m = 0.5 for J shell
+m = 2.0 for F shell
+m = 1.0 for E shell 1.0 __________ __________
+Baffle flow factor (p)
+p = 1.0 for segmental baffles
+p = 0.5 for double-segmental baffles 1.0 __________ __________
+Baffle Correction Factor (ξ)
+ξ = 1.0 for segmental baffles
+ξ = 0.8 for double-segmental baffles 1.0 __________ __________
+Estimated tube wall temperature (T ), °F
+w
+T =TS −0.3(TS −TT ) 117 __________ __________
+w b b b
+Wall viscosity correction (ϕ)
+ϕ = (µ /µ )0.14 0.998 __________ __________
+b w
+Total cross flow mass velocity, (G ),lb/hr−ft2
+xt
+(cid:6) PR (cid:3)(cid:6)(m)(p)(cid:3)(cid:6) W (cid:3)
+G xt =144(cid:4) (cid:5)PR−1 (cid:1) (cid:2) (cid:4) (cid:5) n (cid:1) (cid:2)(cid:4) (cid:4) (cid:5)(DOT s L)2(cid:1) (cid:1) (cid:2)
+522,442 __________ __________
+Total flow Reynolds Number (Re )
+xt
+(DO) (G )
+R = xt
+ext (29)(µ b ) 16,889 __________ __________
+Nominal Crossflow fraction (FFB ) Figure 1.1 0.545 __________ __________
+n
+Baffle Spacing Correction (SC) Figure 1.2 0.75 __________ __________
+Reynolds Number Correction (RC) Figure 1.3 1.0 __________ __________
+Cross flow fraction for pressure drop (FFB )
+p
+FFB = (FFBn) (SC)(RC) (Maximum = 1.0) 0.409 __________ __________
+p
+Cross flow Reynolds Number for ∆P (Re )
+xp
+(Re = (Re )(FFB ) 6908 __________ __________
+xp xt p
+Shell side friction for factor (f) Figure 1.4 0.09 __________ __________
+Cross flow fraction for heat transfer (FFB )
+h
+FFB = FFB + 0.125 (Maximum = 1.0) 0.534 __________ __________
+h p
+Cross flow Reynolds Number for heat transfer (Re )
+xh
+Re = (Re )(FFB ) 9018 __________ __________
+xh xt h
+Shell side heat transfer factor (j) Figure 1.4 0.009 __________ __________
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 30 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+IX-D 30 of 55 CALCULATION PROCEDURE,
+NO CHANGE OF PHASE DESIGN PRACTICES
+December, 2001
+TABLE 2A (Cont)
+ESTIMATION METHOD SAMPLE CALCULATION (CUSTOMARY UNITS)
+SHELL AND TUBE HEAT EXCHANGERS (NO CHANGE OF PHASE)
+9. Iteration, Shell Side (Cont) First Trial Second Trial Third Trial
+Shell side film coefficient (h ) Btu/hr-ft2-°F
+s
+(cid:12) (cid:9)2/3
+h =(0.415)(C )(G )(FFB )(j)(cid:10) k (cid:7) (φ)(ξ) 170 __________ __________
+s p xt h (cid:10)(cid:11)(C
+p
+)(µ)(cid:7)(cid:8)
+Shell side Fraction Term (HF)
+(cid:12) (f)(L)(m)(12) (cid:9)(cid:6)1(cid:3)
+HF=0.00875(cid:10)
+(cid:11)(a)(PR)(DO)(n)
+(cid:7)
+(cid:8)
+(cid:4) (cid:4)
+(cid:5)
+φ(cid:1) (cid:1)
+(cid:2)
+F s
+0.972 __________ __________
+(F from Table 4)
+s
+Shell side momentum term (HM)
+(cid:12)(L)(m)(12) (cid:9)
+HM=0.0168(n)2.6(cid:10) −1.0(cid:7)
+(cid:11)(n)(DOTL) (cid:8) 0.011 __________ __________
+Shell side pressure drop without Nozzle (∆P ), psi
+s
+∆P s = (0.3)[H e F +H M ] (cid:10) (cid:11) (cid:12)(G x 1 t 0 )( 0 F 0 F 0 B p ) (cid:7) (cid:8) (cid:9)2 (cid:4) (cid:4) (cid:5) (cid:6) ξ 1 (cid:1) (cid:1) (cid:2) (cid:3) 2.9 __________ __________
+Nominal shell nozzle I.D. (DN), in.
+DN= (DSNI)(DSNO) 5.761 __________ __________
+Shell side nozzle pressure drop (∆P ), psi
+SN
+(cid:6) (cid:3)2
+0.84 W
+∆P = (cid:4) s (cid:1) 0.64 __________ __________
+SN ρ (cid:4)(cid:5)(1000)(DN)2(cid:1)(cid:2)
+Total shell pressure drop (∆P ), psi
+exch
+∆P =N [∆P +∆P ] 3.54 __________ __________
+exch S S SN
+Calculated Tube wall temperature (T ), °F
+w
+T w =TS b −U o(cid:4) (cid:4) (cid:5) (cid:6)1 h .0 (cid:1) (cid:1) (cid:2) (cid:3) (TS b −TT b ) 112 __________ __________
+s
+Calculated viscosity correction (φ)
+φ=(µ /µ )0.14 0.998 __________ __________
+b w
+Using calculated value of φ correct h & ∆P — __________ __________
+s S
+10. Overall calculations
+Inside resistance referred to outside area (R ), hr-ft2-°F/Btu
+io
+R =1/h 0.00094 __________ __________
+io io
+Outside resistance (R ), hr-ft2-°F/Btu
+o
+R =1/h 0.00588 __________ __________
+o s
+Total clean resistance (R ), hr-ft2-°F/Btu
+c
+R =R +R +r 0.00712 __________ __________
+c io o w
+Calculated overall clean coefficient (U ), Btu/hr-ft2-°F
+c
+U =1/R 140 __________ __________
+c c
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 31 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+CALCULATION PROCEDURE, IX-D 31 of 55
+DESIGN PRACTICES NO CHANGE OF PHASE
+December, 2001
+TABLE 2A (Cont)
+ESTIMATION METHOD SAMPLE CALCULATION (CUSTOMARY UNITS)
+SHELL AND TUBE HEAT EXCHANGERS (NO CHANGE OF PHASE)
+10. Overall Calculations (Cont) First Trial Second Trial Third Trial
+Calculated overall fouled coefficient (U ), Btu/hr-ft2-°F
+D
+1 79.7 __________ __________
+U =
+D R +R +r +r +r
+io o w o io
+Tubesheet thickness (TTT), ft
+(C )(DS+2.5)(P/S )0.5+1.0 0.46 __________ __________
+TTT= 1 TT
+12.0
+C1 = 0.625 for U-tubes, 1.0 for all others
+P = higher of shell side or tube side design pressure.
+Effective tube length (L ), ft
+e
+19.54 __________ __________
+L =L−TTT
+e
+Effective heat transfer area per shell (A ), ft2
+s
+A =(NTT)(L )(A ) 2647 __________ __________
+s e T
+Total effective heat transfer area (A), ft2
+A=(A )(N ) 2647 __________ __________
+s T
+Overall duty coefficient (U ), Btu/hr-ft2-°F)
+o
+Q 77.2 __________ __________
+U =
+o
+(A)(MTD)
+U −U 3.24 __________ __________
+% Overdesign = D o x100
+U
+o
+11. Tubesheet design temperature
+(Normally required for Copper alloys)
+a. For coolers. (Cooling Water on tube side)
+(1) Clean conditions, °F
+R 165.3 __________ __________
+T =T + io (T −T )
+M DT DS DT
+R
+c
+(2) Fouled conditions, °F
+T =T +U (R +r )(T −T ) 170.3 __________ __________
+M DT o io io DS DT
+(3) Controlling case, °F
+Larger of the clean or fouled 170.3 __________ __________
+b. For exchanges
+(1) Tube side fluid being cooled
+T =T −0.1(T −T ) — __________ __________
+M DT DT DS
+(2) Shell side fluid being cooled
+T =T +0.3(T −T ) — __________ __________
+M DT DS DT
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 32 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+IX-D 32 of 55 CALCULATION PROCEDURE,
+NO CHANGE OF PHASE DESIGN PRACTICES
+December, 2001
+TABLE 2B
+ESTIMATION METHOD SAMPLE CALCULATION (METRIC UNITS)
+SHELL AND TUBE HEAT EXCHANGERS (NO CHANGE OF PHASE)
+PROCESS Trim Cooler REFINERY AND LOCATION CALC. BY
+EXCHANGER NO. E – X (Existing Check Plan) DATE
+1. Terminal Conditions and MTD
+Fluid Being T 1 = 65 , T 2 = 40 , T 1 - T 2 = 25 , R= T 1 −T 2 = 25 = 2.5
+Cooled t −t 10
+2 1
+Fluid Being t 2 = 40 , t 1 = 30 , t 2 - t 1 = 10 , P= t 2 −t 1= 10 =0.286
+Heated T −t 35
+1 1
+T - t = 25 , T - t = 10 , T - t = 35
+1 2 2 1 1 1
+( ) ( )
+(T −t )−(T −t ) 25 − 10
+LMTD= 1 2 2 1 = = 16.4
+(cid:12)T −t (cid:9) (cid:6)25(cid:3)
+ln(cid:10) 1 2(cid:7) ln(cid:4) (cid:1)
+(cid:11)T −t (cid:8) (cid:5)10(cid:2)
+2 1
+Ns Np
+F = 0.8 for 1 shells in series ____1 ______ shells in parallel
+n
+(Figure 2) __________ for ____________ shells in series ____________ shells in parallel
+__________ for ____________ shells in series ____________ shells in parallel
+MTD = F (LMTD) = ( 0.8 ) ( 16.4 ) = 13.1 .
+n
+= ( ) ( ) = ____________.
+= ( ) ( ) = ____________.
+2. Bulk Temperatures
+Tubeside Fluid: (Heated) TT = 30 , TT = 40 .
+in out
+(Cooled) TT + TT
+TT = in out = 35 .
+b
+2
+Shellside Fluid: (Heated) TS = 65 , TS = 40 .
+in out
+(Cooled) TS + TS
+TS = in out = 52.5 .
+b
+2
+Estimated Wall temperature T = TT + 0.6 (TS − TT ) = 45.5 .
+w b b b
+3. Properties of Fluids
+Tubes Shell
+ρ = 993 (kg/m3) 750 (kg/m3)
+µ = 0.00074 Pa-s 0.0008 Pa-s
+b
+C p = 4.187 kJ/kg-°C 2.261 kJ/kg-°C
+k = 0.62 W/m-°C 0.125 W/m-°C
+µ = 0.00069 Pa-s 0.00081 Pa-s
+w
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 33 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+CALCULATION PROCEDURE, IX-D 33 of 55
+DESIGN PRACTICES NO CHANGE OF PHASE
+December, 2001
+TABLE 2B (Cont)
+ESTIMATION METHOD SAMPLE CALCULATION (METRIC UNITS)
+SHELL AND TUBE HEAT EXCHANGERS (NO CHANGE OF PHASE)
+4. Flow Rates and Names of Fluids
+Tube Shell
+Fluid
+Name/Phase = WATER/LIQUID HCBN/LIQUID
+Total Mass rate 33.77 kg/s 25.0 kg/s
+W = Total mass rate/Np = 33.77 kg/s W = Total mass rate/Np = 25.0 kg/s
+s
+5. Fouling Factors
+r = 0.00035 m2-°C/W
+i
+r
+o
+= 0.00053 m2-°C/W
+6. Mechanical Design Features
+TEMA Type Tubes Shell
+Design Temperature = 70 °C 95 °C
+Design Pressure = 690 kPa 1380 kPa
+Nozzle Size DTNI = 146 mm DSNI = 146 mm
+DTNO = 146 mm DSNO = 146 mm
+7. Exchanger Geometry First Trial Second Trial Third Trial
+Tube O.D. (DO), mm 19.05 __________ __________
+Tube I.D. (DI), mm 15.75 __________ __________
+Tube pitch (PT), mm 25.4 __________ __________
+DO−DI 1.65 __________ __________
+Tube wall thickness ((cid:1))=
+2
+Tube length (L), m 6.1 __________ __________
+Tube flow length (LI), mm 6100 __________ __________
+LI = (2000) L for U tubes
+LI = (1000) L for all others
+TEMA exchanger type AES __________ __________
+Single tube area/length, A ,m2/m 0.05985 __________ __________
+T
+(π)(DO) __________ __________
+A =
+T
+1000
+Baffle spacing (LBCC), mm 178 __________ __________
+Baffle type (Segmental or Double Segmental) SEGMENTAL __________ __________
+Bundle Diameter (DOTL), mm 794 __________ __________
+Shell Diameter (DS), mm 838 __________ __________
+Number of tube side passes (NTP) 6 __________ __________
+(for U tubes minimum number is 2)
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 34 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+IX-D 34 of 55 CALCULATION PROCEDURE,
+NO CHANGE OF PHASE DESIGN PRACTICES
+December, 2001
+TABLE 2B (Cont)
+ESTIMATION METHOD SAMPLE CALCULATION (METRIC UNITS)
+SHELL AND TUBE HEAT EXCHANGERS (NO CHANGE OF PHASE)
+8. Iteration, Tube Side First Trial Second Trial Third Trial
+a. Heat Duty = Q = 1414000 __________ __________
+b. Assumed value of U = 455 __________ __________
+o
+c. A = Q/U (MTD) = 237 __________ __________
+o
+d. A = A/N = 237 __________ __________
+s T
+e. Tube Metal = CuNi ; K = 31.1 , DO = 19.05 mm, DI = 15.75 mm, (cid:1)= 1.65 mm, L = 6100 m
+w
+f. Tube Pitch (PT) and Layout = 25.4 SQUARE __________ __________
+g. r =(DO/D) r = 0.00042 __________ __________
+io i
+( )
+h. r = 1000 k = 0.000053 __________ __________
+w w
+i. NTT = 690 __________ __________
+j. N = NTT/NTP = 115 __________ __________
+W ×1.273 ×106 = 1.52 __________ __________
+k. V =
+t ρN(DI)2
+l. Heat Transfer Coefficient
+(1) Re = 1273W = ρV t (DI) ×10 −3 = 32125 __________ __________
+µ (DI)N µ
+b b
+(2) For Water
+( )
+1.27 ×104 (cid:6)1.8TT + 32(cid:3)0.26
+h
+io
+=
+DO
+(V
+t
+DI)0.7 (cid:4)(cid:4)
+(cid:5) 10
+b
+0
+(cid:1)(cid:1)
+(cid:2) =
+6074 __________ __________
+(3) Fluids other than water
+(a) Pr = c p µ b ×103 = — __________ __________
+k
+(b)IfRe ≥10,000 = — __________ __________
+h = 22k Re0.8 Pr0.4φP
+io
+DO
+φP =(µ /µ )0.167for liquids
+b w
+= (cid:4) (cid:4)
+(cid:6)TTb +273
+(cid:1) (cid:1)
+(cid:3)0.5
+for heating gases
+(cid:5) Tw +273 (cid:2)
+=1.0 for coolinggases
+(c) If Re < 10,000
+(1) ∆T =  T w - TT b  = — __________ __________
+1 − 1 = — __________ __________
+ρ ρ
+(2) β' = x y
+(t −t )(1/∂ )
+x y av
+(3) Gr=9•82 (10 −9) (cid:4)
+(cid:6) DI3ρ2β'∆T(cid:1) (cid:3) = — __________ __________
+(cid:4) (cid:5) µ 2 (cid:1) (cid:2)
+b
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 35 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+CALCULATION PROCEDURE, IX-D 35 of 55
+DESIGN PRACTICES NO CHANGE OF PHASE
+December, 2001
+TABLE 2B (Cont)
+ESTIMATION METHOD SAMPLE CALCULATION (METRIC UNITS)
+SHELL AND TUBE HEAT EXCHANGERS (NO CHANGE OF PHASE)
+8. Iteration, Tube Side (Cont) First Trial Second Trial Third Trial
+(d) If Re ≤2000
+(1) From Figure 1.5 determine γ* = — __________ __________
+(2) From Figure 1.6 determine ε = — __________ __________
+(3) λ = DI/LI + ε = — __________ __________
+(4) From Figure 1.7 determine ψ = — __________ __________
+(5) h io = 1 D 0 O 3k (cid:1) (cid:5) (cid:1) (cid:6) (cid:7) 2.5+4.5[(Re+γ*)λ]0.37Pr b 0.17 (cid:11) (cid:11) (cid:12) (cid:13) µ µ w b (cid:8) (cid:8) (cid:9) (cid:10)0.14 (cid:1) (cid:2) (cid:1) (cid:3) (cid:4) ψ
+(e) If 2000 < Re < 10,000
+(1) (h ) @Re=10,000(from b)) = — __________ __________
+io turb
+(2) (h ) @Re=2,000(from d)) = — __________ __________
+io lam
+(3) η = 1.25-Re/8000 = — __________ __________
+(4) h =η(h ) +(1−η)(h ) = — __________ __________
+io io lam io turb
+(f) T =TT +U (R )(TS −TT ) = — __________ __________
+w b o io b b
+(g) Evaluate (µ /µ )0.14for laminar flow or φP for = — __________ __________
+b w
+turbulent flow and make necessary corrections
+to heat transfer coefficients
+m. Pressure Drop
+(1) Nozzle Pressure Drop
+1.273W ×106 = 2.03 __________ __________
+(a) V =
+n (DTNI)(DTNO)ρ
+ρV 2 = 3.68 __________ __________
+(b) ∆P = n
+n
+1112
+(2) Entrance, Expansion, and Turn-around
+(a) From Table 4 determine K = 9.6 __________ __________
+e
+K ρV2 = 11.0 __________ __________
+(b) ∆P = e t
+e
+2000
+(3) Frictional Pressure Drop
+(a) From Figure 1.8 evaluate f = 0.007 __________ __________
+is
+(b) From Figure 1.9 evaluate ϕ = 1.0 __________ __________
+(c) From Figure 1.10 evaluate ψ ρ = 1.0 __________ __________
+(d) f =f is ϕψ ρ = 0.007 __________ __________
+(cid:6)ρV2(NTP)L (cid:3) = 75.6 __________ __________
+(e) ∆P =2f(cid:4) t (cid:1)
+t (cid:4)(cid:5) DI (cid:1)(cid:2)
+(4) (∆P) =N [∆P +∆P +(F)(∆P)] = 103 __________ __________
+t nn s n e t t
+get value of F from Table 4.
+t
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 36 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+IX-D 36 of 55 CALCULATION PROCEDURE,
+NO CHANGE OF PHASE DESIGN PRACTICES
+December, 2001
+TABLE 2B (Cont)
+ESTIMATION METHOD SAMPLE CALCULATION (METRIC UNITS)
+SHELL AND TUBE HEAT EXCHANGERS (NO CHANGE OF PHASE)
+9. Iteration, Shell Side First Trial Second Trial Third Trial
+Tube row spacing factor
+a = 1.0 for Square Pitch 1.0
+a = 0.867 for all others
+Pitch Ratio (PR) = PT/DO 1.33 __________ __________
+Baff. Space to Bundle Dia. Ratio (n)
+n = LBCC/DOTL 0.224 __________ __________
+Shell side flow factor (m)
+m = 0.5 for J shell
+m = 2.0 for F shell
+m = 1.0 for E shell 1.0 __________ __________
+Baffle flow factor (p)
+p = 1.0 for segmental baffles
+p = 0.5 for double-segmental baffles 1.0 __________ __________
+Baffle Correction Factor (ξ)
+ξ = 1.0 for segmental baffles
+ξ = 0.8 for double-segmental baffles 1.0 __________ __________
+Estimated tube wall temperature (T ), °C
+w
+T =TS −0.3(TS −TT ) 47.85 __________ __________
+w b b b
+Wall viscosity correction (ϕ)
+ϕ = (µ /µ )0.14 0.998 __________ __________
+b w
+Total cross flow mass velocity, (G ),kg/s−m2
+xt
+(cid:6) PR (cid:3)(cid:6)(m)(p)(cid:3)(cid:6) W (cid:3)
+G xt =106(cid:4) (cid:5)PR−1 (cid:1) (cid:2) (cid:4) (cid:5) n (cid:1) (cid:2)(cid:4) (cid:4) (cid:5)(DOT s L)2(cid:1) (cid:1) (cid:2)
+708.1 __________ __________
+Total flow Reynolds Number (Re )
+xt
+Re = (DO) (G xt ) ×10 −3
+xt (µ b ) 16862 __________ __________
+Nominal Crossflow fraction (FFB ) Figure 1.1 0.545 __________ __________
+n
+Baffle Spacing Correction (SC) Figure 1.2 0.75 __________ __________
+Reynolds Number Correction (RC) Figure 1.3 1.0 __________ __________
+Cross flow fraction for pressure drop (FFB )
+p
+FFB = (FFB ) (SC)(RC) (Maximum = 1.0) 0.409 __________ __________
+p n
+Cross flow Reynolds Number for ∆P (Re )
+xp
+Re = (Re )(FFB ) 6896 __________ __________
+xp xt p
+Shell side friction for factor (f) Figure 1.4 0.09 __________ __________
+Cross flow fraction for heat transfer (FFB )
+h
+FFB = FFB + 0.125 (Maximum = 1.0) 0.534 __________ __________
+h p
+Cross flow Reynolds Number for heat transfer (Re )
+xh
+Re = (Re )(FFB ) 9004 __________ __________
+xh xt h
+Shell side heat transfer factor (j) Figure 1.4 0.009 __________ _________
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 37 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+CALCULATION PROCEDURE, IX-D 37 of 55
+DESIGN PRACTICES NO CHANGE OF PHASE
+December, 2001
+TABLE 2B (Cont)
+ESTIMATION METHOD SAMPLE CALCULATION (METRIC UNITS)
+SHELL AND TUBE HEAT EXCHANGERS (NO CHANGE OF PHASE)
+9. Iteration, Shell Side (Cont) First Trial Second Trial Third Trial
+Shell side film coefficient (h ) W/m2-°C
+s
+(cid:6) (cid:3)2/3
+h =(7.5)(C )(G )(FFB )(j)(cid:4) k (cid:1) (φ)(ξ) 970 __________ __________
+s p xt h (cid:4)(cid:5)(C
+p
+)(µ)(cid:1)(cid:2)
+Shell side Fraction Term (HF)
+( )
+(cid:12) f (L)(m)(1000)(cid:9)(cid:6)1(cid:3)
+HF=0.00875(cid:10)
+(cid:11)
+(
+a
+)
+(PR)(DO)
+(
+n
+)(cid:7)
+(cid:8)
+(cid:4) (cid:4)
+(cid:5)
+φ(cid:1) (cid:1)
+(cid:2)
+F s
+0.973 __________ __________
+(F from Table 4)
+s
+Shell side momentum term (HM)
+(cid:6)(L)(m)(1000) (cid:3)
+HM=0.0168(n)2.6(cid:4) −1.0(cid:1)
+(cid:5) (n)(DOTL) (cid:2) 0.011 __________ __________
+Shell side pressure drop without Nozzle (∆P ), kPa
+s
+∆P s = (0.18)[H ρ F +H M ] [ (G xt )(FFB p ) ] 2 (cid:4) (cid:4) (cid:6) ξ 1 (cid:1) (cid:1) (cid:3) 19.8 __________ __________
+(cid:5) (cid:2)
+Nominal shell nozzle I.D. (DN), mm
+DN= (DSNI)(DSNO) 146 __________ __________
+Shell side nozzle pressure drop (∆P ), kPa
+SN
+24.31
+(cid:12)
+W
+×104(cid:9)2
+∆P = (cid:10) s (cid:7) 4.46 __________ __________
+SN ρ (cid:10)(cid:11) (DN)2 (cid:7)(cid:8)
+Total shell side pressure drop (∆P ), kPa
+exch
+∆P =N [∆P +∆P ] 24.3 __________ __________
+exch S S SN
+Calculated Tube wall temperature (T ), °C
+w
+T w =TS b −U o(cid:4) (cid:4)
+(cid:6)1.0
+(cid:1) (cid:1)
+(cid:3)
+(TS b −TT b ) 44.2 __________ __________
+(cid:5) h (cid:2)
+s
+Calculated viscosity correction (φ)
+φ=(µ /µ )0.14 0.998 __________ __________
+b w
+Using calculated value of φ correct h & ∆P — __________ __________
+s S
+10. Overall calculations
+Inside resistance referred to outside area (R ), m2 -°C/W
+io
+R =1/h 0.000165 __________ __________
+io io
+Outside resistance (R ), m2-°C/W
+o
+R =1/h 0.001031 __________ __________
+o s
+Total clean resistance (R ), m2-°C/W
+c
+R =R +R +r 0.001249 __________ __________
+c io o w
+Calculated overall clean coefficient (U ), W/m2-°C
+c
+U =1/R 801 __________ __________
+c c
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 38 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+IX-D 38 of 55 CALCULATION PROCEDURE,
+NO CHANGE OF PHASE DESIGN PRACTICES
+December, 2001
+TABLE 2B (Cont)
+ESTIMATION METHOD SAMPLE CALCULATION (METRIC UNITS)
+SHELL AND TUBE HEAT EXCHANGERS (NO CHANGE OF PHASE)
+10. Overall calculations (Cont) First Trial Second Trial Third Trial
+Calculated overall fouled coefficient (U ), W/m2-°C
+D
+1 455 __________ __________
+U =
+D R +R +r +r +r
+io o w o io
+Tubesheet thickness (TTT), m
+(C )(DS+64)(P/S )0.5+25.0 0.139 __________ __________
+TTT= 1 TT
+1000
+C = 0.625 for U-tubes, 1.0 for all others
+1
+P = higher of shell side or tube side design pressure.
+Effective tube length (L ), m
+e
+5.961 __________ __________
+L =L−TTT
+e
+Effective heat transfer area per shell (A ), m2
+s
+A =(NTT)(L )(A ) 246 __________ __________
+s e T
+Total effective heat transfer area (A), m2
+A=(A )(N ) 246 __________ __________
+s T
+Overall duty coefficient (U ), W/m2-°C)
+o
+Q 439 __________ __________
+U =
+o
+(A)(MTD)
+U −U 3.64 __________ __________
+% Overdesign = D o x100
+U
+o
+11. Tubesheet design temperature
+(Normally required for Copper alloys)
+a. For coolers. (Cooling Water on tube side)
+(1) Clean conditions, °C
+R 73.3 __________ __________
+T =T + io (T −T )
+M DT DS DT
+R
+c
+(2) Fouled conditions, °C
+T =T +U (R +r )(T −T ) 75.7 __________ __________
+M DT o io io DS DT
+(3) Controlling case, °C
+Larger of the clean or fouled 75.7 __________ __________
+b. For exchanges
+(1) Tube side fluid being cooled
+T =T −0.1(T −T ) __________ __________ __________
+M DT DT DS
+(2) Shell side fluid being cooled
+T =T +0.3(T −T ) __________ __________ __________
+M DT DS DT
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 39 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+CALCULATION PROCEDURE, IX-D 39 of 55
+DESIGN PRACTICES NO CHANGE OF PHASE
+December, 2001
+TABLE 3
+PRORATION FACTORS
+1. TUBE SIDE
+a. General
+h varies as the 2/3 power of thermal conductivity.
+io
+h varies as the 1/3 power of specific heat.
+io
+∆P varies as the 1.8 power of mass velocity, for same tube I.D.
+t
+∆P varies inversely with the specific gravity, for same mass flow rate.
+t
+b. Turbulent Region
+∆P varies as the 1.8 power of mass velocity for same tube I.D.
+t
+h varies as the 0.8 power of mass velocity for same tube I.D.
+io
+∆P varies as the 0.24 power of viscosity.
+t
+h varies as the -0.47 power of viscosity.
+io
+h varies as the -0.20 power of inside diameter for same mass velocity.
+io
+h varies as -0.8 power of number of tube passes, for same total number of tubes.
+io
+∆P varies as -2.8 power of number of tube passes total for same total number of tubes.
+t
+c. Viscous Region
+h varies as the 1/3 power of mass velocity, for same tube I.D.
+io
+∆P varies as the 1.0 power of mass velocity, for same tube I.D.
+t
+∆P varies as the 1.0 power of viscosity.
+t
+h does not vary appreciably with viscosity.
+io
+h
+io
+varies as the -2/3 power of the inside diameter, for same Vt.
+2. SHELL SIDE
+h varies as the -0.27 power of viscosity.
+s
+h varies as the 0.6 power of mass velocity.
+s
+h varies as the 2/3 power of thermal conductivity.
+s
+h varies as the 1/3 power of specific heat.
+s
+h varies as the -0.4 power of outside diam. of the tube.
+s
+∆P varies as the 1.67 power of mass velocity.
+s
+∆P varies as the 0.2 power of viscosity.
+s
+∆P varies inversely with the specific gravity.
+s
+∆P varies as the -2.6 power of baffle pitch.
+s
+3. OVERALL AREA AND TUBE COUNT
+Heat transfer Area A varies inversely as tube dia. for same shell dia. and PR.
+No of tubes NTT varies as -2 power of tube pitch.
+No of tubes NTT varies as 2 power of shell dia. for same tubes and tube pitch.
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 40 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+IX-D 40 of 55 CALCULATION PROCEDURE,
+NO CHANGE OF PHASE DESIGN PRACTICES
+December, 2001
+TABLE 4
+DESIGN CONSTANTS FOR SHELL AND TUBE EXCHANGER CALCULATIONS
+TUBE SIDE
+Pressure Drop Factor, K
+e
+Straight Tubes: Single Pass K = 0.9
+e
+Multiple Pass K = 1.6 (NTP)
+e
+U–Tubes: Two Pass K = 0.9
+e
+Four or More Passes K = 0.8 (NTP)
+e
+Pressure Drop Fouling Factors
+Pressure drop fouling factors are evaluated by the following equations which take into account wall thickness variations and a
+fouling layer buildup.
+Steel Tubes
+(cid:6) DO − 2t (cid:3)5
+F = (cid:4) (cid:1)
+t (cid:4)(cid:5)DO − 2.2t− 0.0238 DO0.3(cid:1)(cid:2)
+Nonferrous Alloy Tubes
+(cid:6) (cid:3)5
+F = (cid:4) [ DO − 2t ] (cid:1)
+t (cid:4) (cid:5)1.05 ( DO − 2t ) 2− 0.05DO2 0.5 −0.0086DO −0.92 (cid:1) (cid:2)
+The following table gives values for the pressure drop fouling factor, Ft, of common tube sizes. These values were evaluated
+using the equations above.
+PRESSURE DROP FOULING FACTOR OF COMMON TUBE SIZE
+NON FERROUS
+TUBE SIZE STEEL TUBES
+ALLOY TUBES
+Ft
+Ft
+DO t
+in. mm in. mm PLAIN LOW FIN PLAIN LOW FIN
+3/4 19.05 0.049 1.245 1.28 1.35 1.14 1.19
+0.065 1.651 1.34 1.42 1.17 1.23
+0.083 2.108 1.41 1.53 1.20 1.30
+0.109 2.769 1.53 1.74 1.26 1.39
+1 25.4 0.065 1.651 1.24 1.28 1.10 1.12
+0.083 2.108 1.28 1.33 1.12 1.15
+0.109 2.769 1.35 1.43 1.15 1.19
+0.134 3.404 1.43 1.19
+1–1/2 38.1 0.083 2.108 1.18
+0.109 2.769 1.21
+0.134 3.404 1.25
+0.165 4.191 1.31
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 41 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+CALCULATION PROCEDURE, IX-D 41 of 55
+DESIGN PRACTICES NO CHANGE OF PHASE
+December, 2001
+TABLE 4 (Cont)
+DESIGN CONSTANTS FOR SHELL AND TUBE EXCHANGER CALCULATIONS
+DESIGN COOLING WATER VELOCITY(1) MOST FAVORABLE VELOCITY, PERMISSIBLE RANGE,
+MATERIAL TYPE OF WATER ft/sec m/sec ft/sec(2) m/sec(2)
+Carbon steel Fresh, noninhibited 4 1.22 3 to 6 0.91 to 1.82
+Fresh, inhibited 6 to 8 1.82 to 2.44 3 to 10 0.91 to 3.05
+Red brass All types 3 0.91 3 to 4 0.91 to 1.22
+Admiralty (inhibited) Fresh (inhibited or not) 6 to 8 1.82 to 2.44 3 to 10 0.91 to 3.05
+Salt or brackish 3 0.91 3 to 6 0.91 to 1.82
+Aluminum brass Fresh (inhibited or not) 6 to 8 1.82 to 2.44 3 to 10 0.91 to 3.05
+Salt or brackish 5 1.52 3 to 8 0.91 to 2.44
+Cupronickel (70–30) All types 7 to 8 2.1 to 2.44 3 to 12 0.91 to 3.66
+Cupronickel (90–10) All types 7 to 8 2.1 to 2.44 3 to 12 0.91 to 3.66
+Monel Fresh 6 to 8 1.82 to 2.44 3 to 12 0.91 to 3.66
+Salt 8 2.44 6 to 12 1.82 to 3.66
+Type 316 alloy steel Fresh 6 to 8 1.82 to 2.44 3 to 10 0.91 to 3.05
+Titanium All types > 3 > 0.91 3 to 30 0.91 to 9.1
+SHELL SIDE
+MAXIMUM ALLOWABLE BAFFLE PITCH(3) (4) MAXIMUM LBCC,
+COPPER, ALUMINUM
+TUBE O.D., STEEL
+ALLOYS
+in. mm in. mm in. mm
+0.75 19.05 30.0 762.0 26.0 660.0
+1.00 25.4 37.0 940.0 32.0 813.0
+1.50 38.1 50.0 1270.0 43.5 1105.0
+Pressure Drop Fouling Factors, Fs
+Fluid Fs
+Liquids 1.15(5)
+Gases or condensing vapors 1.00(6)
+Notes:
+(1) Reproduced from Construction Materials Manual, Section II, Onsite Cooling Water Facilities.
+(2) As a general policy, it is advisable to design for velocities above the most favorable velocity rather than below, but do not
+push too close to the upper limit of the permissible range. This is particularly important in the case of coolers or
+condensers where temperature control is critical or where seasonal water temperature changes require substantial water
+velocity reductions for control.
+(3) When there is no change of phase on the shell side, baffle pitch should never exceed the shell diameter.
+(4) For information on other materials or tube sizes, refer to TEMA Table 4.52.
+(5) This value may be increased for extremely dirty service.
+(6) Use a larger number if vapors are known to be fouling.
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 42 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+IX-D 42 of 55 CALCULATION PROCEDURE,
+NO CHANGE OF PHASE DESIGN PRACTICES
+December, 2001
+FIGURE 1.1
+NORMAL CROSSFLOW FRACTION
+ExxonMobil Research and Engineering Company – Fairfax, VA
+nBFF
+,noitcarF
+wolfssorC
+lanimoN
+0.8 (PR-1)/PR
+0.275
+Fixed Tubesheet
+0.250
+0.7
+0.225
+0.200
+Pull through F.H.
+Split-Ring F.H.
+0.6 0.275
+0.250
+0.225
+0.200
+0.5
+0.275
+0.4 0.250
+0.225
+0.200
+0.3 (PR-1)/PR
+10 20 30 40 50 10 20 30 40 50 60
+Tube Bundle Diameter (DOTL), in.
+DOTL
+For metric
+25.4
+DP9Df1-1
+FIGURE 1.2 FIGURE 1.3
+BAFFLE SPACING CORRECTION LOW REYNOLDS NUMBER CORRECTION
+1.4
+1.2
+1.0
+0.8
+0.6
+0 0.2 0.4 0.6 0.8 1.0
+CS
+,noitcerroC
+gnicapS
+elffaB
+1.0
+1
+2
+0.8
+3
+0.6
+1 - FXTS, U.T. all DOTL
+0.4
+SRFH and PTFH 60 in. DOTL
+2 - SRFH and PTFH 30 in. DOTL
+3 - SRFH and PTFH 10 in. DOTL
+0.2
+0 50 100 200 400 600 800 1000
+Baffle Spacing
+Total Flow Reynolds Number, Re
+·n xt
+Bundle Diameter DP9Df1-2
+rebmuN
+sdlonyeR
+woL
+CR
+,noitcerroC
+DP9Df1-3
+--- PAGE 43 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+CALCULATION PROCEDURE, IX-D 43 of 55
+DESIGN PRACTICES NO CHANGE OF PHASE
+December, 2001
+FIGURE 1.4
+FRICTION FACTOR AND HEAT TRANSFER “J” FACTOR
+5
+S
+3
+taggered
+2
+P
+Inline R
+=
+1.33
+1.0
+0.7
+P R f, Use Re
+0.5
+=
+1.25
+xh
+0.3 P
+Staggered R
+0.2
+=
+1.33 PR
+=
+1.25
+0.1 Inline
+0.07
+0.05 j, Use Re
+xh
+0.03
+0.02
+0.01
+0.007
+0.005
+0.003
+10 2 3 5 7 105 2 3 5 7 105 2 3 5 7 105 2 3 5 7 105
+ExxonMobil Research and Engineering Company – Fairfax, VA
+rotcaF
+"j"
+refsnarT
+taeH
+ro
+rotcaF
+noitcirF
+Crossflow Reynolds Number, Rexp or Rexh DP9Df1-4
+--- PAGE 44 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+IX-D 44 of 55 CALCULATION PROCEDURE,
+NO CHANGE OF PHASE DESIGN PRACTICES
+December, 2001
+FIGURE 1.5
+FACTOR γγγγ* AS A FUNCTION OF GRASHOF NUMBER
+105
+104
+103
+102
+10
+1
+0
+1 10 102 103 104 105 106 107
+Grashof Number, Gr
+ExxonMobil Research and Engineering Company – Fairfax, VA
+*
+γ
+,rotcaF
+noitcevnoC
+larutaN
+Vertical
+L/D = 20
+200
+50
+100
+400
+Horizontal
+DP9Df1-5
+--- PAGE 45 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+CALCULATION PROCEDURE, IX-D 45 of 55
+DESIGN PRACTICES NO CHANGE OF PHASE
+December, 2001
+FIGURE 1.6
+εεεε
+SHORT TUBE CORRECTION FACTOR,
+0.20
+0.18
+0.16
+0.14
+0.12
+0.10
+0.08
+0.06
+0.03
+0.02
+10 20 30 40 50 60 70
+LI/DI
+ExxonMobil Research and Engineering Company – Fairfax, VA
+ε
+rotcaF
+noitcerroC
+ebut
+trohS
+Re = 2000
+Re = 1000
+Re = 500
+Re = 300
+Re = 100
+DP9Df1-6
+FIGURE 1.7
+LOW PRANDTL NUMBER CORRECTION FACTOR, ΨΨΨΨ
+1.0
+0.9
+0.8
+0.7
+0.6
+0.5
+0.4
+0.3
+0 2 4 6 8 10 12 14 16 18 20 22 24
+Prandtl Number, Pr
+Ψ
+rotcaF
+noitcerroC
+rebmuN
+litdnarP
+woL
+DP9Df1.7
+--- PAGE 46 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+IX-D 46 of 55 CALCULATION PROCEDURE,
+NO CHANGE OF PHASE DESIGN PRACTICES
+December, 2001
+FIGURE 1.8
+ISOTHERMAL FRICTION FACTOR INSIDE TUBES
+0.2
+0.1
+0.05
+0.02
+0.01
+0.005
+LAMINAR TURBULENT
+0.002
+0.001
+102 2 5 103 2 5 104 2 5 105 2 5 106
+Reynolds Number, Re
+ExxonMobil Research and Engineering Company – Fairfax, VA
+f
+,rotcaF
+noitcirF
+lamrehtosI
+si
+Re - RANGE EQUATION
+Re ≤ 2000 f = 16 / Re
+is
+2000 <Re <3800 f = 10-4 Re0.575
+is
+Re ≥ 3800 f = 0.0035 + 0.264 Re-0.42
+is
+NART
+DP9Df1-8
+--- PAGE 47 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+CALCULATION PROCEDURE, IX-D 47 of 55
+DESIGN PRACTICES NO CHANGE OF PHASE
+December, 2001
+FIGURE 1.9
+VISCOSITY GRADIENT CORRECTION FACTOR
+4.0
+1 Turbulent, Re > 6000
+3.0
+3 4 2 Transitional, Re = 3000
+2.0 3 Transitional, Re = 2000
+4 Laminar, Re < 1800
+1
+φ
+2
+1.0 1 2
+0.7
+0.5
+3 4
+0.3
+0.01 2 3 5 7 0.1 2 3 5 7 1.0 2 3 5 7 10 2 3 5 7 100
+µ
+Viscosity Ratio - Bulk to Wall µb
+w
+DP9Df1-9
+FIGURE 1.10
+NATURAL CONVECTION CORRECTION FACTOR
+1.8
+Re ≤ 2000
+1.6 3000
+Ψρ
+4000
+1.4
+5000
+1.2
+6000
+Re ≥ 8000
+1.0
+105 2 3 5 7 106 2 3 5 7 107 2 3 5 7 108 2 3 5 7 109
+µ
+Gr Pr µb
+w
+DP9Df1-10
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 48 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+IX-D 48 of 55 CALCULATION PROCEDURE,
+NO CHANGE OF PHASE DESIGN PRACTICES
+December, 2001
+FIGURE 2
+LMTD CORRECTION FACTORS
+ILLUSTRATION OF SHELL ARRANGEMENTS
+1 shell pass, 2 or more tube passes Fig. 2A 1J shell with 1 tube pass Fig. 2D
+2 shell passes, 4 or more tube passes Fig. 2A 2J shells with 1 tube pass Fig. 2D
+or 1Gshell with 2 tube passes
+or or
+3 shell passes, 6 or more tube passes Fig. 2B 1J shell with 2 or more tube passes Fig. 2E
+4 shell passes, 8 or more tube passes Fig. 2B 2J shells or 1G shell with 4 or more tube passes
+Fig. 2E
+4
+or
+shells
+5 shell passes, 10 or more tube passes Fig. 2C 3J shells with 6 or more tube passes Fig. 2F
+5
+shells
+4J shells or 2G shell with 8 or more tube passes
+6 shell passes, 12 or more tube passes Fig. 2C
+Fig. 2F
+6 or 3
+shells shells
+DP9Df02
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 49 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+CALCULATION PROCEDURE, IX-D 49 of 55
+DESIGN PRACTICES NO CHANGE OF PHASE
+December, 2001
+FIGURE 2A
+LMTD CORRECTION FACTORS
+1 Shell Pass, 2 or More Tube Passes
+0.99
+0.98
+0.95
+F
+n
+0.90 0.2
+15 8 R=4 2.5 1.6 1.0 0.6 0.4 0.10
+10 0.3
+20 6 3 2 1.2 0.8 0.5
+0.80
+0.70
+0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0
+P
+T - T t - t
+R = 1 2 P = 2 1
+t - t T - t
+2 1 1 1
+2 Shell Passes, 4 or More Tube Passes
+0.99
+0.98
+0.95
+F
+n
+0.90
+15 8 4 2.5 1.8 1.4 1.0 0.6 0.3 0.1
+0.2
+20 10 6 3 R=2 1.6 1.2 0.8 0.4
+0.80
+0.70
+0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0
+P
+DP9Df02A
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 50 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+IX-D 50 of 55 CALCULATION PROCEDURE,
+NO CHANGE OF PHASE DESIGN PRACTICES
+December, 2001
+FIGURE 2B
+LMTD CORRECTION FACTORS
+3 Shell Passes, 6 or More Tube Passes
+0.99
+0.98
+0.4
+0.3
+0.2
+0.95
+F 0.5
+n
+15
+0.90
+4 1.6 0.8 0.6
+10 6 R=2 1.4 1.2 1.0
+20 8 3 2.5
+0.80
+0.70
+0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0
+P
+4 Shell Passes, 8 or More Tube Passes
+0.99
+0.98
+0.3 0.2
+0.6
+0.95 0.4
+F
+n
+15 0.8
+0.90
+10 4 2.5
+6 1.6 1.4 1.2 1.0
+20 8 3 R=2
+0.80
+0.70
+0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0
+P
+DP9Df02B
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 51 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+CALCULATION PROCEDURE, IX-D 51 of 55
+DESIGN PRACTICES NO CHANGE OF PHASE
+December, 2001
+FIGURE 2C
+LMTD CORRECTION FACTORS
+5 Shell Passes, 10 or More Tube Passes
+0.99
+0.98
+0.95
+F 0.8 0.5
+n
+0.4
+0.90 1.2
+4 2.5 1.8 1.6
+10 0.6
+1.4 1.0
+3 R=2.0
+20 6
+0.80
+0.70
+0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0
+P
+6 Shell Passes, 12 or More Tube Passes
+0.99
+0.98
+0.4
+20
+0.95 0.9
+1.8
+F 10 0.6
+n
+0.8
+0.90 1.2
+1.0
+6 3 2.5 1.4
+R=2
+8 4
+0.80
+0.70
+0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0
+P
+DP9Df02C
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 52 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+IX-D 52 of 55 CALCULATION PROCEDURE,
+NO CHANGE OF PHASE DESIGN PRACTICES
+December, 2001
+FIGURE 2D
+LMTD CORRECTION FACTORS
+J Shell with 1 Tube Pass
+0.99
+0.98
+0.95
+F
+n
+0.1
+0.90
+10 0.2
+20 8 4 2.5 1.6 1.2 1.0 0.8 0.4 0.3
+0.80 6 3 R=2.0 0.9 0.7 0.6 0.5
+0.70
+0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0
+P
+2J Shells with 1 Tube Pass or 1G Shell with 2 Tube Passes
+0.99
+0.98
+0.1
+0.95 0.2
+F
+n 0.4
+0.3
+0.90
+10 4 2.5 0.6 0.5
+6 R=2.0 0.8
+20 8 3 1.6 1.4 1.2 1.0 0.7
+0.80
+0.9
+0.70
+0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0
+P
+DP9Df02D
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 53 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+CALCULATION PROCEDURE, IX-D 53 of 55
+DESIGN PRACTICES NO CHANGE OF PHASE
+December, 2001
+FIGURE 2E
+LMTD CORRECTION FACTORS
+1J Shells with 2 or More Tube Passes
+0.99
+0.98
+0.95
+F
+n 0.1
+0.90 0.2
+10 6 3 R=2.0 1.2 0.9 0.7 0.5 0.3
+4
+20 8 2.5 1.6 1.0 0.8 0.6 0.4 0.3
+0.80
+0.70
+0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0
+P
+2J Shells or 1G Shell with 4 or More Tube Passes
+0.99
+0.98
+0.1
+0.95
+0.2
+F
+n 0.4
+0.90
+10 6 4 3 R=2.0 1.2 0.6 0.3
+1.6 0.8
+20 8 2.5 0.5
+0.80
+1.0
+0.9 0.7
+0.70
+0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0
+P
+DP9Df02E
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 54 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+IX-D 54 of 55 CALCULATION PROCEDURE,
+NO CHANGE OF PHASE DESIGN PRACTICES
+December, 2001
+FIGURE 2F
+LMTD CORRECTION FACTORS
+3J Shells with 6 or More Tube Passes
+0.99
+0.98
+0.2
+0.95
+F 0.4
+n
+0.90
+0.8 0.6
+10 1.4
+6 3 R=2.0 1.8 1.2
+20 8 4 25 1.6 1.0
+0.80
+0.70
+0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0
+P
+4J Shells 0r 2G Shells with 8 or More Tube Passes
+0.99
+0.98
+0.2
+0.95
+0.4
+F
+n
+0.8 0.6
+0.90
+10 1.4
+6 3 R=2.0 1.2
+20 8 4 1.8 1.0
+25 1.6
+0.80
+0.70
+0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0
+P
+DP9Df02F
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 55 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+CALCULATION PROCEDURE, IX-D 55 of 55
+DESIGN PRACTICES NO CHANGE OF PHASE
+December, 2001
+FIGURE 3
+FLOW STREAMS FOR STREAM ANALYSIS METHOD
+A
+A
+B
+C C
+F
+C C
+B B
+B
+B B
+A
+E E
+“A” Stream - Leakage between tubes and tube holes in a baffle
+“B” Stream - Crossflow Stream
+“C” Stream - Leakage between tube bundle and shell I.D.
+“E” Stream - Leakage between baffle O.D. and shell I.D.
+“F” Stream - Leakage between tube rows across a pass partition
+DP9Df3
+ExxonMobil Research and Engineering Company – Fairfax, VA

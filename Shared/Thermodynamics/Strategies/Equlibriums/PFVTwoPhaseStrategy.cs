@@ -18,9 +18,9 @@ namespace Shared.Thermodynamics.Strategies.Equlibriums
 
            
 
-            _facade.Temperature.SetValue(_facade.MaterialStream.Temperature, SolverConsecutive.VariableDefinedBy.StreamCalculated);
+            CalculatedVariableSetter.SetStreamCalculated(_facade.Temperature, _facade.MaterialStream.Temperature);
             _facade.MaterialStream.CalculateBulkProperties();
-            _facade.MassEnthalpy.SetValue(_facade.MaterialStream.MassEnthalpy, SolverConsecutive.VariableDefinedBy.StreamCalculated);
+            CalculatedVariableSetter.SetStreamCalculated(_facade.MassEnthalpy, _facade.MaterialStream.MassEnthalpy);
 
         }
     }

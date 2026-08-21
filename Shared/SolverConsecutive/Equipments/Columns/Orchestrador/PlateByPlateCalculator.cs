@@ -19,8 +19,13 @@ namespace Shared.SolverConsecutive.Equipments.Columns.Orchestrador
 
         public async Task CalculateAsync(CancellationToken cancellationToken = default)
         {
+            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+            Trace("PlateByPlate started", $"state={_column.State}; topologyChanged={_column.Orchestrator?.TopologyChanged}");
+
             if (_column.State != ColumnStateType.Solved)
             {
+                stopwatch.Stop();
+                Trace("PlateByPlate skipped", $"reason=column not solved; elapsedMs={stopwatch.ElapsedMilliseconds}");
                 return;
             }
 
@@ -28,6 +33,8 @@ namespace Shared.SolverConsecutive.Equipments.Columns.Orchestrador
             // 🔥 Si la topología no cambió Y FUG no recalculó, usar caché
             if (_column.Orchestrator != null && !_column.Orchestrator.TopologyChanged )
             {
+                stopwatch.Stop();
+                Trace("PlateByPlate skipped", $"reason=topology unchanged; elapsedMs={stopwatch.ElapsedMilliseconds}");
                 return;
             }
 
@@ -57,6 +64,13 @@ namespace Shared.SolverConsecutive.Equipments.Columns.Orchestrador
             // 🔥 Después del solver, notificar al orquestador que los platos están listos
             // El orquestador debe tomar los platos de su lista interna _stages
             _column.Orchestrator?.NotifyPlatesCalculationComplete();
+            stopwatch.Stop();
+            Trace("PlateByPlate finished", $"elapsedMs={stopwatch.ElapsedMilliseconds}");
+        }
+
+        private void Trace(string message, string? detail = null)
+        {
+            _column.TraceSink?.TraceSolver($"Column {_column.Name}: {message}", detail);
         }
     }
 }

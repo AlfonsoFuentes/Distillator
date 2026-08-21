@@ -5,6 +5,7 @@ using Shared.ProcessFlowDiagram.Streams;
 using Shared.PropertiesDtos.Methods;
 using Shared.SolverConsecutive;
 using Shared.SolverConsecutive.Equipments;
+using Shared.SolverConsecutive.SolverRemanufactured;
 using Shared.SolverQwen.Stream;
 using Shared.UnitOperations.Basiss;
 using Shared.WorkSpaceManagers;
@@ -57,7 +58,8 @@ public class FlowsheetManager
     private double _lastPanMouseX;
     private double _lastPanMouseY;
     private long _routeGeometryVersion;
-    private const int VisualStateNotificationDebounceMs = 650;
+    private const int VisualStateNotificationDebounceMs = 1500;
+    private const double OffPageConnectorOffset = 60;
 
     public FlowsheetManager(
         ICameraService cameraService,
@@ -126,6 +128,7 @@ public class FlowsheetManager
     {
         ResetVisualSaveQueues();
         _project = project;
+        project.SimulationService.Solver.TraceSink = _activityLog;
         _namingService.SetConfiguration(project.Configuration.NamingConfig);
         SubscribeToSolver(project.SimulationService.Solver);
     }
@@ -166,7 +169,7 @@ public class FlowsheetManager
                 opc.TargetAreaId = opcReference.TargetFlowsheetId;
                 opc.TargetConnectorId = opcReference.TargetConnectorId;
                 opc.TargetAreaName = opcReference.TargetFlowsheetName;
-                opc.ConnectedEquipmentName = opcReference.ConnectedEquipmentName;
+                opc.ConnectedEquipmentName = ResolveRemoteConnectorEndpointName(opcReference);
                 opc.RefreshPorts();
             }
 
@@ -190,6 +193,7 @@ public class FlowsheetManager
             _pipes.Add(pipe);
         }
 
+        ReflowOffPageConnectors();
         UpdateDiagramSize();
         NotifyRouteGeometryChanged();
         NotifyStateChanged();
@@ -254,6 +258,7 @@ public class FlowsheetManager
         if (!_equipmentEditService.TryAddEquipment(_project, _flowsheet, element)) return;
         _elements.Add(element);
 
+        ReflowOffPageConnectors();
         UpdateDiagramSize();
         NotifyRouteGeometryChanged();
         MarkTopologicalStateChanged();
@@ -261,6 +266,15 @@ public class FlowsheetManager
 
     public void SelectElement(IVisualElement? element)
     {
+        if (element != null &&
+            _selectedElements.Count > 1 &&
+            _selectedElements.Any(selected => selected.Id == element.Id))
+        {
+            SelectedElement = element;
+            NotifyStateChanged();
+            return;
+        }
+
         SelectedElement = element;
         _selectedElements.Clear();
         if (element != null)
@@ -320,6 +334,7 @@ public class FlowsheetManager
 
         if (moved)
         {
+            ReflowOffPageConnectors();
             SyncElementReferences();
             UpdateDiagramSize();
             NotifyRouteGeometryChanged();
@@ -377,16 +392,12 @@ public class FlowsheetManager
     {
         if (!CanEdit()) return;
 
-        const double offset = 60;
-        connector.X = anchorSide == OffPageConnectorPortSide.Left
-            ? _canvasLayout.Snap(offset)
-            : _canvasLayout.Snap(Math.Max(0, DiagramWidth - connector.Width - offset));
-
         var inwardPortSide = anchorSide == OffPageConnectorPortSide.Left
             ? OffPageConnectorPortSide.Right
             : OffPageConnectorPortSide.Left;
 
         connector.SetPortSide(inwardPortSide);
+        ReflowOffPageConnectors();
         SyncElementReference(connector);
         NotifyRouteGeometryChanged();
         MarkVisualStateChanged();
@@ -395,17 +406,18 @@ public class FlowsheetManager
     public void DeleteElement(IVisualElement element)
     {
         if (!CanEdit()) return;
-        if (_project == null || _flowsheet == null || _connectionService == null) return;
+        if (_project == null || _flowsheet == null) return;
 
-        if (!_equipmentEditService.TryDeleteEquipment(_project, _flowsheet, element, _connectionService)) return;
+        if (!_equipmentEditService.TryDeleteEquipment(_project, _flowsheet, element, out var affectedFlowsheets)) return;
         _elements.Remove(element);
         if (SelectedElement?.Id == element.Id) SelectedElement = null;
         _selectedElements.RemoveAll(selected => selected.Id == element.Id);
 
         RebuildPipes();
+        ReflowOffPageConnectors();
         UpdateDiagramSize();
         NotifyRouteGeometryChanged();
-        MarkTopologicalStateChanged();
+        MarkTopologicalStateChanged(affectedFlowsheets.ToArray());
     }
 
     // ==============================================================================
@@ -414,7 +426,18 @@ public class FlowsheetManager
     public void StartPan(MouseEventArgs e)
     {
         if (!CanEdit()) return;
-        if (!IsMovingAny && !IsConnectionModeActive && (e.Button == 0 || e.Button == 1))
+
+        if (e.ShiftKey)
+        {
+            return;
+        }
+
+        if (e.Button == 0 && _selectedElements.Count > 0)
+        {
+            return;
+        }
+
+        if (!IsMovingAny && !IsConnectionModeActive && e.Button == 1)
         {
             _isPanning = true;
             _lastPanMouseX = e.ClientX;
@@ -475,17 +498,7 @@ public class FlowsheetManager
         if (!CanEdit()) return;
         if (!_canvasLayout.SetContainerDimensions(width, height)) return;
 
-        var previousWidth = _flowsheet?.DiagramWidth;
-        var previousHeight = _flowsheet?.DiagramHeight;
         UpdateDiagramSize();
-
-        if (_flowsheet != null &&
-            (Math.Abs(previousWidth.GetValueOrDefault() - _flowsheet.DiagramWidth) > 0.5 ||
-             Math.Abs(previousHeight.GetValueOrDefault() - _flowsheet.DiagramHeight) > 0.5))
-        {
-            MarkVisualStateChanged();
-            return;
-        }
 
         NotifyStateChanged();
     }
@@ -594,7 +607,6 @@ public class FlowsheetManager
 
     private async Task RunSimulationAndUpdateStateAsync(IProject project)
     {
-        _visualSavePendingAfterSimulation = true;
         Interlocked.Increment(ref _runningSimulations);
         NotifyStateChanged();
 
@@ -656,6 +668,7 @@ public class FlowsheetManager
 
         if (Interlocked.CompareExchange(ref _runningSimulations, 0, 0) > 0)
         {
+            var shouldLogWaiting = !_visualSavePendingAfterSimulation;
             _visualSavePendingAfterSimulation = true;
             lock (_visualSaveSync)
             {
@@ -665,7 +678,10 @@ public class FlowsheetManager
                 }
             }
 
-            _activityLog.Add("Autosave", "Waiting for simulation before save", string.Join(", ", flowsheets.Select(flowsheet => flowsheet.Name)));
+            if (shouldLogWaiting)
+            {
+                _activityLog.Add("Autosave", "Waiting for simulation before save", string.Join(", ", flowsheets.Select(flowsheet => flowsheet.Name)));
+            }
             return;
         }
 
@@ -1292,7 +1308,7 @@ public class FlowsheetManager
 
     private IMainSolver GetSolver()
     {
-        return _project?.SimulationService.Solver ?? new MainSolver();
+        return _project?.SimulationService.Solver ?? new MainSolverRemanufactured();
     }
 
     private void SetUniqueElementName(IVisualElement element)
@@ -1372,6 +1388,93 @@ public class FlowsheetManager
             connectorReference.TargetFlowsheetName = connector.TargetAreaName;
             connectorReference.ConnectedEquipmentName = connector.ConnectedEquipmentName;
         }
+    }
+
+    private bool ReflowOffPageConnectors()
+    {
+        if (_flowsheet == null) return false;
+
+        var connectors = _elements
+            .OfType<OffPageConnectorElement>()
+            .ToList();
+        if (connectors.Count == 0)
+        {
+            return false;
+        }
+
+        var leftX = _canvasLayout.Snap(OffPageConnectorOffset);
+        var rightX = GetRightSideOpcX();
+        var changed = false;
+
+        foreach (var connector in connectors)
+        {
+            var anchorSide = GetOffPageConnectorAnchorSide(connector);
+            var targetX = anchorSide == OffPageConnectorPortSide.Left
+                ? leftX
+                : rightX;
+
+            if (Math.Abs(connector.X - targetX) <= 0.001)
+            {
+                continue;
+            }
+
+            connector.X = targetX;
+            SyncElementReference(connector);
+            changed = true;
+        }
+
+        return changed;
+    }
+
+    private double GetRightSideOpcX()
+    {
+        var rightMostRealElement = _elements
+            .Where(element => element is not OffPageConnectorElement)
+            .Select(element => element.X + Math.Max(element.Width, 100))
+            .DefaultIfEmpty(0)
+            .Max();
+
+        return Math.Max(
+            _canvasLayout.Snap(OffPageConnectorOffset),
+            _canvasLayout.Snap(rightMostRealElement + OffPageConnectorOffset));
+    }
+
+    private static OffPageConnectorPortSide GetOffPageConnectorAnchorSide(OffPageConnectorElement connector) =>
+        connector.PortSide == OffPageConnectorPortSide.Right
+            ? OffPageConnectorPortSide.Left
+            : OffPageConnectorPortSide.Right;
+
+    private string ResolveRemoteConnectorEndpointName(IOffPageConnectorReference reference)
+    {
+        if (_project == null ||
+            !reference.TargetFlowsheetId.HasValue ||
+            !reference.TargetConnectorId.HasValue)
+        {
+            return reference.ConnectedEquipmentName;
+        }
+
+        var targetFlowsheet = _project.GetFlowsheet(reference.TargetFlowsheetId.Value);
+        if (targetFlowsheet == null)
+        {
+            return reference.ConnectedEquipmentName;
+        }
+
+        var pipe = targetFlowsheet.Pipes.FirstOrDefault(candidate =>
+            candidate.SourceElementId == reference.TargetConnectorId.Value ||
+            candidate.TargetElementId == reference.TargetConnectorId.Value);
+        if (pipe == null)
+        {
+            return reference.ConnectedEquipmentName;
+        }
+
+        var remoteElementId = pipe.SourceElementId == reference.TargetConnectorId.Value
+            ? pipe.TargetElementId
+            : pipe.SourceElementId;
+        var remoteElement = _project.EquipmentRegistry.GetById(remoteElementId);
+
+        return string.IsNullOrWhiteSpace(remoteElement?.Label)
+            ? reference.ConnectedEquipmentName
+            : remoteElement.Label;
     }
 
     private void UpdateDiagramSize()

@@ -5,6 +5,7 @@ using Shared.SolverConsecutive;
 using Shared.SolverConsecutive.Equipments;
 using Shared.SolverQwen.Variables;
 using Shared.Thermodynamics.Phases;
+using Shared.Thermodynamics.Strategies;
 using Shared.Thermodynamics.Strategies.Equlibriums;
 using Shared.Thermodynamics.Strategies.Flows;
 using Shared.UnitOperations.Basiss;
@@ -73,9 +74,11 @@ namespace Shared.SolverQwen.Stream
         ThermodynamicState ThermodynamicState { get; }
 
         void SetThermodynamicMethod(ThermodynamicMethodFullDto method);
+        void RecalculateFromCurrentState();
         PhaseEnvelopeData EnvelopeCache { get; }
         Task GenerateEnvelopeAsync();
         ThermodynamicMethodFullDto ThermoMethod { get; }
+        ISolverTraceSink? TraceSink { get; set; }
 
     }
 
@@ -255,7 +258,12 @@ namespace Shared.SolverQwen.Stream
 
 
 
-        private void OnMassFlowChanged() => _flowsCalculator.Execute();
+        private void OnMassFlowChanged()
+        {
+            TraceStream("Flow calculation triggered", DescribeStreamCalculationInputs());
+            _flowsCalculator.Execute();
+            TraceStream("Flow calculation finished", DescribeStreamCalculationOutputs());
+        }
 
         private void OnEquilibriumReady()
         {
@@ -269,15 +277,15 @@ namespace Shared.SolverQwen.Stream
         public void SyncFromMaterialStream()
         {
 
-            if (_materialStream.MolarEnthalpy != null) MolarEnthalpy.SetValue(_materialStream.MolarEnthalpy, VariableDefinedBy.StreamCalculated);
-            if (_materialStream.MassDensity != null) MassDensity.SetValue(_materialStream.MassDensity, VariableDefinedBy.StreamCalculated);
-            if (_materialStream.MolarDensity != null) MolarDensity.SetValue(_materialStream.MolarDensity, VariableDefinedBy.StreamCalculated);
-            if (_materialStream.Viscosity != null) Viscosity.SetValue(_materialStream.Viscosity, VariableDefinedBy.StreamCalculated);
-            if (_materialStream.ThermalConductivity != null) ThermalConductivity.SetValue(_materialStream.ThermalConductivity, VariableDefinedBy.StreamCalculated);
-            if (_materialStream.MassHeatCapacity != null) MassCp.SetValue(_materialStream.MassHeatCapacity, VariableDefinedBy.StreamCalculated);
-            if (_materialStream.MolarHeatCapacity != null) MolarCp.SetValue(_materialStream.MolarHeatCapacity, VariableDefinedBy.StreamCalculated);
-            if (_materialStream.SurfaceTension != null) SuperficialTension.SetValue(_materialStream.SurfaceTension, VariableDefinedBy.StreamCalculated);
-            MolecularWeight.SetValue(new UnitLess(_materialStream.MolecularWeight), VariableDefinedBy.StreamCalculated);
+            if (_materialStream.MolarEnthalpy != null) CalculatedVariableSetter.SetStreamCalculated(MolarEnthalpy, _materialStream.MolarEnthalpy);
+            if (_materialStream.MassDensity != null) CalculatedVariableSetter.SetStreamCalculated(MassDensity, _materialStream.MassDensity);
+            if (_materialStream.MolarDensity != null) CalculatedVariableSetter.SetStreamCalculated(MolarDensity, _materialStream.MolarDensity);
+            if (_materialStream.Viscosity != null) CalculatedVariableSetter.SetStreamCalculated(Viscosity, _materialStream.Viscosity);
+            if (_materialStream.ThermalConductivity != null) CalculatedVariableSetter.SetStreamCalculated(ThermalConductivity, _materialStream.ThermalConductivity);
+            if (_materialStream.MassHeatCapacity != null) CalculatedVariableSetter.SetStreamCalculated(MassCp, _materialStream.MassHeatCapacity);
+            if (_materialStream.MolarHeatCapacity != null) CalculatedVariableSetter.SetStreamCalculated(MolarCp, _materialStream.MolarHeatCapacity);
+            if (_materialStream.SurfaceTension != null) CalculatedVariableSetter.SetStreamCalculated(SuperficialTension, _materialStream.SurfaceTension);
+            CalculatedVariableSetter.SetStreamCalculated(MolecularWeight, new UnitLess(_materialStream.MolecularWeight));
 
 
 
@@ -328,6 +336,7 @@ namespace Shared.SolverQwen.Stream
             return StreamStateType.Undefined;
         }
         public ThermodynamicMethodFullDto ThermoMethod { get; private set; } = null!;
+        public ISolverTraceSink? TraceSink { get; set; }
         public void SetThermodynamicMethod(ThermodynamicMethodFullDto method)
         {
             if (IsSameThermodynamicMethod(method))
@@ -447,8 +456,100 @@ namespace Shared.SolverQwen.Stream
             return true;
         }
 
-        public void ExecuteEquilibrium() => _equilibriumCalculator.Execute();
-        public void ExecuteFlows() => _flowsCalculator.Execute();
+        public void ExecuteEquilibrium()
+        {
+            TraceStream("Equilibrium calculation triggered", DescribeStreamCalculationInputs());
+            _equilibriumCalculator.Execute();
+            TraceStream("Equilibrium calculation finished", DescribeStreamCalculationOutputs());
+        }
+
+        public void ExecuteFlows()
+        {
+            TraceStream("Flow calculation triggered", DescribeStreamCalculationInputs());
+            _flowsCalculator.Execute();
+            TraceStream("Flow calculation finished", DescribeStreamCalculationOutputs());
+        }
+
+        public void RecalculateFromCurrentState()
+        {
+            TraceStream("Recalculate from current state started", DescribeStreamCalculationInputs());
+
+            if (Temperature.IsDefined)
+            {
+                _materialStream.SetTemperature(Temperature.Value);
+            }
+
+            if (Pressure.IsDefined)
+            {
+                _materialStream.SetPressure(Pressure.Value);
+            }
+
+            if (VaporFraction.IsDefined)
+            {
+                _materialStream.SetVaporFraction(VaporFraction.Value);
+            }
+
+            if (MassEnthalpy.IsDefined && MassEnthalpy.DataProcedence != VariableDefinedBy.StreamCalculated)
+            {
+                _materialStream.MassEnthalpy = MassEnthalpy.Value;
+            }
+
+            if (Composition != null)
+            {
+                _materialStream.SetCompositionData(Composition);
+                EnvelopeCache = null!;
+            }
+
+            ExecuteEquilibrium();
+            ExecuteFlows();
+            TraceStream("Recalculate from current state finished", DescribeStreamCalculationOutputs());
+        }
+
+        private void TraceStream(string message, string? detail = null)
+        {
+            if (!ShouldTraceThisStream())
+            {
+                return;
+            }
+
+            TraceSink?.TraceStream($"{Name}: {message}", detail);
+        }
+
+        private bool ShouldTraceThisStream()
+        {
+            return TraceSink?.IsStreamTraceEnabled == true &&
+                   DiagnosticStreamNames.Contains(Name, StringComparer.OrdinalIgnoreCase);
+        }
+
+        private static readonly string[] DiagnosticStreamNames =
+        [
+            "S-123",
+            "S-126",
+            "S-139",
+            "S-145",
+            "S-146",
+            "S-148",
+            "S-149",
+            "S-155"
+        ];
+
+        private string DescribeStreamCalculationInputs()
+        {
+            return $"state={State}; T={DescribeVariable(Temperature)}; P={DescribeVariable(Pressure)}; VF={DescribeVariable(VaporFraction)}; MF={DescribeVariable(MassFlow)}; MolF={DescribeVariable(MolarFlow)}; VolF={DescribeVariable(VolumetricFlow)}; Q={DescribeVariable(EnthalpyFlow)}; Hm={DescribeVariable(MassEnthalpy)}; compositionValid={Composition?.IsValid == true}";
+        }
+
+        private string DescribeStreamCalculationOutputs()
+        {
+            return $"state={State}; eq={IsEquilibriumSolved}; flow={IsFlowSolved}; T={DescribeVariable(Temperature)}; P={DescribeVariable(Pressure)}; VF={DescribeVariable(VaporFraction)}; MF={DescribeVariable(MassFlow)}; MolF={DescribeVariable(MolarFlow)}; VolF={DescribeVariable(VolumetricFlow)}; Q={DescribeVariable(EnthalpyFlow)}; Hm={DescribeVariable(MassEnthalpy)}";
+        }
+
+        private static string DescribeVariable(IVariable variable)
+        {
+            return variable.IsDefined
+                ? $"{variable.ToUiString("F2")} [{variable.DataProcedence}]"
+                : "<Not defined> [Undefined]";
+        }
+
         // =========================================================
         // CACHÉ Y ESTADO DE LA ENVOLVENTE DE FASES
         // =========================================================

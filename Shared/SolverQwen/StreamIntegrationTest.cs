@@ -79,63 +79,63 @@ namespace Shared.SolverQwen
                 compo[0].MassFraction.SetValue(new Percentage(10, PercentageUnits.Percentage), VariableDefinedBy.UserInput); // 90% Etanol en tope
                 compo[1].MassFraction.SetValue(new Percentage(90, PercentageUnits.Percentage), VariableDefinedBy.UserInput);
             }
-            MainSolver.RunSimulation();
+            RunSimulation();
             AllPrinter(MainSolver.Streams, "paso 1");
 
             inlet.Pressure.SetValue(new Pressure(10, PressureUnits.Psig), VariableDefinedBy.UserInput); // 10 psig ≈ 1.70 bara
 
-            MainSolver.RunSimulation();
+            RunSimulation();
             AllPrinter(MainSolver.Streams, "paso 2");
 
             inlet.Temperature.SetValue(new Temperature(40, TemperatureUnits.DegreeCelcius), VariableDefinedBy.UserInput);
 
-            MainSolver.RunSimulation();
+            RunSimulation();
             AllPrinter(MainSolver.Streams, "paso 3");
 
             inlet.Pressure.Clear(VariableDefinedBy.UserInput);
 
-            MainSolver.RunSimulation();
+            RunSimulation();
             AllPrinter(MainSolver.Streams, "paso 4");
 
             inlet.VaporFraction.SetValue(new Percentage(0, PercentageUnits.Percentage), VariableDefinedBy.UserInput);
 
-            MainSolver.RunSimulation();
+            RunSimulation();
             AllPrinter(MainSolver.Streams, "paso 5");
 
 
             inlet.VaporFraction.Clear(VariableDefinedBy.UserInput);
 
-            MainSolver.RunSimulation();
+            RunSimulation();
             AllPrinter(MainSolver.Streams, "paso 6");
 
             outle3.VaporFraction.SetValue(new Percentage(50, PercentageUnits.Percentage), VariableDefinedBy.UserInput);
 
-            MainSolver.RunSimulation();
+            RunSimulation();
             AllPrinter(MainSolver.Streams, "paso 7");
 
             outle3.VaporFraction.Clear(VariableDefinedBy.UserInput);
 
-            MainSolver.RunSimulation();
+            RunSimulation();
             AllPrinter(MainSolver.Streams, "paso 8");
 
             inlet.Temperature.Clear(VariableDefinedBy.UserInput);
 
-            MainSolver.RunSimulation();
+            RunSimulation();
             AllPrinter(MainSolver.Streams, "paso 9");
 
             outle2.Temperature.SetValue(new Temperature(60, TemperatureUnits.DegreeCelcius), VariableDefinedBy.UserInput);
 
-            MainSolver.RunSimulation();
+            RunSimulation();
             AllPrinter(MainSolver.Streams, "paso 10");
 
             outle2.Temperature.Clear(VariableDefinedBy.UserInput);
 
-            MainSolver.RunSimulation();
+            RunSimulation();
             AllPrinter(MainSolver.Streams, "paso 11");
 
             outle1.Pressure.SetValue(new Pressure(1, PressureUnits.Bara), VariableDefinedBy.UserInput); // 10 psig ≈ 1.70 bara
 
-            MainSolver.RunSimulation();
+            RunSimulation();
             AllPrinter(MainSolver.Streams, "paso 12");
         }
         public void Run()
@@ -152,15 +152,15 @@ namespace Shared.SolverQwen
             CreateTopSplitter();
 
             Column.TopPressure.SetValue(new Pressure(10, PressureUnits.Psig), VariableDefinedBy.UserInput); // 10 psig ≈ 1.70 bara
-            MainSolver.RunSimulation();
+            RunSimulation();
             AllPrinter(MainSolver.Streams, "paso 1");
 
             Column.DeltaP.SetValue(new PressureDrop(2, PressureDropUnits.psi), VariableDefinedBy.UserInput); // 2 psig ≈ 0.14 bar
-            MainSolver.RunSimulation();
+            RunSimulation();
             AllPrinter(MainSolver.Streams, "paso 2");
 
             Condenser.HotInlet.VaporFraction.SetValue(new Percentage(100, PercentageUnits.Percentage), VariableDefinedBy.UserInput); // Líquido saturado
-            MainSolver.RunSimulation();
+            RunSimulation();
             AllPrinter(MainSolver.Streams, "paso 3");
 
             var hotvaporoutletComp = Column.VaporOutlet!.Composition.Components;
@@ -169,21 +169,21 @@ namespace Shared.SolverQwen
                 hotvaporoutletComp[0].MassFraction.SetValue(new Percentage(90, PercentageUnits.Percentage), VariableDefinedBy.UserInput); // 90% Etanol en tope
                 hotvaporoutletComp[1].MassFraction.SetValue(new Percentage(10, PercentageUnits.Percentage), VariableDefinedBy.UserInput);
             }
-            MainSolver.RunSimulation();
+            RunSimulation();
             AllPrinter(MainSolver.Streams, "paso 4");
 
             Condenser.HotOutlet.VaporFraction.SetValue(new Percentage(0, PercentageUnits.Percentage), VariableDefinedBy.UserInput); // Líquido saturado
-            MainSolver.RunSimulation();
+            RunSimulation();
             AllPrinter(MainSolver.Streams, "paso 5");
 
 
             Condenser.DeltaPHot.SetValue(new PressureDrop(0.5, PressureDropUnits.Bar), VariableDefinedBy.UserInput);
-            MainSolver.RunSimulation();
+            RunSimulation();
             AllPrinter(MainSolver.Streams, "paso 6");
 
 
 
-            MainSolver.RunSimulation();
+            RunSimulation();
             AllPrinter(MainSolver.Streams, "paso 7");
             var refluxSpec = new MultiplierSpecification
             {
@@ -195,28 +195,28 @@ namespace Shared.SolverQwen
             TopSpliter.AddSpec(refluxSpec);
 
             Distillate.VolumetricFlow.SetValue(new VolumetricFlow(10, VolumetricFlowUnits.m3_hr), VariableDefinedBy.UserInput);
-            MainSolver.RunSimulation();
+            RunSimulation();
             AllPrinter(MainSolver.Streams, "paso 8");
 
             Distillate.VolumetricFlow.SetValue(new VolumetricFlow(20, VolumetricFlowUnits.m3_hr), VariableDefinedBy.UserInput);
-            MainSolver.RunSimulation();
+            RunSimulation();
             AllPrinter(MainSolver.Streams, "paso 9");
 
             Distillate.VolumetricFlow.Clear(VariableDefinedBy.UserInput);
-            MainSolver.RunSimulation();
+            RunSimulation();
             AllPrinter(MainSolver.Streams, "paso 10");
 
             Distillate.MassFlow.SetValue(new MassFlow(10000, MassFlowUnits.Kg_day), VariableDefinedBy.UserInput);
-            MainSolver.RunSimulation();
+            RunSimulation();
             AllPrinter(MainSolver.Streams, "paso 11");
 
 
             Distillate.MassFlow.SetValue(new MassFlow(10000, MassFlowUnits.Kg_hr), VariableDefinedBy.UserInput);
-            MainSolver.RunSimulation();
+            RunSimulation();
             AllPrinter(MainSolver.Streams, "paso 12");
 
             ////TopSpliter.RemoveSpec(refluxSpec);
-            //MainSolver.RunSimulation();
+            //RunSimulation();
             //AllPrinter(MainSolver.Streams, "paso 13");
 
             ////var VaporSpec = new Specification
@@ -227,11 +227,11 @@ namespace Shared.SolverQwen
             ////    Formula = sourceValue => sourceValue * 6.0
             ////};
             ////Column.AddSpec(VaporSpec);
-            //MainSolver.RunSimulation();
+            //RunSimulation();
             //AllPrinter(MainSolver.Streams, "paso 14");
 
             Column.VaporOutlet!.Composition.Clear();
-            MainSolver.RunSimulation();
+            RunSimulation();
             AllPrinter(MainSolver.Streams, "paso 15");
 
             var distilate = Distillate.Composition.Components;
@@ -240,19 +240,19 @@ namespace Shared.SolverQwen
                 distilate[0].MassFraction.SetValue(new Percentage(60, PercentageUnits.Percentage), VariableDefinedBy.UserInput);
                 distilate[1].MassFraction.SetValue(new Percentage(40, PercentageUnits.Percentage), VariableDefinedBy.UserInput);
             }
-            MainSolver.RunSimulation();
+            RunSimulation();
             AllPrinter(MainSolver.Streams, "paso 16");
 
             Column.TopPressure.Clear(VariableDefinedBy.UserInput);
-            MainSolver.RunSimulation();
+            RunSimulation();
             AllPrinter(MainSolver.Streams, "paso 17");
 
             Distillate.Pressure.SetValue(new Pressure(5, PressureUnits.Psia), VariableDefinedBy.UserInput);
-            MainSolver.RunSimulation();
+            RunSimulation();
             AllPrinter(MainSolver.Streams, "paso 18");
 
             Distillate.Composition.Clear();
-            MainSolver.RunSimulation();
+            RunSimulation();
             AllPrinter(MainSolver.Streams, "paso 19");
 
             var refluxcompoenet = Column.RefluxInlet!.Composition.Components;
@@ -261,7 +261,7 @@ namespace Shared.SolverQwen
                 refluxcompoenet[0].MassFraction.SetValue(new Percentage(92, PercentageUnits.Percentage), VariableDefinedBy.UserInput);
                 refluxcompoenet[1].MassFraction.SetValue(new Percentage(8, PercentageUnits.Percentage), VariableDefinedBy.UserInput);
             }
-            MainSolver.RunSimulation();
+            RunSimulation();
             AllPrinter(MainSolver.Streams, "paso 20");
 
 
@@ -272,7 +272,7 @@ namespace Shared.SolverQwen
                 columnbotton[0].MassFraction.SetValue(new Percentage(0.1, PercentageUnits.Percentage), VariableDefinedBy.UserInput);
                 columnbotton[1].MassFraction.SetValue(new Percentage(100 - 0.1, PercentageUnits.Percentage), VariableDefinedBy.UserInput);
             }
-            MainSolver.RunSimulation();
+            RunSimulation();
             AllPrinter(MainSolver.Streams, "paso 21");
 
 
@@ -284,17 +284,17 @@ namespace Shared.SolverQwen
                 columnFeedComponenes[0].MassFraction.SetValue(new Percentage(8, PercentageUnits.Percentage), VariableDefinedBy.UserInput);
                 columnFeedComponenes[1].MassFraction.SetValue(new Percentage(92, PercentageUnits.Percentage), VariableDefinedBy.UserInput);
             }
-            MainSolver.RunSimulation();
+            RunSimulation();
             AllPrinter(MainSolver.Streams, "paso 23");
 
             ColumnFeed!.Pressure.SetValue(new Pressure(40, PressureUnits.Psig), VariableDefinedBy.UserInput);
 
-            MainSolver.RunSimulation();
+            RunSimulation();
             AllPrinter(MainSolver.Streams, "paso 24");
 
             ColumnFeed!.Temperature.SetValue(new Temperature(40, TemperatureUnits.DegreeCelcius), VariableDefinedBy.UserInput);
 
-            MainSolver.RunSimulation();
+            RunSimulation();
             AllPrinter(MainSolver.Streams, "paso 25");
 
 
@@ -302,12 +302,12 @@ namespace Shared.SolverQwen
 
 
 
-            MainSolver.RunSimulation();
+            RunSimulation();
             AllPrinter(MainSolver.Streams, "paso 26");
 
             Column.BottomOutlet!.VaporFraction.SetValue(new Percentage(0, PercentageUnits.Percentage), VariableDefinedBy.UserInput);
 
-            MainSolver.RunSimulation();
+            RunSimulation();
             AllPrinter(MainSolver.Streams, "paso 27");
 
 
@@ -316,11 +316,11 @@ namespace Shared.SolverQwen
             CreateReboiler();
 
             Reboiler.DeltaPCold.SetValue(new PressureDrop(0.1, PressureDropUnits.psi), VariableDefinedBy.UserInput);
-            MainSolver.RunSimulation();
+            RunSimulation();
             AllPrinter(MainSolver.Streams, "paso 28");
 
             Reboiler.DeltaPHot.SetValue(new PressureDrop(0.1, PressureDropUnits.psi), VariableDefinedBy.UserInput);
-            MainSolver.RunSimulation();
+            RunSimulation();
             AllPrinter(MainSolver.Streams, "paso 29");
 
             var SteamReboiler = new FacadeStream("steam reboiler");
@@ -338,19 +338,19 @@ namespace Shared.SolverQwen
                 condensatereboilercomponent[0].MassFraction.SetValue(new Percentage(0, PercentageUnits.Percentage), VariableDefinedBy.UserInput);
                 condensatereboilercomponent[1].MassFraction.SetValue(new Percentage(100, PercentageUnits.Percentage), VariableDefinedBy.UserInput);
             }
-            MainSolver.RunSimulation();
+            RunSimulation();
             AllPrinter(MainSolver.Streams, "paso 30");
 
             SteamReboiler.Pressure.SetValue(new Pressure(40, PressureUnits.Psig), VariableDefinedBy.UserInput);
-            MainSolver.RunSimulation();
+            RunSimulation();
             AllPrinter(MainSolver.Streams, "paso 31");
 
             condensatereboiler.VaporFraction.SetValue(new Percentage(0, PercentageUnits.Percentage), VariableDefinedBy.UserInput);
-            MainSolver.RunSimulation();
+            RunSimulation();
             AllPrinter(MainSolver.Streams, "paso 32");
 
             SteamReboiler.VaporFraction.SetValue(new Percentage(100, PercentageUnits.Percentage), VariableDefinedBy.UserInput);
-            MainSolver.RunSimulation();
+            RunSimulation();
             AllPrinter(MainSolver.Streams, "paso 33");
 
 
@@ -370,51 +370,51 @@ namespace Shared.SolverQwen
                 coolingwateroutletcomponent[0].MassFraction.SetValue(new Percentage(0, PercentageUnits.Percentage), VariableDefinedBy.UserInput);
                 coolingwateroutletcomponent[1].MassFraction.SetValue(new Percentage(100, PercentageUnits.Percentage), VariableDefinedBy.UserInput);
             }
-            MainSolver.RunSimulation();
+            RunSimulation();
             AllPrinter(MainSolver.Streams, "paso 34");
 
             coolingwaterinlet.Pressure.SetValue(new Pressure(40, PressureUnits.Psig), VariableDefinedBy.UserInput);
-            MainSolver.RunSimulation();
+            RunSimulation();
             AllPrinter(MainSolver.Streams, "paso 35");
 
             coolingwateroutlet.Pressure.SetValue(new Pressure(35, PressureUnits.Psig), VariableDefinedBy.UserInput);
-            MainSolver.RunSimulation();
+            RunSimulation();
             AllPrinter(MainSolver.Streams, "paso 36");
 
             coolingwateroutlet.Temperature.SetValue(new Temperature(20, TemperatureUnits.DegreeCelcius), VariableDefinedBy.UserInput);
-            MainSolver.RunSimulation();
+            RunSimulation();
             AllPrinter(MainSolver.Streams, "paso 37");
 
             coolingwaterinlet.Temperature.SetValue(new Temperature(8, TemperatureUnits.DegreeCelcius), VariableDefinedBy.UserInput);
-            MainSolver.RunSimulation();
+            RunSimulation();
             AllPrinter(MainSolver.Streams, "paso 38");
 
 
             double steamMassFlow = SteamReboiler.MassFlow.Value.GetValue(MassFlowUnits.Kg_hr);
             Distillate.MassFlow.Clear(VariableDefinedBy.UserInput);
-            MainSolver.RunSimulation();
+            RunSimulation();
             AllPrinter(MainSolver.Streams, "paso 39");
 
             SteamReboiler.MassFlow.SetValue(new MassFlow(steamMassFlow, MassFlowUnits.Kg_hr), VariableDefinedBy.UserInput);
-            MainSolver.RunSimulation();
+            RunSimulation();
             AllPrinter(MainSolver.Streams, "paso 40");
 
             SteamReboiler.MassFlow.SetValue(new MassFlow(steamMassFlow / 2, MassFlowUnits.Kg_hr), VariableDefinedBy.UserInput);
-            MainSolver.RunSimulation();
+            RunSimulation();
             AllPrinter(MainSolver.Streams, "paso 41");
 
             double FeedMassFlow = ColumnFeed.MassFlow.Value.GetValue(MassFlowUnits.Kg_hr);
 
             SteamReboiler.MassFlow.Clear(VariableDefinedBy.UserInput);
-            MainSolver.RunSimulation();
+            RunSimulation();
             AllPrinter(MainSolver.Streams, "paso 42");
 
             ColumnFeed.MassFlow.SetValue(new MassFlow(FeedMassFlow, MassFlowUnits.Kg_hr), VariableDefinedBy.UserInput);
-            MainSolver.RunSimulation();
+            RunSimulation();
             AllPrinter(MainSolver.Streams, "paso 43");
 
             ColumnFeed.MassFlow.SetValue(new MassFlow(FeedMassFlow * 2, MassFlowUnits.Kg_hr), VariableDefinedBy.UserInput);
-            MainSolver.RunSimulation();
+            RunSimulation();
             AllPrinter(MainSolver.Streams, "paso 44");
 
         }
@@ -583,15 +583,15 @@ namespace Shared.SolverQwen
                 componentes[0].MolarFraction.SetValue(new Percentage(8, PercentageUnits.Percentage), VariableDefinedBy.UserInput);
                 componentes[1].MolarFraction.SetValue(new Percentage(92, PercentageUnits.Percentage), VariableDefinedBy.UserInput);
             }
-            MainSolver.RunSimulation();
+            RunSimulation();
             AllPrinter(MainSolver.Streams, "paso 1");
 
             feed.MassFlow.SetValue(new MassFlow(10000, MassFlowUnits.Kg_hr), VariableDefinedBy.UserInput);
-            MainSolver.RunSimulation();
+            RunSimulation();
             AllPrinter(MainSolver.Streams, "paso 2");
 
             feed.Temperature.SetValue(new Temperature(25, TemperatureUnits.DegreeCelcius), VariableDefinedBy.UserInput);
-            MainSolver.RunSimulation();
+            RunSimulation();
             AllPrinter(MainSolver.Streams, "paso 3");
 
 
@@ -617,19 +617,19 @@ namespace Shared.SolverQwen
             splitter.AddOutlet(outlet2);
 
             hotsideoutlet.Pressure.SetValue(new Pressure(2, PressureUnits.Bara), VariableDefinedBy.UserInput);
-            MainSolver.RunSimulation();
+            RunSimulation();
             AllPrinter(MainSolver.Streams, "paso 1");
 
             hotsideoutlet.VaporFraction.SetValue(new Percentage(0, PercentageUnits.Percentage), VariableDefinedBy.UserInput);
-            MainSolver.RunSimulation();
+            RunSimulation();
             AllPrinter(MainSolver.Streams, "paso 2");
 
             hotsideoutlet.MassFlow.SetValue(new MassFlow(6000, MassFlowUnits.Kg_hr), VariableDefinedBy.UserInput);
-            MainSolver.RunSimulation();
+            RunSimulation();
             AllPrinter(MainSolver.Streams, "paso 3");
 
             outlet1.MassFlow.SetValue(new MassFlow(1000, MassFlowUnits.Kg_hr), VariableDefinedBy.UserInput);
-            MainSolver.RunSimulation();
+            RunSimulation();
             AllPrinter(MainSolver.Streams, "paso 4");
 
 
@@ -639,30 +639,30 @@ namespace Shared.SolverQwen
                 componentes[0].MolarFraction.SetValue(new Percentage(90, PercentageUnits.Percentage), VariableDefinedBy.UserInput);
                 componentes[1].MolarFraction.SetValue(new Percentage(10, PercentageUnits.Percentage), VariableDefinedBy.UserInput);
             }
-            MainSolver.RunSimulation();
+            RunSimulation();
             AllPrinter(MainSolver.Streams, "paso 5");
 
             outlet1.MassFlow.Clear(VariableDefinedBy.UserInput);   //limpiar para que se calcule nuevamente
-            MainSolver.RunSimulation();
+            RunSimulation();
             AllPrinter(MainSolver.Streams, "paso 6");
 
 
             double PercentageOutlet1 = 15.0 / 100.0;
             double flujoOutlet1 = hotsideoutlet.MassFlow.Value.GetValue(MassFlowUnits.Kg_hr) * PercentageOutlet1;
             outlet1.MassFlow.SetValue(new MassFlow(flujoOutlet1, MassFlowUnits.Kg_hr), VariableDefinedBy.UserInput);  //definir un flujo en outlet 1 que es el 10% del flujo total, para probar que el modelo se ajusta automáticamente para cumplir con esta nueva condición.
-            MainSolver.RunSimulation();
+            RunSimulation();
             AllPrinter(MainSolver.Streams, "paso 7");
 
 
             hotsideoutlet.MassFlow.Clear(VariableDefinedBy.UserInput);   //limpiar para que se calcule nuevamente
-            MainSolver.RunSimulation();
+            RunSimulation();
             AllPrinter(MainSolver.Streams, "paso 8");
 
             double relationFlujo = 5;
             double flujoOutlet2 = outlet1.MassFlow.Value.GetValue(MassFlowUnits.Kg_hr) * relationFlujo;
 
             outlet2.MassFlow.SetValue(new MassFlow(flujoOutlet2, MassFlowUnits.Kg_hr), VariableDefinedBy.UserInput);  //definir un flujo en outlet 2 que es 5 veces el flujo de outlet 1, para probar que el modelo se ajusta automáticamente para cumplir con esta nueva condición.
-            MainSolver.RunSimulation();
+            RunSimulation();
             AllPrinter(MainSolver.Streams, "paso 9");
 
 
@@ -685,19 +685,19 @@ namespace Shared.SolverQwen
             Hex1.SetHotOutlet(hotsideoutlet);
 
             hotsideinlet.VaporFraction.SetValue(new Percentage(100, PercentageUnits.Percentage), VariableDefinedBy.UserInput);
-            MainSolver.RunSimulation();
+            RunSimulation();
             AllPrinter(MainSolver.Streams, "paso 1");
 
             hotsideoutlet.VaporFraction.SetValue(new Percentage(0, PercentageUnits.Percentage), VariableDefinedBy.UserInput);
-            MainSolver.RunSimulation();
+            RunSimulation();
             AllPrinter(MainSolver.Streams, "paso 2");
 
             hotsideoutlet.Pressure.SetValue(new Pressure(2, PressureUnits.Bara), VariableDefinedBy.UserInput);
-            MainSolver.RunSimulation();
+            RunSimulation();
             AllPrinter(MainSolver.Streams, "paso 3");
 
             Hex1.DeltaPHot.SetValue(new PressureDrop(0.1, PressureDropUnits.psi), VariableDefinedBy.UserInput);
-            MainSolver.RunSimulation();
+            RunSimulation();
             AllPrinter(MainSolver.Streams, "paso 4");
 
             var componentes = hotsideinlet.Composition.Components;
@@ -706,11 +706,11 @@ namespace Shared.SolverQwen
                 componentes[0].MolarFraction.SetValue(new Percentage(90, PercentageUnits.Percentage), VariableDefinedBy.UserInput);
                 componentes[1].MolarFraction.SetValue(new Percentage(10, PercentageUnits.Percentage), VariableDefinedBy.UserInput);
             }
-            MainSolver.RunSimulation();
+            RunSimulation();
             AllPrinter(MainSolver.Streams, "paso 5");
 
             hotsideoutlet.MassFlow.SetValue(new MassFlow(10000, MassFlowUnits.Kg_hr), VariableDefinedBy.UserInput);
-            MainSolver.RunSimulation();
+            RunSimulation();
             AllPrinter(MainSolver.Streams, "paso 6");
 
 
@@ -724,11 +724,11 @@ namespace Shared.SolverQwen
             MainSolver.AddStream(coldsideoutlet);
 
             coldsideoutlet.Temperature.SetValue(new Temperature(20, TemperatureUnits.DegreeCelcius), VariableDefinedBy.UserInput);
-            MainSolver.RunSimulation();
+            RunSimulation();
             AllPrinter(MainSolver.Streams, "paso 7");
 
             coldsideinlet.Temperature.SetValue(new Temperature(6, TemperatureUnits.DegreeCelcius), VariableDefinedBy.UserInput);     //temperatura de chiller
-            MainSolver.RunSimulation();
+            RunSimulation();
             AllPrinter(MainSolver.Streams, "paso 8");
 
             var componentesCold = coldsideoutlet.Composition.Components;
@@ -737,15 +737,15 @@ namespace Shared.SolverQwen
                 componentesCold[0].MolarFraction.SetValue(new Percentage(0, PercentageUnits.Percentage), VariableDefinedBy.UserInput);
                 componentesCold[1].MolarFraction.SetValue(new Percentage(100, PercentageUnits.Percentage), VariableDefinedBy.UserInput); //agua 100% pura
             }
-            MainSolver.RunSimulation();
+            RunSimulation();
             AllPrinter(MainSolver.Streams, "paso 9");
 
             coldsideinlet.Pressure.SetValue(new Pressure(60, PressureUnits.Psig), VariableDefinedBy.UserInput);
-            MainSolver.RunSimulation();
+            RunSimulation();
             AllPrinter(MainSolver.Streams, "paso 10");
 
             Hex1.DeltaPCold.SetValue(new PressureDrop(5, PressureDropUnits.psi), VariableDefinedBy.UserInput);     //caidas de presion en el Hex normales de diseño
-            MainSolver.RunSimulation();
+            RunSimulation();
             AllPrinter(MainSolver.Streams, "paso 11");
 
 
@@ -753,14 +753,14 @@ namespace Shared.SolverQwen
 
 
             hotsideoutlet.VaporFraction.Clear(VariableDefinedBy.UserInput);   //limpiar para que se calcule nuevamente
-            MainSolver.RunSimulation();
+            RunSimulation();
             AllPrinter(MainSolver.Streams, "paso 12");
 
             coldsideoutlet.MassFlow.SetValue(new MassFlow(massflowCold - 20000, MassFlowUnits.Kg_hr), VariableDefinedBy.UserInput);
             //definir un flujo en el lado frío que no corresponde con el flujo del lado caliente ni con la transferencia de calor, por lo que el modelo se descalcula porque no se pueden cumplir todas las condiciones al mismo tiempo.
             //este flujo debe hacer que se calcule el flujo del lado caliente pero debe salir con fraccion de vapor en la salida del lado caliente porque el flujo del lado frío no es suficiente para absorber todo el calor transferido, por lo que el modelo ajusta automáticamente la fracción de vapor en la salida del lado caliente para cumplir con el balance de energía dado el nuevo flujo del lado frío.
 
-            MainSolver.RunSimulation();
+            RunSimulation();
             AllPrinter(MainSolver.Streams, "paso 13");
 
             var valve = new SolverValve("V-01");
@@ -773,19 +773,19 @@ namespace Shared.SolverQwen
             valve.SetOutlet(valveOutlet);
 
             valve.DeltaP.SetValue(new PressureDrop(5, PressureDropUnits.psi), VariableDefinedBy.UserInput);
-            MainSolver.RunSimulation();
+            RunSimulation();
             AllPrinter(MainSolver.Streams, "paso 14");
 
             valve.DeltaP.SetValue(new PressureDrop(1, PressureDropUnits.Bar), VariableDefinedBy.UserInput);
-            MainSolver.RunSimulation();
+            RunSimulation();
             AllPrinter(MainSolver.Streams, "paso 15");
 
             valve.DeltaP.Clear(VariableDefinedBy.UserInput);
-            MainSolver.RunSimulation();
+            RunSimulation();
             AllPrinter(MainSolver.Streams, "paso 16");
 
             valveOutlet.Pressure.SetValue(new Pressure(10, PressureUnits.Psig), VariableDefinedBy.UserInput);
-            MainSolver.RunSimulation();
+            RunSimulation();
             AllPrinter(MainSolver.Streams, "paso 17");
 
 
@@ -802,7 +802,7 @@ namespace Shared.SolverQwen
             drum.SetVaporOutlet(outletVapor);
             drum.SetLiquidOutlet(outletLiquid);
 
-            MainSolver.RunSimulation();
+            RunSimulation();
             AllPrinter(MainSolver.Streams, "paso 18");
 
 
@@ -815,11 +815,11 @@ namespace Shared.SolverQwen
             Hex2.SetHotOutlet(Hex2HotOutlet);
 
             Hex2HotOutlet.VaporFraction.SetValue(new Percentage(0, PercentageUnits.Percentage), VariableDefinedBy.UserInput);
-            MainSolver.RunSimulation();
+            RunSimulation();
             AllPrinter(MainSolver.Streams, "paso 19");
 
             Hex2.DeltaPHot.SetValue(new PressureDrop(0.5, PressureDropUnits.Bar), VariableDefinedBy.UserInput);
-            MainSolver.RunSimulation();
+            RunSimulation();
             AllPrinter(MainSolver.Streams, "paso 20");
 
 
@@ -828,12 +828,12 @@ namespace Shared.SolverQwen
             MainSolver.AddStream(Hex2ColdOutlet);
             Hex2.SetColdOutlet(Hex2ColdOutlet);
 
-            MainSolver.RunSimulation();
+            RunSimulation();
             AllPrinter(MainSolver.Streams, "paso 21");
 
 
             Hex2.DeltaPCold.SetValue(new PressureDrop(5, PressureDropUnits.psi), VariableDefinedBy.UserInput);
-            MainSolver.RunSimulation();
+            RunSimulation();
             AllPrinter(MainSolver.Streams, "paso 22");
 
 
@@ -841,6 +841,11 @@ namespace Shared.SolverQwen
 
         void AllPrinter(List<IFacadeStream> streams, string stepLabel)
         {
+        }
+
+        private void RunSimulation()
+        {
+            MainSolver.RunSimulationAsync().GetAwaiter().GetResult();
         }
 
     }

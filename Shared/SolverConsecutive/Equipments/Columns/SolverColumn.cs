@@ -42,6 +42,7 @@ namespace Shared.SolverConsecutive.Equipments.Columns
         // ORQUESTADOR
         // ====================================================================
         public IColumnCalculationOrchestrator? Orchestrator { get; private set; }
+
         public IFacadeStream? GetFirstAvailableStream()
         {
             if (Feeds != null && Feeds.Any()) return Feeds.First();
@@ -55,6 +56,16 @@ namespace Shared.SolverConsecutive.Equipments.Columns
         }
         public override async Task PostSolveAsync()
         {
+            await Task.CompletedTask;
+        }
+
+        public async Task<ColumnResult?> EnsureProfilesCalculatedAsync(CancellationToken cancellationToken = default)
+        {
+            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+            TraceSink?.TraceSolver(
+                "Column profiles calculation started",
+                $"{Name}; state={State}; feeds={Feeds.Count}; reflux={RefluxInlet?.Name ?? "<none>"}; vaporOut={VaporOutlet?.Name ?? "<none>"}; bottomOut={BottomOutlet?.Name ?? "<none>"}; sideDraws={SideDraws.Count}");
+
             try
             {
                 // 1. Crear orquestador si no existe
@@ -63,16 +74,25 @@ namespace Shared.SolverConsecutive.Equipments.Columns
                     Orchestrator = new ColumnCalculationOrchestrator(this);
                 }
 
-                CalculationResult = await Orchestrator.CalculateAsync();
+                CalculationResult = await Orchestrator.CalculateAsync(cancellationToken);
+                IsCalculationCompleted = CalculationResult?.Success == true;
 
-
-
+                stopwatch.Stop();
+                TraceSink?.TraceSolver(
+                    "Column profiles calculation finished",
+                    $"{Name}; success={CalculationResult?.Success}; elapsedMs={stopwatch.ElapsedMilliseconds}; error={CalculationResult?.ErrorMessage}");
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 IsCalculationCompleted = false;
                 CalculationResult = null;
+                stopwatch.Stop();
+                TraceSink?.TraceSolver(
+                    "Column profiles calculation failed",
+                    $"{Name}; elapsedMs={stopwatch.ElapsedMilliseconds}; error={ex.Message}");
             }
+
+            return CalculationResult;
         }
 
 

@@ -9,6 +9,7 @@ public interface IUserSessionState
     Guid UserId { get; }
     Guid? LastProjectId { get; set; }
     Guid? LastFlowsheetId { get; set; }
+    Dictionary<Guid, Guid> LastFlowsheetIdsByProject { get; set; }
     bool IsProjectExplorerCollapsed { get; set; }
     bool IsDiagramExplorerCollapsed { get; set; }
     List<string>? ExpandedDiagramTypeCodes { get; set; }
@@ -20,6 +21,7 @@ public class UserSessionState : IUserSessionState
     public Guid UserId { get; }
     public Guid? LastProjectId { get; set; }
     public Guid? LastFlowsheetId { get; set; }
+    public Dictionary<Guid, Guid> LastFlowsheetIdsByProject { get; set; } = new();
     public bool IsProjectExplorerCollapsed { get; set; }
     public bool IsDiagramExplorerCollapsed { get; set; }
     public List<string>? ExpandedDiagramTypeCodes { get; set; }

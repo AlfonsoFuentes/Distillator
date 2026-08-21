@@ -12,7 +12,68 @@ The shell-and-tube design workflow must combine three knowledge sources without 
 
 The UI must stay visual and elegant, but the backend must remain the source of truth for calculations. User-defined edits in the UI must be stored through `Variable<T>` so recalculation respects user intent.
 
-## 1. Finish The UI And Prove It Works
+## 1. Refactor Design Selection Architecture
+
+Goal: correct the current shell-and-tube design factory before adding more calculation routes.
+
+Current problem:
+
+- `ShellAndTubeDesignFactory.Create()` contains an expanding conditional tree that mixes standard selection, process classification, fluid recognition, routing priority, and concrete object creation.
+- This is technical debt. It works, but it does not meet the desired engineering standard for the heat-exchanger module.
+- Do not keep extending this method with more `if` branches for DP, reboilers, vaporization, condensation, plate exchangers, or future equipment.
+
+Required direction:
+
+- Keep Kern and Design Practices as separate calculation standards with independent factories/routes.
+- Move process classification into explicit classifier services or value objects.
+- Use route/strategy handlers only where they reduce branching and make extension safer.
+- Keep the public code in English and the UI labels in English.
+- Follow SOLID, KISS, DRY, YAGNI, and use design patterns only when they improve clarity, extensibility, or maintainability.
+- Avoid spaghetti code, patchwork logic, hidden priority rules, and quick fixes that make later engineering harder.
+- Favor excellent, traceable, testable code over merely making the current example pass.
+
+Expected result:
+
+- `ShellAndTubeDesignFactory` delegates by calculation standard.
+- `KernShellAndTubeDesignFactory` owns Kern-specific route selection.
+- `DesignPracticesShellAndTubeDesignFactory` owns DP-specific route selection.
+- Each route declares clearly when it can handle a service and what designer it creates.
+- Tests prove that the correct route is selected for steam heating, cooling, liquid-liquid heating, vaporization, condensation, and reboiler cases when implemented.
+
+Current status:
+
+- Completed initial split: `ShellAndTubeDesignFactory` now delegates by `ShellAndTubeCalculationStandard`.
+- `KernShellAndTubeDesignFactory` owns the existing Kern route tree, so the standard selector no longer mixes Kern and DP creation logic.
+- Regression tests now cover both Design Practices selection and Kern selection for the Enerquip example path.
+
+## 2. Refactor DP Service Classification And Table Lookup
+
+Goal: replace fragile name-based DP table lookup with explicit service classification.
+
+Current problem:
+
+- `GetDp09InitialOverallCoefficientRange()` currently builds `cooledFluidName` and `heatedFluidName` from stream names such as `S-102 S-103`.
+- `Dp09bHeatExchangerCatalog.TryFindNamedTable1Range()` then tries to match DP09B Table 1 services by tokens.
+- In the Enerquip steam/CIP example, the correct `400-600 Btu/hr-ft2-F` range is reached only by fallback because both sides are detected as pure water, not because the service was classified as steam condensing / aqueous solution.
+- This makes the result numerically acceptable for the current case but architecturally weak and unreliable for future DP examples.
+
+Required direction:
+
+- Add an explicit DP service classification model instead of passing free-form stream names.
+- Classify services using available stream data: phase, vapor fraction, composition, component names/formulas, thermodynamic state, and user/service metadata when available.
+- Represent services such as `SteamCondensing`, `AqueousSolution`, `CoolingWater`, `HydrocarbonVapor`, `HydrocarbonLiquid`, `ProcessLiquid`, `ProcessVapor`, and `Unknown`.
+- Make `Dp09bHeatExchangerCatalog` select Table 1 ranges from these service classifications.
+- Keep name-token lookup only as a secondary diagnostic fallback, not as the main decision path.
+- For the Enerquip steam/CIP case, the selected basis should be `DP09B Table 1 steam condenser / aqueous solution`, not a generic stream-name fallback.
+- Add tests proving the Table 1 lookup for steam/water, steam/aqueous solution, water/water, refinery condenser/water, and unknown process/process fallback.
+
+Completed implementation note:
+
+- Added `DesignPracticesServiceClassifier` and routed the DP09B initial U selection through service classification.
+- Kept named DP09B Table 1 matching as a secondary path when stream names contain a recognized service such as `Debutanizer overhead`.
+- Added regression coverage for the Enerquip steam/CIP case so it selects `DP09B Table 1 steam condenser / aqueous solution`.
+
+## 3. Finish The UI And Prove It Works
 
 Goal: restore the shell-and-tube design tab to the polished visual experience while connecting it to the new backend design flow.
 
@@ -49,7 +110,7 @@ Additional UI fixes found during the Enerquip validation:
 - Completed: keep `Tube ID` as a calculated value for standard tubes unless a future explicit custom/manual tube mode is added.
 - Completed: improve the `Tube Layout` SVG so installed tubes are visually centered and available positions are shown in a softer style.
 
-## 2. UI Example Case From The Provided Spec Sheet
+## 4. UI Example Case From The Provided Spec Sheet
 
 Goal: use the provided Enerquip-style specification sheet as a concrete UI/report reference case.
 
@@ -83,13 +144,14 @@ Enerquip 65168 comparison findings:
 - Completed: add `Actual U` to the datasheet preview. It is calculated from the defined exchanger geometry using `Q = U * A * LMTD`, so `Actual U = Q / (Actual Area * LMTD)`.
 - Completed: separate vendor fouling by side in the model. The design now has tube-side allowed fouling and shell-side allowed fouling, and derives the total allowed fouling from both values.
 - Completed: shell-side vapor-condensing designs now use a separated shell-side pressure-drop method instead of reusing the liquid cooling pressure-drop path.
+- Completed: DP shell-and-tube tube counts now respect tube-pass divisibility. Required counts round up, maximum counts round down, and actual counts are normalized to a constructible multiple of tube passes.
 - Keep comparing `Service U`, `Clean U`, and `Actual U` carefully. `Actual U` is the geometry-based value. `Clean U` still does not include all construction details that a vendor sheet may include, such as tube wall/material resistance.
 - The current fixed shell-side condensing coefficient of `1500 BTU/(hr*ft2*F)` is still a Kern-style shortcut/recommendation for pure water vapor. Enerquip may use a more detailed condensing calculation or construction corrections; validate this before replacing it.
 - The current shell-side vapor/condensing velocity still differs strongly from the vendor sheet. Review the shell-side velocity definition used by TEMA/vendor datasheets before treating it as a hard mismatch.
 - Tube-side velocity compares well against the vendor sheet, but tube-side pressure drop still needs review for U-tube return/passes/minor losses.
 - Area checks need to account for the industrial meaning of gross/effective area and U-tube area counting before being treated as final quality judgments.
 
-## 3. Missing Concrete Implementations Of `HeatExchangerDesign`
+## 5. Missing Concrete Implementations Of `HeatExchangerDesign`
 
 Goal: finish the design cases that the abstract template method expects.
 
@@ -129,7 +191,7 @@ Methods that must be reviewed per concrete case:
 - `CalculateShellSidePressureDrop`
 - `VerifyAssumedDirtyOverallCoefficient`
 
-## 4. Expand Calculation With TEMA
+## 6. Expand Calculation With TEMA
 
 Goal: add TEMA construction checks after the Kern thermal/hydraulic design.
 
@@ -164,7 +226,7 @@ Expected output:
 - TEMA type validation.
 - Warnings such as "vibration review required" when appropriate.
 
-## 5. Expand Calculation With Pressure Vessel Handbook / Megyesy
+## 7. Expand Calculation With Pressure Vessel Handbook / Megyesy
 
 Goal: add mechanical/fabrication design after the thermal and TEMA construction design are stable.
 
@@ -203,7 +265,7 @@ Important limitation:
 
 - The Megyesy PDFs are scanned and OCR is weak. Use visual review/rendered pages for source reading.
 
-## 6. Implement Factory For Reboiler
+## 8. Implement Factory For Reboiler
 
 Goal: apply the same design architecture to reboilers.
 
@@ -227,7 +289,7 @@ Design pattern:
 - Template Method for calculation sequence.
 - Strategy only where formulas become independently swappable and not just a one-off branch.
 
-## 7. New Equipment: Falling Film Evaporator
+## 9. New Equipment: Falling Film Evaporator
 
 Goal: implement a new falling film evaporator equipment from UI to design.
 
@@ -256,7 +318,7 @@ Likely design questions:
 - Residence time and wetting limits.
 - Pressure drop and heat transfer correlations.
 
-## 8. Plate Heat Exchanger Design
+## 10. Plate Heat Exchanger Design
 
 Goal: add design capability for plate heat exchangers in the future.
 
@@ -285,18 +347,49 @@ Important:
 - Do not reuse shell-and-tube assumptions for plate exchangers.
 - Create a separate design factory and design variables when the domain requires it.
 
+## 11. Build DP Correlation Selection Matrix Before Coding
+
+Goal: document and confirm every DP heat-transfer and pressure-drop correlation before implementing the next coefficient changes.
+
+Working document:
+
+- `docs/heat-exchanger-design/07-design-practices-correlation-selection-matrix.md`
+
+Required table columns:
+
+- Process or calculation procedure: DP09D no phase change, DP09E vaporization/reboiler, DP09F condensation.
+- Side: tube side or shell side.
+- Fluid/service classification.
+- Phase and flow regime.
+- Selection condition.
+- Equation, graph, table, or figure to use.
+- Exact source: DP section, page, table, figure, and equation number when available.
+- Required inputs and units.
+- Calculated output.
+- Validity notes.
+- Confirmation status.
+
+Important findings already identified:
+
+- For DP09F condensation with water or aqueous solution on the tube side, the tube-side water equation on DP09F page 24 must be used for `hio` and tube-side pressure drop. The current generic turbulent tube-side coefficient is not the correct route for that case.
+- Do not implement more coefficient branches until this matrix is reviewed against the books.
+- Do not hide correlation selection inside large methods; use small strategy/factory objects where they make the route explicit and testable.
+
 ## Recommended Work Order
 
-1. Finish shell-and-tube UI and prove recalculation works.
-2. Validate E-101 condenser from UI.
-3. Validate Enerquip/spec-sheet style example.
-4. Complete missing shell-and-tube concrete classes from Kern/C++.
-5. Add TEMA construction checks.
-6. Build the final TEMA-style PDF datasheet after the pressure vessel mechanical module is integrated.
-7. Add reboiler factory and design cases.
-8. Specify and implement falling film evaporator.
-9. Research and design plate exchanger module.
-10. Add database persistence for equipment designs once the final saveable data shape is known.
+1. Refactor shell-and-tube design selection architecture.
+2. Refactor DP service classification and Table 1 lookup.
+3. Finish shell-and-tube UI and prove recalculation works.
+4. Validate E-101 condenser from UI.
+5. Validate Enerquip/spec-sheet style example.
+6. Complete missing shell-and-tube concrete classes from Kern/C++.
+7. Add TEMA construction checks.
+8. Build the final TEMA-style PDF datasheet after the pressure vessel mechanical module is integrated.
+9. Add reboiler factory and design cases.
+10. Specify and implement falling film evaporator.
+11. Build and confirm the DP correlation selection matrix before changing coefficient/pressure-drop formulas.
+12. Research and design plate exchanger module.
+13. Add database persistence for equipment designs once the final saveable data shape is known.
 
 ## PDF Datasheet Timing
 
@@ -324,6 +417,9 @@ Expected persistence direction:
 
 ## Guardrails
 
+- Treat engineering quality as a requirement, not a cosmetic cleanup.
+- Follow SOLID, KISS, DRY, YAGNI, and established local patterns.
+- Do not add spaghetti code, patchwork branches, or hidden routing rules to make a single case pass.
 - Do not mix UI display logic with thermal equations.
 - Do not mix Kern thermal calculations with TEMA construction checks.
 - Do not mix pressure vessel mechanical code with shell-and-tube thermal design.

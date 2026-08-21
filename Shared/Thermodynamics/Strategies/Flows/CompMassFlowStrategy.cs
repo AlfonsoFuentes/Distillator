@@ -35,7 +35,7 @@ namespace Shared.Thermodynamics.Strategies.Flows
 
             // 2. Setear ÚNICAMENTE el flujo global principal que le corresponde a esta estrategia
             var totalMassAmount = new MassFlow(totalMassFlow, MassFlowUnits.Kg_sg);
-            _facade.MassFlow.SetValue(totalMassAmount, SolverConsecutive.VariableDefinedBy.StreamCalculated);
+            CalculatedVariableSetter.SetStreamCalculated(_facade.MassFlow, totalMassAmount);
 
             // 3. Setear ÚNICAMENTE las fracciones (dejamos la propagación a la estrategia global MassFlowStrategy)
             foreach (var comp in _facade.Composition.Components)
@@ -43,8 +43,8 @@ namespace Shared.Thermodynamics.Strategies.Flows
                 double compMassFlow = comp.MassFlow.Value.GetValue(MassFlowUnits.Kg_sg) ;
                 double compMolarFlowBase = compMassFlow / comp.MolecularWeight;
 
-                comp.MassFraction.SetValue(new Percentage((compMassFlow / totalMassFlow) * 100, PercentageUnits.Percentage), SolverConsecutive.VariableDefinedBy.StreamCalculated);
-                comp.MolarFraction.SetValue(new Percentage((compMolarFlowBase / totalMolarFlowBase) * 100, PercentageUnits.Percentage), SolverConsecutive.VariableDefinedBy.StreamCalculated);
+                CalculatedVariableSetter.SetStreamCalculated(comp.MassFraction, new Percentage((compMassFlow / totalMassFlow) * 100, PercentageUnits.Percentage));
+                CalculatedVariableSetter.SetStreamCalculated(comp.MolarFraction, new Percentage((compMolarFlowBase / totalMolarFlowBase) * 100, PercentageUnits.Percentage));
             }
 
         }

@@ -204,7 +204,11 @@
     {
         showContextMenu = false;
         if (!CanEdit) return;
-        if (e.ShiftKey) return;
+        if (e.ShiftKey)
+        {
+            await OnSelect.InvokeAsync(new EquipmentSelectionEventArgs(Element, true));
+            return;
+        }
 
         await OnDragStart.InvokeAsync(e);
     }

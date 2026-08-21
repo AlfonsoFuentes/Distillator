@@ -1,0 +1,5336 @@
+
+--- PAGE 1 ---
+HEAT EXCHANGE EQUIPMENT DESIGN PRACTICES
+CALCULATION PROCEDURE, CONDENSATION Section Page
+EXXON IX-F 1 of 79
+ENGINEERING Date
+PROPRIETARY INFORMATION - For Authorized Company Use Only December, 1999
+Changes shown by ➧
+CONTENTS
+Section Page
+SCOPE............................................................................................................................................................ 2
+REFERENCES ................................................................................................................................................ 2
+GENERAL ....................................................................................................................................................... 2
+THEORY AND DESIGN CONSIDERATIONS................................................................................................. 2
+ZONES.................................................................................................................................................... 2
+THE BASIC STEPS ................................................................................................................................ 3
+SPECIAL DESIGN CONSIDERATIONS FOR DRUMLESS CONDENSERS ......................................... 8
+DETAILED DESIGN PROCEDURE........................................................................................................ 8
+VACUUM PIPESTILL OVERHEAD CONDENSER DESIGN PROCEDURE ........................................ 14
+NOMENCLATURE ........................................................................................................................................ 15
+TABLES
+Table 1 T-Q Curve Calculation Procedure....................................................................................... 19
+Table 2 Calculation Procedure For Condenser Design.................................................................... 21
+Table 3 Wide-Cut Condenser Design Sample Calculation .............................................................. 51
+Table 4 A Sample Condenser Design ............................................................................................. 55
+FIGURES
+Figure 1 Typical Heat Release (“T-Q") Curve (for Wide-Cut Hydrocarbons
+in the Presence of Steam) .................................................................................................. 70
+Figure 2A Sample Flash Curve and Tds Plot ...................................................................................... 71
+Figure 3B Vapor Pressure of Hydrocarbons (METRIC)....................................................................... 74
+Figure 4 Average Vapor Quantity in Condensers (or Reboilers)....................................................... 75
+Figure 5 Shell-Side Heat Transfer for Partial Condensation of Wide Cuts
+(Not Recommended for Definitive Designs)........................................................................ 76
+Figure 6A Flash Curve Corrections ..................................................................................................... 77
+Figure 6B Flash Curve Corrections ..................................................................................................... 77
+Figure 7A Enthalpy of Water Above 32°F ........................................................................................... 78
+Figure 7B Enthalpy of Water Above 0°C ............................................................................................. 78
+Figure 8 Heat Transfer Coefficient for Fluids in Tubes ..................................................................... 79
+Revision Memo
+12/99 Minor revisions and updated information throughout the section.
+EXXON RESEARCH AND ENGINEERING COMPANY - FLORHAM PARK, N.J.
+--- PAGE 2 ---
+DESIGN PRACTICES HEAT EXCHANGE EQUIPMENT
+Section Page CALCULATION PROCEDURE, CONDENSATION
+EXXON
+IX-F 2 of 79
+Date ENGINEERING
+December, 1999 PROPRIETARY INFORMATION - For Authorized Company Use Only
+SCOPE
+This section presents design considerations and the recommended manual design procedure for shell and tube condensers.
+REFERENCES
+1. Gloyer, W., Industrial and Engr. Chemistry, 42, 7, 1361, July, 1950.
+2. Devore, A., Petroleum Refiner, 38, 6, 205, June, 1959.
+3. Akers, Deans, Crosser, Condensing Heat Transfer Within Horizontal Tubes, Presented at the Second National Heat Transfer
+Conference, AIChE-ASME, Chicago, Illinois, August 18 - 21, 1958.
+4. Diehl, J. E. and Uhruh, C. H., Petroleum Refiner, 36, 10, 124, October 1959.
+5. Chenoweth, J. M. and Martin, M. W., Petroleum Refiner, 34, 151, October 1955.
+6. Heat Exchange Institute (HEI) Standards for Steam Surface Condensers.
+7. Perry's Chemical Engineers' Handbook, 6th Ed.
+GENERAL
+The same basic approach that is used to design liquid-liquid exchangers is also used to design condensers. This approach uses
+a trial-and-error calculation to balance an assumed exchanger size against a calculated size, while staying within the prescribed
+limits of pressure drop. The basic difference lies in the so-called “zoning" of the condenser.
+➧ Zoning is necessary because the concept of LMTD (based on the entire heat exchanger) is invalid whenever the heat transfer
+mechanisms vary from one region to another within the exchanger. The LMTD concept assumes that the heat transfer
+coefficients and the specific heats remain constant for both fluids. This is not the case for condensers. However, we may break
+down the exchanger into a number of zones and the LMTD concept can be applied separately in each of these zones. These
+zones are selected in a manner that the heat transfer coefficients and the specific heats (represented by the slope of heat
+release (T-Q) curve may be assumed to be constant. Therefore, all phase-change points, such as dew points (both hydrocarbon
+and steam) and bubble point define a start of a new zone. Additional zones may be required if the slope of the T-Q curve varies
+appreciably.
+It should be noted here that this discussion is primarily concerned with the more difficult case of condensing a wide-cut
+hydrocarbon in the presence of steam. For narrow cuts [15 to 20°F (8 to 11°C)], zoning is usually unnecessary and the following
+method simplifies considerably.
+➧ HTRI has developed updated empirical correlations and procedures for computer analysis, which are explained in their design
+manual and reports. For design and rating of condensers, the CST-3 Computer Program is recommended. This program may
+be used stand-alone, or through the heat exchanger network analysis program HEXTRAN.
+THEORY AND DESIGN CONSIDERATIONS
+ZONES
+In setting up the zones, one assumes that the heat transfer coefficient is constant within the zone and that heat release is directly
+proportional to temperature change within the zone.
+One can see from this that the larger the number of condenser zones, the more accurate would be the condenser design.
+Unfortunately, the calculation of each zone is so time consuming that, for hand calculation, it is impractical to set up more than
+two or three zones. As shown in Figure 1, the usual zones are:
+1. Vapor cooling.
+2. Vapor cooling + hydrocarbon condensation and subcooling.
+3. Vapor cooling + water condensation and subcooling + hydrocarbon condensation and subcooling.
+Figure 1 is somewhat simplified, in that the coolant is shown for a one-tube-pass unit. In this typical sequence, the hydrocarbon
+dew point is above the steam dew point. If the steam dew point should occur first, Zone 2 is essentially eliminated.
+When better accuracy is desirable, Zone 3 is sometimes divided into two “sub-zones" of roughly equal heat duty.
+In the absence of desuperheating, steam condensation or any other sharp break in the heat release curve, one condenser zone
+is adequate.
+EXXON RESEARCH AND ENGINEERING COMPANY - FLORHAM PARK, N.J.
+--- PAGE 3 ---
+HEAT EXCHANGE EQUIPMENT DESIGN PRACTICES
+CALCULATION PROCEDURE, CONDENSATION Section Page
+EXXON IX-F 3 of 79
+ENGINEERING Date
+PROPRIETARY INFORMATION - For Authorized Company Use Only December, 1999
+THEORY AND DESIGN CONSIDERATIONS (Cont)
+THE BASIC STEPS
+The following steps are basic to the design of a unit for condensing wide-cut hydrocarbons in the presence of steam.
+1. Determine the hydrocarbon dew point.
+2. Determine the steam dew point.
+3. Determine the heat released in each zone.
+4. Determine the simple LMTD for each zone, then ∆t (weighted effective log mean temperature deference, °F or °C).
+ew
+5. Estimate an overall coefficient (i.e., total area) for the condenser; determine mechanical features.
+6. Calculate area required for each zone; sum the area.
+7. Adjust mechanical features of the unit until the assumed total area is equal to the sum of the areas calculated for each zone.
+These basic steps will next be discussed generally.
+Dew Points; The Flash Curve - For wide-cut condensation, the hydrocarbon dew point is easily found by trial-and-error
+reductions in temperature to find the point where hydrocarbon vapor pressure equals its known partial pressure. (For the usual
+case of a fractionator overhead, the hydrocarbon is already at its dew point.)
+The steam dew point is more difficult, since the total number of moles of vapor changes between the hydrocarbon dew point and
+the steam dew point. This change in composition must be determined before the steam dew point can be calculated.
+It is usual practice to assume that as condensation proceeds, the vapor and liquid maintain an equilibrium composition. Hence,
+the composition and thermal properties of the system are obtained from equilibrium flash calculations. These calculations predict
+a “flash curve," which is a plot of temperature vs. “percent off" (percent not condensed). The design manual method for
+estimating the flash curve is a simplification of the Exxon Blue Book method.
+The entire flash curve is not constructed. Instead, several points along the volumetric flash curve are calculated. These are
+plotted and connected with straight lines. The molal flash curve lies slightly below the volumetric curve, and the weight flash
+curve lies above the volumetric curve. For the sake of simplification, this separation of the curves is assumed proportional to the
+width of certain boiling ranges in the cut. The three curves are plotted on the same graph and used to predict composition and
+temperature of the vapor and liquid phases as condensation proceeds. An example is shown in Figure 2.
+Since these curves represent conditions at one atmosphere partial pressure, an alignment chart is included to convert to the
+pressure of the condensing system (Figure 3).
+The steam dew point is then found by a trial-and-error reduction in the system temperature to find the temperature, where water
+vapor pressure equals its calculated partial pressure. The method is described in detail in Table 1.
+Heat Release in Each Zone - The following individual heat duties are calculated in each zone in which they occur. All duties
+occur simultaneously in the third zone only.
+1. Cool entering liquid.
+2. Cool vapor and gas that do not condense.
+3. Cool condensing HC vapor.
+4. Cool hydrocarbon condensate.
+5. Cool condensing steam.
+6. Cool steam condensate.
+7. Remove latent heat of hydrocarbon.
+8. Remove latent heat of steam.
+To calculate Duties 3, 4, 5, and 6, one assumes that 50% (or the average quantity) of the material is cooled through 100% of the
+temperature change in the zone.
+Although enthalpy charts can be used for these calculations, the use of average specific heats and average latent heats is
+adequate for most cases. Note that when enthalpy charts are used, Items 7 and 8 must be calculated at the average
+temperature (rather than inlet to outlet conditions) to avoid duplicating the sensible-heat portion of the duty.
+Temperature Driving Force - After the zone heat duties have been calculated, the weighted average LMTD (∆t ) can be
+ew
+calculated. This is done by calculating the LMTD for each zone and then “weighting" the LMTD according to the amount of heat
+transferred in the zone. The conventional equation is as follows:
+Q
+∆t = Eq. (1)
+ew q q q
+dh + ds + sc
+∆t ∆t ∆t
+dh ds sc
+EXXON RESEARCH AND ENGINEERING COMPANY - FLORHAM PARK, N.J.
+--- PAGE 4 ---
+DESIGN PRACTICES HEAT EXCHANGE EQUIPMENT
+Section Page CALCULATION PROCEDURE, CONDENSATION
+EXXON
+IX-F 4 of 79
+Date ENGINEERING
+December, 1999 PROPRIETARY INFORMATION - For Authorized Company Use Only
+THEORY AND DESIGN CONSIDERATIONS (Cont)
+For explanation of symbols, see NOMENCLATURE.
+Each zone ∆t is corrected for noncountercurrent flow by multiplying by F from Figure 2 of Section IX-D. F is calculated from
+n n
+the zone terminal temperatures.1 This use of F is not theoretically sound but is justified, as a matter of convention, to make sure
+n
+that enough shell passes are specified for the design temperature cross.
+The use of this equation for weighting ∆t's is strictly a matter of industrial convention. It gives the true value of ∆t only when the
+ew
+coefficient is constant over the entire condenser; and this condition, of course, almost never prevails. But since the equation has
+been widely adopted, the use of other methods for weighting ∆t's might be misleading to exchanger suppliers.
+In reality, ∆t does not enter into the condenser design and its value is of no real importance. The design is based on a
+ew
+summation of zone areas which are calculated from the individual zone ∆t's. The overall ∆t is estimated only so that an overall
+ew
+average U can be reported.
+o
+Heat Transfer Coefficients, Shell-Side Condensation - From an analytical viewpoint, a condenser is an extremely complex
+piece of equipment. The approach used in this manual is sometimes called the “Gloyer" (Reference 1) analysis, named after the
+first person to describe it in the literature. This method is not a theoretical analysis, but an empirical attempt to consider the
+various phenomena which occur simultaneously in a condenser. This approach considers the following mechanisms:
+1. Vapor cooled by forced convection.
+2. Liquid cooled by “dripping" from tube to tube.
+3. Liquid cooled by forced convection along the bottom of the shell.
+4. Condensation.
+In each zone of the condenser, a heat transfer coefficient “h" is calculated for each of the above mechanisms. The heat transfer
+coefficient for the zone is then evaluated by weighting and averaging the individual coefficients:
+Q
+h = zone Eq. (2)
+zone q q
+1 + ... + 4
+h h
+1 4
+(Subscripts refer to above mechanisms.)
+The overall zone coefficient is then calculated from the usual resistance equation:
+1 1
+= + r + r + r + R Eq. (3)
+o w io io
+U h
+zone zone
+and the area from
+Q
+A = zone Eq. (4)
+zone U ∆t
+zone zone
+The total area of the condenser is simply the sum of the zone areas.
+To calculate the coefficients for vapor cooling and “bottom flow" liquid cooling, one uses the average vapor and liquid quantities
+in the zone. These quantities are determined with the aid of Figure 4. This chart corrects for the variations in ∆T (between tube-
+side and shell side) with tube length. The usual relations for single-phase heat transfer are then used to calculate coefficients.
+The coefficient for “drip cooling" is taken as 1.5 times the condensing coefficient. It is arbitrarily assumed that half of the liquid
+cooling duty is by “drip cooling" and half by “bottom flow" (for zones with all vapor entering).
+To calculate the condensing coefficient, the following modifications of the Nusselt equation recommended by Devore should be
+used (Reference 2).
+1 For hydrofiner effluent-hydrofiner feed exchangers and other similar services where there is a “pinch” in the T-Q curves of the two streams,
+each shell of the final arrangement should be checked graphically for a temperature cross (i.e., plot shell-side and tube-side temperatures vs.
+duty curves on a single graph and compare inlet vs. outlet temperatures for each shell). If a temperature cross occurs, either the shell areas or
+the number of shells should be adjusted to remove the cross.
+EXXON RESEARCH AND ENGINEERING COMPANY - FLORHAM PARK, N.J.
+--- PAGE 5 ---
+HEAT EXCHANGE EQUIPMENT DESIGN PRACTICES
+CALCULATION PROCEDURE, CONDENSATION Section Page
+EXXON IX-F 5 of 79
+ENGINEERING Date
+PROPRIETARY INFORMATION - For Authorized Company Use Only December, 1999
+THEORY AND DESIGN CONSIDERATIONS (Cont)
+For Vertical Tubes
+hλ =
+
+
+
+ 1.0
+Γ
+4
+1
+x
+/ 3
+104
+
+
+
+ k
+f 
+
+
+ s
+µ
+2 f
+f 
+
+
+1/ 3 (Customary) Eq. (5)
+or
+hλ = 
+
+
+Γ
+2
+1
+5
+/
+4
+3
+
+
+ k
+f 
+
+
+ s
+µ
+2 f
+f 
+
+
+1/ 3 (Metric) Eq. (5)M
+where:
+12 W
+Γ = c (Customary) Eq. (6)
+π N d
+t o
+or
+1000 W
+Γ = c (Metric) Eq. (6)M
+π N d
+t o
+This term is usually called “tube loading." The equation is restricted to:
+Γ
+≤ 1090 (Customary)
+µ
+f
+or
+Γ
+≤ 450 (Metric)
+µ
+f
+For Horizontal Tubes
+h′ λ =     8.3 Γ 3 1 x /3 103     k f     s µ 2 f f    1/ 3 (Customary) Eq. (7)
+or
+ 204    s2  1/3
+h′ λ =    Γ1/3    k f  µ f  (Metric) Eq. (7)M
+ f 
+where:
+W
+Γ = c Eq. (8)
+L n
+c s
+The term n is the number of “condensate streams" in the bundle.
+s
+n = 1.29 N 0.480 for square tube layout, 90°.
+s t
+n = 2.08 N 0.495 for rotated triangular layout, 60°.
+s t
+n = 1.02 N 0.519 for triangular layout, 30°.
+s t
+n = 1.37 N 0.518 for rotated square layout, 45°.
+s t
+EXXON RESEARCH AND ENGINEERING COMPANY - FLORHAM PARK, N.J.
+--- PAGE 6 ---
+DESIGN PRACTICES HEAT EXCHANGE EQUIPMENT
+Section Page CALCULATION PROCEDURE, CONDENSATION
+EXXON
+IX-F 6 of 79
+Date ENGINEERING
+December, 1999 PROPRIETARY INFORMATION - For Authorized Company Use Only
+THEORY AND DESIGN CONSIDERATIONS (Cont)
+The term L is the length of tube on which condensation occurs. If a condenser consists of one zone, L equals the tube length.
+c c
+Otherwise L is the fraction of the total tube length included in the zone in question. (If there are two shells in series, note that
+c
+one zone might include 0.5L, the next zone 1.5L.)
+The paper by Devore suggests that the value of h′ λ be increased by a multiplier which depends essentially on the number of
+tubes in the bundle. For a typical bundle, the value of this so-called “turbulence factor" is 1.5 to 2.5. This has not been included
+in this procedure. Instead, a modification is recommended which will relate the condenser design to vapor mass velocity. (An
+effect of mass velocity has been recognized for some time.)
+A great deal of Exxon data on wide-cut condensation show that the overall outside coefficient varies linearly with Gx, where x is
+between 0.7 and 0.9. A similar effect probably holds for narrow cuts as well. Based on this, the condensing coefficient for
+horizontal bundles should be adjusted as follows:
+ G 0.70
+hλ = h′ λ  v  (Customary) Eq. (9)
+ 5 
+or
+ G 0.70
+hλ = h′ λ  v  (Metric) Eq. (9)M
+ 24.4 
+and
+hλ max = 2.0 h′ λ Eq. (10)
+Where G is the average vapor mass velocity in the zone. Note that this mass velocity correction is not recommended for pure-
+v
+component condensation.
+In zones where both steam and hydrocarbon are condensing, the hydrocarbon wets the tubes preferentially. This forces the
+steam to condense on the hydrocarbon condensate film and the condensing coefficient for steam equals the condensing
+coefficient for the hydrocarbon.
+Empirical Equation for Shell-Side Condensation - Not Recommended for Definitive Designs - Exxon has analyzed a
+considerable amount of data on wide-cut condensation. These analyses have resulted in an equation which fits the original data
+with an average accuracy of 10%. So far, however, the equation has not been tested on enough additional data to substantiate
+its use for definitive designs. The equation can be used for estimating coefficients and for checking condenser performance
+under various operating conditions. Because of its simplicity, it is hoped that an equation of this type will eventually be backed up
+by enough data to warrant use in design work.
+The equation for the shell-side condensing coefficient, which includes the shell-side fouling factor, is as follows:
+ln(h ) = 0.82 ln(g)G + f (α) − 0.002P (Customary) Eq. (11)
+oc i
+or
+ln(h ) = 0.82 ln(G) + f (α) − 0.00029P + 0.436 (Metric) Eq. (11)M
+oc i
+The function f(α) is shown in Figure 5. This curve shows that the shell-side coefficient first decreases sharply with increasing
+nocondensables, then slowly increases. “G" is inlet mass velocity and “P " is inlet pressure (absolute). The data analyzed
+i
+include condensers in the following services:
+1. Fluid coking - scrubber overhead.
+2. Cat cracking - fractionator overhead.
+3. Fluid hydroforming - scrubber overhead.
+4. Pipestill overhead.
+5. Prefractionator overhead.
+The total range of the variables is as follows:
+1.47 < G < 20.9 lb/sec-ft2 (Customary) or 7.18 < G < 102 kg/s-m2 (Metric)
+0.008 < α < 0.896
+19.2 < P < 205 psia (Customary) or 132 < P < 1410 kPa abs (Metric)
+i i
+The equation includes no data on narrow-cut condensation and will give answers much too low for such cases.
+EXXON RESEARCH AND ENGINEERING COMPANY - FLORHAM PARK, N.J.
+--- PAGE 7 ---
+HEAT EXCHANGE EQUIPMENT DESIGN PRACTICES
+CALCULATION PROCEDURE, CONDENSATION Section Page
+EXXON IX-F 7 of 79
+ENGINEERING Date
+PROPRIETARY INFORMATION - For Authorized Company Use Only December, 1999
+THEORY AND DESIGN CONSIDERATIONS (Cont)
+Heat Transfer Coefficient: Condensation on the Tube Side - Condensation inside the tubes is seldom used in industry.
+Hence, little is known about the heat transfer coefficients in such service. In general, the coefficients are lower than for shell-side
+condensation.
+If the condenser is vertical, Nusselt's analysis is undoubtedly as valid inside the tubes as on the outside. But in the usual case,
+such as an air-fin condenser, the unit would be horizontal. This tends to fill part of the tube cross-section with condensate,
+blanking some of the condensing area. This mechanism is completely outside of Nusselt's work.
+The following empirical method has been proposed by Akers, Deans and Crosser (Reference 3). The method is based on data
+for condensing propane and Freon-12 in horizontal tubes. The authors correlated their data within about 20% by using an
+“equivalent" liquid mass velocity and the usual single-phase heat transfer relationships. Neither the Nusselt equation nor the
+Carpenter-Colburn equation would correlate the data.
+The basic equations are as follows:
+h tλ = 5.03 Re1/3 Pr1/3 (12 k f / d i ) Re < 50,000 (Customary) Eq. (12)
+or
+h tλ = 5.03 Re1/3 Pr1/3 (1000 k f / d i ) (Metric) Eq. (12)M
+h tλ = 0.0265 Re0.8 Pr1/3 (12 k f / d i ) Re > 50,000 (Customary) Eq. (13)
+or
+h tλ = 0.0265 Re0.8 Pr1/3 (1000 k f / d i ) (Metric) Eq. (13)M
+G d
+Re = e i (Customary) Eq. (14)
+29 µ
+or
+G d
+Re = e i (Metric) Eq. (14)M
+1000 µ
+ ρ 1/ 2
+G e = G′ l + G′ v    ρ l    Eq. (15)
+v
+G′ and G′ are superficial average mass velocities of the liquid and vapor, respectively, based on the total flow area. The
+l v
+Nusselt, Prandtl and Reynolds numbers are in dimensionless forms. Physical properties used are those of the condensate film at
+average film temperature.
+It was found that these equations correlated the data for vertical, inclined, and horizontal tubes.
+Eqs. (12) through (15) are for the condensing coefficient only, and they would be applicable by themselves to narrow-cut
+condensation. When condensing a wide cut, the designer should follow the principles used on the shell side for wide cuts and
+calculate coefficients for gas and liquid cooling. For gas cooling, use the average vapor velocity in the zone to calculate a single-
+phase vapor heat transfer coefficient. The liquid cooling coefficient may be assumed to be equal to the condensing coefficient.
+There is, of course, no drip cooling and hence no required breakdown of the liquid cooling duty.
+Pressure Drop - Pressure drop in condensers is a complex variation of two-phase flow that has not been successfully analyzed
+theoretically. The data are amenable to correlation, however, and such correlations are frequently reported in the literature.
+The recommended procedure treats the two-phase system as a single phase, using the viscosity of the liquid and a density
+corresponding to the average density for both phases. The weighted average density is evaluated for each zone based on the
+inlet and outlet volume flow rates, or
+2 x Mass rate
+Average density =
+(Vol.rate in) + (Vol.rate out)
+This calculation method is applicable for both tube-side and shell-side pressure drops using weighted average values of density
+and velocity. Both tube-side and shell-side pressure drops are evaluated by the “no change of phase" procedure as outlined in
+Section IX-D.
+EXXON RESEARCH AND ENGINEERING COMPANY - FLORHAM PARK, N.J.
+--- PAGE 8 ---
+DESIGN PRACTICES HEAT EXCHANGE EQUIPMENT
+Section Page CALCULATION PROCEDURE, CONDENSATION
+EXXON
+IX-F 8 of 79
+Date ENGINEERING
+December, 1999 PROPRIETARY INFORMATION - For Authorized Company Use Only
+THEORY AND DESIGN CONSIDERATIONS (Cont)
+The two-phase pressure drop calculated for each zone is multiplied by the ratio (Zone Area/Total Area) to estimate the zone
+pressure drop. The overall pressure drop is obtained by summing the zone pressure drops.
+➧ This procedure is believed to be conservative, i.e., actual pressure drops should be equal to or less than the calculated values.
+In cases where pressure drop is expensive or where a much lower than expected pressure drop would cause process difficulties,
+an independent check can be made by use of the Lockhart & Martinelli correlation (see Perry's Chemical Engineers' Handbook,
+6th Ed., pages 5-40 to 5-42). This method is considered to be the best available generalized correlation for two-phase pressure
+drop in a system with heat (mass) transfer taking place. However, the accuracy of this correlation is only ± 50%. Thus, the
+actual pressure drop could be anywhere between 50% and 150% of the calculated value. Also, the HTRI CST-3 computer
+program is incorporated into HEXTRAN program and is available for problems requiring detailed analysis.
+SPECIAL DESIGN CONSIDERATIONS FOR DRUMLESS CONDENSERS
+When drumless condensers are designed, the following design criteria should be followed:
+1. The condenser surface should be 110% of the surface required for condensing in order to account for surface normally
+covered by liquid.
+2. The condenser should be equipped with a 2 in. (50 mm) vent located as close to the liquid outlet end as practicable.
+3. A pot for liquid-vapor separation should be located on the condenser outlet. Pots up to 14 in. (356 mm) diameter should be
+sized for a liquid velocity of 1 ft (0.3 m) per second. The velocity in pots 16 in. (406 mm) and larger should be limited to 1.5 ft
+(0.5 m) per second. The pot should be 3 to 5 ft (0.9 to 1.5 m) long.
+4. The condenser shell should be equipped with a gauge glass covering the entire shell diameter and pot.
+5. The condenser should be elevated sufficiently to satisfy pump NPSH requirements with the condenser pot empty. In any
+event, the bottom of the condenser shell should be a minimum of 20 ft (6 m) above grade.
+6. An anti-vortex baffle should be installed in the condenser pot.
+7. The condenser should be located with its liquid outlet end on the pump side of the structure. All pump suction piping should
+be continuously sloped downwards towards the pump. Horizontal runs on the pump suction piping should be sloped at least
+2 in. per 100 ft (50 mm per 30 m).
+➧ 8. Pump suction lines up to and including 3 in. (76 mm) diameter should not have a liquid velocity in excess of 1.5 ft/sec
+(0.5 m/s). Four to 8 in. lines should be limited to 2.25 ft/sec (0.7 m/s). For 10 in. (254 mm) diameter and larger sizes, the
+liquid velocity should not exceed 3.5 ft/sec (1.1 m/s).
+9. Pumps should be heavy-duty refinery type.
+10. Pumps should be equipped with a recirculation line returning upstream of the condenser. The recirculation line should be
+equipped with a block valve and a restriction orifice sized for 25% of the normal pump capacity.
+DETAILED DESIGN PROCEDURE
+Table 2 lists the step-by-step procedure in the form of a calculation sheet. Each step is discussed below.
+The condensation calculation procedure presented in this section is based on hydrocarbon (with or without small amounts of
+steam, less than 15% by weight) condensation. The procedure should not be used for the design of vacuum pipestill overhead
+condensers or steam surface condensers. A sizing procedure for vacuum pipestill overhead condensers is presented later in this
+section. Steam surface condensers should be sized using the procedures presented in the Heat Exchange Institute (HEI)
+Standards for Steam Surface Condensers.
+1. Determine the inlet and outlet temperatures, t , t , T and T .
+1 2 1 2
+2. Determine the minimum number of shells in series; F (Figure 2, Section IX-D) based on exchanger inlet and outlet
+n
+temperatures equal to or greater than 0.8.
+3. Determine the overall duty Q and the weighted overall LMTD, ∆t .
+ew
+a. If a T-Q curve (temperature vs. heat release) has already been prepared, determine ∆t as follows:
+ew
+(1) From the curve, determine Q, T and q , T and q and q .
+dh dh ds ds sc
+(2) Calculate t and t .
+dh ds
+q
+t = t − (t − t ) dh Eq. (16)
+dh 2 2 1
+Q
+q + q
+t = t − (t − t ) dh ds Eq. (17)
+ds 2 2 1
+Q
+EXXON RESEARCH AND ENGINEERING COMPANY - FLORHAM PARK, N.J.
+--- PAGE 9 ---
+HEAT EXCHANGE EQUIPMENT DESIGN PRACTICES
+CALCULATION PROCEDURE, CONDENSATION Section Page
+EXXON IX-F 9 of 79
+ENGINEERING Date
+PROPRIETARY INFORMATION - For Authorized Company Use Only December, 1999
+THEORY AND DESIGN CONSIDERATIONS (Cont)
+(3) Calculate ∆t , ∆t and ∆t . These are the LMTDs in each of the three zones. Apply individual F 's (Figure 2,
+dh ds sc n
+Section IX-D) to each zone, as calculated from zone terminal conditions.
+(4) Calculate ∆t
+ew
+Q
+∆t = From Eq. (1)
+ew q q q
+dh + ds + sc
+∆t ∆t ∆t
+dh ds sc
+b. If a T-Q curve is not available, the method outlined in Table 1 may be used.
+4. Estimate the total area required for the condenser. See Table 1, Section IX-C for typical values of U .
+o
+A = Q / U ∆t Eq. (18)
+o ew
+5. Calculate area per shell, number of shells and number of tubes according to the usual method.
+6. Use the appropriate section of the manual to calculate the transfer coefficient and pressure drop for the noncondensing side.
+7. Calculate U , the overall coefficient neglecting the resistance on the condensing side.
+ox
+1
+= r + r + r + (R or R ) Eq. (19)
+o w io o io
+U
+ox
+8. For the condensing side, estimate the pressure drop so that the baffle pitch (or number of tube passes) can be established.
+a. Calculate average mixture density ρ based on inlet and outlet flow volumes.
+b. Assume a value of P (or N ) and calculate ∆P. Use liquid viscosity at average condensing temperature with equations
+b p
+for no change of phase.
+c. Adjust P or N to obtain desired approximate pressure drop. Note that this is an approximate pressure drop, used only
+b p
+in setting up P or N . A definitive ∆P will be calculated later.
+b p
+9. Calculate A , the area required for the desuperheating zone of the condenser.
+dh
+a. Calculate the gas cooling coefficient (h ) using the usual method of no change of phase.
+gc
+b. Calculate U and A .
+dh dh
+h U
+U = gc ox Eq. (20)
+dh h + U
+gc ox
+A dh = q dh / U dh ∆t dh Eq. (21)
+10. Calculate A , the area required for the hydrocarbon condensation and steam desuperheating zone.
+ds
+a. Estimate the condensate film temperature in the zone, assuming no temperature drop across the vapor film.
+For Shell-Side Condensation
+t f = t s − (1/ 2) (t s − t 1 )    1 − U zone    Eq. (22)
+ U 
+ox
+For Tube-Side Condensation
+t f = t t − (1/ 2) (t t − t s )    1 − U zone    Eq. (23)
+ U 
+ox
+All temperatures refer to the zone only, note the overall condenser.
+EXXON RESEARCH AND ENGINEERING COMPANY - FLORHAM PARK, N.J.
+--- PAGE 10 ---
+DESIGN PRACTICES HEAT EXCHANGE EQUIPMENT
+Section Page CALCULATION PROCEDURE, CONDENSATION
+EXXON
+IX-F 10 of 79
+Date ENGINEERING
+December, 1999 PROPRIETARY INFORMATION - For Authorized Company Use Only
+THEORY AND DESIGN CONSIDERATIONS (Cont)
+b. Calculate W , the average vapor flow rate in the zone. Use Figure 4.
+v
+c. Calculate W , average liquid flow rate.
+l
+W = W – W Eq. (24)
+l v
+d. Determine µ for the vapor; and µ , and s for the liquid.
+f f f
+e. Calculate h′ λ the condensing coefficient.
+(1) If on the tube side, calculate G
+e
+and Re, obtain f, and calculate h tλ.
+N W
+G′ = p v (Customary) Eq. (25)
+v 19.6 N d2
+t i
+or
+N W
+G′ = 1.273 x 106 p v (Metric) Eq. (25)M
+v N d2
+t i
+N W
+G′ = p v (Customary) Eq. (26)
+l 19.6 N d2
+t i
+or
+N W
+G′ = p v (Metric) Eq. (26)M
+l N d2
+t i
+G
+e
+= G′
+l
++ G′
+v
+( ρ
+l
+/ ρ
+v
+) 1/2 From Eq. (15)
+G d
+Re = e i (Customary) From Eq. (14)
+29 µ
+or
+G d
+Re = e i (Metric) From Eq. (14)M
+1000 µ
+Calculate h tλ from Eq. (12) or (13).
+(2) If on the shell side,
+A. Vertical bundle
+12 W
+Γ = c (Customary) From Eq. (6)
+π N d
+t o
+or
+1000 W
+Γ = c (Metric) From Eq. (6)M
+π N d
+t o
+EXXON RESEARCH AND ENGINEERING COMPANY - FLORHAM PARK, N.J.
+--- PAGE 11 ---
+HEAT EXCHANGE EQUIPMENT DESIGN PRACTICES
+CALCULATION PROCEDURE, CONDENSATION Section Page
+EXXON IX-F 11 of 79
+ENGINEERING Date
+PROPRIETARY INFORMATION - For Authorized Company Use Only December, 1999
+THEORY AND DESIGN CONSIDERATIONS (Cont)
+hλ =
+
+
+
+ 1.0
+Γ
+4
+1
+x
+/ 3
+104
+
+
+
+ k
+f 
+
+
+ s
+µ
+2 f
+f 
+
+
+1/ 3 (Customary) From Eq. (5)
+or
+hλ = 
+
+
+Γ
+2
+1
+5
+/
+4
+3
+
+
+ k
+f 
+
+
+ s
+µ
+2 f
+f 
+
+
+1/ 3 (Metric) From Eq. (5)M
+If Γ / µ
+f
+is larger than 1,100 (or 450), the value of hλ is quite conservative.
+B. Horizontal bundle
+Calculate n , the number of condensate streams in the bundle.
+s
+n = 1.29 N 0.480 for square tube layout, 90°
+s t
+n = 2.08 N 0.495 for rotated triangular layout, 60°
+s t
+n = 1.02 N 0.519 for triangular layout, 30°
+s t
+n = 1.37 N 0.518 for rotated square layout, 45°
+s t
+Calculate Γ, the tube loading. For this step A must be assumed. The final calculated value of A should be checked
+ds ds
+back for agreement (10 to 15%) with the assumed value.
+W
+Γ = c From Eq. (8)
+L n
+c s
+A
+L = ds (L − 0.5) N (Customary) Eq. (27)
+c s
+A
+or
+A
+L = ds (L − 0.152) N (Metric) Eq. (27)M
+c s
+A
+Calculate h′ λ , the condensing coefficient uncorrected for vapor velocity.
+h′ λ =     8.3 Γ 3 1 x / 3 103     k f     s µ 2 f f    1/3 (Customary) From Eq. (7)
+or
+ 204    s2  1/3
+h′ λ =    Γ1/3    k f  µ f  (Metric) From Eq. (7)M
+ f 
+Calculate x , the fraction of shell free–flow area occupied by the vapor.
+v
+x = 1 − x Eq. (28)
+v l
+1 = 1 +    W v       µ v   0.111    ρ l   0.555 Eq. (29)
+x  W   µ   ρ 
+l l l v
+EXXON RESEARCH AND ENGINEERING COMPANY - FLORHAM PARK, N.J.
+--- PAGE 12 ---
+DESIGN PRACTICES HEAT EXCHANGE EQUIPMENT
+Section Page CALCULATION PROCEDURE, CONDENSATION
+EXXON
+IX-F 12 of 79
+Date ENGINEERING
+December, 1999 PROPRIETARY INFORMATION - For Authorized Company Use Only
+THEORY AND DESIGN CONSIDERATIONS (Cont)
+Calculate average mass velocity of the vapor in the zone
+W
+G = v (Customary) Eq. (30)
+v
+25 A x
+x v
+or
+106 W
+G = v (Metric) Eq. (30)M
+v
+A x
+x v
+Calculate hλ
+ G 0.70
+hλ = h′ λ  v  (Customary) From Eq. (9)
+ 5 
+or
+ G 0.70
+hλ = h′ λ  v  (Metric) From Eq. (9)M
+ 24.4 
+h λ max = 2.0h′ λ From Eq. (10)
+f. Calculate h , the vapor cooling coefficient.
+gc
+(1) If on the shell side:
+Use G , the average vapor mass velocity, to calculate the uncorrected vapor cooling coefficient h . Use
+v gc
+correlations for no change of phase. Use the same film temperature as calculated for the condensing coefficient.
+Correct for the fact that heat flowing through the gas film must also overcome resistance of the condensate film.
+1 1 C
+= + 1 Eq. (31)
+h
+gc
+hλ h′
+gc
+where:
+  T + T  
+  1 2 − t  
+ W  2 f  
+C 1 = 1 −  W c T − T  Eq. (32)
+ v1 1 2 
+ 
+ 
+The factor “C " helps account for the additional gas cooling surface available from liquid droplets, ripples, etc. The
+1
+temperatures T and T refer to the zone inlet and outlet temperatures.
+1 2
+The value of C should fall in the range of 0.5 to 1.0. If the calculated value of C is less than 0.5, set C equal to
+1 1 1
+0.5; if the calculated value of C is greater than 1.0, set C equal to 1.0.
+1 1
+(2) If on the tube side:
+Calculate G .
+v
+A. Calculate x [see Eq. (28)]
+v
+B. G = G′ / x Eq. (33)
+v v v
+Use G with the procedure for no change of phase and calculate h′ .
+v gc
+Calculate h .
+gc
+1 1 C
+= + 1 Eq. (34)
+h
+gc
+hλ h′
+gc
+EXXON RESEARCH AND ENGINEERING COMPANY - FLORHAM PARK, N.J.
+--- PAGE 13 ---
+HEAT EXCHANGE EQUIPMENT DESIGN PRACTICES
+CALCULATION PROCEDURE, CONDENSATION Section Page
+EXXON IX-F 13 of 79
+ENGINEERING Date
+PROPRIETARY INFORMATION - For Authorized Company Use Only December, 1999
+THEORY AND DESIGN CONSIDERATIONS (Cont)
+g. Calculate h
+lc
+, the liquid cooling coefficient. For vertical bundles, assume h
+lc
+= hλ.
+For horizontal bundles:
+(1) If on the shell side
+Calculate G
+l
+W
+G = l (Customary) Eq. (35)
+l 25 A x
+x l
+or
+106 W
+G = l (Metric) Eq. (35)M
+l A x
+x l
+Using G , with the procedure for no change of phase, calculate h' , liquid cooling obtained by “bottom flow."
+l lc
+Calculate the liquid cooling obtained by “drip cooling."
+h
+dc
+= 1.5 hλ Eq. (36)
+Calculate h
+lc
+For all vapor entering;
+2h h′
+h = dc lc Eq. (37)
+lc h + h′
+dc lc
+For liquid + vapor to the zone;
+(W + W ) h h′
+h = l c dc lc Eq. (38)
+lc W  W 
+c h′ +  W + c  h
+2 lc  l 2  dc
+(2) If on the tube side
+h
+lc
+= hλ Eq. (39)
+h. Calculate h , the weighted zone coefficient on the condensing side.
+ds
+q
+h = ds Eq. (40)
+ds qλ + q gc + q lc
+hλ h
+gc
+h
+lc
+i. Calculate U , the zone coefficient.
+ds
+h U
+U = ds ox Eq. (41)
+ds h + U
+ds ox
+j. Calculate A
+ds
+q
+A = ds Eq. (42)
+ds U ∆t
+ds e(ds)
+k. Compare A calculated here with A assumed to calculate Γ. If necessary, repeat calculation to obtain agreement.
+ds ds
+EXXON RESEARCH AND ENGINEERING COMPANY - FLORHAM PARK, N.J.
+--- PAGE 14 ---
+DESIGN PRACTICES HEAT EXCHANGE EQUIPMENT
+Section Page CALCULATION PROCEDURE, CONDENSATION
+EXXON
+IX-F 14 of 79
+Date ENGINEERING
+December, 1999 PROPRIETARY INFORMATION - For Authorized Company Use Only
+THEORY AND DESIGN CONSIDERATIONS (Cont)
+11. Calculate A , the area required for the steam condensing zone. Calculations for this zone are performed in the same way
+ds
+as for the previous zone. Note the following:
+a. The condensing coefficient for steam equals the hydrocarbon condensing coefficient.
+b. The cooling coefficient for condensed steam equals the hydrocarbon liquid cooling coefficient..
+12. Calculate the total condenser area.
+A = A + A + A Eq. (43)
+dh ds sc
+13. If the area calculated in the previous step equals the area estimated in Step (4), proceed to the next step.
+If the calculated area is not equal to the estimated area, repeat the calculation with a better estimated area until agreement is
+reached.
+14. Calculate the overall coefficient, U .
+o
+Q
+U = Eq. (44)
+o A ∆t
+ew
+15. Calculate the clean coefficient, U
+c
+1 1
+= − r − r + 0.001 (Customary) Eq. (45)
+io o
+U U
+c o
+or
+1 1
+= − r − r + 0.00018 (Metric) Eq. (45)M
+io o
+U U
+c o
+16. Calculate pressure drop on the condensing side.
+a. Refer to Step 8 and calculate two-phase pressure drops for the overall condenser at the average conditions of each
+zone.
+b. Calculate zone pressure drops
+∆P zone = ∆P at zone conditions    A zone    Eq. (46)
+ A 
+total
+c. Calculate ∆P
+∆P = ∆P + ∆P + ∆P Eq. (47)
+dh ds sc
+VACUUM PIPESTILL OVERHEAD CONDENSER DESIGN PROCEDURE
+➧ Since a vacuum pipestill overhead condenser heat duty primarily results from condensing steam, the detailed condenser
+calculation procedure presented in this section is not applicable for design of these units. However, the HEXTRAN Program with
+HTRI CST-3 program may be used. For preliminary hand calculations, when sizing a vacuum pipestill overhead condenser, the
+following calculation procedure is recommended.
+1. Use an overall heat transfer coefficient of 130 Btu/hr-ft2-°F or 738 W/m2-K. (Values between 110 to 130 Btu/hr-ft2-°F
+(625 and 738 W/m2-K) have been used for past designs.)
+2. Use the steam dew point temperature, rather than the hydrocarbon dew point temperature, as the condensing zone inlet
+temperature for calculating the effective temperature difference.
+3. Design for 3 to 12 mm Hg (0.4 to 1.6 kPa) pressure drop. The pressure drop should be estimated based on 1/2 the
+calculated pressure drop using inlet vapor conditions. (Past designs frequently employed divided flow, TEMA Type J, shells
+with double segmental, modified disk and donut, baffles at or near maximum baffle spacing to obtain low pressure drop
+values.)
+➧ 4. Estimate nozzle pressure drop based on three velocity heads for inlet and outlet nozzles.
+EXXON RESEARCH AND ENGINEERING COMPANY - FLORHAM PARK, N.J.
+--- PAGE 15 ---
+HEAT EXCHANGE EQUIPMENT DESIGN PRACTICES
+CALCULATION PROCEDURE, CONDENSATION Section Page
+EXXON IX-F 15 of 79
+ENGINEERING Date
+PROPRIETARY INFORMATION - For Authorized Company Use Only December, 1999
+NOMENCLATURE
+A = Total exchanger area, ft2 (m2)
+A = Area of desuperheating zone, ft2 (m2)
+dh
+A = Area of hydrocarbon condensation and steam desuperheating zone, ft2 (m2)
+ds
+A = Area of steam condensation zone, ft2 (m2)
+sc
+A = Area/shell, ft2 (m2)
+s
+A = Free flow area between shell baffles, in.2 (mm2)
+x
+B = Bundle factor for shell-side heat transfer, dimensionless
+1
+B = Bundle factor for shell-side pressure drop, dimensionless
+2
+c = Specific heat at caloric temperature, Btu/lb-°F (kJ/kg-K)
+c = Specific heat of the shell-side fluid at average film temperature, Btu/lb-°F (kJ/kg-K)
+f
+D = Shell I.D., in. (mm)
+D = Diameter of tube bundle (“outer tube limit"), in. (mm)
+t
+d = Tube I.D., in. (mm)
+i
+d = Tube O.D., in. (mm)
+o
+f = Fanning friction factor, dimensionless
+F = Correction factor to account for baffle type, dimensionless
+bt
+F = Correction factor for log mean temperature difference (due to partially concurrent flow), dimensionless
+n
+F = F shell correction factor, dimensionless
+F
+F = J shell correction factor, dimensionless
+J
+F = Shell-side pressure drop correction factor, dimensionless
+s
+F = Tube-side pressure drop correction factor, dimensionless
+t
+F = Correlation factor used to determine average vapor flow, dimensionless
+v
+G = Mass velocity, lb/sec-ft2 (kg/s-m2)
+G = Equivalent mass velocity of liquid and vapor in 2-phase flow (see Figure 4), lb/sec-ft2 (kg/s-m2)
+e
+G = Average mass velocity of liquid, lb/sec-ft2 (kg/s-m2)
+l
+G′ = Superficial mass velocity of liquid, lb/sec-ft2 (kg/s-m2)
+l
+G = Average mass velocity of vapor, lb/sec-ft2 (kg/s-m2)
+v
+G′ = Superficial mass velocity of vapor, lb/sec-ft2 (kg/s-m2)
+v
+h = Liquid cooling coefficient resulting from “dripping" in the condenser, Btu/hr-ft2-°F (W/m2-K)
+dc
+h = Film coefficient for condensing side of desuperheating zone, Btu/hr-ft2-°F (W/m2-K)
+dh
+h = Film coefficient for condensing side of hydrocarbon condensing zone, Btu/hr-ft2-°F (W/m2-K)
+ds
+h = Film coefficient for condensing side of steam condensing zone, Btu/hr-ft2-°F (W/m2-K)
+sc
+h′ = Gas cooling coefficient uncorrected for condensate film resistance, Btu/hr-ft2-°F (W/m2-K)
+gc
+h = Gas cooling coefficient, Btu/hr-ft2-°F (W/m2-K)
+gc
+h = Inside film coefficient corrected to outside area, Btu/hr-ft2-°F (W/m2-K)
+io
+h′ = Liquid cooling coefficient resulting from “bottom flow" in the condenser, Btu/hr-ft2-°F (W/m2-K)
+lc
+h = Weighted liquid cooling coefficient, Btu/hr-ft2-°F (W/m2-K), assuming half of liquid cooling is “drip" cooling and half is
+lc
+“bottom flow" cooling
+h = Shell-side film coefficient no change of phase, Btu/hr-ft2-°F (W/m2-K)
+o
+h = Shell-side condensing coefficient including fouling factor, Btu/hr-ft2-°F (W/m2-K)
+oc
+h′ λ = Shell-side condensing film coefficient uncorrected for effect of vapor mass velocity, Btu/hr-ft2-°F (W/m2-K)
+hλ = Shell-side condensing film coefficient, Btu/hr-ft2-°F (W/m2-K)
+h tλ = Tube-side condensing film coefficient, Btu/hr-ft2-°F (W/m2-K)
+EXXON RESEARCH AND ENGINEERING COMPANY - FLORHAM PARK, N.J.
+--- PAGE 16 ---
+DESIGN PRACTICES HEAT EXCHANGE EQUIPMENT
+Section Page CALCULATION PROCEDURE, CONDENSATION
+EXXON
+IX-F 16 of 79
+Date ENGINEERING
+December, 1999 PROPRIETARY INFORMATION - For Authorized Company Use Only
+NOMENCLATURE (Cont)
+k = Thermal conductivity at caloric temperature, Btu/hr-ft-°F (W/m-K)
+k = Thermal conductivity of fluid at average film temperature, Btu/hr-ft-°F (W/m-K)
+f
+k = Thermal conductivity of the tube metal at average tube temperature, Btu/hr-ft-°F (W/m-K)
+w
+l = Tube thickness, ft (m)
+L = Tube length, ft (m)
+L = Length of tube exposed to condensation, ft (m)
+c
+LMTD = Log mean temperature difference, °F (K)
+MW = Molecular weight, lb/mol (kg/kmol)
+N = Number of shell baffles
+b
+N = Number of tube passes per shell
+p
+N = Number of shells in series
+s
+N = Number of tubes in the bundle
+t
+N = Number of tubes across the center line of the bundle
+tc
+Nu = Nusselt number, hd/k, dimensionless
+n = Number of condensate streams in the shell
+s
+P = Baffle pitch, in. (mm)
+b
+P = Inlet pressure, psia
+i
+Pr = Prandtl number, cµ/k, dimensionless
+P = Tube pitch, in. (mm)
+t
+∆P = Pressure drop in desuperheating zone, psi (kPa)
+dh
+∆P = Pressure drop in hydrocarbon condensing zone, psi (kPa)
+ds
+∆P = Pressure drop in steam condensing zone, psi (kPa)
+sc
+∆P = Total tube-side pressure drop, psi (kPa)
+t
+∆P = Tube pressure drop due to friction, psi/tube pass (kPa/tube pass)
+tf
+∆P = Tube pressure drop due to turns, psi/tube pass (kPa/tube pass)
+tr
+∆P = Shell-side pressure drop due to friction, psi/shell (kPa/shell)
+sf
+∆P = Shell-side pressure drop due to turns, psi/shell (kPa/shell)
+sr
+∆P = Total shell-side pressure drop, psi (kPa)
+s
+Q = Total heat duty, Btu/hr (W)
+q = Heat duty in desuperheating zone, Btu/hr (W)
+dh
+q = Heat duty in hydrocarbon condensing zone, Btu/hr (W)
+ds
+q = Heat duty in steam condensing zone, Btu/hr (W)
+sc
+q = Heat duty from gas cooling in a zone, Btu/hr (W)
+gc
+q = Heat duty from liquid cooling in a zone, Btu/hr (W)
+lc
+qλ = Heat duty from condensation in a zone, Btu/hr (W)
+R = Total resistance (clean) to heat transfer, hr-ft2-°F/Btu (m2-K/W)
+c
+R = Inside film resistance to heat transfer corrected to outside area, hr-ft2-°F/Btu (m2-K/W)
+io
+R = Outside film resistance to heat transfer, hr-ft2-°F/Btu (m2-K/W)
+o
+R = Total resistance (duty) to heat transfer, hr-ft2-°F/Btu (m2-K/W)
+t
+r = Tube-side fouling factor referred to tube inside surface area, hr-ft2-°F/Btu (m2-K/W)
+i
+r = Tube-side fouling factor referred to tube outside surface area, hr-ft2-°F/Btu (m2-K/W)
+io
+r = Outside fouling factor, hr-ft2-°F/Btu (m2-K/W)
+o
+r = Resistance of tube wall metal at average wall temperature, hr-ft2-°F/Btu (m2-K/W)
+w
+Re = Reynolds number
+S = Free width between baffles, in. (m)
+EXXON RESEARCH AND ENGINEERING COMPANY - FLORHAM PARK, N.J.
+--- PAGE 17 ---
+HEAT EXCHANGE EQUIPMENT DESIGN PRACTICES
+CALCULATION PROCEDURE, CONDENSATION Section Page
+EXXON IX-F 17 of 79
+ENGINEERING Date
+PROPRIETARY INFORMATION - For Authorized Company Use Only December, 1999
+NOMENCLATURE (Cont)
+s = Specific gravity of the condensate film
+f
+T = Hydrocarbon dewpoint, °F (°C)
+dh
+T = Steam dewpoint, °F (°C)
+ds
+t = Temperature of the fluid being heated, after it gains enough heat to have cooled the condensing stream from T to
+dh dh
+T , °F (°C)
+2
+t = Temperature of the fluid being heated, after it gains enough heat to have cooled the condensing stream from T to
+ds ds
+T ,°F (°C)
+2
+T = Tube sheet design temperature, ° F (°C)
+m
+T = Inlet temperature of fluid being cooled, °F (°C)
+1
+T = Outlet temperature of fluid being cooled, °F (°C)
+2
+t = Inlet temperature of fluid being heated, °F (°C)
+1
+t = Outlet temperature of fluid being heated, °F (°C)
+2
+t = Average shell-side film temperature, °F (°C)
+f
+t = Caloric temperature of the shell fluid, °F (°C)
+s
+t = Caloric temperature of the tube fluid, °F (°C)
+t
+t = Average tube wall temperature, °F (°C)
+w
+∆t = Log mean temperature difference in desuperheating zone, °F (°C)
+dh
+∆t = Log mean temperature difference in hydrocarbon condensing zone, °F (°C)
+ds
+∆t = Log mean temperature difference in steam condensing zone, °F (°C)
+sc
+∆t = Log mean temperature difference corrected for nonideal countercurrent flow (Effective temperature difference),
+e
+°F (°C)
+∆t = Weighted effective log mean difference, °F (°C)
+ew
+∆t = Log mean temperature difference for true countercurrent flow, °F (°C)
+m
+U = Overall clean coefficient of heat transfer, Btu/hr-ft2-°F (W/m2-K)
+c
+U = Overall heat transfer coefficient in desuperheating zone, Btu/hr-ft2-°F (W/m2-K)
+dh
+U = Overall heat transfer coefficient in hydrocarbon condensing zone, Btu/hr-ft2-°F (W/m2-K)
+ds
+U = Overall heat transfer coefficient in steam condensing zone, Btu/hr-ft2-°F (W/m2-K)
+sc
+U = Overall duty coefficient of heat transfer, Btu/hr-ft2-°F (W/m2-K)
+o
+U = Overall condenser heat transfer coefficient, neglecting the resistance of condensate film, Btu/hr-ft2-°F (W/m2-K)
+ox
+u = Compressibility factor of the vapor
+V = Velocity, ft/sec (m/s)
+V = Volume liquid entering a zone, ft3/hr (m3/s)
+l1
+V = Outlet liquid volume, ft3/hr (m3/s)
+l2
+V = Volume vapor entering a zone, ft3/hr (m3/s)
+v
+V = Inlet vapor volume, ft3/hr (m3/s)
+v1
+V = Outlet vapor volume, ft3/hr (m3/s)
+v2
+W = Mass flow rate, lb/hr (kg/s)
+W = Quantity condensed in a zone (or overall), lb/hr (kg/s)
+c
+W = Inlet liquid rate, lb/hr (kg/s)
+l1
+W = Outlet liquid rate, lb/hr (kg/s)
+l2
+W = Average liquid flow rate, lb/hr (kg/s)
+l
+W = Average vapor flow rate, lb/hr (kg/s)
+v
+W = Inlet vapor flow rate, lb/hr (kg/s)
+v1
+W = Outlet vapor flow rate, lb/hr (kg/s)
+v2
+EXXON RESEARCH AND ENGINEERING COMPANY - FLORHAM PARK, N.J.
+--- PAGE 18 ---
+DESIGN PRACTICES HEAT EXCHANGE EQUIPMENT
+Section Page CALCULATION PROCEDURE, CONDENSATION
+EXXON
+IX-F 18 of 79
+Date ENGINEERING
+December, 1999 PROPRIETARY INFORMATION - For Authorized Company Use Only
+NOMENCLATURE (Cont)
+x = Fraction of cross-sectional flow area occupied by vapor
+v
+x = Fraction of cross-sectional flow area occupied by liquid
+l
+Y = Tube-side heat transfer correlation factor
+th
+µ = Viscosity at caloric temperature, cP (Pa•s)
+µ = Viscosity of fluid at average film temperature, cP (Pa•s)
+f
+µ = Average liquid viscosity, cP (Pa•s)
+l
+µ = Average vapor viscosity, cP (Pa•s)
+v
+µ = Viscosity of the tube-side fluid at tube wall temperature, cP (Pa•s)
+w
+α = Ratio vapor rate to inlet vapor rate, shell-side condensation
+β = In a condenser: Weight fraction condensed
+Γ = Tube loading, lb/hr-ft (kg/s-m)
+∆1,
+∆2,
+∆3 = Correlation factors used in calculating equilibrium flash curve
+λ = Average latent heat of vaporization, Btu/lb (kJ/kg)
+ρ = Fluid density (No change of phase), lb/ft3(kg/m3)
+ρ = Average liquid density, lb/ft3 (kg/m3)
+l
+ρ = Inlet density of liquid, lb/ft3 (kg/m3)
+l1
+ρ = Outlet density of liquid, lb/ft3 (kg/m3)
+l2
+ρ = Average vapor density, lb/ft3 (kg/m3)
+v
+ρ = Inlet density of vapor, lb/ft3 (kg/m3)
+v1
+ρ = Outlet density of vapor, lb/ft3 (kg/m3)
+v2
+EXXON RESEARCH AND ENGINEERING COMPANY - FLORHAM PARK, N.J.
+--- PAGE 19 ---
+HEAT EXCHANGE EQUIPMENT DESIGN PRACTICES
+CALCULATION PROCEDURE, CONDENSATION Section Page
+EXXON IX-F 19 of 79
+ENGINEERING Date
+PROPRIETARY INFORMATION - For Authorized Company Use Only December, 1999
+TABLE 1
+T-Q CURVE CALCULATION PROCEDURE
+I. CALCULATION PROCEDURE
+1. From the predicted ASTM distillation of the condensing hydrocarbon, determine t , t , t , t , and t . Then calculate ∆1
+10 30 50 70 90
+from:
+2
+∆1 = (t − t )
+70 10
+3
+2. From Figure 6, determine ∆2 and ∆3.
+3. Calculate the 10, 30, 50, 70, and 90 Vol. % points on the atmospheric flash curve.
+a. t = t + (∆1 – ∆3) – ∆2
+10f 10
+2  ∆1 ∆2 
+b. t = t + (t − t ) + (∆1 − ∆3) −  + 
+30f 10 3 30 10  3 2 
+c. t = t + 0.48 (t – t – ∆1) + (∆1 – ∆3)
+50f 10 50 10
+3
+d. t = t + ∆2
+70f 10f
+2
+e. t = t + 0.23 (t – t – 2∆1) + (∆1 – ∆3) + ∆2
+90f 10 90 10
+4. Estimate the temperatures at 10, 30, 50, 70, and 90 wt% flashed and at the same mol% flashed.
+t = t + 0.10 (t – t ) t = t + 0.05 (t – t )
+30w 30f 50f 10f 10w 10f 50f 10f
+t = t + 0.10 (t – t ) t = t + 0.05 (t – t )
+50w 50f 70f 30f 90w 90f 90f 50f
+t = t + 0.10 (t – t )
+70w 70f 90f 50f
+t = t – 0.04 (t – t ) t = t – 0.02 (t – t )
+30m 30f 50f 10f 10m 10f 50f 10f
+t = t – 0.04 (t – t ) t = t – 0.02 (t – t )
+50m 50f 70f 30f 90m 90f 90f 50f
+t = t – 0.04 (t – t )
+70m 70f 90f 50f
+5. Prepare a graph (see Figure 2) with percent off on the X-axis and temperature on the Y-axis.
+a. Plot the five points calculated for the volume flash curve. Connect the points as follows:
+(1) A straight line from t through t , intersecting the 0% axis.
+30f 10f
+(2) A straight line from t through t , intersecting the 100% axis.
+70f 90f
+(3) A straight line between t and t .
+50f 30f
+(4) A straight line between t and t .
+50f 70f
+b. Plot the five weight percent flashed points and connect each adjacent point with a straight line. Connect t with the 0
+10w
+vol. % intercept, and t with the 100 vol. % intercept.
+90w
+Repeat this process with the five mol percent flashed points.
+6. Estimate T , the dew point of the hydrocarbon. (For the overhead of the fractionation tower, T = T .)
+dh 1 dh
+a. On the flash curve prepared above, the atmospheric-pressure dew point is the point at 100% NOT condensed.
+b. Calculate the partial pressure of the condensable hydrocarbon and adjust the atmospheric–pressure dew point to this
+partial pressure, using the alignment chart, Figure 3.
+mol of Condensable HC
+HC Partial Pr ess. = x P
+1
+Total mol of vapor
+7. Estimate T , the dew point of steam in the system. This is the temperature at which the vapor pressure of water is equal to
+ds
+the partial pressure of the water in the system.
+a. This calculation is done in tabular form, as shown below.
+b. The calculations for the table should be carried out at increasing values of weight percent condensed until the first point
+is found where the vapor pressure of water @ system temperature is less than the calculated partial pressure of water in
+the system.
+EXXON RESEARCH AND ENGINEERING COMPANY - FLORHAM PARK, N.J.
+--- PAGE 20 ---
+DESIGN PRACTICES HEAT EXCHANGE EQUIPMENT
+Section Page CALCULATION PROCEDURE, CONDENSATION
+EXXON
+IX-F 20 of 79
+Date ENGINEERING
+December, 1999 PROPRIETARY INFORMATION - For Authorized Company Use Only
+TABLE 1 (Cont)
+T-Q CURVE CALCULATION PROCEDURE
+c. Prepare a graph with temperature on Y-axis and pressure of the X-axis. From the table just completed, plot the last 3 or
+4 steam partial pressure vs. system temperature points. On the same graph, plot the last 3 or 4 water-vapor-pressure
+vs. system temperature points. The intersection of the two curves gives the approximate steam dew point of the system
+(see Figure 2).
+Wt. % Hydrocarbon Condensed(1)
+Vapor Temp. @ Atm. Press.(2)
+Mol % HC not Condensed(2)
+Mol of HC not Condensed
+Mol of Non-Condensables (“NC")
+Mol of Steam
+Total Mol of Vapor
+Total Pressure, psia or kPa(3)
+Partial Pressure of Steam, psia or kPa
+Partial Press. of Condensables, psia or kPa
+System Temperature, °F or °C(4)
+Vapor Press. of H2O at Sys. Temp.(5), psia or kPa
+Notes:
+(1) Arbitrary values.
+(2) Read from flash curves.
+(3) Assume percent pressure drop = mol percent condensed.
+(4) Vapor temperature at 1 atm. adjusted to the partial pressure of condensables by means of the alignment chart, Figure 3.
+(5) From steam tables or from alignment chart Figure 3. (Use the point marked H2O as the “normal boiling point".)
+8. Determine the amount and type of heat duty in each zone. Evaluate specific heat (c) and latent heat of vaporization (λ) at
+the arithmetic average zone temperature.
+a. Sensible heat transferred from material which passes through the zone without changing phase.
+q = W c (Temp Change)
+b. Sensible heat transferred from vapor or steam which condenses in the zone.
+c. Sensible heat transferred from hydrocarbon or water which has condensed in the zone.
+W
+q = c c (Temp Change) (c of vapor)
+2
+W
+q = c c (Temp Change) (c of liquid)
+2
+d. Latent heat transferred from condensing hydrocarbon or steam.
+Q = λ W
+c
+Note that Item (8a) may include as many as 4 calculations: steam; non-condensables; vapor which does not condense;
+and any entering liquid.
+Item (8b) may include two calculations: vapor and steam.
+Items (8c) and (8d) may each include two calculations: hydrocarbon and water.
+The above calculations, performed for each zone, will give q , q , and q . These values permit the calculation of the
+dh ds sc
+LMTD's and overall temperature difference (∆t ) – also referred to as the Mean Temperature Difference (MTD).
+m
+EXXON RESEARCH AND ENGINEERING COMPANY - FLORHAM PARK, N.J.
+--- PAGE 21 ---
+HEAT EXCHANGE EQUIPMENT DESIGN PRACTICES
+CALCULATION PROCEDURE, CONDENSATION Section Page
+EXXON IX-F 21 of 79
+ENGINEERING Date
+PROPRIETARY INFORMATION - For Authorized Company Use Only December, 1999
+TABLE 2
+CALCULATION PROCEDURE FOR CONDENSER DESIGN
+Exchanger Number E - Refinery
+Service Calc By/Date
+I. ZONE DUTIES AND TEMPERATURES*
+A. Vapor Desuperheating Zone (If Present); 1st Zone
+CUSTOMARY UNITS METRIC UNITS
+q = Btu/hr W
+dh
+Fluid Being Condensed (Shell/Tube)
+T = °F °C
+1
+T = °F °C
+dh
+Fluid Being Heated (Shell/Tube)
+t = °F °C
+2
+t = °F °C
+dh
+T − T
+R = 1 dh = =
+t − t
+2 dh
+t − t
+j = 2 dh = =
+T − t
+1 dh
+(T − t ) − (T − t )
+∆t = 1 2 dh dh =
+m
+ T − t 
+ln  
+ T
+1
+− t
+2  
+
+dh dh
+= °F °C
+From charts given in Section IX-D
+F = for this zone**
+n
+∆t = ∆t F = °F °C
+e(dh) m n
+For shell-side condensation:
+t = 0.4 (T – T ) + T = °F °C
+s 1 dh dh
+t = 0.4 (t – t ) + t = °F °C
+t 2 dh dh
+For tube-side condensation:
+t = 0.4 (T – T ) + T = °F °C
+t 1 dh dh
+t = 0.4 (t – t ) + t = °F °C
+s 2 dh dh
+q
+dh = Btu/hr-°F W/K
+∆t
+e
+* Use LMTD correction factor for each zone, based on zone temperatures.
+** Use LMTD corrections factor, based on terminal temperatures to evaluate minimum number of shells in series. F must
+n
+be equal to or greater than 0.8.
+EXXON RESEARCH AND ENGINEERING COMPANY - FLORHAM PARK, N.J.
+--- PAGE 22 ---
+DESIGN PRACTICES HEAT EXCHANGE EQUIPMENT
+Section Page CALCULATION PROCEDURE, CONDENSATION
+EXXON
+IX-F 22 of 79
+Date ENGINEERING
+December, 1999 PROPRIETARY INFORMATION - For Authorized Company Use Only
+TABLE 2 (Cont)
+CALCULATION PROCEDURE FOR CONDENSER DESIGN
+B. Hydrocarbon Condensing Steam Desuperheating Zone (2nd Zone)
+CUSTOMARY UNITS METRIC UNITS
+q = Btu/hr W
+ds
+Fluid Being Condensed (Shell/Tube)
+T = °F °C
+dh
+T = °F °C
+ds
+t = °F °C
+dh
+t = °F °C
+ds
+T − T
+R = dh ds = =
+t − t
+dh ds
+t − t
+j = dh ds = =
+T − t
+dh ds
+(T − t ) − (T − t )
+∆t = dh dh ds ds = °F °C
+m  T − t 
+ln  
+ T
+d
+d
+h
+s − t
+d
+d
+h
+s
+ 
+
+From charts given in Section IX-D,
+F = for shells
+n
+∆t = ∆t F = °F °C
+e(ds) m n
+For shell-side condensation:
+t = 0.4 (T – T ) + T = °F °C
+s dh ds ds
+t = 0.4 (t – t ) + t = °F °C
+t dh ds ds
+For tube-side condensation:
+t = 0.4 (T – T ) + T = °F °C
+t dh ds ds
+t = 0.4 (t – t ) + t = °F °C
+s dh ds ds
+q
+ds = Btu/hr-°F W/K
+∆T
+e
+C. Steam Condensing Zone (3rd Zone)
+q = Btu/hr W
+sc
+Fluid Being Condensed (Shell/Tube)
+T = °F °C
+ds
+T = °F °C
+2
+t = °F °C
+ds
+t = °F °C
+1
+T − T
+R = ds 2 = =
+t − t
+ds 1
+t − t
+j = ds 1 = =
+T − t
+ds 1
+EXXON RESEARCH AND ENGINEERING COMPANY - FLORHAM PARK, N.J.
+--- PAGE 23 ---
+HEAT EXCHANGE EQUIPMENT DESIGN PRACTICES
+CALCULATION PROCEDURE, CONDENSATION Section Page
+EXXON IX-F 23 of 79
+ENGINEERING Date
+PROPRIETARY INFORMATION - For Authorized Company Use Only December, 1999
+TABLE 2 (Cont)
+CALCULATION PROCEDURE FOR CONDENSER DESIGN
+CUSTOMARY UNITS METRIC UNITS
+(T − t ) − (T − t )
+∆t = ds ds 2 1 = °F °C
+m
+ T − t 
+ln  
+ T
+ds
+− t
+ds  
+
+2 1
+From charts given in Section IX-D,
+F = for shells
+n
+∆t ∆t F = °F °C
+e(sc) = m n
+For shell-side condensation:
+t = 0.4 (T – T ) + T = °F °C
+s ds 2 2
+t = 0.4 (t – t ) + t = °F °C
+t ds 1 1
+For tube-side condensation:
+t = 0.4 (T – T ) + T = °F °C
+t ds 2 2
+t = 0.4 (t – t ) + t = °F °C
+s ds 1 1
+q
+sc = Btu/hr-°F WK
+∆t
+e
+D. Weighted Temperature Difference
+Q
+∆t = =
+ew q q q
+dh + ds + sc
+∆t ∆t ∆t
+e(dh) e(ds) e(sc)
+where: Q = q + q + q = °F °C
+dh ds sc
+II. SHELL-SIDE CONDENSATION
+A. Overall Tube-Side Calculation (No Change of Phase)
+1. Assumed value of U = Btu/hr-ft2-°F W/m2-K
+o
+2. A = Q / U ∆t = ft2 m2
+o ew
+3. Tube metal: ___________________
+Thermal conductivity, k = Btu/hr-ft-°F W/m-K
+w
+Tube outer diameter, d = in. mm
+o
+Wall thickness, l = ft m
+Tube insider diameter, d = in. mm
+i
+Tube length, L = ft m
+4. Tube pitch (P ) and layout (Note 1)* = in. mm
+t
+5. A = A / N (Note 2)* = ft2 m2
+s s
+6. N = 3.82 A / (L – 0.5) d =
+t s o
+N = 318 A / (L – 0.152) d (Metric)
+t s o
+* General notes contained on last page of calculation form.
+EXXON RESEARCH AND ENGINEERING COMPANY - FLORHAM PARK, N.J.
+--- PAGE 24 ---
+DESIGN PRACTICES HEAT EXCHANGE EQUIPMENT
+Section Page CALCULATION PROCEDURE, CONDENSATION
+EXXON
+IX-F 24 of 79
+Date ENGINEERING
+December, 1999 PROPRIETARY INFORMATION - For Authorized Company Use Only
+TABLE 2 (Cont)
+CALCULATION PROCEDURE FOR CONDENSER DESIGN
+CUSTOMARY UNITS METRIC UNITS
+7. Assumed N =
+p
+8. t overall = 0.4 (T – T ) + T = °F °C
+s 1 2 2
+9. t overall = 0.5 (t + t ) = °F °C
+t 1 2
+10. Tube-side properties at t
+t
+a. Density, ρ = lb/ft3 kg/m3
+b. Viscosity, µ = cP Pa•s
+c. Specific Heat, c = Btu/lb-°F kJ/kg-K
+d. Thermal Conductivity, k = Btu/hr-ft-°F W/m-K
+11. Tube-side flow rate, W = Q / c (t – t ) = lb/hr kg/s
+2 1
+N W
+12. V = p = ft/sec
+(19.6) ρN d2
+t i
+(1.273 x 106 ) N W
+V = p (Metric) m/s
+ρ N d2
+t i
+13. If tube-side fluid is water
+368  t 0.26
+h io = (Vd i )0.7   t   = Btu/hr-ft-°F
+d  100 
+o
+1.27 x 104  1.8 t + 32 0.26
+h = (Vd )0.7  t  (Metric) W/m2-K
+io d i  100 
+o
+∆P = 0.020 F N N 
+
+V 2 + 0.158 L
+(V)1.73
+
+
+= psi
+t s p   (d )1.27  
+i
+∆P =1.48 F N N 
+
+V2 + 22.9 L
+(V)1.73
+
+
+(Metric) kPa
+t s p   (d i )1.27  
+14. For fluids other than water, evaluate overall tube-side heat transfer coefficient and pressure drop by the procedure
+outlined in Section IX-D, tube-side iteration.
+h = Btu/hr-ft-°F W/m2-K
+io
+∆P = psi kPa
+t
+15. R = 1 / h = hr-ft2-°F/Btu m2-K/W
+io io
+16. Tube-side fouling factor, r = hr-ft2-°F/Btu m2-K/W
+i
+17. r = (d / d ) r = hr-ft2-°F/Btu m2-K/W
+io o i i
+18. Shell-side fouling factor, r = hr-ft2-°F/Btu m2-K/W
+o
+EXXON RESEARCH AND ENGINEERING COMPANY - FLORHAM PARK, N.J.
+--- PAGE 25 ---
+HEAT EXCHANGE EQUIPMENT DESIGN PRACTICES
+CALCULATION PROCEDURE, CONDENSATION Section Page
+EXXON IX-F 25 of 79
+ENGINEERING Date
+PROPRIETARY INFORMATION - For Authorized Company Use Only December, 1999
+TABLE 2 (Cont)
+CALCULATION PROCEDURE FOR CONDENSER DESIGN
+CUSTOMARY UNITS METRIC UNITS
+19. r w = l / k w = hr-ft2-°F/Btu m2-K/W
+20. 1 / U = R + r + r + r = hr-ft2-°F/Btu m2-K/W
+ox io io w o
+21. U = Btu/hr-ft2-°F W/m2-K
+ox
+B. Overall Shell-Side Calculation
+1. t f = t s − 1 (t s − t 1 )    1 − U o    = °F °C
+2  U 
+ox
+2. For fluids other than hydrocarbons, determine vapor film properties. For hydrocarbons, determine only liquid
+viscosity µ
+f
+Viscosity, µ = cP Pa•s
+f
+Specific Heat, c = Btu/lb-°F kJ/kg-K
+f
+Thermal Conductivity, k = Btu/hr-ft-°F W/m-K
+f
+3. N = 1.19 N square layout
+TC t
+= 1.10 N triangular layout =
+t
+4. D = (N – 1) P + d = in. mm
+t TC t o
+5. D = D / 0.9 (Note 3) = in. mm
+t
+D − (d N )
+6. S = o TC (Note 4) = in. mm
+F
+F
+7. Assumed P = in. mm
+b
+8. N = F (10 L / P ) (Note 4) =
+B F b
+N = F (833 L / P ) (Note 4) (Metric)
+B F b
+9. A = S (P – 0.375) (Segmental Baffles) = in.2
+x b
+A = S (P – 9.53) (Metric) mm2
+x b
+A = 0.85S (P – 0.375) (Double Segmental Baffles) = in.2
+x b
+A = 0.85S (P – 9.53) (Metric) mm2
+x b
+10. Total shell-side flow rate, W = lb/hr kg/s
+EXXON RESEARCH AND ENGINEERING COMPANY - FLORHAM PARK, N.J.
+--- PAGE 26 ---
+DESIGN PRACTICES HEAT EXCHANGE EQUIPMENT
+Section Page CALCULATION PROCEDURE, CONDENSATION
+EXXON
+IX-F 26 of 79
+Date ENGINEERING
+December, 1999 PROPRIETARY INFORMATION - For Authorized Company Use Only
+TABLE 2 (Cont)
+CALCULATION PROCEDURE FOR CONDENSER DESIGN
+CUSTOMARY UNITS METRIC UNITS
+11. Inlet vapor density and volume
+Inlet MW  P (psia)   1 
+ρ v1 = 10.7    T i + 460      u   = lb/ft3
+1
+or
+Inlet MW  P (kPa abs)   1 
+ρ v1 = 8.29    i T + 273      u   (Metric) = kg/m3
+1
+Inlet vapor rate, W = lb/hr kg/s
+v1
+V = W / ρ = ft3/hr m3/s
+v1 v1 v1
+12. Outlet vapor density and volume
+Outlet MW  P (psia)   1 
+ρ v2 = 10.7    T i + 460      u   = lb/ft3
+2
+or
+Outlet MW  P (kPa abs)   1 
+ρ v2 = 8.29    i T + 273      u   (Metric) = kg/m3
+2
+Outlet vapor rate, W = lb/hr kg/s
+v2
+V = W / ρ = ft3/hr m3/s
+v2 v2 v2
+13. Inlet liquid density and volume
+ρ = lb/ft3 kg/m3
+l1
+Inlet liquid rate, W = lb/hr kg/s
+l1
+V = W / ρ = ft3/hr m3/s
+l1 l1 l1
+14. Inlet liquid density and volume
+ρ = lb/ft3 kg/m3
+l2
+Inlet liquid rate, W = lb/hr kg/s
+l2
+V = W / ρ = ft3/hr m3/s
+l2 l2 l2
+15. Average mixture density
+2W
+ρ = = lb/ft3 kg/m3
+V + V + V + V
+v1 l1 v2 l2
+16. Calculate shell-side pressure drop (∆P ) using = psi kPa
+s
+procedures outlined in Section IX-D, Shell-Side Iteration
+The above-assumed geometry will now be checked using the following detailed procedures.
+EXXON RESEARCH AND ENGINEERING COMPANY - FLORHAM PARK, N.J.
+--- PAGE 27 ---
+HEAT EXCHANGE EQUIPMENT DESIGN PRACTICES
+CALCULATION PROCEDURE, CONDENSATION Section Page
+EXXON IX-F 27 of 79
+ENGINEERING Date
+PROPRIETARY INFORMATION - For Authorized Company Use Only December, 1999
+TABLE 2 (Cont)
+CALCULATION PROCEDURE FOR CONDENSER DESIGN
+CUSTOMARY UNITS METRIC UNITS
+C. Vapor Desuperheating Zone (Shell-Side Condensation)
+ t + t  U
+1. t
+f
+= 
+
+s
+2
+t 
+
++
+2
+o (R
+io
++ r
+io
++ r
+w
++ r
+o
+)(t
+s
+− t
+t
+) = °F °C
+(t and t for this zone were calculated in Step I.A.)
+s t
+2. Inlet vapor density and volume
+Inlet MW  P (psia)   1 
+ρ v1 = 10.7    T i + 460      u   = lb/ft3
+1
+or
+Inlet MW  P (kPa abs)   1 
+ρ v1 = 8.31    i T + 273      u   (Metric) = kg/m3
+1
+3. For fluids other than hydrocarbons, determine film properties. For hydrocarbons, determine only µ
+f
+Viscosity, µ = cP Pa•s
+f
+Specific Heat, c = Btu/lb-°F kJ/kg-K
+f
+Thermal Conductivity, k = Btu/hr-ft-°F W/m-K
+f
+4. Calculate shell-side coefficient (h ) using = Btu/hr-ft2-°F W/m2-K
+gc
+Section IX-D, Shell-Side iteration
+h U
+5. U = gc ox = Btu/hr-ft2-°F W/m2-K
+dh h + U
+gc ox
+(U was evaluated in Step II.A.21.)
+ox
+q
+6. A = dh = ft2 m2
+dh ∆t U
+e dh
+(q and ∆t were evaluated in Step I.A.)
+dh e
+D. Hydrocarbon Condensing - Steam Desuperheating Zone (Shell-Side Condensation)
+1. Assume a zone area, A = ft2 m2
+ds
+q
+2. U assumed = ds = Btu/hr-ft2-°F W/m2-K
+ds A ∆t
+ds e
+(q and ∆t for this zone were evaluated in Step I.B.)
+ds e
+EXXON RESEARCH AND ENGINEERING COMPANY - FLORHAM PARK, N.J.
+--- PAGE 28 ---
+DESIGN PRACTICES HEAT EXCHANGE EQUIPMENT
+Section Page CALCULATION PROCEDURE, CONDENSATION
+EXXON
+IX-F 28 of 79
+Date ENGINEERING
+December, 1999 PROPRIETARY INFORMATION - For Authorized Company Use Only
+TABLE 2 (Cont)
+CALCULATION PROCEDURE FOR CONDENSER DESIGN
+CUSTOMARY UNITS METRIC UNITS
+3. t f = t s − 1 (t s − t t )    1 − U ds    = °F °C
+2  U 
+ox
+(t and t for this zone were evaluated in Step I.B.)
+s t
+4. ∆T zoneinlet = T dh − t dh =
+∆T T − t
+zone outlet ds ds
+5. F (Figure 4) =
+v
+6. Average zone vapor rate, W lb/hr mol/hr kg/s kmol/s
+v
+(F ) (Vapor condensed in zone, W ) =
+v c
++ (Vapor not condensed in zone, W ) =
+v2
+= W =
+v
+lb / hr kg / s
+Average Mol. weight of vapor =
+mol / hr kmol / hr
+7. Average vapor properties at film temperature
+Avg MW  P (psia)   1 
+a. Density, ρ v = 10.7    t + 460      u   = lb/ft3
+f
+or
+Avg MW  P (kPa abs)   1 
+ρ v = 8.31    t + 273      u   (Metric) = kg/m3
+f
+b. Viscosity, µ = cP Pa•s
+f
+(Used for h calc.)
+gc
+8. W = W − W = lb/hr kg/s
+l v
+9. Average condensate properties at film temp.
+a. Specific gravity, s =
+f
+b. Thermal Conductivity, k = Btu/hr-ft-°F W/m-K
+f
+c. Viscosity, µ = cP Pa•s
+f
+10. Condensing Coefficient (Horizontal Bundle)
+a. n = 1.29 N 0.48 (90° Square Tube Layout) =
+s t
+n = 1.02 N 0.519 (30° Triangular Layout) =
+s t
+(For other layouts, see text)
+A
+b. L = ds (L − 0.5)N = ft
+c s
+A
+or
+A
+L = ds (L − 0.152)N (Metric) = m
+c s
+A
+(Note that if a zone occupies more than one shell,
+L will be a multiple of the tube length.)
+c
+EXXON RESEARCH AND ENGINEERING COMPANY - FLORHAM PARK, N.J.
+--- PAGE 29 ---
+HEAT EXCHANGE EQUIPMENT DESIGN PRACTICES
+CALCULATION PROCEDURE, CONDENSATION Section Page
+EXXON IX-F 29 of 79
+ENGINEERING Date
+PROPRIETARY INFORMATION - For Authorized Company Use Only December, 1999
+TABLE 2 (Cont)
+CALCULATION PROCEDURE FOR CONDENSER DESIGN
+CUSTOMARY UNITS METRIC UNITS
+W
+c. Γ = c = lb/hr-ft kg/s-m
+L n
+c s
+d. h′ λ =     8.3 Γ 3 1 x /3 103     k f     s µ 2 f f    1/3 = Btu/hr-ft2-°F
+condensate
+or
+ 204    s2  1/ 3
+h′ λ =    Γ1/ 3    k f  µ f  (Metric) = W/m2-K
+ f 
+condensate
+1 W µ (v) 0.111  ρ 0.555
+e. = 1 + v  f    l   =
+x
+l
+W
+l
+ µ
+f
+(l)   ρ
+v
+
+f. x = 1− x =
+v l
+W  F 
+g. G v = v   J   , (Note 4), or = lb/sec-ft2
+25 A x  F 
+x v BT
+106 W  F 
+G v = v   J   (Metric) = kg/sm2
+A x  F 
+x v BT
+ G 0.70
+h. hλ = h′ λ  v  = Btu/hr-ft2-°F
+ 5 
+or
+ G 0.70
+hλ = h′ λ  v  (Metric) = W/m2-K
+ 24.4 
+If hλ > 2 h′ λ , use 2.0 h′ λ
+(For pure components, hλ = h′ λ )
+11. Condensing Coefficient (Vertical Bundles)
+12 W
+a. Γ = c = lb/hr-ft
+πN d
+t o
+or
+1000 W
+Γ = c (Metric) = kg/s-m
+πN d
+t o
+b. hλ =
+
+
+
+ 1.0
+Γ
+4
+1
+x
+/ 3
+104
+
+
+
+ k
+f 
+
+
+ s
+µ
+2 f
+f 
+
+
+1/ 3 = Btu/hr-ft2-°F
+condensate
+or
+hλ = 
+
+
+Γ
+2
+1
+5
+/
+4
+3
+
+
+ k
+f 
+
+
+ s
+µ
+2 f
+f 
+
+
+1/ 3 (Metric) = W/m2-K
+condensate
+EXXON RESEARCH AND ENGINEERING COMPANY - FLORHAM PARK, N.J.
+--- PAGE 30 ---
+DESIGN PRACTICES HEAT EXCHANGE EQUIPMENT
+Section Page CALCULATION PROCEDURE, CONDENSATION
+EXXON
+IX-F 30 of 79
+Date ENGINEERING
+December, 1999 PROPRIETARY INFORMATION - For Authorized Company Use Only
+TABLE 2 (Cont)
+CALCULATION PROCEDURE FOR CONDENSER DESIGN
+CUSTOMARY UNITS METRIC UNITS
+12. Vapor cooling coefficient
+Calculate h′ using procedures outlined in Section
+gc
+IX-D, shell-side iteration (use W as the flowrate)
+v
+h′ = Btu/hr-ft2-°F W/m2-K
+gc
+  T + T  
+ W  dh ds − t  
+C = 1−  c  2 f  
+1  W (T − T ) 
+ v1 dh ds 
+ 
+1 1 C
+= + 1 =
+h
+gc
+hλ h′
+gc
+h = Btu/hr-ft2-°F W/m2-K
+gc
+13. Liquid cooling coefficient (Horizontal Bundles)
+a. Bottom Cooling Coefficient
+Calculate h′ using procedures outlined in Section
+lc
+IX-D, shell-side iteration (use W as condensate flow rate)
+l
+h′ = Btu/hr-ft2-°F W/m2-K
+lc
+b. Drip Cooling Coefficient
+h
+dc
+= 1.5hλ = Btu/hr-ft2-°F W/m2-K
+c. Total liquid cooling coefficient (Horizontal) = lb/hr kg/s
+Bundles), Liquid entering zone, W
+l
+2h h′
+h = dc lc (total vapor entering zone) = Btu/hr-ft2-°F W/m2-K
+lc h + h′
+dc lc
+or
+(W + W ) h h′
+h = l c dc lc = Btu/hr-ft2-°F W/m2-K
+lc W  W 
+2
+c h′
+lc
++ 
+
+W
+l
++
+2
+c 
+
+h
+dc
+(For liquid + vapor entering zone)
+14. Liquid cooling coefficient (Vertical Bundles)
+h
+lc
+= hλ = Btu/hr-ft2-°F W/m2-K
+15. Weighted hydrocarbon condensing zone coefficient
+a. Zone condensing duty, qλ = Btu/hr W
+b. Zone vapor cooling duty, q = Btu/hr W
+gc
+c. Zone liquid cooling duty, q = Btu/hr W
+lc
+q
+h = ds = Btu/hr-ft2-°F W/m2-K
+ds qλ + q gc + q lc
+hλ h
+gc
+h
+lc
+h U
+U = ds ox = Btu/hr-ft2-°F W/m2-K
+ds h + U
+ds ox
+(U was evaluated in Step II.A.21.)
+ox
+EXXON RESEARCH AND ENGINEERING COMPANY - FLORHAM PARK, N.J.
+--- PAGE 31 ---
+HEAT EXCHANGE EQUIPMENT DESIGN PRACTICES
+CALCULATION PROCEDURE, CONDENSATION Section Page
+EXXON IX-F 31 of 79
+ENGINEERING Date
+PROPRIETARY INFORMATION - For Authorized Company Use Only December, 1999
+TABLE 2 (Cont)
+CALCULATION PROCEDURE FOR CONDENSER DESIGN
+CUSTOMARY UNITS METRIC UNITS
+16. Zone Area
+q
+A = ds = ft2 m2
+ds U ∆t
+ds e(ds)
+(q and ∆t for this zone were evaluated in Step I.B.)
+ds e
+E. Steam Condensing Zone (Shell-Side Condensation)
+q
+1. U = sc = Btu/hr-ft2-°F W/m2-K
+sc (A − A ) ∆t
+ds e(sc)
+2. t f = t s − 1 (t s − t t )    1− U sc    = °F °C
+2  U 
+ox
+(t and t for this zone were evaluated in Step I.C.)
+s t
+3. ∆T zone inlet = T ds − t ds = _____________ =
+∆T T − t
+zone outlet 2 1
+4. F (Figure 4) =
+v
+5. Average zone vapor rate, W lb/hr mol/hr kg/s kmol/s
+v
+(F ) (Vapor condensed in zone, W ) =
+v c
++ Non Condensable =
+= W =
+v
+lb / hr kg / s
+Average Mol. weight of vapor =
+mol / hr kmol / hr
+6. Average vapor properties at film temperature
+Avg MW  P (psia)   1 
+a. Density, ρ v = 10.7    t + 460      u   = lb/ft3
+f
+or
+Avg MW  P (kPa abs)   1 
+ρ v = 8.31    t + 273      u   (Metric) = kg/m3
+f
+b. Viscosity, µ = cP Pa•s
+f
+(Used for h calc.)
+gc
+7. Average zone liquid rate, W
+l
+W = W – W = lb/hr kg/s
+l v
+8. Average condensate properties at film temperature
+a. Specific gravity, s =
+f
+b. Thermal conductivity, k = Btu/hr-ft-°F W/m-K
+f
+c. Viscosity, µ = cP Pa•s
+f
+(Note that hydrocarbon film properties should be used)
+EXXON RESEARCH AND ENGINEERING COMPANY - FLORHAM PARK, N.J.
+--- PAGE 32 ---
+DESIGN PRACTICES HEAT EXCHANGE EQUIPMENT
+Section Page CALCULATION PROCEDURE, CONDENSATION
+EXXON
+IX-F 32 of 79
+Date ENGINEERING
+December, 1999 PROPRIETARY INFORMATION - For Authorized Company Use Only
+TABLE 2 (Cont)
+CALCULATION PROCEDURE FOR CONDENSER DESIGN
+CUSTOMARY UNITS METRIC UNITS
+9. Condensing Coefficient (Horizontal Bundle)
+a. n = 1.29 N 0.48 (90° Square Tube Layout) =
+s t
+n = 1.02 N 0.519 (30° Triangular Layout) =
+s t
+(For other layouts, see text)
+b. A = A – A – A = ft2 m2
+sc dh ds
+A
+c. L = sc (L − 0.5)N = ft
+c s
+A
+or
+A
+L = sc (L − 0.152) N (Metric) = m
+c s
+A
+(Note that if a zone occupies more than one shell,
+L will be a multiple of the tube length.)
+c
+W
+d. Γ = c = lb/hr-ft kg/s-m
+L n
+c s
+e. h′ λ =     8.3 Γ 3 1 x /3 103     k f     s µ 2 f f    1/3 = Btu/hr-ft2-°F
+condensate
+or
+ 204    s2  1/3
+h′ λ =    Γ1/3    k f  µ f  (Metric) = W/m2-K
+ f 
+condensate
+1 W µ (v) 0.111  ρ 0.555
+f. = 1 + v  f    l   =
+x
+l
+W
+l
+ µ
+f
+(l)   ρ
+v
+
+g. x = 1− x =
+v l
+W  F 
+h. G v = v   J   , (Note 4), = lb/sec-ft2
+25 A x  F 
+x v BT
+or
+106 W  F 
+G v = v   J   , (Note 4) (Metric) = kg/sm2
+A x  F 
+x v BT
+ G 0.7
+i. hλ = h′ λ  v  = Btu/hr-ft2-°F
+ 5 
+or
+ G 0.7
+hλ =h′ λ  v  (Metric) = W/m2-K
+ 24.4 
+If hλ > 2 h′ λ , use 2 h′ λ
+(For pure components, hλ = h′ λ )
+EXXON RESEARCH AND ENGINEERING COMPANY - FLORHAM PARK, N.J.
+--- PAGE 33 ---
+HEAT EXCHANGE EQUIPMENT DESIGN PRACTICES
+CALCULATION PROCEDURE, CONDENSATION Section Page
+EXXON IX-F 33 of 79
+ENGINEERING Date
+PROPRIETARY INFORMATION - For Authorized Company Use Only December, 1999
+TABLE 2 (Cont)
+CALCULATION PROCEDURE FOR CONDENSER DESIGN
+CUSTOMARY UNITS METRIC UNITS
+10. Condensing Coefficient (Vertical Bundles)
+12 W
+a. Γ = c = lb/hr-ft
+π N d
+t o
+or
+1000 W
+Γ = c (Metric) = kg/s-m
+π N d
+t o
+b. hλ =
+
+
+
+ 1.0
+Γ
+4
+1
+x
+/ 3
+104
+
+
+
+ k
+f 
+
+
+ s
+µ
+2 f
+f 
+
+
+1/ 3 = Btu/hr-ft2-°F
+condensate
+or
+hλ = 
+
+
+Γ
+2
+1
+5
+/
+4
+3
+
+
+ k
+f 
+
+
+ s
+µ
+2 f
+f 
+
+
+1/ 3 (Metric) = W/m2-K
+condensate
+11. Vapor cooling coefficient
+Calculate h′ using procedures outlined in Section
+gc
+IX-D, shell-side iteration (use W as the flowrate)
+v
+h′ = Btu/hr-ft2-°F W/m2-K
+gc
+  T + T  
+ W  dh ds − t  
+12. C = 1−  c  2 f   =
+1  W (T − T ) 
+ v1 dh ds 
+ 
+1 1 C
+= + 1 =
+h
+gc
+hλ h′
+gc
+h = Btu/hr-ft2-°F W/m2-K
+gc
+13. Liquid cooling coefficient (Horizontal Bundles)
+a. Bottom Cooling Coefficient
+Calculate h′ using procedures outlined in Section
+lc
+IX-D, shell-side iteration (use W as condensate flow rate)
+l
+h′ = Btu/hr-ft2-°F W/m2-K
+lc
+b. Drip Cooling Coefficient
+h
+dc
+= 1.5hλ = Btu/hr-ft2-°F W/m2-K
+c. Total liquid cooling coefficient (Horizontal) = lb/hr kg/s
+Bundles), Liquid entering zone, W
+l
+(W + W ) h h′
+h = l c dc lc = Btu/hr-ft2-°F W/m2-K
+lc W  W 
+2
+c h′
+lc
++ 
+
+W
+l
++
+2
+c 
+
+h
+dc
+14. Liquid cooling coefficient (Vertical Bundles)
+h
+lc
+= hλ = Btu/hr-ft2-°F W/m2-K
+EXXON RESEARCH AND ENGINEERING COMPANY - FLORHAM PARK, N.J.
+--- PAGE 34 ---
+DESIGN PRACTICES HEAT EXCHANGE EQUIPMENT
+Section Page CALCULATION PROCEDURE, CONDENSATION
+EXXON
+IX-F 34 of 79
+Date ENGINEERING
+December, 1999 PROPRIETARY INFORMATION - For Authorized Company Use Only
+TABLE 2 (Cont)
+CALCULATION PROCEDURE FOR CONDENSER DESIGN
+CUSTOMARY UNITS METRIC UNITS
+15. Weighted steam condensing coefficient
+a. Zone condensing duty, qλ = Btu/hr-ft2-°F W/m2-K
+b. Zone vapor cooling duty, q = Btu/hr-ft2-°F W/m2-K
+gc
+c. Zone liquid cooling duty, q = Btu/hr-ft2-°F W/m2-K
+lc
+q
+h = sc = Btu/hr-ft2-°F W/m2-K
+sc qλ + q gc + q lc
+hλ h
+gc
+h
+lc
+h U
+U = sc ox = Btu/hr-ft2-°F W/m2-K
+sc h + U
+sc ox
+16. Zone Area
+q
+A = sc = ft2 m2
+sc U ∆t
+sc e(sc)
+(q and ∆t for this zone were evaluated in Step I.C.)
+sc e
+F. Total Area
+1. A = A + A + A = ft2 m2
+dh ds sc
+If total area calculated is not reasonably close to total
+area assumed, reiterate the various zone calculations.
+G. Condensing Pressure Drop (Shell-Side Condensation)
+1. Hydrocarbon condensing zone inlet volumes
+a. Vapor
+(1) ρ v1(dh) = Vap 1 o 0 r .7 MW     T P (p + si 4 a 6 ) 0        u 1    = lb/ft3
+dh
+or
+ρ v1(dh) = Vap 8 o . r 31 MW     P T (kP + a 2 a 7 b 3 s)        u 1    (Metric) = kg/m3
+dh
+(2) Vapor rate, W = lb/hr kg/s
+v1(dh)
+(3) V = W / ρ = ft3/hr m3/s
+v1(dh) v1(dh) v1(dh)
+b. Liquid (if present)
+(1) ρ = lb/ft3 kg/m3
+l1(dh)
+(2) Liquid rate, W = lb/hr kg/s
+l1(dh)
+(3) V = ft3/hr m3/s
+l1(dh)
+EXXON RESEARCH AND ENGINEERING COMPANY - FLORHAM PARK, N.J.
+--- PAGE 35 ---
+HEAT EXCHANGE EQUIPMENT DESIGN PRACTICES
+CALCULATION PROCEDURE, CONDENSATION Section Page
+EXXON IX-F 35 of 79
+ENGINEERING Date
+PROPRIETARY INFORMATION - For Authorized Company Use Only December, 1999
+TABLE 2 (Cont)
+CALCULATION PROCEDURE FOR CONDENSER DESIGN
+CUSTOMARY UNITS METRIC UNITS
+2. Steam condensing zone inlet volumes
+a. Vapor
+(1) ρ v1(dh) = Vap 1 o 0 r .7 MW     T P ds (p + si 4 a 6 ) 0        u 1    = lb/ft3
+or
+ρ v1(dh) = Vap 8 o . r 31 MW     P T (kP + a 2 a 7 b 3 s)        u 1    (Metric) = kg/m3
+ds
+(2) Vapor rate, W = lb/hr kg/s
+v1(ds)
+(3) V = W / ρ = ft3/hr m3/s
+v1(ds) v1(ds) v1(ds)
+b. Liquid
+(1) ρ = lb/ft3 kg/m3
+l1(ds)
+(2) Liquid rate, W = lb/hr kg/s
+l1(ds)
+(3) V = W / ρ = ft3/hr m3/s
+l1(ds) l1(ds) l1(ds)
+3. Steam condensing zone outlet volumes
+a. Vapor (if present)
+V (evaluated in Step II.B.12.) = ft3/hr m3/s
+v2
+V (evaluated in Step II.B.14.) = ft3/hr m3/s
+l2
+4. Vapor desuperheating zone ∆P
+dh
+Calculate ∆P using procedures outlined in = psi kPa
+dh
+Section IX-D, shell-side iteration, ∆P
+dh
+5. Hydrocarbon condensing zone, ∆P
+ds
+2W
+a. ρ = = lb/ft3 kg/m3
+ds V + V + V + V
+v1(dh) l1(dh) v1(ds) l1(ds)
+b. Calculate ∆P using procedures outlined in = psi kPa
+ds
+Section IX-D, shell-side iteration
+6. Steam condensing zone ∆P
+sc
+2W
+a. ρ = = lb/ft3 kg/m3
+sc V + V + V + V
+v1(ds) l1(ds) v2 l2
+b. Calculate ∆P using procedures outlined in = psi kPa
+sc
+Section IX-D, shell-side iteration
+7. Total condensing-side pressure drop
+∆P = ∆P + ∆P + ∆P = psi kPa
+dh ds sc
+EXXON RESEARCH AND ENGINEERING COMPANY - FLORHAM PARK, N.J.
+--- PAGE 36 ---
+DESIGN PRACTICES HEAT EXCHANGE EQUIPMENT
+Section Page CALCULATION PROCEDURE, CONDENSATION
+EXXON
+IX-F 36 of 79
+Date ENGINEERING
+December, 1999 PROPRIETARY INFORMATION - For Authorized Company Use Only
+TABLE 2 (Cont)
+CALCULATION PROCEDURE FOR CONDENSER DESIGN
+CUSTOMARY UNITS METRIC UNITS
+III. TUBE-SIDE CONDENSATION
+A. Overall Shell-Side Calculation (No Change of Phase)
+1. Assumed value of U = Btu/hr-ft2-°F W/m2-K
+o
+2. Assumed value of R = hr-ft2-°F/Btu m2-K/W
+io
+3. A = Q / U ∆t = ft2 m2
+o ew
+4. Tube metal:
+Thermal conductivity, k = Btu/hr-ft-°F W/m-K
+w
+Tube outer diameter, d = in. mm
+o
+Wall thickness, l = ft m
+Tube inside diameter, d = in. mm
+i
+Tube length, L = ft mm
+5. Tube pitch (P ) and layout (Note 1) = in. mm
+t
+6. A = A / N (Note 2) = ft2 m2
+s s
+7. N = 3.82 A / (L – 0.5) d =
+t s o
+or
+N = 318 A / (L – 0.152) d (Metric) =
+t s o
+8. t overall = 0.4 (T – T ) + T = °F °C
+t 1 2 2
+9. t overall = 0.4 (t – t ) +t = °F °C
+s 2 1 1
+10. Fouling factors
+d
+a. r = o (r ) = = hr-ft2-°F/Btu m2-K/W
+io i
+d
+i
+b. r = hr-ft2-°F/Btu m2-K/W
+o
+11. Tube wall resistance
+r w = l / k w = hr-ft2-°F/Btu m2-K/W
+ t + t  U
+12. t =  s t  + o (R + r + r + r ) (t − t ) = °F °C
+f  2  2 io io w o s t
+13. Shell-side density, ρ = lb/ft3 kg/m3
+14. For fluids other than hydrocarbons, determine film
+properties. For hydrocarbons, determine only µ
+Viscosity, µ = cP Pa •s
+f
+Specific heat, c = Btu/lb-°F kJ/kg-K
+f
+Thermal conductivity, k = Btu/hr-ft-°F W/m-K
+f
+EXXON RESEARCH AND ENGINEERING COMPANY - FLORHAM PARK, N.J.
+--- PAGE 37 ---
+HEAT EXCHANGE EQUIPMENT DESIGN PRACTICES
+CALCULATION PROCEDURE, CONDENSATION Section Page
+EXXON IX-F 37 of 79
+ENGINEERING Date
+PROPRIETARY INFORMATION - For Authorized Company Use Only December, 1999
+TABLE 2 (Cont)
+CALCULATION PROCEDURE FOR CONDENSER DESIGN
+CUSTOMARY UNITS METRIC UNITS
+15. Shell-side flow rate, W = Q / c (t – t ) = lb/hr kg/s
+2 1
+16. N = 1.19 N square layout
+TC t
+= 1.10 N triangular layout =
+t
+17. D = (N – 1) P + d = in. mm
+t TC t o
+18. D = D / 0.9 (Note 3) = in. mm
+t
+D − (d N )
+19. S = o TC (Note 4) = in. mm
+F
+F
+20. Assumed P = in. mm
+b
+21. N = F (10L / P ) (Note 4), =
+B F b
+or
+N = F (833 L / P ) (Note 4) (Metric) =
+B F b
+22. A = S (P – 0.375) (Segmental Baffles) = in.2
+x b
+or
+A = S (P – 9.53) (Metric) = mm2
+x b
+A = 0.85S (P – 0.375) (Double Segmental Baffles) = in.2
+x b
+or
+A = 0.85S (P – 9.53) (Metric) = mm2
+x b
+23. Calculate ∆P using procedures outlines in = psi kPa
+s
+Section IX-D, shell-side iteration (if pressure drop is
+unreasonable, adjust P and reiterate.)
+b
+24. Calculate shell-side coefficient using procedures
+outlines in Section IX-D, shell-side iteration
+h = Btu/hr-ft2-°F W/m2-K
+o
+25. R = 1 / h = hr-ft2-°F/Btu m2-K/W
+o o
+26. 1 / U = R + r + r + r = hr-ft2-°F/Btu m2-K/W
+ox io io w o
+27. U = Btu/hr-ft2-°F W/m2-K
+ox
+EXXON RESEARCH AND ENGINEERING COMPANY - FLORHAM PARK, N.J.
+--- PAGE 38 ---
+DESIGN PRACTICES HEAT EXCHANGE EQUIPMENT
+Section Page CALCULATION PROCEDURE, CONDENSATION
+EXXON
+IX-F 38 of 79
+Date ENGINEERING
+December, 1999 PROPRIETARY INFORMATION - For Authorized Company Use Only
+TABLE 2 (Cont)
+CALCULATION PROCEDURE FOR CONDENSER DESIGN
+CUSTOMARY UNITS METRIC UNITS
+B. Overall Tube-Side Calculation
+1. Total shell-side flow rate, W = lb/hr kg/s
+2. Inlet vapor density and volume
+Inlet MW  P (psia)   1 
+ρ v1 = 10.7    T i + 460      u   = lb/ft3
+1
+or
+Inlet MW  P (kPa abs)   1 
+ρ v1 = 8.31    i T + 273      u   (Metric) = kg/m3
+1
+Inlet vapor rate, W = lb/hr kg/s
+v1
+V = W / ρ = ft3/hr m3/s
+v1 v1 v1
+3. Outlet vapor density and volume
+Outlet MW  P (psia)   1 
+ρ v2 = 10.7    T i + 460      u   = lb/ft3
+2
+or
+Outet MW  P (kPa abs)   1 
+ρ v2 = 8.31    i T + 273      u   (Metric) = kg/m3
+2
+Outlet vapor rate, W = lb/hr kg/s
+v2
+V = W / ρ = ft3/hr m3/s
+v2 v2 v2
+4. Inlet liquid density and volume
+ρ = lb/ft3 kg/m3
+l1
+Inlet liquid rate, W = lb/hr kg/s
+l1
+V = W / ρ = ft3/hr m3/s
+l1 l1 l1
+5. Outlet liquid density and volume
+ρ = lb/ft3 kg/m3
+l2
+Outlet liquid rate, W = lb/hr kg/s
+l2
+V = W / ρ = ft3/hr m3/s
+l2 l2 l2
+6. Average density
+2W
+ρ = = lb/ft3 kg/m3
+V + V + V + V
+v1 l1 v2 l2
+7. Assumed N =
+p
+EXXON RESEARCH AND ENGINEERING COMPANY - FLORHAM PARK, N.J.
+--- PAGE 39 ---
+HEAT EXCHANGE EQUIPMENT DESIGN PRACTICES
+CALCULATION PROCEDURE, CONDENSATION Section Page
+EXXON IX-F 39 of 79
+ENGINEERING Date
+PROPRIETARY INFORMATION - For Authorized Company Use Only December, 1999
+TABLE 2 (Cont)
+CALCULATION PROCEDURE FOR CONDENSER DESIGN
+CUSTOMARY UNITS METRIC UNITS
+N W
+8. V = p = ft/sec
+19.6ρN d2
+t i
+or
+1.273 x 106 N W
+V = p (Metric) = m/s
+ρ N d2
+t i
+9. G = ρV = lb/sec-ft2 kg/s-m2
+10. Re = d i G or d i G (Metric) =
+29 µ 1000 µ
+11. Calculate Fanning friction factor f
+f = 16 / Re (Re ≤ 2000) =
+= 10–4 Re 0.575 (2000 < Re < 3800) =
+= 0.0035 + 0.264 / Re0.42 (Re ≥ 3800) =
+12. ρV2 / 9270 or ρV2 / 2000 (Metric) = psi kPa
+L ρV2  µ 0.14 or 0.25
+13. ∆P tf = 48 f d 9270    µ w    = psi
+i
+or
+L ρV2  µ 0.14or 0.25
+= 4000 f   w   (Metric) = kPa
+d 2000  µ 
+i
+(use 0.25 for laminar flow)
+14. ∆P = 3 (ρV2 / 9270) = psi
+tr
+∆P = 3 (ρV2 / 2000) (Metric) = kPa
+tr
+15. ∆P = F N N (∆P + ∆P ) = psi kPa
+t t s p tf tr
+(See Table 3, Section IX-D)
+(If ∆P is unreasonable change N and reiterate tube-side calculation.)
+t p
+The above assumed geometry will now be checked using the following detailed procedure.
+C. Vapor Desuperheating Zone (Shell-Side Condensation)
+1. ρ v1 = Inle 1 t 0. M 7 W     t P i + (p 4 si 6 a 0 )        u 1    = lb/ft3
+t
+or
+ρ v1 = Inle 8 t .3 M 1 W     P i t (kP + a 27 a 3 bs)        u 1    (Metric) = kg/m3
+t
+(t was calculated in Step I.A.)
+t
+EXXON RESEARCH AND ENGINEERING COMPANY - FLORHAM PARK, N.J.
+--- PAGE 40 ---
+DESIGN PRACTICES HEAT EXCHANGE EQUIPMENT
+Section Page CALCULATION PROCEDURE, CONDENSATION
+EXXON
+IX-F 40 of 79
+Date ENGINEERING
+December, 1999 PROPRIETARY INFORMATION - For Authorized Company Use Only
+TABLE 2 (Cont)
+CALCULATION PROCEDURE FOR CONDENSER DESIGN
+CUSTOMARY UNITS METRIC UNITS
+2. Total tube-side inlet vapor, W = lb/hr kg/s
+3. At t , determine for fluids other than hydrocarbons:
+t
+Viscosity, µ = cP Pa•s
+f
+Specific Heat, c = Btu/lb-°F kJ/kg-K
+Thermal Conductivity, k = Btu/hr-ft-°F W/m-K
+N W
+4. V = p = ft/sec
+19.6ρ N d2
+v t i
+1.273 x 106 N W
+V = p (Metric) = m/s
+ρN d2
+t i
+5. G = Vρ = lb/sec-ft2 kg/s-m2
+v
+d G d G
+6. Re = i or i (Metric) =
+29 µ 1000 µ
+7. From Figure 8, determine Y =
+th
+a. k (cµ / k)1/3 = Btu/hr-ft-°F W/m-K
+b. h * = Y th k   cµ  1/ 3 = 1/ R * = Btu/hr-ft2-°F W/m2-K
+io d  k  io
+o
+* Uncorrected for viscosity.
+c. t = t + U ( R * + r ) (t – t ) = °F °C
+w t o io io s t
+d. (µ / µ )0.14 =
+w
+8. h = h * (µ / µ )0.14 = Btu/hr-ft2-°F W/m2-K
+gc io w
+h U
+9. U = gc ox = Btu/hr-ft2-°F W/m2-K
+dh h + U
+gc ox
+(U was evaluated in Step II.A.27.)
+ox
+q
+10. A = dh = ft2 m2
+dh ∆t U
+e(dh) dh
+(q and ∆t were evaluated in Step I.A.)
+dh e
+D. Hydrocarbon Condensing - Steam Desuperheating Zone (Shell-Side Condensation)
+1. Assume a zone area, A = ft2 m2
+ds
+q
+2. U = ds = Btu/hr-ft2-°F W/m2-K
+ds A ∆t
+ds e(ds)
+(q and ∆t for this zone were evaluated in Step I.B.)
+ds e
+EXXON RESEARCH AND ENGINEERING COMPANY - FLORHAM PARK, N.J.
+--- PAGE 41 ---
+HEAT EXCHANGE EQUIPMENT DESIGN PRACTICES
+CALCULATION PROCEDURE, CONDENSATION Section Page
+EXXON IX-F 41 of 79
+ENGINEERING Date
+PROPRIETARY INFORMATION - For Authorized Company Use Only December, 1999
+TABLE 2 (Cont)
+CALCULATION PROCEDURE FOR CONDENSER DESIGN
+CUSTOMARY UNITS METRIC UNITS
+3. t f = t t − 1 (t t − t s )    1− U ds    = °F °C
+2  U 
+ox
+(t and t for this zone were evaluated in Step I.B.)
+s t
+4. ∆T zone inlet = T dh − t dh =
+∆T T − t
+zone outlet ds ds
+5. F (Figure 4) =
+v
+6. Average zone vapor rate, W lb/hr mol/hr kg/s kmol/s
+v
+(F ) (Vapor condensed in zone) =
+v
++ (Vapor not condensed in zone) =
+= W =
+v
+lb / hr kg / s
+Average Mol. weight of vapor =
+mol / hr kmol / hr
+7. Average vapor properties at film temperature
+Avg MW  P (psia)   1 
+a. Density, ρ v = 10.7    t + 460      u   = lb/ft3
+f
+or
+Avg MW  P (kPa abs)   1 
+ρ v = 8.31    t + 273      u   (Metric) = kg/m3
+f
+b. Viscosity, µ = cP Pa•s
+f
+(Used for h calc.)
+gc
+8. W = W − W = lb/hr kg/s
+l v
+9. Average condensate properties at film temperature
+a. Specific gravity, s =
+f
+b. Thermal Conductivity, k = Btu/hr-ft-°F W/m-K
+f
+c. Viscosity, µ = cP Pa•s
+f
+10. Condensing Coefficient
+N W
+a. G′ = p v = lb/sec-ft2
+v 19.6 N d2
+t i
+or
+1.273 x 106 N W
+G′ = p v (Metric) = kg/s-m2
+v N d2
+t i
+EXXON RESEARCH AND ENGINEERING COMPANY - FLORHAM PARK, N.J.
+--- PAGE 42 ---
+DESIGN PRACTICES HEAT EXCHANGE EQUIPMENT
+Section Page CALCULATION PROCEDURE, CONDENSATION
+EXXON
+IX-F 42 of 79
+Date ENGINEERING
+December, 1999 PROPRIETARY INFORMATION - For Authorized Company Use Only
+TABLE 2 (Cont)
+CALCULATION PROCEDURE FOR CONDENSER DESIGN
+CUSTOMARY UNITS METRIC UNITS
+N W
+b. G′ = p l or = lb/sec-ft2
+l 19.6 N d2
+t i
+1.273 x 106 N W
+G′ = p l (Metric) = kg/s-m2
+l N d2
+t i
+c. G = G′ + G′ (ρ / ρ )1/ 2 = lb/sec-ft2 kg/s-m2
+e l v l v
+d. Re = d i G e or d i G e (Metric) =
+29 µ
+f(l)
+103 µ
+f(l)
+e. k Pr 1/3 = Btu/hr-ft-°F W/m-K
+f f
+f. If Re < 50,000
+h tλ = 5.03 Re1/3 k f Pr f 1/3 [12 / d i ] = Btu/hr-ft-°F
+or h tλ = 5.03 Re1/3 k f Pr f 1/3 [1000 / d i ] (Metric) = W/m-K
+If Re > 50,000
+h tλ = 0.0265 Re0.8 k f Pr f 1/3 [12 / d i ] = Btu/hr-ft-°F
+or h tλ = 0.0265 Re0.8 k f Pr f 1/3 [1000 / d i ] (Metric) = W/m-K
+11. Vapor Cooling Coefficient
+1 W µ (v) 0.111  ρ 0.555
+a. = 1 + v  f    l   =
+x
+l
+W
+l
+ µ
+f
+(l)   ρ
+v
+
+b. x = 1− x =
+v l
+G′
+c. G = v = lb/sec-ft2 kg/sm2
+v
+x
+v
+G d
+d. Re = v i =
+29 µ
+f(l)
+or
+G d
+Re =10 −3 v i (Metric) =
+µ
+f(l)
+e. From Figure 8, determine Y
+th
+f. k (cµ / k)1/3 = Btu/hr-ft2-°F W/m2-K
+g. h * = Y th k   cµ  1/ 3 = 1/ R * = Btu/hr-ft2-°F W/m2-K
+io d  k  io
+o
+* Uncorrected for viscosity.
+*
+h. t = t + U ( R + r ) (t – t )
+w t o io io s t
+i. (µ / µ )0.14 =
+w
+j. h′ = h * (µ / µ )0.14 = Btu/hr-ft2-°F W/m2-K
+gc io w
+1 1 1
+= + = Btu/hr-ft2-°F W/m2-K
+h gc h tλ h′ gc
+EXXON RESEARCH AND ENGINEERING COMPANY - FLORHAM PARK, N.J.
+--- PAGE 43 ---
+HEAT EXCHANGE EQUIPMENT DESIGN PRACTICES
+CALCULATION PROCEDURE, CONDENSATION Section Page
+EXXON IX-F 43 of 79
+ENGINEERING Date
+PROPRIETARY INFORMATION - For Authorized Company Use Only December, 1999
+TABLE 2 (Cont)
+CALCULATION PROCEDURE FOR CONDENSER DESIGN
+CUSTOMARY UNITS METRIC UNITS
+12. Liquid cooling coefficient
+h lc = h tλ = Btu/hr-ft2-°F W/m2-K
+13. Weighted zone coefficient
+a. Zone condensing duty, qλ = Btu/hr W
+b. Zone vapor cooling duty, q = Btu/hr W
+gc
+c. Zone liquid cooling duty, q = Btu/hr W
+lc
+q
+h = ds = Btu/hr-ft2-°F W/m2-K
+ds qλ + q gc + q lc
+hλ h
+gc
+h
+lc
+h U
+U = ds ox = Btu/hr-ft2-°F W/m2-K
+sc h + U
+ds ox
+(U was evaluated in Step III.A.27.)
+ox
+14. Zone Area
+q
+A = ds = ft2 m2
+ds U ∆t
+ds e(ds)
+(q and ∆t for this zone were evaluated in Step I.B.)
+ds e
+E. Steam Condensing Zone (Tube-Side Condensation)
+1. A = A – A – A = ft2 m2
+sc dh ds
+q
+2. U = sc = Btu/hr-ft2-°F W/m2-K
+sc A ∆t
+sc e(sc)
+(q and ∆t for this zone were evaluated in Step I.C.)
+sc e(sc)
+3. t f = t t + 1 (t t − t s )    1 − U sc    = °F °C
+2  U 
+ox
+(t and t for this zone were evaluated in Step I.C.)
+s t
+4. ∆T zone inlet = T ds − t ds =
+∆T T − t
+zone outlet 2 1
+5. F (Figure 4) =
+v
+6. Average zone vapor rate, W lb/hr mol/hr kg/s kmol/s
+v
+(F ) (Vapor condensed in zone, W) =
+v
++ Vapor not condensed in zone =
+= W =
+v
+lb / hr kg / s
+Average Mol. weight of vapor =
+mol / hr kmol / hr
+EXXON RESEARCH AND ENGINEERING COMPANY - FLORHAM PARK, N.J.
+--- PAGE 44 ---
+DESIGN PRACTICES HEAT EXCHANGE EQUIPMENT
+Section Page CALCULATION PROCEDURE, CONDENSATION
+EXXON
+IX-F 44 of 79
+Date ENGINEERING
+December, 1999 PROPRIETARY INFORMATION - For Authorized Company Use Only
+TABLE 2 (Cont)
+CALCULATION PROCEDURE FOR CONDENSER DESIGN
+CUSTOMARY UNITS METRIC UNITS
+7. Average zone liquid rate, W
+l
+W = W – W = lb/hr kg/s
+l v
+8. Average H.C. condensate properties at film temperature
+a. Specific gravity, s =
+f
+b. Thermal conductivity, k = Btu/hr-ft2-°F W/m-K
+f
+c. Viscosity, µ = cP Pa•s
+f
+9. Condensing Coefficient
+N W
+a. G′ = p v = lb/sec-ft2
+v 19.6 N d2
+t i
+or
+1.273 x 106 N W
+G′ = p v (Metric) = kg/s-m2
+v N d2
+t i
+N W
+b. G = p l = lb/sec-ft2
+l 19.6 N d2
+t i
+or
+1.273 x 106 N W
+G = p l (Metric) = kg/s-m2
+l N d2
+t i
+c. G = G′ + G′ (ρ / ρ )1/ 2 = lb/sec-ft2 kg/s-m2
+e l v l v
+d G
+d. Re = i e , =
+29 µ
+f(l)
+or
+d G
+Re = i e (Metric) =
+1000 µ
+f(l)
+e. k Pr 1/3 = Btu/hr-ft-°F W/m-K
+f f
+f. If Re < 50,000
+h tλ = 5.03 Re1/3 k f Pr f 1/3 [12 / d i ]
+or h tλ = 5.03 Re1/3 k f Pr f 1/3 [1000 / d i ] (Metric)
+If Re > 50,000
+h tλ = 0.0265 Re0.8 k f Pr f 1/3 [12 / d i ] = Btu/hr-ft-°F
+or h tλ = 0.0265 Re0.8 k f Pr f 1/3 [ 1000 / d i ] (Metric) W/m-K
+g. h * = Y th k   cµ  1/ 3 = 1/ R * = Btu/hr-ft2-°F W/m2-K
+io d  k  io
+o
+*
+h. t = t + U ( R + r ) (t – t )
+w t o io io s t
+i. (µ / µ )0.14 =
+w
+j. h′ = h * (µ / µ )0.14 = Btu/hr-ft2-°F W/m2-K
+gc io w
+1 1 1
+= + = Btu/hr-ft2-°F W/m2-K
+h gc h tλ h′ gc
+EXXON RESEARCH AND ENGINEERING COMPANY - FLORHAM PARK, N.J.
+--- PAGE 45 ---
+HEAT EXCHANGE EQUIPMENT DESIGN PRACTICES
+CALCULATION PROCEDURE, CONDENSATION Section Page
+EXXON IX-F 45 of 79
+ENGINEERING Date
+PROPRIETARY INFORMATION - For Authorized Company Use Only December, 1999
+TABLE 2 (Cont)
+CALCULATION PROCEDURE FOR CONDENSER DESIGN
+CUSTOMARY UNITS METRIC UNITS
+10. Vapor Cooling Coefficient
+1 W µ (v) 0.111  ρ 0.555
+a. =1+ v  f    l   =
+x
+l
+W
+l
+ µ
+f
+(l)   ρ
+v
+
+b. x = 1− x =
+v l
+G′
+c. G = v = lb/sec-ft2 kg/sm2
+v
+x
+v
+G d
+d. Re = v i , or =
+29 µ
+f(l)
+G d
+Re = 10 −3 v i (Metric) =
+µ
+f(l)
+e. From Figure 8, read Y
+th
+f. k (cµ / k)1/3 = Btu/hr-ft2-°F W/m2-K
+g. h * = Y th k   cµ  1/ 3 = 1/ R * = Btu/hr-ft2-°F W/m2-K
+io d  k  io
+o vap.
+* Uncorrected for viscosity.
+*
+h. t = t + U ( R + r ) (t – t )
+w t o io io s t
+i. (µ / µ )0.14 =
+w
+j. h′ = h * (µ / µ )0.14 = Btu/hr-ft2-°F W/m2-K
+gc io w
+1 1 1
+= + = hr-ft2-°F/Btu W/m2-K
+h gc h tλ h′ gc
+11. Liquid cooling coefficient
+h lc = h tλ = Btu/hr-ft2-°F W/m2-K
+12. Weighted zone coefficient
+a. Zone condensing duty, qλ = Btu/hr W
+b. Zone vapor cooling duty, q = Btu/hr W
+gc
+c. Zone liquid cooling duty, q = Btu/hr W
+lc
+q
+h = sc = Btu/hr-ft2-°F W/m2-K
+sc qλ + q gc + q lc
+hλ h
+gc
+h
+lc
+h U
+U = sc ox = Btu/hr-ft2-°F W/m2-K
+sc h + U
+sc ox
+EXXON RESEARCH AND ENGINEERING COMPANY - FLORHAM PARK, N.J.
+--- PAGE 46 ---
+DESIGN PRACTICES HEAT EXCHANGE EQUIPMENT
+Section Page CALCULATION PROCEDURE, CONDENSATION
+EXXON
+IX-F 46 of 79
+Date ENGINEERING
+December, 1999 PROPRIETARY INFORMATION - For Authorized Company Use Only
+TABLE 2 (Cont)
+CALCULATION PROCEDURE FOR CONDENSER DESIGN
+CUSTOMARY UNITS METRIC UNITS
+13. Zone Area
+q
+A = sc = ft2 m2
+sc U ∆t
+sc e(sc)
+(q and ∆t for this zone were evaluated in Step I.C.)
+sc e
+F. Total Area
+1. A = A + A + A = ft2 m2
+dh ds sc
+If total area calculated is not reasonably close to total
+area assumed, reiterate the various zone calculations.
+G. Condensing Pressure Drop (Tube-Side Condensation)
+1. All vapor flow mass velocity
+N W
+G = p v , or = lb/sec-ft2
+v 19.6 N d2
+t i
+1.273 x 106 N W
+G = p v (Metric) = kg/s-m2
+v N d2
+t i
+(W = Total vapor rate to condenser.)
+v
+This mass velocity will be used to calculate the ∆P
+for each zone of the condenser.
+2. Hydrocarbon condensing zone inlet volumes
+a. Vapor
+Inlet MW  P (psia)   1 
+(1) ρ v1 = 10.7    T i + 460      u   = lb/ft3
+1
+or
+Inlet MW  P (kPa abs)   1 
+ρ v1 = 8.31    i T + 273      u   (Metric) = kg/m3
+1
+(2) Vapor rate, W = lb/hr kg/s
+v1(dh)
+(3) V = W / ρ = ft3/hr m3/s
+v1(dh) v1(dh) v1(dh)
+b. Liquid (if present)
+(1) ρ = lb/ft3 kg/m3
+l1(dh)
+(2) Liquid rate, W = lb/hr kg/s
+l1(dh)
+(3) V = ft3/hr m3/s
+l1(dh)
+EXXON RESEARCH AND ENGINEERING COMPANY - FLORHAM PARK, N.J.
+--- PAGE 47 ---
+HEAT EXCHANGE EQUIPMENT DESIGN PRACTICES
+CALCULATION PROCEDURE, CONDENSATION Section Page
+EXXON IX-F 47 of 79
+ENGINEERING Date
+PROPRIETARY INFORMATION - For Authorized Company Use Only December, 1999
+TABLE 2 (Cont)
+CALCULATION PROCEDURE FOR CONDENSER DESIGN
+CUSTOMARY UNITS METRIC UNITS
+3. Steam condensing zone inlet volumes
+a. Vapor
+(1) ρ v1(ds) = Vap 1 o 0 r .7 MW     T P i ( + ps 4 ia 6 ) 0        u 1    = lb/ft3
+ds
+or
+ρ v1(ds) = Vap 8 o .3 r 2 MW     P T i (kP + a 2 a 7 b 3 s)        u 1    (Metric) = kg/m3
+ds
+(2) Vapor rate, W = lb/hr kg/s
+v1(ds)
+(3) V = W / ρ = ft3/hr m3/s
+v1(dh) v1(ds) v1(ds)
+b. Liquid (if present)
+(1) ρ = lb/ft3 kg/m3
+l1(ds)
+(2) Liquid rate, W = lb/hr kg/s
+l1(ds)
+(3) V = W / ρ = ft3/hr m3/s
+l1(ds) l1(ds) l1(ds)
+4. Steam condensing zone outlet volumes
+a. Vapor (if present)
+V (evaluated in Step III.B.3.) = ft3/hr m3/s
+v2
+b. Liquid
+V (evaluated in Step III.B.5.) = ft3/hr m3/s
+l2
+5. Vapor desuperheating zone ∆P
+a. Re = d i G or d i G (Metric) =
+29 µ 1000 µ
+b. Calculate Fanning friction factor f
+f = 16 / Re (Re ≤ 2000) =
+= 10-4 Re 0.575 (2000 < Re < 3800) =
+= 0.0035 + 0.264 / Re0.42 (Re ≥ 3800) =
+From Step III.C.4., V = ft/sec m/s
+L ρV2  µ 0.14 or 0.25
+c. ∆P tf = 48 f d 9270    µ w    = psi
+i
+or
+L ρV2  µ 0.14or 0.25
+= 4000 f   w   (Metric) = kPa
+d 2000  µ 
+i
+(Use 0.25 for laminar flow)
+EXXON RESEARCH AND ENGINEERING COMPANY - FLORHAM PARK, N.J.
+--- PAGE 48 ---
+DESIGN PRACTICES HEAT EXCHANGE EQUIPMENT
+Section Page CALCULATION PROCEDURE, CONDENSATION
+EXXON
+IX-F 48 of 79
+Date ENGINEERING
+December, 1999 PROPRIETARY INFORMATION - For Authorized Company Use Only
+TABLE 2 (Cont)
+CALCULATION PROCEDURE FOR CONDENSER DESIGN
+CUSTOMARY UNITS METRIC UNITS
+d. ∆P = 3 (ρV2 / 9270) = psi
+tr
+or
+∆P = 3 (ρV2 / 2000) (Metric) = kPa
+tr
+A
+e. ∆P = F N N (∆P + ∆P ) dh = psi kPa
+dh t s p tf tr
+A
+(For F , see Table 3, Section IX-D)
+t
+6. Hydrocarbon condensing zone ∆P
+a. Re = d i G e or d i G e (Metric) =
+29 µ 1000 µ
+f(l) f(l)
+( u was evaluated in Step III.E.8.c.)
+f(l)
+b. Calculate the average density, ρ
+ds
+2W
+ρ = = lb/ft3 kg/m3
+ds V + V + V + V
+v1(dh) l1(dh) v1(ds) l1(ds)
+c. V = G / ρ = ft/sec m/s
+ds
+d. ρ V2 / 9270 or ρ V2 / 2000 (Metric) = psi kPa
+ds ds
+e. f = 16 / Re (Re ≤ 2000) =
+= 10–4 Re 0.575 (2000 < Re < 3800) =
+= 0.0035 + 0.264 / Re0.42 (Re ≥ 3800) =
+L ρ V2  µ 0.14 or 0.25
+f. ∆P tf = 48 f d 9 d 2 s 70    µ w    = psi
+i
+or
+L ρ V2  µ 0.14or 0.25
+= 4000 f ds   w   (Metric) = kPa
+d 2000  µ 
+i
+(Use 0.25 for laminar flow)
+g. ∆P = 3 (ρ V2 / 9270) = psi
+tr ds
+or
+∆P = 3 (ρ V2 / 2000) (Metric) = kPa
+tr ds
+A
+h. ∆P = F N N (∆P + ∆P ) ds = psi kPa
+ds t s p tf tr
+A
+(For F , see Table 3, Section IX-D)
+t
+EXXON RESEARCH AND ENGINEERING COMPANY - FLORHAM PARK, N.J.
+--- PAGE 49 ---
+HEAT EXCHANGE EQUIPMENT DESIGN PRACTICES
+CALCULATION PROCEDURE, CONDENSATION Section Page
+EXXON IX-F 49 of 79
+ENGINEERING Date
+PROPRIETARY INFORMATION - For Authorized Company Use Only December, 1999
+TABLE 2 (Cont)
+CALCULATION PROCEDURE FOR CONDENSER DESIGN
+CUSTOMARY UNITS METRIC UNITS
+7. Steam condensing zone ∆P
+d G
+a. Re = i =
+29 µ
+f(l)
+or
+d G
+i
+(Metric)
+1000 µ
+f(l)
+( u was evaluated in Step III.D.9.c.)
+f(l)
+b. Calculate the average density, ρ
+ds
+2W
+ρ = = lb/ft3 kg/m3
+ds V + V + V + V
+v1(dh) l1(dh) v1(ds) l1(ds)
+c. V = G / ρ = ft/sec m/s
+ds
+d. ρ V2 / 9270 = psi
+ds
+or
+ρ V2 / 2000 (Metric) kPa
+ds
+e. f = 16 / Re (Re ≤ 2000) =
+= 10-4 Re 0.575 (2000 < Re < 3800) =
+= 0.0035 + 0.264 / Re0.42 (Re ≥ 3800) =
+L ρ V2  µ 0.14 or 0.25
+f. ∆P tf = 48 f d 9 s 2 c 70    µ w    = psi
+i
+or
+L ρ V2  µ 0.14 or 0.25
+= 4000 f sc   w   (Metric) = kPa
+d 2000  µ 
+i
+(Use 0.25 for laminar flow)
+g. ∆P = 3 (ρ V2 / 9270) = psi
+tr sc
+or
+∆P = 3 (ρ V2 / 2000) (Metric) = kPa
+tr ds
+A
+h. ∆P = F N N (∆P + ∆P ) ds = psi kPa
+sc t s p tf tr
+A
+(For F , see Table 3, Section IX-D)
+t
+8. Total condensing-side pressure drop
+∆P = ∆P + ∆P + ∆P = psi kPa
+dh ds sc
+EXXON RESEARCH AND ENGINEERING COMPANY - FLORHAM PARK, N.J.
+--- PAGE 50 ---
+DESIGN PRACTICES HEAT EXCHANGE EQUIPMENT
+Section Page CALCULATION PROCEDURE, CONDENSATION
+EXXON
+IX-F 50 of 79
+Date ENGINEERING
+December, 1999 PROPRIETARY INFORMATION - For Authorized Company Use Only
+TABLE 2 (Cont)
+CALCULATION PROCEDURE FOR CONDENSER DESIGN
+Notes:
+Note 1 Note 2
+Pt Max. Area Per Shell (Square Pitch)*
+16 ft Tubes 20 ft Tubes
+3/4 in. tubes — 1.000 in. 4780 ft2 5950 ft2
+1 in. tubes — 1.250 in. 4140 ft2 5150 ft2
+1 1/2 in. tubes — 1.875 in. 2660 ft2 3300 ft2
+Note 1 Note 2
+Pt Max. Area Per Shell (Square Pitch)*
+4.88 m Tubes 6.1 m Tubes
+19.05 mm tubes — 25.4 mm 444 m2 553 m2
+25.4 mm tubes — 31.75 mm 385 m2 478 m2
+38.1 mm tubes — 47.63 mm 247 m2 307 m2
+* For triangular pitch, use the area of same size of tubes divided by 0.866 and (Pt of triangle /
+Pt of square)2 if a different tube pitch is used.
+Note 3 Do not make “D" smaller than (Dt + 1 in.) or (Dt + 25.4 mm) nor larger than (Dt + 3 in.)
+or (Dt + 76.2 mm).
+Note 4 FF = 1 for E & J shells FBT = 1 for Segmental Baffles
+= 2 for F shells = 2 for Double Segmental Baffles
+FJ = 0.5 for J shells
+= 1 for E & F shells
+EXXON RESEARCH AND ENGINEERING COMPANY - FLORHAM PARK, N.J.
+--- PAGE 51 ---
+HEAT EXCHANGE EQUIPMENT DESIGN PRACTICES
+CALCULATION PROCEDURE, CONDENSATION Section Page
+EXXON IX-F 51 of 79
+ENGINEERING Date
+PROPRIETARY INFORMATION - For Authorized Company Use Only December, 1999
+TABLE 3
+WIDE-CUT CONDENSER DESIGN SAMPLE CALCULATION
+CUSTOMARY METRIC
+A. Design Data
+Inlet vapor is pipestill overhead
+1. Condensable HC = 20,000 lb/hr 2.52 kg/s
+Mean ABP = 231°F 110.6°C
+M.W. = 100 100
+ρ = 49.9 lb/ft3 799 kg/m3
+2. Noncondensables = 580 lb/hr 0.073 kg/s
+(Hydrocarbon M.W. = 58)
+3. Steam = 720 lb/hr 0.0907 kg/s
+4. ASTM Distillation of Condensable Hydrocarbon:
+IBP - 165°F 60 - 262°F IBP - 73.9°C 60 - 127.8°C
+10 - 183 70 - 269 10 - 83.9 70 - 131.7
+20 - 211 80 - 274 20 - 99.4 80 - 134.4
+30 - 231 90 - 283 30 - 110.6 90 - 139.4
+40 - 245 FBP - 300 40 - 118.3 FBP - 148.9
+50 - 255 50 - 123.9
+5. Tower overhead pressure - 5.3 psig = 20.0 psia 36.5 kPa gage = 137.8 kPa abs
+Tower overhead temperature = 263°F 128.3°C
+6. Assume condensate cooled to 95°F (35°C); water rise is 80 to 95°F (27 to 35°C)
+B. Calculations
+1. Flash Curves
+From ASTM Distillation
+t = 183°F t = 269°F t = 83.9°C t = 131.7°C
+10 70 10 70
+t = 231°F t = 283°F t = 110.6°C t = 139.4°C
+30 90 30 90
+t = 255°F t = 123.9°C
+50 50
+2 2
+∆1= (269 − 183) = 57 ∆1= (131.7 − 83.9) = 31.9
+3 3
+From Figure 6, ∆2 = 31, ∆3 = 16, ∆1 – ∆3 = 41 ∆2 = 18, ∆3 = 9.5, ∆1 – ∆3 = 22.4
+t = t + (∆1 – ∆3) – ∆2 = 183 + 41 – 31 = 193°F t = t + (∆1 – ∆3) – ∆2 = 83.9 + 22.4 – 18 = 88.3°C
+10f 10 10f 10
+2  ∆1 ∆2  2  ∆1 ∆2 
+t = t + (t − t ) + (∆1− ∆3) −  +  = 220oF t = t + (t − t ) + (∆1− ∆3) −  +  =104.5oC
+30f 10 3 30 10  3 2  30f 10 3 30 10  3 2 
+t = 231°F = 110.2°C
+50f
+t = 240°F = 115.3°C
+70f
+t = 252°F = 122.6°C
+90f
+The above are points on the volumetric flash curve. To estimate the molal and weight flash curves, use the equations
+given in Section IX-F and obtain:
+t = 195°F t = 192°F t = 89.4°C t = 87.9°C
+10w 10m 10w 10m
+t = 226°F t = 220°F t = 106.7°C t = 103.6°C
+30w 30m 30w 30m
+t = 233°F t = 230°F t = 111.3°C t = 109.8°C
+50w 50m 50w 50m
+t = 242°F t = 239°F t = 116.5°C t = 114.8°C
+70w 70m 70w 70m
+t = 253°F t = 252°F t = 123.2°C t = 122.4°C
+90w 90m 90w 90m
+The three sets of points are plotted and connected as shown in Figure 2.
+EXXON RESEARCH AND ENGINEERING COMPANY - FLORHAM PARK, N.J.
+--- PAGE 52 ---
+DESIGN PRACTICES HEAT EXCHANGE EQUIPMENT
+Section Page CALCULATION PROCEDURE, CONDENSATION
+EXXON
+IX-F 52 of 79
+Date ENGINEERING
+December, 1999 PROPRIETARY INFORMATION - For Authorized Company Use Only
+TABLE 3 (Cont)
+WIDE-CUT CONDENSER DESIGN SAMPLE CALCULATION
+2. Calculate T (Since this is overhead from a fractionator, T = t )
+ds dh 1
+Molar composition of inlet vapor:
+20,000 lb / hr 2.520 kg / s
+Condensables: = 200 mol/hr = 0.0252 kmol/s
+100 lb / hr 100 kg / kmol
+NC: 580/58 = 10 (NC: Noncondensables) 0.0731/58 = 0.0013
+40 0.0050
+Steam 720/18 = 0.0907/18 = kmol/s
+250 mol / hr total 0.0315
+210 0.0265
+Partial pressure, condensables + NC = x 20.0 = 16.8 psia = x 137.8 = 115.9 kPa abs
+250 0.0315
+200 0.0252
+Partial pressure, condensables = x 20.0 = 16.0 psia = x 137.8 = 110.2 kPa abs
+250 0.0315
+Partial pressure of steam = 20.0 – 16.8 = 3.2 psia = 137.8 – 115.9 = 21.9 kPa abs
+Determine conditions at 20 wt% HC condensed (see Table on following page).
+From the flash curves, the atmospheric-pressure temperature would be 248°F (119.9°C) at 20 wt% condensed. Move
+horizontally at 248°F (119.9°C) to the molal flash curve, and note that 16.8 mol% has been condensed.
+Calculate the remaining condensate moles:
+200 – (0.168 x 200) = 166 mol 0.0252 – (0.166 – 0.0252) = 0.021 kmol
+Total remaining
+mols of vapor = 166 +10 + 40 = 216 = 0.0210 + 0.0013 + 0.005 = 0.0273
+Pressure drop is
+assumed negligible,
+so that P = 20.0 psia = 137.8 kPa abs
+40 0.005
+Partial pressure steam = x 20.0 = 3.7 psia = x 137.8 = 25.2 kPa abs
+216 0.0273
+Partial pressure, 166 0.021
+= x 20.0 = 15.4 psia = x 137.8 = 106 kPa abs
+condensables 216 0.0273
+WIDE-CUT CONDENSER DESIGN SAMPLE CALCULATION
+From the alignment chart, Figure 3, the temperature of the hydrocarbon [which normally boils at 248 °F (119.9 °C)] is
+250°F (121.1°C) at 15.4 psia (105.9 kPa abs). From the same chart, the vapor pressure of water at 250°F (121.1°C) is
+29.0 psia (177 kPa abs).
+Since the partial pressure of the water is less than its vapor pressure (3.7 < 29.0 psia) (25.2 < 177 kPa), steam is not yet
+condensing. Therefore, it is necessary to make another trial at a higher percentage HC condensed. Each successive
+trial is tabulated.
+At 85% HC condensed, the partial pressure of water was found to be 913 psia (64.2 kPa abs), while its vapor pressure
+should have been 6.3 psia (45.5 kPa abs). Hence, steam is condensing, and T has been passed.
+ds
+The exact value of T is found by plotting the vapor pressure and partial pressure of water on the same graph, as
+ds
+shown in Figure 2. The composition at T is then determined and entered in the last column of the table. For this
+ds
+case, T = 184°F (82.8°C).
+ds
+Vapor Pressure of Water @ 184°F (82.8°C) = Partial Pressure = 8.3 psia (57.7 kPa abs)
+Partial Pressure of
+condensables + NC = 20.0 – 8.3 = 11.7 psia = 137.8 – 57.7 = 80.1 kPa abs
+EXXON RESEARCH AND ENGINEERING COMPANY - FLORHAM PARK, N.J.
+--- PAGE 53 ---
+HEAT EXCHANGE EQUIPMENT DESIGN PRACTICES
+CALCULATION PROCEDURE, CONDENSATION Section Page
+EXXON IX-F 53 of 79
+ENGINEERING Date
+PROPRIETARY INFORMATION - For Authorized Company Use Only December, 1999
+TABLE 3 (Cont)
+PARAMETER CUSTOMARY UNITS
+Wt.% Hydrocarbon Condensed(1) 0 20 70 80 85 81
+Vapor Temp. @ Atm. Pressure(2) 258 248 226 210 203 —
+Mol % HC not Condensed(2) 100 83.2 42.5 23.5 18.1 23
+Mol of HC not Condensed 200 166 85 47.0 36.2 46
+Mol of noncondensables (“NC") 10 10 10 10 10 10
+Mol of Steam 40 40 40 40 40 40
+Total Mols of Vapor 250 216 135 97 86.2 96
+Total Pressure, psia(3) 20.0 20.0 20.0 20.0 20.0 20.0
+Partial Pressure of Steam 3.2 3.7 5.9 8.2 9.3 8.3
+Partial Pressure of Condensables 16.0 15.4 12.6 9.7 8.4 —
+System Temperature(4) 263 250 215 186 173 184
+Vapor Pressure of H 0 at System Temp.(5) 35.5 29.0 15.2 8.6 6.3 8.3
+2
+PARAMETER METRIC UNITS
+Wt.% Hydrocarbon Condensed(1) 0 20 70 80 85 80.5
+Vapor Temp. @ Atm. Pressure(2) 126.2 119.9 106.7 98.0 93.8 —
+Mol % HC not Condensed(2) 100 83.4 39.9 22.9 17.6 22.4
+Mol of HC not Condensed 0.0252 0.0210 0.0101 0.00577 0.00444 0.00564
+Kmol of noncondensables (“NC") 0.0013 0.0013 0.0013 0.0013 0.0013 0.0013
+Kmol of Steam 0.0050 0.0050 0.0050 0.0050 0.0050 0.0050
+Total Kmol of Vapor 0.0315 0.0273 0.0164 0.01207 0.01074 0.01194
+Total Pressure, kPw abs(3) 137.8 137.8 137.8 137.8 137.8 137.8
+Partial Pressure of Steam 21.9 25.2 42.0 57.1 64.2 57.7
+Partial Pressure of Condensables 110.2 106.0 84.9 65.9 57.0 —
+System Temperature(4) 128.3 121.1 101.1 83.9 75.6 82.8
+Vapor Pressure of H 0 at System Temp.(5) 210 177 103 59.3 45.5 57.7
+2
+Notes:
+(1) Arbitrary values.
+(2) Read from flash curves, Figure 2.
+(3) Assume percent pressure drop = condensed (neglected in this example).
+(4) Vapor temp. @ 1 atm. adjusted to the partial pressure of condensables by means of the alignment chart, Figure 3.
+(5) From steam tables or from alignment chart, Figure 3 (use the point marked H20 as the “normal boiling point").
+Remaining Condensable moles = x; moles of condensables + NC = x + 10 (= x + 0.0013).
+Total moles = x + 10 + 40 (= x + 0.0013 + 0.0050).
+x + 10 x + 0.0013
+x 20.0 = 11.7 x 137.8 = 80.1
+x + 50 x + 0.0063
+Solving for x, remaining condensable moles = 46 = 0.0056
+(46) (100) (0.0056) (100)
+Mol% NOT condensed = = 23% = = 22%
+200 0.0252
+From the flash curves, 23 mol% (22 mol%) not condensed corresponds to 19 wt% not condensed.
+First zone condensate = 20,000 (1 – 0.19) = 16,400 lb/hr = 2.52 (1 – 0.19) = 2.04 kg/s
+EXXON RESEARCH AND ENGINEERING COMPANY - FLORHAM PARK, N.J.
+--- PAGE 54 ---
+DESIGN PRACTICES HEAT EXCHANGE EQUIPMENT
+Section Page CALCULATION PROCEDURE, CONDENSATION
+EXXON
+IX-F 54 of 79
+Date ENGINEERING
+December, 1999 PROPRIETARY INFORMATION - For Authorized Company Use Only
+TABLE 3 (Cont)
+WIDE-CUT CONDENSER DESIGN SAMPLE CALCULATION
+CUSTOMARY METRIC
+3. Heat Release
+a. From T to T (Zone 1)
+1 ds
+Temp change = 263 – 184 = 79°F = 128.3 – 82.8 = 45.5°C
+Average % = 224°F = 105.6°C
+From Blue Book, c (vapor + N.C.) = 0.49 = 2.05
+c (condensate) = 0.45 = 1.88
+c (steam) = 0.453 = 1.90
+λ (condensate) = 143 = 333
+Vapor Cooling
+Steam (720) (79) (0.453) = 0.026 x 106 (103) (0.0907) (45.5) (1.90) = 7.8 x 103
+Vapor + N.C. (4,180) (79) (0.49) = 0.162 (103) (0.5531) (45.5) (2.05) = 51.6
+(16,400) 0.318 95.1
+Condens. Vapor (79) (0.49) = (103) (2.040/2) (45.5) (2.05) =
+2 0.506 x 106 154.5 x 103
+Liquid Cooling
+(16,400) (2.040)
+Condens. Liquid (79) (0.45) = 0.292 x 106 Btu/hr (103) (45.5) (1.88) = 87.3 x 103 W
+2 2
+LATENT HEAT
+Hydrocarbon (16,400) (143) = 2.34 x 106 Btu/hr = (103) (2.04000) (333) = 679.3 x 103 W
+q = Zone Total = 3.14 x 106 Btu/hr = 921.1 x 103 W
+ds
+b. From T to T (Zone 2)
+ds 2
+Temp Change = 184 – 95 = 89°F = 82.8 – 35 = 47.8°C
+Average T = 140°F = 58.9°C
+From Blue Book:
+c (vapor + N.C.) = 0.44 Btu/lb°F = 1.84 kJ/kg-K
+c (Steam) = 0.448 Btu/lb°F = 1.88 kJ/kg-K
+c (Condensate) = 0.405 Btu/lb°F = 1.70 kJ/kg-K
+λ (Condensate) = 143 Btu/lb = 333 kJ/kg
+λ (Water) = 1,020 Btu/lb = 2,370 kJ/kg
+Vapor Cooling
+N.C. (580) (89) (0.44) = 0.0023 x 106 (103) (0.0731) (47.8) (1.84) = 6.4 x 103
+Condens. Steam (720/2) (89) (0.448) = 0.014 (103) (0.0907/2) (47.8) (1.88) = 4.1
+0.071 19.9
+Condens. Vapor (3,600/2) (89) (0.44) = (103) (0.4536/2) (47.8) (1.84) =
+0.108 x 106 30.4 x 103
+Liquid Cooling
+Entering Liquid (16,400) (89) (0.405) = 0.591 x 106 (103) (2.0400) (47.8) (1.70) = 165.8 x 103
+Condens. Liquid (3,600/2) (89) (0.405) = 0.064 (103) (0.4536/2) (47.8) (1.70) = 18.4
+0.032 9.1
+Condens. Steam (720/2) (89) (1.0) = (103) (0.0907/2) (47.8) (4.19) =
+0.687 x 106 193.3 x 103
+Latent Heat
+Hydrocarbon (3,600) (143) = 0.515 x 106 (103) (0.4536) (333) = 151 x 103
+0.735 215 x 103
+Steam (720) (1,020) = (103) (0.0907) (2370) =
+1.250 x 106 Btu / hr 366 x 103 W
+q = Zone Total = 2.05 Btu/hr = 589.7 x 103 W
+sc
+Total Condenser Duty = 3.14 + 2.05 = 5.19 MMBtu/hr = 921.1 x 103 + 589.7 x 103 = 1.511 x 106 W
+EXXON RESEARCH AND ENGINEERING COMPANY - FLORHAM PARK, N.J.
+--- PAGE 55 ---
+HEAT EXCHANGE EQUIPMENT DESIGN PRACTICES
+CALCULATION PROCEDURE, CONDENSATION Section Page
+EXXON IX-F 55 of 79
+ENGINEERING Date
+PROPRIETARY INFORMATION - For Authorized Company Use Only December, 1999
+TABLE 4
+A SAMPLE CONDENSER DESIGN
+Exchanger Number E - 100 Refinery
+Service Pipestill Overhead Condenser Calc By/Date
+I. ZONE DUTIES AND TEMPERATURES*
+A. Vapor Desuperheating Zone (If Present); 1st Zone
+CUSTOMARY UNITS METRIC UNITS
+q = Btu/hr W
+dh
+Fluid Being Condensed (Shell/Tube)
+T = °F °C
+1
+T = °F °C
+dh
+Fluid Being Heated (Shell/Tube)
+t = °F °C
+2
+t = °F °C
+dh
+T − T
+R = 1 dh = =
+t − t
+2 dh
+t − t
+j = 2 dh = =
+T − t
+1 dh
+(T − t ) − (T − t )
+∆t = 1 2 dh dh = °F °C
+m ln  
+
+
+T
+T 1 −
+−
+t
+t
+2  
+
+
+dh dh
+From charts given in Section IX-D
+F = for this zone**
+n
+∆t = ∆t F = °F °C
+e(dh) m n
+For shell-side condensation:
+t = 0.4 (T – T ) + T = °F °C
+s 1 dh dh
+t = 0.4 (t – t ) + t = °F °C
+t 2 dh dh
+For tube-side condensation:
+t = 0.4 (T – T ) + T = °F °C
+t 1 dh dh
+t = 0.4 (t – t ) + t = °F °C
+s 2 dh dh
+q
+dh = Btu/hr-°F W/K
+∆t
+e
+* Use LMTD correction factor for each zone, based on zone temperatures
+** Use LMTD corrections factor, based on terminal temperatures to evaluate minimum number of shells in series. F must
+n
+be equal to or greater than 0.8.
+EXXON RESEARCH AND ENGINEERING COMPANY - FLORHAM PARK, N.J.
+--- PAGE 56 ---
+DESIGN PRACTICES HEAT EXCHANGE EQUIPMENT
+Section Page CALCULATION PROCEDURE, CONDENSATION
+EXXON
+IX-F 56 of 79
+Date ENGINEERING
+December, 1999 PROPRIETARY INFORMATION - For Authorized Company Use Only
+TABLE 4 (Cont)
+A SAMPLE CONDENSER DESIGN
+B. Hydrocarbon Condensing Steam Desuperheating Zone (2nd Zone)
+CUSTOMARY UNITS METRIC UNITS
+q = 3.14 x 106 Btu/hr 921.1 x 103 W
+ds
+Fluid Being Condensed (Shell/Tube)
+T = 263 °F 128.3 °C
+dh
+T = 184 °F 84.4 °C
+ds
+t = 95 °F 35.0 °C
+dh
+t = 86 °F 30.0 °C
+ds
+T − T
+R = dh ds = = 8.78 8.78
+t − t
+dh ds
+t − t
+j = dh ds = = 0.051 0.051
+T − t
+dh ds
+(T − t ) − (T − t )
+∆t = dh dh ds ds = 130 °F 72.2 °C
+m  T − t 
+ln  
+ T
+d
+d
+h
+s − t
+d
+d
+h
+s
+ 
+
+From charts given in Section IX-D,
+F = 1.0 for 1 shells
+n
+∆t = ∆t F = 130 °F 72.2 °C
+e(ds) m n
+For shell-side condensation:
+t = 0.4 (T – T ) + T = 216 °F 102 °C
+s dh ds ds
+t = 0.4 (t – t ) + t = 90 °F 32 °C
+t dh ds ds
+For tube-side condensation:
+t = 0.4 (T – T ) + T = °F °C
+t dh ds ds
+t = 0.4 (t – t ) + t = °F °C
+s dh ds ds
+q
+ds = 24,200 Btu/hr-°F 12,800 W/K
+∆T
+e
+C. Steam Condensing Zone (3rd Zone)
+q = 2.05 x 106 Btu/hr 589.7 x 103 W
+sc
+Fluid Being Condensed (Shell/Tube)
+T = 184 °F 84.4 °C
+ds
+T = 95 °F 35.0 °C
+2
+t = 86 °F 30.0 °C
+ds
+t = 80 °F 26.7 °C
+1
+T − T
+R = ds 2 = = 14.8 14.8
+t − t
+ds 1
+t − t
+j = ds 1 = = 0.058 0.058
+T − t
+ds 1
+EXXON RESEARCH AND ENGINEERING COMPANY - FLORHAM PARK, N.J.
+--- PAGE 57 ---
+HEAT EXCHANGE EQUIPMENT DESIGN PRACTICES
+CALCULATION PROCEDURE, CONDENSATION Section Page
+EXXON IX-F 57 of 79
+ENGINEERING Date
+PROPRIETARY INFORMATION - For Authorized Company Use Only December, 1999
+TABLE 4 (Cont)
+A SAMPLE CONDENSER DESIGN
+CUSTOMARY UNITS METRIC UNITS
+(T − t ) − (T − t )
+∆t = ds ds 2 1 = ______________
+m  T − t 
+ln  
+ T
+ds
+− t
+ds  
+
+2 1
+= 44.2 °F 24.6 °C
+From charts given in Section IX-D,
+F = 0.96 for 1 shells
+n
+∆t ∆t F = 42.4 °F 23.6 °C
+e(sc) = m n
+For shell-side condensation:
+t = 0.4 (T – T ) + T = 131 °F 55.0 °C
+s ds 2 2
+t = 0.4 (t – t ) + t = 82 °F 28.0 °C
+t ds 1 1
+For tube-side condensation:
+t = 0.4 (T – T ) + T = °F °C
+t ds 2 2
+t = 0.4 (t – t ) + t = °F °C
+s ds 1 1
+q
+sc = 48,500 Btu/hr-°F 25,000 WK
+∆t
+e
+D. Weighted Temperature Difference
+Q 5.19 15.11
+∆t = =
+ew q dh + q ds + q sc 3.14 / 130 + 2.05 / 42.4 9.21/ 72.2 + 5.9 / 23.6
+∆t ∆t ∆t
+e(dh) e(ds) e(sc)
+where: Q = q + q + q = 71.3 °F 40 °C
+dh ds sc
+II. SHELL-SIDE CONDENSATION
+A. Overall Tube-Side Calculation (No Change of Phase)
+1. Assumed value of U = 48.5 Btu/hr-ft2-°F 272 W/m2-K
+o
+2. A = Q / U ∆t = 1500 ft2 139 m2
+o ew
+3. Tube metal: ___________________
+Thermal conductivity, k = 64 Btu/hr-ft-°F 110.8 W/m-K
+w
+Tube outer diameter, d = 0.75 in. 19.05 mm
+o
+Wall thickness, l = 0.0054 ft 0.00165 m
+Tube insider diameter, d = 0.62 in. 15.75 mm
+i
+Tube length, L = 20 ft 6.1 m
+4. Tube pitch (P ) and layout (Note 1)* = 1.0 in. 25.4 mm
+t
+5. A = A / N (Note 2)* = 1500 ft2 139 m2
+s s
+6. N = 3.82 A / (L – 0.5) d , or = 392
+t s o
+N = 318 A / (L – 0.152) d (Metric) = 390
+t s o
+* General notes contained on last page of calculation form.
+EXXON RESEARCH AND ENGINEERING COMPANY - FLORHAM PARK, N.J.
+--- PAGE 58 ---
+DESIGN PRACTICES HEAT EXCHANGE EQUIPMENT
+Section Page CALCULATION PROCEDURE, CONDENSATION
+EXXON
+IX-F 58 of 79
+Date ENGINEERING
+December, 1999 PROPRIETARY INFORMATION - For Authorized Company Use Only
+TABLE 4 (Cont)
+A SAMPLE CONDENSER DESIGN
+CUSTOMARY UNITS METRIC UNITS
+7. Assumed N = 2 2
+p
+8. t overall = 0.4 (T – T ) + T = 162 °F 723 °C
+s 1 2 2
+9. t overall = 0.5 (t + t ) = 87.5 °F 30.8 °C
+t 1 2
+10. Tube-side properties at t
+t
+a. Density, ρ = 62.4 lb/ft3 999.5 kg/m3
+b. Viscosity, µ = 0.8 cP 0.0008 Pa•s
+c. Specific Heat, c = 1.006 Btu/lb-°F 4.2 kJ/kg-K
+d. Thermal Conductivity, k = Btu/hr-ft-°F W/m-K
+11. Tube-side flow rate, W = Q / c (t – t ) = 346,000 lb/hr 43.3 kg/s
+2 1
+N W
+12. V = p or = 3.8 ft/sec
+(19.6) ρ N d2
+t i
+(1.273 x 106 ) N W
+V = p (Metric) 1.14 m/s
+ρ N d2
+t i
+13. If tube-side fluid is water
+368  t 0.26
+h = (Vd )0.7  t  = 863 Btu/hr-ft2-°F
+io d i  100 
+o
+or
+1.27 x10 4  1.8 t + 32 0.26
+h io = (Vd i )0.7   t   (Metric) = 4860 W/m2-K
+d  100 
+o
+∆P = 0.020 F N N 
+
+V 2 + 0.158 L
+(V)1.73
+
+
+= 3.4 psi
+t s p   (d )1.27  
+i
+or
+∆P =1.48 F N N 
+
+V 2 + 22.9L
+(V)1.73
+
+
+(Metric) = 22.8 kPa
+t s p   (d )1.27  
+i
+14. For fluids other than water, evaluate overall tube-side heat transfer coefficient and pressure drop by the procedure
+outlined in Section IX-D, tube-side iteration.
+h = Btu/hr-ft2-°F W/m2-K
+io
+∆P = psi kPa
+t
+15. R = 1 / h = 0.00116 hr-ft2-°F/Btu 0.000206 m2-K/W
+io io
+16. Tube-side fouling factor, r = 0.00150 hr-ft2-°F/Btu 0.000264 m2-K/W
+i
+17. r = (d / d ) r = 0.00181 hr-ft2-°F/Btu 0.000320 m2-K/W
+io o i i
+18. Shell-side fouling factor, r = 0.001 hr-ft2-°F/Btu 0.000176 m2-K/W
+o
+EXXON RESEARCH AND ENGINEERING COMPANY - FLORHAM PARK, N.J.
+--- PAGE 59 ---
+HEAT EXCHANGE EQUIPMENT DESIGN PRACTICES
+CALCULATION PROCEDURE, CONDENSATION Section Page
+EXXON IX-F 59 of 79
+ENGINEERING Date
+PROPRIETARY INFORMATION - For Authorized Company Use Only December, 1999
+TABLE 4 (Cont)
+A SAMPLE CONDENSER DESIGN
+CUSTOMARY UNITS METRIC UNITS
+19. r w = l / k w = 0.00008 hr-ft2-°F/Btu 0.000015 m2-K/W
+20. 1 / U = R + r + r + r = 0.00405 hr-ft2-°F/Btu 0.000717 m2-K/W
+ox io io w o
+21. U = 247 Btu/hr-ft2-°F 1395 W/m2-K
+ox
+B. Overall Shell-Side Calculation
+1. t f = t s − 1 (t s − t 1 )    1 − U o    = 132 °F 55.6 °C
+2  U 
+ox
+2. For fluids other than hydrocarbons, determine vapor film properties. For hydrocarbons, determine only liquid
+viscosity µ
+f
+Viscosity, µ = 0.35 cP 0.00035 Pa•s
+f
+Specific Heat, c = Btu/lb-°F kJ/kg-K
+f
+Thermal Conductivity, k = Btu/hr-ft-°F W/m-K
+f
+3. N = 1.19 N square layout
+TC t
+= 1.10 N triangular layout = 23.6 23.5
+t
+4. D = (N – 1) P + d = 23.3 in. 590.6 mm
+t TC t o
+5. D = D / 0.9 (Note 3) = 26.0 in. 656.2 mm
+t
+D − (d N )
+6. S = o TC (Note 4) = 8.3 in. 208.5 mm
+F
+F
+7. Assumed P = 13.375 in. 340 mm
+b
+8. N = F (10L / P ) (Note 4), =
+B F b
+or
+N = F (833 L / P ) (Note 4) (Metric) =
+B F b
+9. A = S (P – 0.375) (Segmental Baffles) = 107.9 in.2
+x b
+or
+A = S (P – 9.53) (Metric) = 68903 mm2
+x b
+A = 0.85S (P – 0.375) (Double Segmental Baffles) = in.2
+x b
+or
+A = 0.85S (P – 9.53) (Metric) = mm2
+x b
+10. Total shell-side flow rate, W = 21,300 lb/hr 2.684 kg/s
+EXXON RESEARCH AND ENGINEERING COMPANY - FLORHAM PARK, N.J.
+--- PAGE 60 ---
+DESIGN PRACTICES HEAT EXCHANGE EQUIPMENT
+Section Page CALCULATION PROCEDURE, CONDENSATION
+EXXON
+IX-F 60 of 79
+Date ENGINEERING
+December, 1999 PROPRIETARY INFORMATION - For Authorized Company Use Only
+TABLE 4 (Cont)
+A SAMPLE CONDENSER DESIGN
+CUSTOMARY UNITS METRIC UNITS
+11. Inlet vapor density and volume
+Inlet MW  P (psia)   1 
+ρ v1 = 10.7    T i + 460      u   = 0.256 lb/ft3
+1
+or
+Inlet MW  P (kPa abs)   1 
+ρ v1 = 8.29    i T + 273      u   (Metric) = 4.1 kg/m3
+1
+Inlet vapor rate, W = 21,300 lb/hr 2.684 kg/s
+v1
+V = W / ρ = 83,200 ft3/hr 0.655 m3/s
+v1 v1 v1
+12. Outlet vapor density and volume
+Outlet MW  P (psia)   1 
+ρ v2 = 10.7    T i + 460      u   = 0.204 lb/ft3
+2
+or
+Outet MW  P (kPa abs)   1 
+ρ v2 = 8.29    i T + 273      u   (Metric) = 3.26 kg/m3
+2
+Outlet vapor rate, W = 580 lb/hr 0.0731 kg/s
+v2
+V = W / ρ = 2840 ft3/hr 0.0224 m3/s
+v2 v2 v2
+13. Inlet liquid density and volume
+ρ = lb/ft3 kg/m3
+l1
+Inlet liquid rate, W = lb/hr kg/s
+l1
+V = W / ρ = ft3/hr m3/s
+l1 l1 l1
+14. Inlet liquid density and volume
+ρ = 38.7 lb/ft3 619 kg/m3
+l2
+Inlet liquid rate, W = 20,720 lb/hr 2.61 kg/s
+l2
+V = W / ρ = 535 ft3/hr 0.0042 m3/s
+l2 l2 l2
+15. Average mixture density
+2W
+ρ = = 0.491 lb/ft3 7.88 kg/m3
+V + V + V + V
+v1 l1 v2 l2
+16. Calculate shell-side pressure drop (∆Ps) using = 1.25 psi 8.53 kPa
+procedures outlined in Section IX-D, Shell-Side Iteration
+The above-assumed geometry will now be checked using the following detailed procedures.
+EXXON RESEARCH AND ENGINEERING COMPANY - FLORHAM PARK, N.J.
+--- PAGE 61 ---
+HEAT EXCHANGE EQUIPMENT DESIGN PRACTICES
+CALCULATION PROCEDURE, CONDENSATION Section Page
+EXXON IX-F 61 of 79
+ENGINEERING Date
+PROPRIETARY INFORMATION - For Authorized Company Use Only December, 1999
+TABLE 4 (Cont)
+A SAMPLE CONDENSER DESIGN
+CUSTOMARY UNITS METRIC UNITS
+C. Vapor Desuperheating Zone (Shell-Side Condensation)
+ t + t  U
+1. t =  s t  + o (R + r + r + r ) (t − t ) = °F °C
+f  2  2 io io w o s t
+(t and t for this zone were calculated in Step I.A.)
+s t
+2. Inlet vapor density and volume
+Inlet MW  P (psia)   1 
+ρ v1 = 10.7    T i + 460      u   = lb/ft3
+1
+or
+Inlet MW  P (kPa abs)   1 
+ρ v1 = 8.31    i T + 273      u   (Metric) = kg/m3
+1
+3. For fluids other than hydrocarbons, determine film properties. For hydrocarbons, determine only µ
+f
+Viscosity, µ = cP Pa•s
+f
+Specific Heat, c = Btu/lb-°F kJ/kg-K
+f
+Thermal Conductivity, k = Btu/hr-ft-°F W/m-K
+f
+4. Calculate shell-side coefficient (h ) using = Btu/hr-ft2-°F W/m2-K
+gc
+Section IX-D, Shell-Side iteration
+h U
+5. U = gc ox = Btu/hr-ft2-°F W/m2-K
+dh h + U
+gc ox
+(U was evaluated in Step II.A.21.)
+ox
+q
+6. A = dh = ft2 m2
+dh ∆t U
+e dh
+(q and ∆t were evaluated in Step I.A.)
+dh e
+D. Hydrocarbon Condensing - Steam Desuperheating Zone (Shell-Side Condensation)
+1. Assume a zone area, A = 400 ft2 37.2 m2
+ds
+q
+2. U assumed = ds = 60.4 Btu/hr-ft2-°F 342.9 W/m2-K
+ds A ∆t
+ds e
+(q and ∆t for this zone were evaluated in Step I.B.)
+ds e
+EXXON RESEARCH AND ENGINEERING COMPANY - FLORHAM PARK, N.J.
+--- PAGE 62 ---
+DESIGN PRACTICES HEAT EXCHANGE EQUIPMENT
+Section Page CALCULATION PROCEDURE, CONDENSATION
+EXXON
+IX-F 62 of 79
+Date ENGINEERING
+December, 1999 PROPRIETARY INFORMATION - For Authorized Company Use Only
+TABLE 4 (Cont)
+A SAMPLE CONDENSER DESIGN
+CUSTOMARY UNITS METRIC UNITS
+3. t f = t s − 1 (t s − t t )    1− U ds    = 168.4 °F 75.8 °C
+2  U 
+ox
+(t and t for this zone were evaluated in Step I.B.)
+s t
+4. ∆T zoneinlet = T dh − t dh = 1.71 1.71
+∆T T − t
+zone outlet ds ds
+5. F (Figure 4) = 0.46 0.46
+v
+6. Average zone vapor rate, W lb/hr mol/hr kg/s kmol/s
+v
+(F ) (Vapor condensed in zone, W ) = 7550 71 0.938 0.009
+v c
++ (Vapor not condensed in zone, W ) = 4900 96 0.643 0.0119
+v2
+= W = 12450 167 1.587 0.0209
+v
+lb / hr kg / s
+Average Mol. weight of vapor = 74.6 75.6
+mol / hr kmol / hr
+7. Average vapor properties at film temperature
+Avg MW  P (psia)   1 
+a. Density, ρ v = 10.7    t + 460      u   = 0.25 lb/ft3
+f
+or
+Avg MW  P (kPa abs)   1 
+Density, ρ v = 8.31    t + 273      u   (Metric) = 4.0 kg/m3
+f
+b. Viscosity, µ = 0.0088 cP 0.88 x 10-5 Pa•s
+f
+(Used for h calc.)
+gc
+8. W = W − W = 8850 lb/hr 1.1 kg/s
+l v
+9. Average condensate properties at film temp.
+a. Specific gravity, s = 0.65 0.65
+f
+b. Thermal Conductivity, k = 0.077 Btu/hr-ft-°F 0.133 W/m-K
+f
+c. Viscosity, µ = 0.3 cP 0.0003 Pa•s
+f
+10. Condensing Coefficient (Horizontal Bundle)
+a. n = 1.29 N 0.48 (90° Square Tube Layout) = 22.7 22.6
+s t
+n = 1.02 N 0.519 (30° Triangular Layout) =
+s t
+(For other layouts, see text)
+A
+b. L = ds (L − 0.5)N = 5.2 ft
+c s
+A
+or
+A
+L = ds (L − 0.152)N (Metric) = 1.59 m
+c s
+A
+(Note that if zone occupies more than one shell,
+L will be a multiple of the tube length.)
+c
+EXXON RESEARCH AND ENGINEERING COMPANY - FLORHAM PARK, N.J.
+--- PAGE 63 ---
+HEAT EXCHANGE EQUIPMENT DESIGN PRACTICES
+CALCULATION PROCEDURE, CONDENSATION Section Page
+EXXON IX-F 63 of 79
+ENGINEERING Date
+PROPRIETARY INFORMATION - For Authorized Company Use Only December, 1999
+TABLE 4 (Cont)
+A SAMPLE CONDENSER DESIGN
+CUSTOMARY UNITS METRIC UNITS
+W
+c. Γ = c = 139 lb/hr-ft 0.0568 kg/s-m
+L n
+c s
+d. h′ λ =     8.33 Γ1 x /3 103     k f     s µ 2 f f    1/3 = 139 Btu/hr-ft2-°F
+condensate
+or
+h′ λ =     Γ 2 1 0 / 4 3     k f    s µ 2 f   1/ 3 (Metric) = 766.4 W/m2-K
+ f 
+condensate
+1 W µ (v) 0.111  ρ 0.555
+e. =1+ v  f    l   = 17 17
+x
+l
+W
+l
+ µ
+f
+(l)   ρ
+v
+
+f. x = 1− x = 0.941 0.941
+v l
+W  F 
+g. G v = v   J   , (Note 4), = 4.9 lb/sec-ft2
+25 A x  F 
+x v BT
+or
+106 W  F 
+G v = v   J   (Metric) = 24.5 kg/sm2
+A x  F 
+x v BT
+ G 0.70
+h. hλ =h′ λ  v  = 137 Btu/hr-ft2-°F
+ 5 
+or
+ G 0.70
+hλ =h′ λ  v  (Metric) = 768.1 W/m2-K
+ 24.4 
+If hλ > 2 h′ λ , use 2.0 h′ λ
+(For pure components, hλ = h′ λ )
+11. Condensing Coefficient (Vertical Bundles)
+12 W
+a. Γ = c = lb/hr-ft
+π N d
+t o
+or
+1000 W
+Γ = c (Metric) = kg/s-m
+π N d
+t o
+b. hλ =
+
+
+
+ 1.04
+Γ1
+x
+/ 3
+104
+
+
+
+ k
+f 
+
+
+ s
+µ
+2 f
+f
+
+
+
+1/ 3 = Btu/hr-ft2-°F
+condensate
+or
+hλ = 
+
+
+Γ
+2
+1
+5
+/
+4
+3
+
+
+ k
+f 
+
+
+ s
+µ
+2 f
+f 
+
+
+1/ 3 (Metric) = W/m2-K
+condensate
+EXXON RESEARCH AND ENGINEERING COMPANY - FLORHAM PARK, N.J.
+--- PAGE 64 ---
+DESIGN PRACTICES HEAT EXCHANGE EQUIPMENT
+Section Page CALCULATION PROCEDURE, CONDENSATION
+EXXON
+IX-F 64 of 79
+Date ENGINEERING
+December, 1999 PROPRIETARY INFORMATION - For Authorized Company Use Only
+TABLE 4 (Cont)
+A SAMPLE CONDENSER DESIGN
+CUSTOMARY UNITS METRIC UNITS
+12. Vapor cooling coefficient
+Calculate h′ using procedures outlined in Section
+gc
+IX-D, shell-side iteration (use W as the flowrate)
+v
+h′ = 16.0 Btu/hr-ft2-°F 89.3 W/m2-K
+gc
+  T + T  
+ W  dh ds − t  
+C = 1−  c  2 f   = 0.59
+1  W (T − T ) 
+ v1 dh ds 
+ 
+1 1 C
+= + 1
+h
+gc
+hλ h′
+gc
+h = 22.6 Btu/hr-ft2-°F 126.4 W/m2-K
+gc
+13. Liquid cooling coefficient (Horizontal Bundles)
+a. Bottom Cooling Coefficient
+Calculate h′ using procedures outlined in Section
+lc
+IX-D, shell-side iteration (use W as condensate flow rate)
+l
+h′ = 17.6 Btu/hr-ft2-°F 99.5 W/m2-K
+lc
+b. Drip Cooling Coefficient
+h
+dc
+= 1.5hλ = 205.5 Btu/hr-ft2-°F 1152.2 W/m2-K
+c. Total liquid cooling coefficient (Horizontal) = lb/hr kg/s
+Bundles), Liquid entering zone, W
+l
+2h h′
+h = dc lc = 32.4 Btu/hr-ft2-°F 183.2 W/m2-K
+lc h + h′
+dc lc
+or
+(W + W ) h h′
+h = l c dc lc = Btu/hr-ft2-°F W/m2-K
+lc W  W 
+2
+c h′
+lc
++ 
+
+W
+l
++
+2
+c 
+
+h
+dc
+(For liquid + vapor entering zone)
+14. Liquid cooling coefficient (Vertical Bundles)
+h
+lc
+= hλ = Btu/hr-ft2-°F W/m2-K
+15. Weighted hydrocarbon condensing zone coefficient
+a. Zone condensing duty, qλ = 2.34 x 106 Btu/hr 679.3 x 103 W
+b. Zone vapor cooling duty, q = 0.506 x 106 Btu/hr 154.5 x 103 W
+gc
+c. Zone liquid cooling duty, q = 0.292 x 106 Btu/hr 87.3 x 103 W
+lc
+q
+h = ds = 64.8 Btu/hr-ft2-°F 356.6 W/m2-K
+ds qλ + q gc + q lc
+hλ h
+gc
+h
+lc
+h U
+U = ds ox = 51.3 Btu/hr-ft2-°F 284 W/m2-K
+ds h + U
+ds ox
+(U was evaluated in Step II.A.21.)
+ox
+EXXON RESEARCH AND ENGINEERING COMPANY - FLORHAM PARK, N.J.
+--- PAGE 65 ---
+HEAT EXCHANGE EQUIPMENT DESIGN PRACTICES
+CALCULATION PROCEDURE, CONDENSATION Section Page
+EXXON IX-F 65 of 79
+ENGINEERING Date
+PROPRIETARY INFORMATION - For Authorized Company Use Only December, 1999
+TABLE 4 (Cont)
+A SAMPLE CONDENSER DESIGN
+CUSTOMARY UNITS METRIC UNITS
+16. Zone Area
+q
+A = ds = 471 ft2 44.9 m2
+ds U ∆t
+ds e(ds)
+(q and ∆t for this zone were evaluated in Step I.B.)
+ds e
+E. Steam Condensing Zone (Shell-Side Condensation)
+q
+1. U = sc = 47.1 Btu/hr-ft2-°F 265.5 W/m2-K
+sc (A − A ) ∆t
+ds e(sc)
+2. t f = t s − 1 (t s − t t )    1− U sc    = 111 °F 44.1 °C
+2  U 
+ox
+(t and t for this zone were evaluated in Step I.C.)
+s t
+3. ∆T zone inlet = T ds − t ds = _____________ = 6.53 6.53
+∆T T − t
+zone outlet 2 1
+4. F (Figure 4) = 0.36 0.36
+v
+5. Average zone vapor rate, W lb/hr mol/hr kg/s kmol/s
+v
+(F ) (Vapor condensed in zone, W ) = 1550 31 0.196 0.0036
+v c
++ Non Condensable = 580 10 0.073 0.0013
+= W = 2135 41 0.269 0.0049
+v
+lb / hr kg / s
+Average Mol. weight of vapor = 52.0 54.2
+mol / hr kmol / hr
+6. Average vapor properties at film temperature
+Avg MW  P (psia)   1 
+a. Density, ρ v = 10.7    t + 460      u   = 0.183 lb/ft3
+f
+or
+Avg MW  P (kPa abs)   1 
+ρ v = 8.31    t + 273      u   (Metric) = 2.93 kg/m3
+f
+b. Viscosity, µ = 0.0068 cP 0.0000068 Pa•s
+f
+(Used for h calc.)
+gc
+7. Average zone liquid rate, W
+l
+W = W – W = 19165 lb/hr 2.415 kg/s
+l v
+8. Average condensate properties at film temperature
+a. Specific gravity, s = 0.62 0.62
+f
+b. Thermal conductivity, k = 0.078 Btu/hr-ft-°F 0.135 W/m-K
+f
+c. Viscosity, µ = 0.38 cP 0.00038 Pa•s
+f
+(Note that hydrocarbon film properties should be used)
+EXXON RESEARCH AND ENGINEERING COMPANY - FLORHAM PARK, N.J.
+--- PAGE 66 ---
+DESIGN PRACTICES HEAT EXCHANGE EQUIPMENT
+Section Page CALCULATION PROCEDURE, CONDENSATION
+EXXON
+IX-F 66 of 79
+Date ENGINEERING
+December, 1999 PROPRIETARY INFORMATION - For Authorized Company Use Only
+TABLE 4 (Cont)
+A SAMPLE CONDENSER DESIGN
+CUSTOMARY UNITS METRIC UNITS
+9. Condensing Coefficient (Horizontal Bundle)
+a. n = 1.29 N 0.48 (90° Square Tube Layout) = 22.7 22.6
+s t
+n = 1.02 N 0.519 (30° Triangular Layout) =
+s t
+(For other layouts, see text)
+b. A = A – A – A = 1083 ft2 94.1 m2
+sc dh ds
+A
+c. L = sc (L − 0.5) N = 14.08 ft
+c s
+A
+or
+A
+L = sc (L − 0.152)N (Metric) = 4.03 m
+c s
+A
+(Note that if zone occupies more than one shell,
+L will be a multiple of the tube length.)
+c
+W
+d. Γ = c = 13.6 lb/hr-ft 0.006 kg/s-m
+L n
+c s
+e. h′ λ =     8.33 Γ1 x /3 103     k f     s µ 2 f f    1/3 = 273.4 Btu/hr-ft2-°F
+condensate
+or
+h′ λ =     Γ 2 1 0 / 4 3     k f    s µ 2 f   1/ 3 (Metric) = 1522.5 W/m2-K
+ f 
+condensate
+1 W µ (v) 0.111  ρ 0.555
+f. =1+ v  f    l   = 2.39 2.39
+x
+l
+W
+l
+ µ
+f
+(l)   ρ
+v
+
+g. x = 1− x = 0.581 0.581
+v l
+W  F 
+h. G v = v   J   , (Note 4), = 1.36 lb/sec-ft2
+25 A x  F 
+x v BT
+or
+106 W  F 
+G v = v   J   , (Note 4) (Metric) = 0.72 kg/sm2
+A x  F 
+x v BT
+ G 0.7
+i. hλ = h′ λ  v  = 110.3 Btu/hr-ft2-°F
+ 5 
+or
+ G 0.7
+hλ = h′ λ  v  (Metric) = 617.4 W/m2-K
+ 24.4 
+If hλ > 2 h′ λ , use 2 h′ λ
+(For pure components, hλ = h′ λ )
+EXXON RESEARCH AND ENGINEERING COMPANY - FLORHAM PARK, N.J.
+--- PAGE 67 ---
+HEAT EXCHANGE EQUIPMENT DESIGN PRACTICES
+CALCULATION PROCEDURE, CONDENSATION Section Page
+EXXON IX-F 67 of 79
+ENGINEERING Date
+PROPRIETARY INFORMATION - For Authorized Company Use Only December, 1999
+TABLE 4 (Cont)
+A SAMPLE CONDENSER DESIGN
+CUSTOMARY UNITS METRIC UNITS
+10. Condensing Coefficient (Vertical Bundles)
+12 W
+a. Γ = c = lb/hr-ft
+π N d
+t o
+or
+1000 W
+Γ = c = kg/s-m
+π N d
+t o
+b. hλ =
+
+
+
+ 1.04
+Γ1
+x
+/ 3
+104
+
+
+
+ k
+f 
+
+
+ s
+µ
+2 f
+f
+
+
+
+1/ 3 = Btu/hr-ft2-°F
+condensate
+or
+hλ = 
+
+
+Γ
+2
+1
+5
+/
+4
+3
+
+
+ k
+f 
+
+
+ s
+µ
+2 f
+f 
+
+
+1/ 3 (Metric) = W/m2-K
+condensate
+11. Vapor cooling coefficient
+Calculate h′ using procedures outlined in Section
+gc
+IX-D, shell-side iteration (use W as the flowrate)
+v
+h′ = 5.4 Btu/hr-ft2-°F 30.9 W/m2-K
+gc
+  T + T  
+ W  dh ds − t  
+12. C = 1−  c  2 f   = 0.76
+1  W (T − T ) 
+ v1 dh ds 
+ 
+1 1 C
+= + 1 =
+h
+gc
+hλ h′
+gc
+h = 6.7 Btu/hr-ft2-°F 38.1 W/m2-K
+gc
+13. Liquid cooling coefficient (Horizontal Bundles)
+a. Bottom Cooling Coefficient
+Calculate h′ using procedures outlined in Section
+lc
+IX-D, shell-side iteration (use W as condensate flow rate)
+l
+h′ = 28.0 Btu/hr-ft2-°F 160.2 W/m2-K
+lc
+b. Drip Cooling Coefficient
+h
+dc
+= 1.5hλ = 165.5 Btu/hr-ft2-°F 955 W/m2-K
+c. Total liquid cooling coefficient (Horizontal) = lb/hr kg/s
+Bundles), Liquid entering zone, W
+l
+(W + W ) h h′
+h = l c dc lc = 30.8 Btu/hr-ft2-°F 175.6 W/m2-K
+lc W  W 
+2
+c h′
+lc
++ 
+
+W
+l
++
+2
+c 
+
+h
+dc
+14. Liquid cooling coefficient (Vertical Bundles)
+h
+lc
+= hλ = Btu/hr-ft2-°F W/m2-K
+EXXON RESEARCH AND ENGINEERING COMPANY - FLORHAM PARK, N.J.
+--- PAGE 68 ---
+DESIGN PRACTICES HEAT EXCHANGE EQUIPMENT
+Section Page CALCULATION PROCEDURE, CONDENSATION
+EXXON
+IX-F 68 of 79
+Date ENGINEERING
+December, 1999 PROPRIETARY INFORMATION - For Authorized Company Use Only
+TABLE 4 (Cont)
+A SAMPLE CONDENSER DESIGN
+CUSTOMARY UNITS METRIC UNITS
+15. Weighted steam condensing coefficient
+a. Zone condensing duty, qλ = 1.25 x 106 Btu/hr-ft2-°F 366 x 103 W/m2-K
+b. Zone vapor cooling duty, q = 0.108 x 106 Btu/hr-ft2-°F 30.4 x 103 W/m2-K
+gc
+c. Zone liquid cooling duty, q = 0.687 x 106 Btu/hr-ft2-°F 193.3 x 103 W/m2-K
+lc
+q
+h = sc = 41.2 Btu/hr-ft2-°F 236.9 W/m2-K
+sc qλ + q gc + q lc
+hλ h
+gc
+h
+lc
+h U
+U = sc ox = 35.3 Btu/hr-ft2-°F 202.5 W/m2-K
+sc h + U
+sc ox
+16. Zone Area
+q
+A = sc = 1373 ft2 123.4 m2
+sc U ∆t
+sc e(sc)
+(q and ∆t for this zone were evaluated in Step I.C.)
+sc e
+F. Total Area
+1. A = A + A + A = ft2 m2
+dh ds sc
+If total area calculated is not reasonably close to total
+area assumed, reiterate the various zone calculations.
+G. Condensing Pressure Drop (Shell-Side Condensation)
+1. Hydrocarbon condensing zone inlet volumes
+a. Vapor
+(1) ρ v1(dh) = Vap 1 o 0 r .7 MW     T P (p + s 4 ia 6 ) 0        u 1    = 0.256 lb/ft3
+dh
+or
+ρ v1(dh) = Vap 8 o . r 31 MW     P T (kP + a 2 a 7 b 3 s)        u 1    (Metric) = 4.1 kg/m3
+dh
+(2) Vapor rate, W = 21,300 lb/hr 2.684 kg/s
+v1(dh)
+(3) V = W / ρ = 83,200 ft3/hr 0.655 m3/s
+v1(dh) v1(dh) v1(dh)
+b. Liquid (if present)
+(1) ρ = lb/ft3 kg/m3
+l1(dh)
+(2) Liquid rate, W = 0 lb/hr 0 kg/s
+l1(dh)
+(3) V = ft3/hr m3/s
+l1(dh)
+EXXON RESEARCH AND ENGINEERING COMPANY - FLORHAM PARK, N.J.
+--- PAGE 69 ---
+HEAT EXCHANGE EQUIPMENT DESIGN PRACTICES
+CALCULATION PROCEDURE, CONDENSATION Section Page
+EXXON IX-F 69 of 79
+ENGINEERING Date
+PROPRIETARY INFORMATION - For Authorized Company Use Only December, 1999
+TABLE 4 (Cont)
+A SAMPLE CONDENSER DESIGN
+CUSTOMARY UNITS METRIC UNITS
+2. Steam condensing zone inlet volumes
+a. Vapor
+(1) ρ v1(dh) = Vap 1 o 0 r .7 MW     T P (p + s 4 ia 6 ) 0        u 1    = 0.171 lb/ft3
+ds
+or
+ρ v1(dh) = Vap 8 o . r 31 MW     P T (kP + a 2 a 7 b 3 s)        u 1    (Metric) = 2.74 kg/m3
+ds
+(2) Vapor rate, W = 4900 lb/hr 0.644 kg/s
+v1(ds)
+(3) V = W / ρ = 28,700 ft3/hr 0.235 m3/s
+v1(ds) v1(ds) v1(ds)
+b. Liquid
+(1) ρ = 40.5 lb/ft3 648 kg/m3
+l1(ds)
+(2) Liquid rate, W = 16,400 lb/hr 2.04 kg/s
+l1(ds)
+(3) V = W / ρ = 405 ft3/hr 0.00315 m3/s
+l1(ds) l1(ds) l1(ds)
+3. Steam condensing zone outlet volumes
+a. Vapor (if present)
+V (evaluated in Step II.B.12.) = 2840 ft3/hr 0.0224 m3/s
+v2
+V (evaluated in Step II.B.14.) = 535 ft3/hr 0.0042 m3/s
+l2
+4. Vapor desuperheating zone ∆P
+dh
+Calculate ∆P using procedures outlined in = psi kPa
+dh
+Section IX-D, shell-side iteration, ∆P
+dh
+5. Hydrocarbon condensing zone, ∆P
+ds
+2W
+a. ρ = = 0.38 lb/ft3 6.01 kg/m3
+ds V + V + V + V
+v1(dh) l1(dh) v1(ds) l1(ds)
+b. Calculate ∆P using procedures outlined in = 0.41 psi 2.9 kPa
+ds
+Section IX-D, shell-side iteration
+6. Steam condensing zone ∆P
+sc
+2W
+a. ρ = = 1.31 lb/ft3 20.3 kg/m3
+sc V + V + V + V
+v1(ds) l1(ds) v2 l2
+b. Calculate ∆P using procedures outlined in = 0.35 psi 2.5 kPa
+sc
+Section IX-D, shell-side iteration
+7. Total condensing-side pressure drop
+∆P = ∆P + ∆P + ∆P = 0.76 psi 5.4 kPa
+dh ds sc
+The area calculated in this sample (Item F) is not close enough to the assumed. Making the following modifications and
+repeating the calculation gives an acceptable area: N = 496, N = 26.5, D = 26.3 in. (668 mm), D = 29.0 in. (737 mm), S = 9.1
+t TC t
+in. (231 mm), A = 102.1 in.2 (65871 mm2), P = 11.6 in. (294.6 mm), and N = 17.
+x b B
+EXXON RESEARCH AND ENGINEERING COMPANY - FLORHAM PARK, N.J.
+--- PAGE 70 ---
+DESIGN PRACTICES HEAT EXCHANGE EQUIPMENT
+Section Page CALCULATION PROCEDURE, CONDENSATION
+EXXON
+IX-F 70 of 79
+Date ENGINEERING
+December, 1999 PROPRIETARY INFORMATION - For Authorized Company Use Only
+FIGURE 1
+TYPICAL HEAT RELEASE (“T-Q") CURVE
+(FOR WIDE-CUT HYDROCARBONS IN THE PRESENCE OF STEAM)
+0.2 0.4 0.6 0.8 1.0 1.2 1.4 1.6 1.8
+420
+200
+380
+180
+340
+160
+300
+140
+260
+120
+220
+100
+180 80
+140 60
+40 100
+20
+0 1 2 3 4 5 6
+EXXON RESEARCH AND ENGINEERING COMPANY - FLORHAM PARK, N.J.
+°
+F
+,erutarepmeT °
+C
+,erutarepmeT
+Q, MW
+T
+1
+T = HC Dewpoint Vapor Cooling + HC
+dh
+Condensation + Liquid Cooling
++ Steam Condensation
++ Water Cooling
+Vapor
+T = Steam
+Cooling ds
+Dewpoint
+Vapor Cooling + HC
+Condensation + Liquid
+Cooling
+T t 2
+t 2 t dh 1
+t ds
+60
+6.3
+q q q
+dh ds sc
+DP9FF01 Q, MM Btu/hr
+--- PAGE 71 ---
+HEAT EXCHANGE EQUIPMENT DESIGN PRACTICES
+CALCULATION PROCEDURE, CONDENSATION Section Page
+EXXON IX-F 71 of 79
+ENGINEERING Date
+PROPRIETARY INFORMATION - For Authorized Company Use Only December, 1999
+FIGURE 2A
+SAMPLE FLASH CURVE AND T PLOT
+ds
+EXXON RESEARCH AND ENGINEERING COMPANY - FLORHAM PARK, N.J.
+F
+,erutarepmeT
+DP9FFO2A Percent Not Condensed
+F
+,erutarepmeT
+260
+255
+250
+245
+240
+235
+230 Weight %
+%
+me
+225
+Volu
+%
+e
+ol
+M
+220
+215
+220
+210
+Partial Pressure
+of Steam 210
+205
+200
+200
+Vapor
+Pressure 190
+195 of H O
+2
+T = 184 F 180
+ds
+190
+170
+186 4 6 8 10 12 14
+Pressure, psia
+180
+0 10 20 30 40 50 60 70 80 90 100
+--- PAGE 72 ---
+DESIGN PRACTICES HEAT EXCHANGE EQUIPMENT
+Section Page CALCULATION PROCEDURE, CONDENSATION
+EXXON
+IX-F 72 of 79
+Date ENGINEERING
+December, 1999 PROPRIETARY INFORMATION - For Authorized Company Use Only
+FIGURE 2B
+SAMPLE FLASH CURVE AND Tds PLOT
+125
+0 10 20 30 40 50 60 70 80 90 100
+EXXON RESEARCH AND ENGINEERING COMPANY - FLORHAM PARK, N.J.
+C
+,erutarepmeT
+120
+115
+110
+105
+100
+95
+90
+85
+DP9FF02B Percent Not Condensed
+C
+,erutarepmeT
+%
+Weight
+%
+me
+Volu
+%
+e
+ol
+M
+120
+Partial Pressure
+of Steam
+110
+100
+90
+Vapor
+Pressure
+of H O
+2
+80
+T = 82.8 °C
+ds
+70
+20 40 60 80 100 120
+Pressure, kPa abs
+--- PAGE 73 ---
+HEAT EXCHANGE EQUIPMENT DESIGN PRACTICES
+CALCULATION PROCEDURE, CONDENSATION Section Page
+EXXON IX-F 73 of 79
+ENGINEERING Date
+PROPRIETARY INFORMATION - For Authorized Company Use Only December, 1999
+FIGURE 3A
+VAPOR PRESSURE OF HYDROCARBONS
+1200 1.0
+1100
+2.0
+1000
+900 3.0
+800 4.0
+5.0
+700 6.0
+7.0
+8.0
+600 9.0
+10
+500
+20
+400
+30
+350 40
+50
+300 60
+70
+80
+90
+250
+100
+200
+200
+300
+150
+400
+500
+600
+100
+700
+800
+900
+1000
+1500
+50
+DP9FF03A
+EXXON RESEARCH AND ENGINEERING COMPANY - FLORHAM PARK, N.J.
+aisp
+,erusserP
+ropaV
+1200
+1100
+1000
+900
+800
+700
+600
+500
+400
+300
+200
+150
+100
+50
+F°
+,erutarepmeT
+F
+° ,tn
+io
+P
+g
+n
+ilio
+B
+la
+m
+ro
+N
+H O
+2
+--- PAGE 74 ---
+DESIGN PRACTICES HEAT EXCHANGE EQUIPMENT
+Section Page CALCULATION PROCEDURE, CONDENSATION
+EXXON
+IX-F 74 of 79
+Date ENGINEERING
+December, 1999 PROPRIETARY INFORMATION - For Authorized Company Use Only
+FIGURE 3B
+VAPOR PRESSURE OF HYDROCARBONS (METRIC)
+650
+600
+650
+600
+500
+500
+400
+400
+C
+300 300 °
+,tn
+io
+P
+g
+n
+ilio
+B
+la
+200 m
+ro
+N
+200
+150
+100
+150
+50
+100 10
+50
+10
+EXXON RESEARCH AND ENGINEERING COMPANY - FLORHAM PARK, N.J.
+C°
+,erutarepmeT
+10
+20
+30
+40
+50
+60
+70
+80
+90
+100
+150
+200
+300
+400
+500
+600
+1000
+1500
+2000
+3000
+4000
+5000
+6000
+10,000
+aPk
+,erusserP
+ropaV
+DP9FF03B
+--- PAGE 75 ---
+HEAT EXCHANGE EQUIPMENT DESIGN PRACTICES
+CALCULATION PROCEDURE, CONDENSATION Section Page
+EXXON IX-F 75 of 79
+ENGINEERING Date
+PROPRIETARY INFORMATION - For Authorized Company Use Only December, 1999
+FIGURE 4
+AVERAGE VAPOR QUANTITY IN CONDENSERS (OR REBOILERS)
+0.7
+0.6
+W = (Vapor not condensed) + F (Vapor condensed) (Condensing)
+v v
+W = F (Liquid vaporized) + (Initial vapor if any) (Vaporizing)
+v v
+0.5
+F
+v
+0.4
+0.3
+0.2
+0.1 0.2 0.3 0.5 0.8 1 2 3 5 8 10 20 30 50 80
+DP9FF04 Ratio of Inlet ∆T = T 1 − t 2 * * Or Corresponding Zone Temperature
+Outlet ∆T T − t
+2 1
+EXXON RESEARCH AND ENGINEERING COMPANY - FLORHAM PARK, N.J.
+--- PAGE 76 ---
+DESIGN PRACTICES HEAT EXCHANGE EQUIPMENT
+Section Page CALCULATION PROCEDURE, CONDENSATION
+EXXON
+IX-F 76 of 79
+Date ENGINEERING
+December, 1999 PROPRIETARY INFORMATION - For Authorized Company Use Only
+FIGURE 5
+SHELL-SIDE HEAT TRANSFER FOR PARTIAL CONDENSATION OF WIDE CUTS
+(NOT RECOMMENDED FOR DEFINITIVE DESIGNS)
+In(h ) = 0.82 In(G) + f(α) - 0.002 Pi, or
+oc
+In(h ) = 0.82 In(G) + f(α) - 0.0029 Pi + 0.436 (Metric)
+oc
+4.0
+3.5
+f(α ) 3.0
+2.5
+2.0
+0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0
+lb/hr (or kg/s) vapor out
+α =
+DP9FF05
+lb/hr (or kg/s) vapor in
+EXXON RESEARCH AND ENGINEERING COMPANY - FLORHAM PARK, N.J.
+--- PAGE 77 ---
+HEAT EXCHANGE EQUIPMENT DESIGN PRACTICES
+CALCULATION PROCEDURE, CONDENSATION Section Page
+EXXON IX-F 77 of 79
+ENGINEERING Date
+PROPRIETARY INFORMATION - For Authorized Company Use Only December, 1999
+FIGURE 6A
+FLASH CURVE CORRECTIONS
+250
+°F
+200 300
+40 0 0
+4
+200
+0
+0
+30 5
+20
+150
+600
+10
+0
+100
+D1=
+700
+-10 +
+t10
+-20
+50 -30
+-40
+0
+50 100 150 200 250 300 0 50 100 150 200 250 300
+D1, °F
+EXXON RESEARCH AND ENGINEERING COMPANY - FLORHAM PARK, N.J.
+°
+F
+,3D
+60
+50
+°
+F
+,2D
+DP9FF06A D1, °F
+FIGURE 6B
+FLASH CURVE CORRECTIONS
+140 30
+120
+20
+100
+10
+0
+60
+-10
+40
+-20
+20
+0 20 40 60 80 100 120 140 160 180 0 20 40 60 80 100 120 140
+D1, °C
+C°
+,3D
+°C 150
++
+D1
+=
+95
+200
+t10
+260
+320
+80
+370
+DP9FF06B
+C°
+,2D
+D1, °C
+--- PAGE 78 ---
+DESIGN PRACTICES HEAT EXCHANGE EQUIPMENT
+Section Page CALCULATION PROCEDURE, CONDENSATION
+EXXON
+IX-F 78 of 79
+Date ENGINEERING
+December, 1999 PROPRIETARY INFORMATION - For Authorized Company Use Only
+FIGURE 7A
+ENTHALPY OF WATER ABOVE 32°F
+1600
+0-1 Atm.
+1400
+Sat. Vapor
+1200
+1000
+Critical
+Point
+800
+600
+Sat. Liquid
+400
+200
+0 100 200 300 400 500 600 700 800 900 1000
+Temperature, F
+EXXON RESEARCH AND ENGINEERING COMPANY - FLORHAM PARK, N.J.
+)bl/utB(
+yplahtnE
+DP9FF07A
+FIGURE 7B
+ENTHALPY OF WATER ABOVE 0°C
+3000
+2000
+1000
+0 100 200 300 400 500 600
+Temperature, C
+)gk/Jk(
+yplahtnE
+0-1 Atm.
+Sat. Vapor
+Critical
+Point
+Sat. Liquid
+DP9FF07B
+--- PAGE 79 ---
+HEAT EXCHANGE EQUIPMENT DESIGN PRACTICES
+CALCULATION PROCEDURE, CONDENSATION Section Page
+EXXON IX-F 79 of 79
+ENGINEERING Date
+PROPRIETARY INFORMATION - For Authorized Company Use Only December, 1999
+FIGURE 8
+HEAT TRANSFER COEFFICIENT FOR FLUIDS IN TUBES
+107
+5
+106
+5
+y
+th
+105 h io = 0.012 y d th k Pr1/ 3     µ µ    0.14
+12 L/d or 1000 L/d = i w
+i i 25 or
+5 1 1 8 2 3 6 0 0 5 0 h io = y d th i k Pr1/3     µ µ w    0.14 (Metric)
+350
+600
+104
+102 5 103 5 104 5 105 5 106 5 107
+d G d G
+DP9FF08 Reynolds Number, Re = 29 i µ or 10 i 3 µ (Metric)
+EXXON RESEARCH AND ENGINEERING COMPANY - FLORHAM PARK, N.J.

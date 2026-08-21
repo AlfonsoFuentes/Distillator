@@ -8,6 +8,7 @@ using Shared.ProcessFlowDiagram;
 using Shared.PropertiesDtos.Methods;
 using Shared.SolverConsecutive;
 using Shared.SolverConsecutive.Equipments;
+using Shared.SolverConsecutive.SolverRemanufactured;
 using Shared.SolverQwen.Stream;
 using Shared.UnitOperations.Basiss;
 
@@ -255,7 +256,7 @@ public class Project : IProject
 
     private static ISimulationService CreateDefaultSimulationService()
     {
-        var solver = new MainSolver();
+        var solver = new MainSolverRemanufactured();
         return new SimulationService(solver);
     }
 }

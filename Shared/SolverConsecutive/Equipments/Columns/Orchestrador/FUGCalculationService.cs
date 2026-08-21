@@ -21,14 +21,21 @@ namespace Shared.SolverConsecutive.Equipments.Columns.Orchestrador
 
         public async Task CalculateAsync(CancellationToken cancellationToken = default)
         {
+            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+            Trace("FUG started", $"state={_column.State}; topologyChanged={_column.Orchestrator?.TopologyChanged}");
+
             if (_column.State != ColumnStateType.Solved)
             {
+                stopwatch.Stop();
+                Trace("FUG skipped", $"reason=column not solved; elapsedMs={stopwatch.ElapsedMilliseconds}");
                 return;
             }
 
             // 🔥 Si la topología no cambió, usar caché (no recalcular)
             if (_column.Orchestrator != null && !_column.Orchestrator.TopologyChanged)
             {
+                stopwatch.Stop();
+                Trace("FUG skipped", $"reason=topology unchanged; elapsedMs={stopwatch.ElapsedMilliseconds}");
                 return;
             }
 
@@ -44,6 +51,7 @@ namespace Shared.SolverConsecutive.Equipments.Columns.Orchestrador
                     if (refluxInlet == null || vaporOutlet == null || bottomOutlet == null || feeds.Count == 0)
                     {
                         _column.Orchestrator?.SetDistillationParameters(CreateEmptyDistillationParameters());
+                        Trace("FUG skipped", "reason=missing required streams");
                         return;
                     }
 
@@ -52,6 +60,7 @@ namespace Shared.SolverConsecutive.Equipments.Columns.Orchestrador
                         bottomOutlet.State != StreamStateType.Calculated)
                     {
                         _column.Orchestrator?.SetDistillationParameters(CreateEmptyDistillationParameters());
+                        Trace("FUG skipped", $"reason=required streams not calculated; reflux={refluxInlet.State}; vaporOut={vaporOutlet.State}; bottomOut={bottomOutlet.State}");
                         return;
                     }
 
@@ -63,6 +72,7 @@ namespace Shared.SolverConsecutive.Equipments.Columns.Orchestrador
                     if (D <= 0)
                     {
                         _column.Orchestrator?.SetDistillationParameters(CreateEmptyDistillationParameters());
+                        Trace("FUG skipped", $"reason=invalid distillate flow; D={D:G6}");
                         return;
                     }
 
@@ -266,6 +276,9 @@ namespace Shared.SolverConsecutive.Equipments.Columns.Orchestrador
                 }
             }, cancellationToken);
 
+            stopwatch.Stop();
+            Trace("FUG finished", $"elapsedMs={stopwatch.ElapsedMilliseconds}");
+
             double CalculateQ(IFacadeStream feedMaterial, SolverColumn column)
             {
 
@@ -310,6 +323,11 @@ namespace Shared.SolverConsecutive.Equipments.Columns.Orchestrador
 
                 return q;
             }
+        }
+
+        private void Trace(string message, string? detail = null)
+        {
+            _column.TraceSink?.TraceSolver($"Column {_column.Name}: {message}", detail);
         }
 
         private static DistillationParameters CreateEmptyDistillationParameters()

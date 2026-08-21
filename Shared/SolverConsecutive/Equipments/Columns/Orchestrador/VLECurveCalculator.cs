@@ -20,9 +20,14 @@ namespace Shared.SolverConsecutive.Equipments.Columns.Orchestrador
 
             public async Task CalculateAsync(CancellationToken cancellationToken = default)
             {
+                var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+                Trace("VLE started", $"state={_column.State}; pressureChanged={_column.Orchestrator?.ColumnPressureChanged}");
+
                 // 🔥 Si la presión no cambió, usar caché
                 if (_column.Orchestrator != null && !_column.Orchestrator.ColumnPressureChanged)
                 {
+                    stopwatch.Stop();
+                    Trace("VLE skipped", $"reason=pressure unchanged; elapsedMs={stopwatch.ElapsedMilliseconds}");
                     return;
                 }
 
@@ -32,18 +37,23 @@ namespace Shared.SolverConsecutive.Equipments.Columns.Orchestrador
                 if (refStream == null)
                 {
                     _column.Orchestrator?.SetVLECurveResult(CreateEmptyVLECurve());
+                    stopwatch.Stop();
+                    Trace("VLE skipped", $"reason=no reference stream; elapsedMs={stopwatch.ElapsedMilliseconds}");
                     return;
                 }
 
                 if (refStream.ThermoMethod == null)
                 {
                     _column.Orchestrator?.SetVLECurveResult(CreateEmptyVLECurve());
+                    stopwatch.Stop();
+                    Trace("VLE skipped", $"reason=no thermodynamic method; refStream={refStream.Name}; elapsedMs={stopwatch.ElapsedMilliseconds}");
                     return;
                 }
 
                 ThermodynamicMethodFullDto thermoMethod = refStream.ThermoMethod;
                 IReadOnlyList<ComponentFacade> components = refStream.Composition.Components;
                 int numPoints = 100;
+                Trace("VLE calculating", $"refStream={refStream.Name}; components={components.Count}; points={numPoints + 1}");
 
                 await Task.Run(() =>
                 {
@@ -138,6 +148,14 @@ namespace Shared.SolverConsecutive.Equipments.Columns.Orchestrador
                         _column.Orchestrator?.SetVLECurveResult(CreateEmptyVLECurve());
                     }
                 }, cancellationToken);
+
+                stopwatch.Stop();
+                Trace("VLE finished", $"elapsedMs={stopwatch.ElapsedMilliseconds}");
+            }
+
+            private void Trace(string message, string? detail = null)
+            {
+                _column.TraceSink?.TraceSolver($"Column {_column.Name}: {message}", detail);
             }
 
             private static VLECurveResult CreateEmptyVLECurve()

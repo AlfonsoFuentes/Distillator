@@ -25,6 +25,19 @@ namespace Shared.SolverConsecutive
         {
             equation = _equation;
             _adjustableVariables = equation.AdjustableVariables().ToList();
+            var initialVariableStates = CaptureVariableStates();
+            var result = SolveCore(_alpha);
+            if (!result.Converged)
+            {
+                RestoreVariableStates(initialVariableStates);
+            }
+
+            return result;
+        }
+
+        private SolverResult SolveCore(double _alpha)
+        {
+            var solvedVariableProcedence = GetSolvedVariableProcedence(equation);
 
             var F_old = equation.Residuals.ToArray();
             if (F_old.Any(residual => !double.IsFinite(residual)))
@@ -51,7 +64,7 @@ namespace Shared.SolverConsecutive
 
             if (normF_old < ToleranceResidual)
             {
-                var InitialCheckResult = CheckInitialValues(normF_old);
+                var InitialCheckResult = CheckInitialValues(normF_old, solvedVariableProcedence);
                 if (InitialCheckResult.Converged)
                 {
                     return InitialCheckResult;
@@ -73,7 +86,7 @@ namespace Shared.SolverConsecutive
                 {
                     return new SolverResult(false, iter, GetNorm(F_old));
                 }
-                var stepResult = ApplyDampedStep(x_old, dx, Alpha, F_old);
+                var stepResult = ApplyDampedStep(x_old, dx, Alpha, F_old, solvedVariableProcedence);
 
                 if (stepResult.Converged)
                 {
@@ -98,7 +111,7 @@ namespace Shared.SolverConsecutive
             return new SolverResult(false, iter, GetNorm(F_old));
         }
 
-        SolverResult CheckInitialValues(double normF_old)
+        SolverResult CheckInitialValues(double normF_old, VariableDefinedBy solvedVariableProcedence)
         {
             bool isTrivialSolution = _adjustableVariables.All(v => Math.Abs(v.GetSolverValue()) <= 1e-10);
 
@@ -111,7 +124,7 @@ namespace Shared.SolverConsecutive
 
             foreach (IVariable variable in _adjustableVariables)
             {
-                variable.SetValueFromSolver(variable.GetSolverValue(), VariableDefinedBy.Solver);
+                variable.SetValueFromSolver(variable.GetSolverValue(), solvedVariableProcedence);
             }
 
             NotifySolvedVariables();
@@ -151,7 +164,8 @@ namespace Shared.SolverConsecutive
         }
 
         private DampedStepResult ApplyDampedStep(double[] x, double[] dx, double alpha,
-                                                 double[] F_old)
+                                                 double[] F_old,
+                                                 VariableDefinedBy solvedVariableProcedence)
         {
             double[] x_new = new double[x.Length];
             double minError = GetNorm(F_old);
@@ -166,9 +180,8 @@ namespace Shared.SolverConsecutive
                 for (int i = 0; i < x.Length; i++)
                 {
                     x_new[i] = x[i] + currentAlpha * dx[i];
-                    _adjustableVariables[i].SetValueFromSolver(x_new[i], VariableDefinedBy.Solver);
+                    _adjustableVariables[i].SetValueFromSolver(x_new[i], solvedVariableProcedence);
                 }
-                NotifySolvedVariables();
 
                 var residuals = equation.Residuals.ToArray();
                 if (residuals.Any(residual => !double.IsFinite(residual)))
@@ -181,6 +194,11 @@ namespace Shared.SolverConsecutive
 
                 if (error < ToleranceResidual)
                 {
+                    for (int i = 0; i < x.Length; i++)
+                    {
+                        _adjustableVariables[i].SetValueFromSolver(x_new[i], solvedVariableProcedence);
+                    }
+
                     NotifySolvedVariables();
                     return new DampedStepResult { XNew = x_new, Converged = true, FinalError = error };
                 }
@@ -206,7 +224,7 @@ namespace Shared.SolverConsecutive
         {
             foreach (var variable in _adjustableVariables.Distinct())
             {
-                if (variable.DataProcedence != VariableDefinedBy.Solver)
+                if (!variable.IsCalculated)
                 {
                     continue;
                 }
@@ -217,6 +235,47 @@ namespace Shared.SolverConsecutive
                 }
             }
         }
+
+        private static VariableDefinedBy GetSolvedVariableProcedence(ISolverEquation equation)
+        {
+            return equation.EquationTypeModifer == SolverEquationTypeModifier.Spec
+                ? VariableDefinedBy.Specification
+                : VariableDefinedBy.Solver;
+        }
+
+        private List<VariableState> CaptureVariableStates()
+        {
+            return _adjustableVariables
+                .Select(variable => new VariableState(
+                    variable,
+                    variable.GetSolverValue(),
+                    variable.DataProcedence))
+                .ToList();
+        }
+
+        private static void RestoreVariableStates(IEnumerable<VariableState> states)
+        {
+            foreach (var state in states)
+            {
+                state.Variable.SetValueFromSolver(state.SolverValue, VariableDefinedBy.Undefined);
+                if (state.DataProcedence == VariableDefinedBy.Undefined)
+                {
+                    ClearCalculatedProcedence(state.Variable);
+                }
+            }
+        }
+
+        private static void ClearCalculatedProcedence(IVariable variable)
+        {
+            variable.Clear(VariableDefinedBy.Solver);
+            variable.Clear(VariableDefinedBy.Specification);
+            variable.Clear(VariableDefinedBy.Equipment);
+        }
+
+        private sealed record VariableState(
+            IVariable Variable,
+            double SolverValue,
+            VariableDefinedBy DataProcedence);
 
     }
 }

@@ -9,7 +9,7 @@ namespace Shared.SolverConsecutive
 
     public interface INewtonSolver
     {
-        void Subscribe(INewtonSolverObserver observer);
+      
         SolverResult Solve(ISolverEquation mainSolver, double _alpha = 1.0);
     }
 

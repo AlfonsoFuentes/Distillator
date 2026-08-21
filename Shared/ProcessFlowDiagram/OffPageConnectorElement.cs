@@ -16,7 +16,7 @@ namespace Shared.ProcessFlowDiagram
             return new List<ToolTipLegend>
         {
             new ToolTipLegend("Target Area", TargetAreaName),
-            new ToolTipLegend("Local Node", ConnectedEquipmentName),
+            new ToolTipLegend("Remote Node", ConnectedEquipmentName),
             new ToolTipLegend("Navigate", "Double-click to go to area")
         };
         }

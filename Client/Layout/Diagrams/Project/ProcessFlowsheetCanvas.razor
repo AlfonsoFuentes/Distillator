@@ -128,6 +128,11 @@
     private async Task HandleMouseDown(MouseEventArgs e)
     {
         _mouseLeftCanvas = false;
+        if (e.ShiftKey)
+        {
+            return;
+        }
+
         await workspaceRef.FocusAsync();
         var offset = await JS.InvokeAsync<Offset>("canvasInterop.getCanvasOffset", workspaceRef);
         canvasX = offset.X;

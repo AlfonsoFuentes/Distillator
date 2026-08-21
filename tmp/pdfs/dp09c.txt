@@ -1,0 +1,1810 @@
+
+--- PAGE 1 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+DESIGN CONSIDERATIONS FOR IX-C 1 of 37
+DESIGN PRACTICES SHELL AND TUBE EXCHANGERS
+December, 2001
+Changes shown by ➧
+CONTENTS
+Section Page
+SCOPE ............................................................................................................................................................3
+REFERENCES.................................................................................................................................................3
+NUMBER OF SHELLS ....................................................................................................................................3
+TUBE SELECTION..........................................................................................................................................3
+TYPE .......................................................................................................................................................3
+LENGTH..................................................................................................................................................4
+DIAMETER AND WALL THICKNESS .....................................................................................................4
+FERRULES .............................................................................................................................................5
+TEMA TYPES ..................................................................................................................................................5
+CHANNELS.............................................................................................................................................6
+TUBE BUNDLES .............................................................................................................................................6
+TYPES.....................................................................................................................................................6
+TUBE LAYOUT........................................................................................................................................7
+TUBE PITCH ...........................................................................................................................................7
+CROSS BAFFLES...................................................................................................................................8
+Position of Baffle Chord........................................................................................................................8
+SEAL STRIPS .........................................................................................................................................8
+IMPINGEMENT PROTECTION...............................................................................................................9
+INTERCHANGEABILITY OF TUBE BUNDLES.......................................................................................9
+SHELL TYPES ................................................................................................................................................9
+SINGLE-PASS SHELL (TEMA E)............................................................................................................9
+TWO-PASS SHELL (TEMA F).................................................................................................................9
+DIVIDED FLOW SHELL (TEMA J) ........................................................................................................10
+KETTLE (TEMA K) ................................................................................................................................10
+CROSSFLOW SHELL (TEMA X) ..........................................................................................................10
+SPLIT FLOW (TEMA G) AND DOUBLE SPLIT FLOW (TEMA H).........................................................10
+TUBE SIDE FLOW ........................................................................................................................................10
+PRESSURE DROP ........................................................................................................................................11
+CORRECTION FOR REDUCED FLOW AREA .....................................................................................11
+ECONOMICS CONSIDERATION OF PRESSURE DROP....................................................................11
+SHELL SIDE..........................................................................................................................................12
+STACKING OF SHELLS ...............................................................................................................................13
+RECOMMENDED GOOD PRACTICE MAINTENANCE FEATURES FOR THE HEAT
+EXCHANGER DESIGN .................................................................................................................................13
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 2 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+IX-C 2 of 37 DESIGN CONSIDERATIONS FOR
+SHELL AND TUBE EXCHANGERS DESIGN PRACTICES
+December, 2001
+CONTENTS (Cont)
+Section Page
+FLOW INDUCED VIBRATION ......................................................................................................................13
+VIBRATION MECHANISMS..................................................................................................................13
+TYPES OF DAMAGE ............................................................................................................................14
+AREAS OF CONCERN .........................................................................................................................14
+DEFINITIONS .......................................................................................................................................15
+BASIC EQUATIONS .............................................................................................................................15
+ANALYSIS OF HTRI VIBRATION PRINTOUT......................................................................................16
+CORRECTIVE MEASURES..................................................................................................................17
+DESIGN GUIDELINES ..................................................................................................................................20
+TABLES
+Table 1 Exchanger Tube Data..................................................................................................21
+Table 2 Thermal Conductivities ................................................................................................22
+Table 3 Tema Head Type Selection .........................................................................................23
+Table 4 Maximum Number of Tube Passes..............................................................................23
+Table 5 Manual Estimation of Tube Count................................................................................24
+Table 6 Heat Exchanger Specification Sheet ...........................................................................26
+Table 7 Heat Exchanger Maintenance Good Practice Designer's Checklist Recommended
+Mechanical Design Features .......................................................................................27
+FIGURES
+Figure 1 Components of Shell and Tube Exchangers................................................................28
+Figure 2 Tema Heat Exchanger Nomenclature..........................................................................29
+Figure 3 Common Tube Layouts ...............................................................................................30
+Figure 4 Types of Shell Bafffles .................................................................................................31
+Figure 5A Single Pass Shell (TEMA Type AES)...........................................................................32
+Figure 5B Divided Flow Shell (TEMA Type AJS)..........................................................................32
+Figure 5C Two Pass Shell (TEMA Type AFS)..............................................................................33
+Figure 6 Location of Bundle Seal Strips.....................................................................................34
+Figure 7 Outermost Tube Limit (OTL) for the Pull through Floating Head Tube Bundle ...........34
+Figure 8 Shell Nozzle Correction Factor (C ).............................................................................35
+2
+Figure 9 Antivibration Tube Supports.........................................................................................36
+Figure 10 Detuning Baffle ............................................................................................................37
+Revision Memo
+12/01 Abbreviation for Tube Pitch changed from TP to PT.
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 3 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+DESIGN CONSIDERATIONS FOR IX-C 3 of 37
+DESIGN PRACTICES SHELL AND TUBE EXCHANGERS
+December, 2001
+SCOPE
+This section presents general design considerations for shell and tube heat exchangers.
+For a diagram depicting standard components of shell and tube exchangers see Figure 1.
+REFERENCES
+DESIGN PRACTICES (BESIDES OTHER SECTIONS OF SECTION IX)
+Section I Design Economics
+Section XIV Fluid Flow
+GLOBAL PRACTICE
+GP 6-1-1 TEMA Type Shell and Tube Heat Exchangers
+OTHER LITERATURE
+Refinery Construction Materials Manual, EMRE Manual No. EETD 028
+User's Manual for Hextran, General Purpose Program for the Design and Rating of Shell and Tube Heat Exchangers
+Standards of Tubular Exchanger Manufacturer's Association (TEMA), Eighth Edition, 1999
+HTRI Computer Programs Support Volume Section F-3, Flow Induced Vibration Analysis
+HTRI Reports STV-1, Tube Vibrations in Shell-and-Tube Heat Exchangers, and STV-5, Design of Shell-and-Tube Heat
+Exchangers to Avoid Flow-Induced Vibration Problems
+NUMBER OF SHELLS
+The total number of shells necessary for an exchanger is frequently dictated by how far the outlet temperature of the hot fluid is
+cooled below the outlet temperature of the cold fluid. This is known as the “extent of the temperature cross." The cross as well
+as other variables discussed in Section IX-B, determine the value of F , the temperature correction factor; this factor should
+n
+always be equal to or greater than 0.800. (The value of F drops slowly between 1.00 and 0.800, but then quickly approaches
+n
+zero. A value of F below 0.800 cannot be predicted accurately from the usual information used in process designs.) In a one-
+n
+shell exchanger, F is at least 0.800 when there is no temperature cross. Increasing the number of shells in series increases
+n
+the value of F , thus permitting a larger temperature cross.The total number of shells also depends on the total surface
+n
+required, since the size of the individual exchanger is usually limited by handling considerations. If there are no local
+restrictions due to capacity of tube bundle handling or cleaning equipment, the shell is usually limited to a shell inside diameter
+of 60 in. (1524 mm). (Note that this limitation does not necessarily apply to fixed tubesheet exchangers in clean service and for
+kettle type exchangers it applies to the bundle diameter.)
+In special cases, such as reboilers and fixed tubesheet exchangers, very large areas per shell are occasionally used. Areas up
+to 25,000 ft2 (2300 m2), and shell inside diameters up to 100 in. (2540 mm), have been used in fixed tubesheet exchangers.
+For these cases the individual refineries should be consulted to see if they are equipped to handle oversized tube bundles and
+shells.
+TUBE SELECTION
+TYPE
+Exchanger tubes are commonly available with either a bare or finned outside surface. Selection of the type of surface is based
+on the application, availability and economics.
+The conventional shell and tube exchanger is supplied with bare tubes. These are readily available in any material used in
+exchanger manufacture and in a wide range of wall thicknesses.
+With integral fin tubes, the fins increase the outside area to approximately 2-1/2 times that of a smooth tube. Low-fin tubes
+should be considered, after an economic evaluation, for services with shellside fouling resistance of 0.0030 hr-ft2-°F/Btu
+(0.00053 m2-°C/W) or less, unless local field experience precludes their use. Low fins should never be used where the
+corrosion rate exceeds 2 mils per year, since the fin life will be 3 years or less. Since finned tubes cost 50 - 70% more than
+bare tubes for the same length and nominal wall thickness, a ratio of total outside resistance (heat transfer film and fouling) to
+total inside resistance of three or greater, based on bare tubes, is required to justify finned tubes. This ratio occurs frequently in
+steam-heated reboilers and preheaters, water coolers and condensers handling organic fluids.
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 4 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+IX-C 4 of 37 DESIGN CONSIDERATIONS FOR
+SHELL AND TUBE EXCHANGERS DESIGN PRACTICES
+December, 2001
+TUBE SELECTION (Cont)
+Finned tubes may be the economic choice for ratios lower than three if their use requires fewer shells than would be needed for
+plain tubes. Finned tubes are also particularly useful for debottlenecking, expansions utilizing existing shells and cases where
+minimum bundle diameter rather than cost is of primary interest. For discussion on the enhancement of heat transfer of both
+smooth and fin tubes see Section IX-A; for an estimation of tube count, see Table 5 of this section.
+Methods for calculating the heat transfer coefficient and pressure drop for low-fin tubes are given in Section IX-G.
+LENGTH
+The selection of tube length is affected by availability, site preference, and economics. Tube lengths up to 24 ft (7.3 m) are
+readily obtainable worldwide. Longer tubes [up to 80 ft (24.4 m) for carbon steel and 70 ft (21.3 m) for copper alloys] are
+available in the United States. However, either 16 ft (4.9 m) or 20 ft (6.1 m) tube length is a common refinery preference.
+Refer to the refinery for preferable tube lengths. Keep in mind that quite often exchangers are fabricated in one location for use
+in another location. Some contractors and owners use standard metric lengths, e.g., 6 m instead of 20 ft (6.1 m).
+The exchanger cost depends upon the tube length: the longer the tube, the smaller the bundle diameter for the same area.
+The savings result from a decrease in the cost of shell flanges and tubesheets with only a nominal increase in the cost of the
+longer shell. In the common range of tube lengths, there is no cost penalty for the longer tubes since length extras are added
+for steel only over 24 ft (7.3 m) and for copper alloys over 30 ft (9.1 m).
+A disadvantage of longer tubes in units (such as condensers) located in a structure is the increased cost of the platforms and
+additional structure required. Longer tube bundles also require a greater pulling clearance, thereby possibly increasing the plot
+area requirements.
+∗∗∗
+DIAMETER AND WALL THICKNESS
+Exchanger tubing is supplied on the basis of a nominal outside diameter and either a minimum or average wall thickness. For
+exchanger tubing, the outside tube diameter is fixed. The inside diameter varies with the nominal wall thickness and wall
+thickness tolerance. Minimum wall tubing has only a plus tolerance on the wall thickness, resulting in the nominal wall
+thickness being the minimum thickness. Since average wall tubing has a plus-or-minus tolerance, the actual wall thickness can
+be greater or less than the nominal thickness. The allowable tolerances vary as a function of the tube material, diameter and
+fabrication method.
+For heat exchangers, ExxonMobil usually specifies minimum wall tubing, i.e., the wall thickness at any point must not be thinner
+than the thickness specified on the exchanger specification sheet. The effect of wall thickness on pressure drop is discussed
+under PRESSURE DROP in this section.
+The following tube diameters and wall thicknesses are preferred in exchangers fabricated by rolling tubes into the tubesheets
+for the service indicated:
+1. Water Service - Nonferrous tubes 3/4 in. OD, 0.065 in. wall thickness; Ferrous tubes 1 in. OD, 0.083 or 0.109 in. wall
+thickness.
+∗
+Exchanger tube data are listed in Table 1. Thermal conductivities of tube materials are listed in Table 2.
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 5 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+DESIGN CONSIDERATIONS FOR IX-C 5 of 37
+DESIGN PRACTICES SHELL AND TUBE EXCHANGERS
+December, 2001
+TUBE SELECTION (Cont)
+2. Other Services - Tube diameters, wall thicknesses, layout, and spacing are provided in the following table for various
+services placed on the tubeside or shellside:
+SEVERITY OF SERVICE (ON SHELLSIDE) MINIMUM WALL
+(FOULING FACTORS; (ON TUBESIDE) LAYOUT AND SPACING, THICKNESS(1),
+hr⋅⋅⋅⋅ft2-°°°°F/Btu [m2-°°°°C/W]) OD, in. (mm) in. (mm) BWG in. (mm)
+A. Ferrous Tubes for Oil Service
+Non-fouling or fouling < 0.003 (0.00053), mildly 3/4 (19.05) 15/16 (23.81) ∆∆∆∆ 14 0.083 (2.11)
+corrosive
+Non-fouling or fouling < 0.003 (0.00053), 3/4 (19.05) 1.00 (25.4)
+∆∆∆∆
+or □□□□ 12 0.109 (2.77)
+corrosive
+Extremely fouling ≥ 0.003 (0.00053), mildly 1 (25.4) 1.25 (31.75) □□□□ 12 0.109 (2.77)
+corrosive
+Extremely fouling ≥ 0.003 (0.00053), corrosive 1 (25.4) 1.25 (31.75) □□□□ 10 0.134 (3.4)
+B. Alloy Tubes for General Service
+∆∆∆∆
+Water service fouling < 0.003 (0.00053) 3/4 (19.05) 15/16 (23.81) 16 0.065 (1.65)
+∆∆∆∆
+Non-fouling or fouling < 0.003 (0.00053) 3/4 (19.05) 15/16(23.81) or 1.0(25.4) or □□□□ 16 0.065 (1.65)
+Extremely fouling ≥ 0.003 (0.00053) 1 (25.4) 1.25 (31.75) □□□□ 14 0.083 (2.11)
+Note:
+(1) When low-finned tubes are specified, the outside diameter of the unfinned portion and the wall thickness at the finned section are
+required. Although the thickness of the tube in the finned portion is nominally a standard wall thickness, manufacturing tolerances
+can result in a somewhat thinner wall. It is this minimum wall (given on Table 1 of Section IX-G) that is specified.
+Tubing may be supplied on either a minimum or average wall basis. However, the tabulated wall thickness is the minimum
+acceptable wall thickness.
+For special materials (Titanium, High Nickel, etc.) thinner tube walls may be specified.
+See the Refinery Construction Materials Manual for minimum thickness as a function of corrosion rate and service.
+Refineries may request exceptions to this list on the basis of duplication of existing units or extended periods between
+exchanger cleaning.
+FERRULES
+Ferrules are short sleeves inserted into the inlet end of a tube. They are used to prevent erosion of the tube ends due to the
+inlet turbulence when erosive fluids, such as streams containing solids, are handled. When there is evidence that the tubes will
+be subject to erosion by solids in the tube side fluid, ferrules should be specified. Ferrule material, length and wall thickness
+should be given. Also, ferrules are occasionally used in cooling water service to prevent oxygen attack at the tube ends. The
+ferrules should be secured in place by roller expanding into the tubes. However, ferrules should not be provided if back-
+flushing is to be used. Assistance in selecting the proper ferrule can be obtained from the Materials Engineering Section of
+EMRE.
+TEMA TYPES
+TEMA stands for the Tubular Exchanger Manufacturer's Association, which develops and publishes the basic industrial
+standards for shell-and-tube heat exchangers. The standards cover heavy-duty heat exchangers (TEMA R) as well as lighter
+duty heat exchangers (TEMA C and TEMA B). ExxonMobil refineries typically use only the TEMA “R" heat exchangers due to
+the generally severe requirements of petroleum applications; however, more moderate process services, such as those
+encountered in Chemical Plants, may warrant consideration of TEMA B or C construction.
+Each TEMA heat exchanger is designated by letters representing three major parts: the front end stationary head (commonly
+referred to as “channel"), the shell, and the rear end head. Each part can be designed in several modifications, commonly
+referred to as “types." The latest (8th) edition of the TEMA standards designates five types of channels (A, B, C or N, and D);
+seven types of shells (E, F, G, H, J, K and X); and eight rear end head types (L, M, N, P, S, T, U and W), refer to Figure 2. The
+rear end head type determines whether or not the tube bundle is removable from the shell. In any ExxonMobil specification,
+therefore, the TEMA type heat exchanger is specified by the three single letters which refer to the type of channel, shell and
+rear end head, respectively; for example, “TEMA type AET."
+The recommended Heat Exchanger Specification Sheet is shown in Table 6.
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 6 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+IX-C 6 of 37 DESIGN CONSIDERATIONS FOR
+SHELL AND TUBE EXCHANGERS DESIGN PRACTICES
+December, 2001
+TEMA TYPES (Cont)
+CHANNELS
+The front end stationary head of shell and tube exchangers is commonly referred to as the channel. The common TEMA
+channel types and their applications are as follows:
+Type A - Features a removable channel with a removable cover plate. It is used with fixed tubesheet, U-tube and removable
+bundle exchanger designs. This is the most common stationary head type.
+Type B - Features a removable channel with an integral cover. It is used with fixed tubesheet, U-tube and removable bundle
+exchanger designs. This type is normally used only when the tube side fouling factor is less than 0.0020 hr-ft2-°F/Btu
+(0.00035 m2-°C/W) or when flange leaks represent a greater concern than easy access for cleaning and inspection. Note that
+with this channel, the mechanical cleaning of the bundle requires disassembly of the piping spool piece or elbow.
+Type C and Type N - Two types of channels that are integral with the tubesheet. Type C is attached to the shell by a flanged
+joint and is used for U-tube and removable bundles. The N type has a tubesheet that is integral with the shell and is used with
+fixed tubesheet designs. Note that neither the C nor the N type is recommended in normal application because of extremely
+high maintenance costs for: a) assembling/testing of the heat exchanger, b) tubesheet repair, and c) retubing of the bundle.
+Type D - This is a special high-pressure head used when the tube side design pressure exceeds approximately 1000 psi (6900
+kPa gage). The channel and tubesheet are integral forged construction. The channel cover is attached by special high-
+pressure bolting.
+TUBE BUNDLES
+TYPES
+Fixed Tubesheet Design (TEMA Rear End Head Types: L, M or N) - Fixed tubesheet exchangers have both tubesheets
+attached directly to the shell and are usually among the most economical exchangers for low design pressures. This type of
+exchanger construction should be considered when no shell side cleaning or inspection is required, or when in-place shell side
+chemical cleaning is available and applicable. Differential thermal expansion between tubes and shell limits applicability to
+moderate temperature differences. [An expansion joint may be required when there is a difference of more than 50°F (28°C)
+between average tube metal temperature and average shell metal temperature.] All start-up, operating, and upset conditions
+as well as normal operating conditions must be examined in determining the maximum temperature difference. For services
+that would require an expansion joint, a U-tube bundle may be more economical.
+Shell and tubesheet material specifications incompatible for welding to each other (i.e., steel to aluminum or high copper alloys)
+might preclude fixed tubesheet construction, necessitate a change in metallurgy, or require a clad tubesheet.
+U-tube Design (TEMA Rear End Head Type U) - U-tube exchangers represent the greatest simplicity of design, requiring only
+one tubesheet and no expansion joint or costly floating head, while permitting individual tube differential thermal expansion.
+U-tube exchangers are the least expensive units for high tube side design pressures. The tube bundle can be removed from
+the shell, but replacement of individual tubes (except for those on the outside of the bundle) is impractical.
+External surfaces of the tube bundle are mechanically cleanable. When the tube side fouling factor exceeds 0.0010 hr-ft2-
+°F/Btu (0.00017 m2-°C/W), chemical cleaning is preferable, although mechanical cleaning with flexible end-drill shafts is
+possible. U-tube construction is not used when the tube side fouling factor exceeds 0.0020 hr-ft2-°F/Btu (0.00035 m2-°C/W).
+Although the bend portion of the U-tube bundle provides heat transfer surface, it is relatively ineffective for sensible heat
+transfer compared to the straight tube length surface area. Therefore, when the effective surface area for U-tube bundles is
+calculated, only the surface area of the straight portions of the tubes is included, except for isothermal boiling or condensing on
+the shell side.
+Pull-through Floating Head Design (TEMA Rear End Head Type T) - A pull-through floating head exchanger has stationary
+tubesheet at the channel end and a floating tubesheet with a separate floating head cover at the rear end. The bundle can be
+easily removed from the shell by disassembling only the channel. The floating head flange and bolt design require a relatively
+large clearance between the bundle and shell, particularly as the design pressures increase. Because of this clearance, the
+pull-through bundle has fewer tubes per given shell size than other types of construction. The bundle to shell clearance, which
+decreases the shell side heat transfer capability, should be blocked by sealing strips or dummy tubes to reduce shell side fluid
+bypassing. Mechanical cleaning of both the shell and tube sides is possible.
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 7 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+DESIGN CONSIDERATIONS FOR IX-C 7 of 37
+DESIGN PRACTICES SHELL AND TUBE EXCHANGERS
+December, 2001
+TUBE BUNDLES (Cont)
+Split-ring Floating Head Design (TEMA Rear End Head Type S) - A split-ring floating head exchanger has a stationary
+tubesheet at the channel end and a floating tubesheet that is sandwiched between a split-ring and a separate floating head
+cover. The floating head assembly moves inside a shell cover of larger diameter than that of the shell. To remove the bundle
+from the shell, the front end head, rear shell cover, and floating tubesheet cover/split ring assembly must be dismantled. This
+requirement is the greatest disadvantage of the split-ring design since it requires considerably more time to pull the bundle.
+Mechanical cleaning of both the shell and tube side is possible.
+Outside Packed Floating Head (TEMA Rear Head Type P) and Externally Sealed Floating Tubesheet (TEMA Rear Head
+Type W) Designs - There are two variations of outside packed floating head designs: the lantern ring type (W) and the
+stuffing box type (P). In the lantern ring design, the floating head slides against a lantern ring packing which is compressed
+between the shell flange and the shell cover flange. The stuffing box design is similar to the lantern ring type, except that the
+seal is against an extension of the floating tubesheet, and the tubesheet cover is attached to the tubesheet extension by means
+of a split-ring. Neither of these designs is normally specified by ExxonMobil, since the packing has a tendency to leak, allowing
+the streams to leak to the atmosphere. These designs should never be used for hydrocarbons or toxic fluids. Mechanical
+cleaning of both the shell and tubeside is possible.
+See Table 3 for guidance in TEMA head type selection.
+TUBE LAYOUT
+There are four types of tube layouts with respect to the shell side cross flow direction between baffle tips: square (90°), rotated
+square (45°), triangular (30°) and rotated triangular (60°). See Figure 3 for illustrations. The 60° triangular layout is seldom
+used because its heat transfer characteristics are poor compared to the pressure drop expenditure.
+Use of the triangular layout (30°) is preferred for all exchangers (except reboilers with a heat flux exceeding 6000 Btu/hr ⋅ ft2
+[19,000 W/m2]) with the shell side fouling factors of 0.0020 hr-ft2-°F/Btu (0.00035 m2-°C/W) or less, provided the deposit is
+subject to chemical cleaning. An exchanger with triangular layout costs less per sq ft and transfers more heat per sq ft than
+one with a square or rotated square layout. For this reason, triangular layout is preferred where applicable.
+Square or rotated square tube layout should be specified for all shell and tube exchangers when the shell side fouling factor is
+over 0.0020 hr- ft2-°F/Btu (0.00035 m2-°C/W), whenever mechanical cleaning of the outside of the tubes is required, or when
+requested by the refinery. Square or rotated square tube layout is also required for reboilers with a heat flux exceeding 6000
+Btu/hr-ft2 (19,000 W/m2). Rotated square layouts are preferable for laminar flow because of a higher heat transfer coefficient
+caused by induced turbulence. In turbulent flow, especially for pressure-drop-limited cases, square layout is preferred because
+the heat transfer coefficient is equivalent to that for rotated square layout while the pressure drop is somewhat less.
+Tube layout for removable bundles may be either square (90°), rotated square (45°) or triangular (30°). Nonremovable bundles
+(fixed tubesheet exchangers) are always triangular (30°) layout.
+TUBE PITCH
+The tube pitch (PT) is the center-to-center distance between adjacent tubes (Figure 3). The common pitches used are:
+TUBE SIZE TRIANGULAR SQUARE HEAVIEST WALL
+1. 3/4 in. OD tubes (19.05 mm) 15/16 in. (23.81 mm) — 0.095 in. (2.41 mm)
+2. 3/4 in. OD tubes (19.05 mm) 1 in. (25.4 mm) 1 in. (25.44 mm) 0.109 in. (2.77 mm)
+3. 1 in. OD tubes (25.4 mm) 1-1/4 in. (31.75 mm) 1-1/4 in. (31.75 mm) 0.134 in. (3.40 mm)
+4. 1-1/2 in. OD tubes (38.1 mm) 1-7/8 in. (47.63 mm) 1-7/8 in. (47.63 mm) 0.165 in. (4.19 mm)
+5. 1-1/4 in. OD tubes (31.75 mm) 1-9/16 in. (39.7 mm) 1-9/16 in. (39.7 mm) 0.165 in. (4.19 mm)
+6. For tube sizes larger than 1-1/2 in. (38.1 mm), use 1.25 times the outside diameter.
+7. In kettle-type reboilers where the pressure is less than 50 psig (345 kPa - gage) and the heat flux is greater than 10,000 Btu/hr•ft2
+(31,500 W/m2), use 3/8 in. (9.5 mm) spacing between tubes.
+With 3/4 in. (19.05 mm) OD tubes on triangular layout, 15/16 in. (23.81 mm) pitch should be used unless the pitch is limited by
+the wall thickness required, since this results in a smaller unit due to the higher coefficient and closer spacing. The column
+“Heaviest Recommended Wall" is based on the maximum allowable tubesheet distortion resulting from rolling the indicated
+tube into a tubesheet having the minimum permissible ligament width at the listed pitch. The ligament is that portion of the
+tubesheet between two adjacent tube holes.
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 8 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+IX-C 8 of 37 DESIGN CONSIDERATIONS FOR
+SHELL AND TUBE EXCHANGERS DESIGN PRACTICES
+December, 2001
+TUBE BUNDLES (Cont)
+CROSS BAFFLES
+Cross baffles support the tubes, restrain tube vibration and direct fluid flow on the shell side. Three types of baffles are
+generally used: segmental, double segmental, and rod baffles. The first two baffle types are illustrated in Figure 4. The rod
+baffle concept is discussed and illustrated in Section IX-A. In addition, full circle support baffles are occasionally used for tube
+support in kettle reboilers.
+Baffle cut defines the segment of the baffle “cut" away to provide for fluid flow past the chord of the baffle. For segmental
+baffles, this is expressed as the ratio of the segment height to shell diameter in percent. Segmental baffle cuts are usually
+about 25%, although the maximum practical cut for tube support is approximately 45%. Test work (single phase) by Heat
+Transfer Research, Inc. (HTRI), on segmental baffles indicates that optimum baffle cuts range from 15 - 30% with a slight peak
+at 25%.
+Double segmental baffle cut is expressed as the ratio of total window area to exchanger cross-sectional area in percent.
+Normally the window areas for the single central baffle and the area of the central hole in the double baffle are equal and are
+40% of the exchanger cross-sectional area. This allows a baffle overlap of approximately 10% of the exchanger cross-
+sectional area on each side of the exchanger. However, there must be enough overlap so that at least two rows of tubes are
+supported by adjacent segments.
+Baffle pitch is the longitudinal spacing between baffles. The maximum baffle pitch is a function of tube size and metallurgy
+and, for no change of phase flow, of shell diameter. See Table 4 in Section IX-D which gives maximum allowable values as a
+function of tube diameter. If there is no charge of phase in the shell side fluid, the baffle pitch should not exceed the shell
+inside diameter. Otherwise, the fluid would tend to flow parallel with the tubes, rather than perpendicular to them, resulting in a
+poorer heat transfer coefficient. With shell side condensation or vaporization, the maximum baffle spacing is a function of tube
+diameter only, as indicated in Table 4 of Section IX-D. Also, refer to TEMA Table RCB-4.52 for maximum unsupported
+straight tube spans.
+The minimum allowable baffle pitch is 20% of the shell inside diameter or 2 in. (50 mm), whichever is greater. A very tight
+baffle pitch tends to force the shell side fluid into leakage and bypass streams. This decreases the effective cross flow stream,
+resulting in a decreased heat transfer coefficient.
+Position of Baffle Chord
+1. Square and Rotated Square Tube Layout
+a. The chord should be vertical (usually with a large baffle cut) in condensers, vaporizers and units handling fluids
+containing suspended solids. This arrangement minimizes “pockets" which would trap vapors or sediment, reducing
+the effective surface area.
+b. The baffle chord should be horizontal when sediment-free, single phase shell side fluid is being cooled or heated
+through a wide temperature range [200 to 300°F ( 110 to 165°C)] in one shell. This avoids fluid stratification.
+c. The baffle chord can also be placed at a 45° angle to grade. This position is termed “on the bias". When
+sedimentation and stratification possibilities co-exist, a 45° chord at a suitable baffle cut provides a reasonable
+compromise solution to both problems. A 45°chord is also useful to prevent the accummulation of heavy components
+in an exchanger when a wide boiling range fluid is being partially vaporized. With horizontal pass partitions, the 45°
+chord mitigates the effect on heat transfer of fluid flow through the pass lanes.
+2. 30°°°° Triangular Tube Layout
+a. When a sediment-free shell fluid is being cooled through a wide temperature range [200 - 300°F ( 110- 165°C)] in one
+shell, the chord of the baffle should be horizontal, to avoid fluid stratification (see Par. 1. b. above).
+b. The chord of the baffle should be vertical for all other services (see Par. 1. a. above).
+SEAL STRIPS
+Seal strips are flat strips of metal (or tie rods) that extend the length of the shell in order to prevent the shell side fluid from
+flowing through the clearance between the tube bundle and the inner wall of the shell. The seal strips are located between the
+baffle chords of adjacent baffles, in the clearance between the tube bundles and the shell. Figure 6 illustrates a typical seal
+strip installation. Note that seal strips are normally installed in pairs, a strip on each side of the bundle.
+Seal strips are normally installed on pull-through and split ring bundles because the clearance between the tube bundle and the
+shell is quite large [2 to 5 in. (50 to 125 mm)]. They are also installed on other types of tube bundles when the clearance
+between the outer tubes and the shell exceeds one half the tube pitch. Seal strips are not used in kettle reboilers or in units
+with isothermal condensation occurring on the shell side. Refer to GP 6-1-1 for specific requirements concerning seal strip
+installation.
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 9 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+DESIGN CONSIDERATIONS FOR IX-C 9 of 37
+DESIGN PRACTICES SHELL AND TUBE EXCHANGERS
+December, 2001
+TUBE BUNDLES (Cont)
+IMPINGEMENT PROTECTION
+Impingement plate or other protection devices are normally installed on the top row of tubes under the shell inlet nozzle or in
+shell side inlet nozzles to protect the bundle against impingement by the incoming fluid when the fluid: (a) is condensing, (b) is
+a liquid vapor mixture, (c) contains abrasive material, or (d) is entering at high velocity. In addition, TEMA requires bundle
+impingement protection when nozzle values of ρV2 exceed:
+1. 1500 lb/ft-sec2 (2230 kg/m-s2) for noncorrosive, nonabrasive, single phase fluids.
+2. 500 lb/ft-sec2 (744 kg/m-s2) for all other liquids, including liquid at its boiling point.
+The minimum bundle entrance area should equal or exceed the inlet nozzle area and should not produce a value of ρV2
+greater than 4000 lb/ft-sec2 (5950 kg/m-s2) per TEMA. An impingement baffle can be a flat plate, a curved plate or an angle
+bar; angle bars must be installed at each tube individually. The use of perforated impingement baffles is prohibited by GP
+6-1-1. In order to maintain a maximum tube count, the impingement plate is sometimes located in a conical nozzle opening or
+in a dome cap above the shell. The impingement protection device material should be of at least the quality of the tube
+material.
+INTERCHANGEABILITY OF TUBE BUNDLES
+There is an incentive to standardize tube bundle design within a project, to reduce the refinery's expensive inventory of spare
+bundles and other exchanger parts. Although desirable, standardization from project to project is less subject to control since
+the exchanger fabrication may not be by the same manufacturer. It is not considered desirable to overdesign a heat exchanger
+solely for bundle interchangeability, unless the required surfaces are nearly equal (within approximately 5%) and the design
+pressures and temperatures are similar.
+Tube bundles must be of the same general design and must have identical tubesheets to be physically interchangeable,
+including the same grooving for pass partitions even though the two units are designed for a different number of passes.
+SHELL TYPES
+SINGLE-PASS SHELL (TEMA E)
+The single-pass shell is the most common shell construction for shell and tube heat exchangers. The shell side inlet and outlet
+nozzles are located at opposite ends of the shell. The nozzles can be placed on opposite or same sides of the shell, depending
+on the number and type of baffles used. A typical one shell-pass exchanger with horizontal cut segmental baffles is illustrated
+in Figure 5A.
+TWO-PASS SHELL (TEMA F)
+A two-pass shell requires the use of a longitudinal baffle to direct the shell side flow. An exchanger with two shell passes is
+illustrated in Figure 5C. Note that both the shell inlet and outlet nozzles are adjacent to the stationary tubesheet. To avoid
+excessively thick longitudinal baffles, two-pass shells should not be used with a shell side pressure drop greater than 10 psi
+(70 kPa) [5 psi (35 kPa) is preferred]. Also, a shell side temperature range exceeding 350°F (195°C) should be avoided since
+greater temperature ranges result in excessive heat leakage through the baffle, as well as thermal stresses in the baffle, shell
+and tubesheet.
+The longitudinal baffle can be of either welded or removable design. Since there are severe design difficulties and cost
+penalties associated with the use of welded baffles in floating head exchangers, this type of design should be used only with
+fixed tubesheet units that do not require expansion joints. A welded baffle may be used in a four-pass U-tube design while
+retaining the ability to remove the bundle from the exchanger. Any welded baffle is limited to a minimum shell ID of 16 in.
+(406.4 mm) due to welding feasibility. If an ID of less than 16 in. is desired, a double pipe design could be considered. If a
+longitudinal baffle is to be used in a floating head exchanger, it should be a removable design. Removable longitudinal baffles
+require the use of flexible, light gage sealing strips or a packing device between the baffle and the shell, to reduce fluid leakage
+from one side to the other.
+Care must be taken during maintenance operations in removal or insertion of bundles with removable longitudinal baffles to
+avoid damaging the sealing device. Damaged seals will result in poor heat transfer performance and it is recommended that
+they be replaced every time the bundle is removed. The shell ID must be ground smooth during fabrication to assure a good
+seal between the sealing device and the shell.
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 10 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+IX-C 10 of 37 DESIGN CONSIDERATIONS FOR
+SHELL AND TUBE EXCHANGERS DESIGN PRACTICES
+December, 2001
+SHELL TYPES (Cont)
+Recent developments in large diameter multi-tube hairpin exchangers have turned hairpins into viable alternatives to F-shells
+and should be considered where applicable.
+A two-pass unit may be used when the LMTD correction factor F is less than 0.8 for a one-shell pass unit. A two-shell pass
+n
+unit with a welded longitudinal baffle is satisfactory if F for two-shell passes is equal to or greater than 0.85, and a unit with a
+n
+removable baffle is satisfactory if F for two-shell passes is 0.90 or greater. These limitations on F are the result of heat loss
+n n
+through the longitudinal baffle and, in the case of a removable baffle, fluid leakage around it.
+DIVIDED FLOW SHELL (TEMA J)
+A divided flow shell has a central inlet nozzle and two outlet nozzles, or vice versa. A divided flow exchanger is illustrated in
+Figure 5B. Typically, this type of shell is used to reduce pressure drop and to avoid vibration damage in a condensing service.
+The following list shows exchanger types ranked in order of decreasing pressure drop:
+1. E shell with segmental baffles.
+2. E shell with double segmental baffles.
+3. J shell with segmental baffles.
+4. J shell with double segmental baffles.
+5. E shells in parallel with segmental baffles.
+6. E shells in parallel with double segmental baffles.
+7. J shells in parallel with segmental baffles.
+8. J shells in parallel with double segmental baffles.
+For most designs, double segmental baffles are used with J shells.
+Double segmental baffles in a divided flow exchanger normally have a vertical cut since J shells are most often in condensing
+or vaporizing service. A full circle support baffle is usually provided at the center nozzle. The baffle arrangement requires that
+there be an odd total number of baffles, as well as an odd number of baffles in each end of the shell. The baffles on each side
+of the central baffle and the last baffle at the ends of the shell have solid centers with cut-away edges to optimize flow through
+regions of the tube bundle at the shell nozzles.
+KETTLE (TEMA K)
+This type is used for vaporizing services (reboilers, steam generators and refrigeration services). A dome area is provided to
+separate the vapor from the entrained liquid. Process reboilers are provided with a weir plate to maintain a constant liquid level
+1 in. (25mm) to 2 in. (50mm) above the top row of tubes.
+CROSSFLOW SHELL (TEMA X)
+This type is used when low pressure drop is required or when the shell nozzles are unusually large and is a possible solution to
+vibration problems since it can be designed for low cross flow velocity.
+SPLIT FLOW (TEMA G) AND DOUBLE SPLIT FLOW (TEMA H)
+These types are normally used for thermosyphon reboilers. G type shells are typically used for tube lengths up to 10 ft (3.05 m)
+and H type shells are typically used for tube lengths between 10 ft (3.05 m) and 20 ft (6.1m).
+TUBE SIDE FLOW
+Whichever fluid appears higher on the following list will ordinarily be passed through the tubes:
+1. Cooling water.
+2. Corrosive fluid (especially those requiring higher alloy materials) or a fluid likely to deposit coke, sediment or other solids.
+3. A fluid which is fouling.
+4. The less viscous of the two fluids.
+5. The fluid under higher pressure [for extremely high pressures, 1000 psi (6900 kPa gage), it may be economical to treat this
+item as Number 1 on this list].
+6. The hotter fluid.
+7. The fluid of less volume.
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 11 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+DESIGN CONSIDERATIONS FOR IX-C 11 of 37
+DESIGN PRACTICES SHELL AND TUBE EXCHANGERS
+December, 2001
+TUBE SIDE FLOW (Cont)
+Several exceptions to this list are:
+1. Condensing vapors are normally passed through the shell.
+2. Condensing steam is normally passed through the tubes.
+3. If the temperature change of one fluid is very large [greater than approximately 300 to 350°F ( 165 to 195°C)], that fluid is
+usually passed through the shell, rather than the tubes, if more than one tube pass is to be used. This minimizes the
+construction problems caused by thermal expansion. Also, to avoid thermal stress problems, fluids with greater than
+350°F (195°C) temperature change cannot be passed through the shell side of a two-pass shell (GP 6-1-1).
+4. If one of the fluids is clean [fouling factor 0.0010 hr-ft2-°F/Btu (0.00018 m2-°C/W) or less] and is somewhat corrosive (see
+the Refinery Construction Materials Manual), this fluid is passed through the tubes and U-tube construction is used since it
+is typically more economical to alloy up the tubeside versus the shellside to easily handle the corrosive fluid.
+PRESSURE DROP
+The calculation of pressure drop is covered in greater detail under Calculation of Surface, Sections IX-D, IX-E and IX-F.
+General considerations applicable to shell and tube exchangers are given in the following paragraphs.
+CORRECTION FOR REDUCED FLOW AREA
+Tube Side - GP 6-1-1 requires that exchanger vendors provide tubes having no point of the wall thinner than the specified
+thickness. For this reason, actual inside diameters are always smaller than standard diameters. This deviation from the
+standard diameter is greater for carbon steel than for copper alloy tubes. The tube side pressure drop equations used in this
+manual include a factor that corrects for the increased wall thickness and for fouling on the inside of the tubes. In other words,
+tube side pressure drop calculations are based on minimum wall tubes with a 10 to 20% increase (depending on tube inside
+diameter) for fouling deposits. Table 4 of Section IX-D shows the values for this factor. An additional method to correct for
+reduced flow area using improved correlations can be found on Figure 4 and 4A in Section IX-B.
+Low-fin tubes require special consideration. The inside diameters listed in Table 1 of Section IX-G must be used for pressure
+drop and heat transfer calculations.
+Shell Side - The equation for shell pressure drop (Section IX-D) includes a factor that accounts for fouling of the outside of the
+tubes. This fouling reduces the free flow area, thereby increasing the pressure drop. Typical values of the factor are given in
+Table 4 of Section IX-D.
+Note that fouling affects both pressure drop and heat transfer. The corrections discussed here address the effect on pressure
+drop only. The effect of fouling on heat transfer is discussed in Section IX-B.
+ECONOMICS CONSIDERATION OF PRESSURE DROP
+The design pressure drop is usually determined by an economic balance between: (1) the increased cost of pumping and of
+certain exchanger components, and (2) the decreased surface area. As the number of tube passes is increased or the baffle
+pitch is decreased, the fluid velocity becomes greater, thereby increasing the pressure drop and the convective heat transfer
+coefficient. Increased velocity also decreases the rate of fouling.
+For pressured streams, the pressure drop should be maximized. Where there are no material or process restrictions on
+maximum velocity, a reasonable limitation for liquids is about 10 to 15 ft/sec (3 to 5 m/sec). For gases and vapors, velocities up
+to 100 ft/sec (30 m/sec) are common. Typical pressure drops are shown in Table 4 in Section IX-B. Designs are typically
+based on pressure drop allowances set by experience, and many systems exist where pressure drop is dictated by process
+concerns.
+For pumped streams, unless otherwise limited, the preliminary design pressure drop is that required to fully load the pump
+driver. The pressure drop should be finalized by checking the return on incremental investment by comparing the first case
+with that using the next larger size driver, loaded either fully or to the extent permitted by velocity limitations. Items to be
+considered in the comparison are a possible change in line rating or pump type.
+Tube Side (Number of Passes) - For coolers and condensers using water, specify enough tube passes to maximize the
+utilization of the available pressure drop as limited by materials. The permissible maximum and minimum water velocities vary
+with the tube material and water type as shown in Table 4 of Section IX-D. Note that for cooling water service care must be
+taken to avoid using excessive pressure drop in elevated exchangers due to the need to ensure that vacuum conditions do not
+occur.
+For hydrocarbon services, specify sufficient passes to make the tube velocity high enough to prevent laminar or transitional flow
+(or as shown on Figure 1.8 of Section IX-D, (Re) > 3700).
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 12 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+IX-C 12 of 37 DESIGN CONSIDERATIONS FOR
+SHELL AND TUBE EXCHANGERS DESIGN PRACTICES
+December, 2001
+PRESSURE DROP (Cont)
+In some cases the exchanger terminal conditions will be such that the type of flow could change from laminar to turbulent (or
+vice versa) within the unit. This must be avoided, since prediction of heat transfer coefficients in the transition region is
+unreliable. For some services, such as heavy fuel oil, this may be overcome by fluxing with a suitable fluid of lower viscosity.
+Ordinarily no fewer than two nor more than eight tube passes are used. With more than eight or fewer than two passes, the
+construction becomes complicated and fabrication costs tend to become higher. Note that two, four, or eight tube-pass
+arrangements are sometimes easily interchanged as long as the exchangers remain within the allowable pressure drops.
+However, in special services, one pass or more than eight passes can sometimes be justified.
+See Table 4 for the maximum number of tube passes, normally used for various shell diameters. Restrictions on tube pass
+arrangements for particular exchanger designs are as follows:
+1. Fixed Tubesheet Exchangers - Any number of tube passes, odd or even, is possible. The most common arrangements
+are single pass or an even number of multiple passes.
+2. U-tube Exchangers - Any even number of tube passes is possible, but normally the maximum recommended is six,
+because of construction considerations.
+3. Pull-through and Split-ring Floating Head Exchangers - Any even number of tube passes is possible. Single-tube-pass
+designs require special expansion joints , and are not generally used.
+4. Lantern Ring (TEMA Type W) Externally Sealed Floating Tubesheet Exchangers - Only single or double tube-pass
+arrangements are possible for this type of construction.
+5. Stuffing Box (TEMA Type P) Outside Packed Floating Head Exchangers - Any even or odd number of tube passes is
+possible.
+SHELL SIDE
+1. Number of Shell Passes - The vast majority of exchangers are of one-pass shell (Type E) design, or variants thereof
+(Types J, K or X). Two-pass shells (Type F), or variants (Types G and H), are less frequently utilized. Multiple pass shells
+require a longitudinal baffle of either welded or removable design (see previous discussion of two-pass shells).
+Where there are very large surface requirements, especially in services requiring multiple exchangers in series to meet F
+n
+requirements, multiple shell-pass units employing longitudinal baffles may be the most economical choice. However, it is
+difficult to estimate accurately the cost of maintaining exchangers with longitudinal baffles. In addition, if the longitudinal
+baffle seal strips are damaged, the shellside bypass streams could result in large performance debits. Therefore, it is
+recommended that the exchanger be specified as a one-pass shell unit if possible. If specific project conditions require the
+features of a two-pass shell, multi-tube hairpin designs should also be considered.
+2. Cross Baffles - Segmental baffles are normally specified, unless shell side pressure drop is excessive, even at maximum
+baffle spacing. In such cases, double segmental baffles should be used because they result in lower pressure drop with
+only a slight decrease in the shell side heat transfer coefficient.
+3. “No-Tubes-in-Window" Design - This design is a bundle with segmental baffles that have no tubes in the “windows" left
+by the baffle cut. Each tube is supported by every baffle, whereas, in conventional bundles, the tubes in the window region
+are supported only by every other baffle. The “no-tube-in-window" bundle is used either to minimize pressure drop or to
+minimize vibration damage to tubes. Intermediate tube support plates may be inserted between NTIW baffles to further
+increase tube natural frequency, without impacting exchanger performance.
+4. Nozzles - Use two shell outlet nozzles (one at each end of the shell) and a center inlet nozzle, or vice versa, if other
+means of reducing pressure drop are ineffective. This is termed a “divided flow" (TEMA J) shell.
+For condensers or other exchangers handling vapors, an enlarged shell section at the inlet nozzle (“vapor belt") is
+sometimes used. Vapor belts are recommended if the inlet nozzle is large compared to the shell diameter. This design
+will prevent deleting tubes to provide the required flow area between the shell and the vapor impingement baffle and will
+provide inlet vapor distribution to the bundle.
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 13 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+DESIGN CONSIDERATIONS FOR IX-C 13 of 37
+DESIGN PRACTICES SHELL AND TUBE EXCHANGERS
+December, 2001
+STACKING OF SHELLS
+The choice of whether to stack shells depends on maintenance considerations and the amount of plot area available. Stacking
+of shells requires less area and frequently less piping. Normally, shells are not stacked more than two high. However, stacked
+heat exchangers are more costly to maintain because they are harder to access.
+If sufficient plot area is available, the following should govern:
+1. When the fluids are known to be clean and noncorrosive (refer to Construction Materials Manual), the shells should usually
+be stacked.
+2. If the fluids are moderately clean or slightly corrosive, the shells may be stacked.
+3. If the fluids are very dirty or corrosive, stacked shells may be used as long as maintenance requirements are taken into
+consideration, but the maximum recommended number of stacked shells is two.
+When multiple shells are specified, the stacked arrangement should be noted on the exchanger specification sheet.
+The following guidelines should be considered when determining the maximum number of shells to be stacked:
+1. When shell ID is less than 24 in. (610 mm), the maximum number of stacked shells is four.
+2. When shell ID is between 24 and 40 in. (610 to 1010 mm), the maximum number of stacked shells is three.
+3. When the shell ID is more than 40 in. (1010 mm), the maximum number of stacked shells is two.
+RECOMMENDED GOOD PRACTICE
+MAINTENANCE FEATURES FOR THE HEAT EXCHANGER DESIGN
+Considerable lifetime maintenance savings can be realized if the designer utilizes recommendations of the Heat Exchanger
+Maintenance Good Practice Designer's Checklist (Table 7). The table presents typical maintenance and heat exchanger
+mechanical design features that will either minimize or eliminate costly problems.
+It is recommended that designers review their proposed heat exchanger configuration against Table 7 in order to develop a
+maintenance effective heat exchanger. However, it is also important to remember that the configurations suggested by this
+table are “wants" and not “musts." Specific local requirements in any design may overrule the suggestions given in the table,
+and the table is not all inclusive of possible solutions.
+FLOW INDUCED VIBRATION
+In a shell and tube heat exchanger, higher velocities will produce higher heat transfer coefficients. However, higher velocities
+may also produce undesirable vibration. The vibration can be severe enough to cause mechanical failure, unacceptable flow
+fluctuations or noise levels exceeding OSHA guidelines. A brief discussion of the various vibration mechanisms along with
+possible corrective measures is provided below. Also basic equations showing, directional only, relationship between vibration
+parameters, exchanger geometry and fluid characteristics are presented.
+VIBRATION MECHANISMS
+There are various vibration mechanisms that excite, or impart energy, to a tube, thereby inducing and sustaining tube vibration.
+The mechanisms described below act alone or in combination to cause damage.
+1. Acoustic Wave - An acoustic wave is considered to be an oscillating column of gas standing at a right angle to the flow
+direction. If the acoustic wave is in resonance with tube natural frequency, damage to the tube bundle may occur, as well
+as damage to associated piping and exchanger foundation and supports.
+2. Vortex Shedding - The flow of fluid across a tube produces vortices in the wake downstream of the tube, causing tube
+vibration. The vortex-induced vibration is not strong enough to produce large stresses in the tube unless the vortex
+shedding frequency is in resonance with the natural frequency of the tube. Resonance at full load or steady state flows
+must be avoided.
+3. Turbulent Buffeting - The constant change in velocity of the fluid flowing across a tube causes high turbulences and
+eddies around the tube. The energy received by the tube depends on the frequency of the turbulence patterns vs. the tube
+natural frequency.
+4. Fluidelastic Whirling - This results when fluctuations in the balance of fluid flow on either side of a tube induce a self-
+corrective action that depends on fluid flow velocity and the inertia (damping) of the system. (If the corrective action is
+faster than the cause, the system becomes unstable.) The velocity at which fluidelastic whirling starts is called critical
+velocity, or Connors critical velocity. Fluidelastic whirling causes tubes to move in an orbital motion.
+5. Longitudinal Flow - Longitudinal flow, or flow parallel to the axis of a tube, can also produce tube vibration, but the
+velocities required to produce damage are extremely high compared to velocities in crossflow. Therefore, this mechanism
+is not discussed further.
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 14 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+IX-C 14 of 37 DESIGN CONSIDERATIONS FOR
+SHELL AND TUBE EXCHANGERS DESIGN PRACTICES
+December, 2001
+FLOW INDUCED VIBRATION (Cont)
+TYPES OF DAMAGE
+Various types of damage are caused by vibration, almost all of which can be attributed to fatigue. It should also be noted that
+stresses associated with vibration may increase the corrosion rates of component materials. Some common types of damage
+that have occurred are described below:
+1. Baffle Damage - This describes the thinning and eventual failure of a tube where is passes through baffles. As a tube
+vibrates, it hits the baffle resulting in wear.
+2. Collision Damage - This type of damage results when tubes hit each other due to large amplitudes. The main reason for
+this type of damage is high crossflow velocities, accompanied by large unsupported spans.
+3. Clamping Damage At Tubesheets - Clamping of tubes at the tubesheet increases the natural frequency of the tubes in
+the spans closer to the tubesheet. At the same time, mechanical considerations require larger inlet and outlet spacings,
+thus reducing the tube natural frequency. Tubes are expanded into tubesheet grooves by plastic deformation caused by
+the tube expander. Improper tube expansion leaves large residual stresses at the tube-to-tubesheet joint. Also, due to
+discontinuity in shape or material at the tube-to-tubesheet joints, any thermal stresses caused by differential thermal
+growth between tubes are magnified by the stress concentration factors. All of the above factors can cause the stress
+values to be higher at the tubesheets and may cause the tube to snap where it emerges from the tubesheet. In addition,
+stresses in the tube due to lateral deflection are maximum at the tubesheet (i.e., cantilever verses simple support)
+contributing to possible fatigue failure.
+4. Acoustic Wave - As discussed, this is an oscillating gas column wave being excited by phased vortex shedding. The
+generated sound will not affect the tube bundle unless the acoustic resonant frequency approaches the tube natural
+frequency, in which case the probability of tube failure will be high.
+5. Stress Risers - Nonhomogeneous material properties may contribute to failure due to reduced allowable stress, or by
+creating a high stress concentration factor. Also, poor quality control at the fabrication stage may lead to high residual
+stresses which, coupled with other stresses during operation, can lead to fatigue failure that may resemble a vibration
+failure.
+AREAS OF CONCERN
+Most tube failures can be attributed to high turbulence combined with large unsupported tube spans, and accompanying lower
+tube natural frequencies.
+1. Velocity - From the discussion so far, it is apparent that the shell side crossflow velocity is of prime importance in
+determining various vibration parameters. Shell side vibration analysis includes the affect of leakage stream on cross
+flow velocities . (Refer to Section IX-D for a description of various leakage streams.)
+2. Inlet and Outlet Spaces - Due to fabrication limitations, the inlet and outlet spaces of most shell-and-tube exchangers are
+larger than the central baffle spaces. This results in lowering of the tube natural frequency. Also in this region are the inlet
+and outlet nozzles and bundle entrance and exit zones. Normally an impingement plate is present in the inlet zone. To
+maximize tube count, tie rods are often placed in the entrance and exit zones. Therefore, the inlet and the outlet spaces
+not only have lower tube natural frequencies, but may also have localized high velocities.
+3. Baffle Tips Zone - This zone consists of several tube rows on either side of the baffle tips. In this area, all the baffle-to-
+tube leakage streams meet with the crossflow and pass partition leakage streams. Therefore, this region experiences the
+highest crossflow velocities. Also, in this region flow direction and velocity change from crossflow to window or longitudinal
+flow, producing additional turbulence.
+4. U-Bend Region - Normally velocities in the U-bend region are much lower, but the unsupported spans are almost always
+very large. Also, it is practically impossible to maintain distance between tubes to the close tolerance required in the
+straight portion of the tubes. Local low velocities also may facilitate sedimentation of solids, if present, which may lead to
+localized high velocities in other parts of the U-bend region. Special tube supports can be used to reduce span length and
+stiffen the bends.
+5. Bundle Periphery - At the bundle periphery, the “E" stream, or shell-to-bundle stream, mixes with the other streams and
+may produce added turbulence. This region also has seal strips and tie rods, which may lead to large localized velocities.
+In this region, the effect of vibration is not dampened by the presence of tubes in close proximity on all sides.
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 15 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+DESIGN CONSIDERATIONS FOR IX-C 15 of 37
+DESIGN PRACTICES SHELL AND TUBE EXCHANGERS
+December, 2001
+FLOW INDUCED VIBRATION (Cont)
+DEFINITIONS
+1. Tube Natural Frequency - This is the frequency at which a tube will vibrate if excited and then continue to vibrate without
+further excitation.
+2. Vortex Shedding Frequency - This is the frequency of alternate shedding of vortices produced in the downstream wake
+as flow across a tube separates alternately from the opposite sides of the tube.
+3. Turbulent Buffeting Frequency - This is the dominant central frequency of turbulent buffeting.
+4. Critical Velocity - This is the threshold crossflow velocity, above which enough energy can be imparted to the tube to
+cause sustained tube vibration.
+5. Baffle Damage Number - This number indicates the probability of tube damage at the baffle due to vibration.
+6. Collision Damage Number - This number indicates the probability of tube vibration due to collision with other tubes.
+HTRI has recently discontinued use of damage numbers, however, they may still appear within the industry.
+7. Hydrodynamic Mass - This describes an increase in the apparent weight of the vibrating body (tube) due to the
+displacement of the medium (shell side fluid) in which the body (tube) is vibrating.
+8. Strouhal Number - This number is used to correlate vortex shedding frequency to crossflow velocity and tube diameter.
+This number depends on the type (square, triangular, etc.) of pitch and tube pitch to tube diameter ratio.
+9. Unsupported Tube Span - This describes the maximum length of a tube without support from a tubesheet, baffle or any
+other means of support.
+➧ BASIC EQUATIONS
+There is no complete agreement between established methods (TEMA, HTRI, etc.) of calculating the vibration parameters.
+Most equations used are directionally in agreement (i.e., most equations would agree as to whether one parameter would
+increase or decrease as a given variable increases or decreases). The equations presented here are directional only. These
+equations contain constants that are dependent on some variables, and the exact relationship is not presented. The reason for
+this type of presentation is to avoid discrepancy with any individual methods, and to have simple directional relationships.
+C − C (cid:6)EM (cid:3) 0.5
+f = n L (cid:5) (cid:2)
+n S2 (cid:4) W
+o
+(cid:1)
+W = W + W + C ⋅ W
+o tm t m s
+C ⋅ S ⋅ V
+f = S T c
+s
+d
+o
+C ⋅ V
+f = Tb c
+Tb
+d
+o
+C ⋅ V
+f = a s
+a
+D
+s
+V = C ⋅ Cm ⋅ δn ⋅ f ⋅ d
+CR B xc n o
+N = C ⋅ C ⋅ C ⋅ ρ ⋅ ( V ⋅ S )2
+BD BT BB BF c
+ρ ⋅ V2 ⋅ S4
+N = C ⋅ C ⋅ c
+CD CT CB
+E
+ρ ⋅ d ⋅ V2 ⋅ S4
+X = C ⋅ o c
+c x E ⋅ M
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 16 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+IX-C 16 of 37 DESIGN CONSIDERATIONS FOR
+SHELL AND TUBE EXCHANGERS DESIGN PRACTICES
+December, 2001
+FLOW INDUCED VIBRATION (Cont)
+where: C = Factor depending on the fraction of shell volume occupied by tubes
+a
+C = Instability coefficient depending on the tube layout geometry
+B
+C = Factor depending on the baffle thickness and the baffle-to-tube clearance
+BB
+C = Factor depending on the fatigue stress
+BF
+C = Factor depending on the tube geometry
+BT
+C = Factor depending on the baffle-to-tube and the tube-to-tube clearances
+CB
+C = Factor depending on the tube geometry
+CT
+C = Factor depending on the tube axial loading
+L
+C = Factor depending on the tube layout geometry
+m
+C = Factor depending on the baffle layout and the position of the span
+n
+C = Constant based on the units used (Customary or Metric)
+s
+C = Factor depending on tube layout geometry
+Tb
+C = Factor depending on the ratio of forcing frequency to the tube natural frequency and
+x
+system damping
+C = Factor depending on W , δ, ρ and the tube layout geometry
+xc o
+d = Tube outer diameter
+o
+D = Distance between walls for the acoustic wave (normally, the shell diameter)
+s
+E = Modulus of elasticity of the tube material
+f = Acoustic frequency or shell space
+a
+f = Fundamental tube natural frequency
+n
+f = Vortex shedding frequency
+s
+f = Dominant turbulent buffeting frequency
+Tb
+m = Exponent depending on C , δ and the tube layout angle
+x
+M = Sectional moment of inertia of the tube
+n = Exponent depending on C , δ and the tube layout angle
+x
+N = Baffle damage number
+BD
+N = Collision damage number
+CD
+S = Unsupported tube span (for U-bends depends on bend radius)
+S = Strouhal number
+T
+V = Velocity of fluid flowing across a tube or tube bundle
+c
+V = Critical velocity
+CR
+V = Velocity of sound in the shell side fluid (gas or vapor)
+s
+W = Overall effective weight per unit length of the tube for vibration
+o
+W = Weight per unit length of the shell side fluid being displaced by the tube vibration
+s
+W = Weight per unit length of the fluid inside the tube
+t
+W = Weight per unit length of the empty tube
+tm
+X = Crossflow amplitude
+c
+δ = Logarithmic damping factor depending on the properties of the shell side fluid (viscosity,
+density and phase), d , W and f
+o o n
+ρ = Density of the shell side fluid
+ANALYSIS OF HTRI VIBRATION PRINTOUT
+Various HTRI (Heat Transfer Research, Inc.) programs, used for thermal rating and/or design of the shell and tube exchangers,
+can perform calculations to determine various vibration parameters. The exact equations used are documented in Section
+IX-F of the HTRI computer programs support volume. This section does not deal with the accuracy of these equations or
+detailed calculation procedures, but deals mainly with what those parameters mean and how to interpret the program's vibration
+analysis output.
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 17 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+DESIGN CONSIDERATIONS FOR IX-C 17 of 37
+DESIGN PRACTICES SHELL AND TUBE EXCHANGERS
+December, 2001
+FLOW INDUCED VIBRATION (Cont)
+Vibration parameters are determined at five locations: inlet, central, outlet, shell entrance, and shell outlet regions. To
+accommodate shell side nozzles, the exchangers will usually have larger inlet and outlet baffle spacings. Vibration analysis
+considers baffles as supports. Therefore the unsupported length will be different for the inlet zone, the center zone and the
+outlet zone. In some exchangers, in addition to different unsupported spans, shell side fluid condition may change from one
+zone to another (i.e., vapor to two-phase to liquid). HTRI is mainly a thermal and hydraulic analysis program and not a detailed
+mechanical design program. The program logic does not address the need for nozzle reinforcement, which is required for most
+nozzles. The inlet and outlet spacings calculated by various HTRI programs may be too small for a number of exchangers. It
+may be necessary to reevaluate various vibration parameters once the actual inlet and outlet zone unsupported tube lengths
+have been established. Due to the large number of cross-passes or large baffle pitch, the ratio of the actual central spans to
+program calculated spans is normally very close to 1, and reevaluation of vibration parameters for the center zone is normally
+not required. Also for the U-bend region, HTRI unsupported spans should be corrected, if required, as specified in Section
+IX-K.
+Each location should be analyzed separately. Tube vibration can be and is, in most instances, a localized phenomenon. All of
+the zones should be free of vibration problems. Section IX-F of the HTRI Computer Support Volume gives analysis of the
+program output. Some important parameters that should be checked are as follows:
+1. Length / TEMA Maximum Span - If this number is less than 0.8, the possibility of tube vibration is very low. This is based
+on the fact that very few, if any, exchangers that exhibited vibration problems had unsupported spans shorter than 80% of
+the TEMA spans.
+2. Shell Acoustic Frequency - This frequency is calculated based on the shell diameter, and, in most instances, shell
+diameter is larger than the baffle spacing. Check unsupported lengths in the inlet, outlet and central zones to ensure that
+none exceeds the shell diameter. If any of the unsupported lengths exceed the shell diameter, then recalculate acoustic
+frequency based on this dimension, as an acoustic wave between baffles is possible. This frequency will be the shell
+acoustic frequency calculated by the program, multiplied by the ratio of shell diameter to unsupported span.
+3. Flow Velocities - Check all velocities, including the Window Parallel Velocity, with the critical velocity. If all the velocities
+are lower than 80% of the critical velocity, the possibility of vibration is low. If only the window velocity is lower than 80% of
+the critical velocity, and the ratio of window velocity to crossflow velocity is less than 1.5, the possibility of vibration damage
+is low.
+4. Acoustic Vibration Check - Program output lists the frequency ratios as vortex shedding to acoustic frequency, and
+turbulent buffeting to acoustic frequency. For both these ratios the acoustic frequencies are based on the shell diameter.
+If unsupported span exceeds shell diameter in any of the regions, as discussed in Item 2 above, these frequency ratios
+should be recalculated using the acoustic frequency, based on the unsupported length. If all the ratios are less than 0.8,
+the possibility of acoustic vibration damage is low.
+5. Tube Vibration Check - Program output lists the frequency ratios as vortex shedding to tube natural frequency, and
+turbulent buffeting frequency to tube natural frequency. If these ratios do not show an asterisk, the possibility of vibration
+damage is very low. If the frequency ratios show an asterisk, check the amplitudes. If the amplitudes are less than 25% of
+the tube gap, the possibility of vibration damage is low. Crossflow RHO-V-SQ is printed to indicate energy level in the
+crossflow stream.
+6. Bundle Parameters at Nozzles - As discussed earlier, HTRI programs are mainly thermal rating and hydraulic calculation
+programs. The calculation of heights under nozzles is approximate. It is recommended that these values be input, based
+on actual tube count, after the design is finalized. This zone must be analyzed separately, using either inlet or outlet
+spacing as the unsupported span. As a guideline, if the velocity is less than the critical velocity and the values of RHO-V-
+SQ are less than TEMA recommended maximum values, the possibility of vibration damage is low.
+CORRECTIVE MEASURES
+In most cases it is possible to analyze an exchanger under various operating conditions for possible vibration problems, and
+make changes before an exchanger is built. Making changes during design phase is, obviously, the preferred solution. This
+section lists various corrective measures. Each measure is classified as either a design change or a field change, and also as
+either a remedy for an acoustic or nonacoustic vibration problem. Sometimes a new bundle must be designed for an existing
+shell. These cases are considered to be design changes.
+1. Reduce Baffle Pitch
+This is a design change that will increase the shell side velocities. This increases vortex shedding and turbulent buffeting
+frequencies, but the tube natural frequency increase will be greater than the increase in vortex shedding and turbulent
+buffeting frequencies, as seen from the equations presented earlier. This remedy will increase the shell side pressure
+drop and may not be a practical remedy in many cases. This change is used for nonacoustic vibration problems.
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 18 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+IX-C 18 of 37 DESIGN CONSIDERATIONS FOR
+SHELL AND TUBE EXCHANGERS DESIGN PRACTICES
+December, 2001
+FLOW INDUCED VIBRATION (Cont)
+2. Use Double Segmental Baffles
+This is a design change that can reduce the shell side velocities and at the same time decrease the unsupported span.
+This remedy can be used to solve acoustic as well as nonacoustic vibration problems and will, in most cases, result in a
+lower shell side heat transfer coefficient. When this remedy is used to solve acoustic vibration problems by decreasing
+shell side velocity, a decrease in shell side heat transfer coefficient will be unavoidable.
+3. Increase Tube Pitch
+This is a design change. By increasing the tube pitch along with reducing baffle pitch, unsupported span can be reduced.
+This option is not recommended for solving acoustic vibration problems and, because it will reduce heat transfer area, it is
+not a good remedy for nonacoustic vibration problems and should be considered only after other remedies have been
+investigated.
+4. Change Shell Type
+This is a design change recommended mainly for nonacoustic vibration problems. Use of “J" shell or “H" shell instead of
+an “E" shell can reduce unsupported span and/or reduce shell velocities.. Use of a “J" shell is a popular option as a “J"
+shell allows the unsupported span to be reduced to half that of the “E" shell without substantially altering heat transfer and
+pressure drop. An “H" shell works in almost the same way as a “J" shell for vibration, but has different thermal
+characteristics; it is not very popular due to the presence of a longitudinal baffle, except for use near isothermal boiling or
+condensing. Use of an “X" shell allows changing unsupported tube span without any significant effect on heat transfer or
+pressure drop from other “X" shell designs. Use of “X" shells is normally restricted to very high volumetric flow on the shell
+side, or for condensers with a small condensing rangeThere are some other shell types used by various vendors, such as
+“Double J" (two inlets and three outlets, or vice versa). Most of these designs require special considerations and therefore
+are not discussed further.
+5. Increase Tube Thickness
+This is mainly a field change and is used for a few localized tubes that have exhibited vibration damage. Increasing tube
+thickness will increase the natural frequency of the tubes and the tube side pressure drop; therefore it has limited use.
+6. Selective Removal of Tubes
+This is mainly a field change which will help reduce velocity in restricted flow areas. This is also one of the least desired
+changes. It not only reduces surface, but also increases shell size bundle bypass and tube side pressure drop. This
+option can be used for both acoustic and nonacoustic vibration problems, but its main use is for nonacoustic vibration.
+7. Change Tube Field Layout Angle
+This is a design change. Changing tube field layout angle will change shell side crossflow velocity and Strouhal number.
+Changing the tube field angle from 45° to 90° is applicable to acoustic vibration problems since the Strouhal number is
+reduced, resulting in lower vortex shedding frequencies; however, the baffle pitch must be increased to maintain the same
+crossflow velocity. Changing from 90° to 45° is applicable to non-acoustic vibration problems either due to a lower
+crossflow velocity which reduces vortex shedding and turbulent buffeting frequencies, or due to a reduced baffle pitch
+which increases tube natural frequency.
+8. Use NTIW (No Tubes in Window) Design
+This is a design change used for nonacoustic vibration problems. With this option it is possible to change the unsupported
+span for the same baffle pitch by the addition of intermediate support plates. Another advantage of this design is that
+every tube is supported at every baffle or support. The biggest disadvantage is that this design requires a larger shell
+diameter (normally about 20%). Therefore, this option is not very cost effective.
+9. Use Rod Baffle Design
+This is a design change. Rod baffle design is a proprietary design. The design procedure is available for users of HTRI
+programs, but the fabricator must be an authorized licensee. This design is useful for producing low pressure drop,
+vibration-free designs to handle large volumetric flows on the shell side of an exchanger. Because of the licensing fees,
+this option will add 10 to 20% to the exchanger cost. An “X" shell or NTIW design should be checked as an alternative
+before selecting rod baffle design. This design is used mainly to solve nonacoustic vibration problems.
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 19 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+DESIGN CONSIDERATIONS FOR IX-C 19 of 37
+DESIGN PRACTICES SHELL AND TUBE EXCHANGERS
+December, 2001
+FLOW INDUCED VIBRATION (Cont)
+10. Modify Shell Entrance and Exit
+This can be a design change or a field change. This option is useful only when the vibration problem is restricted to shell
+entrance and exit areas and is used for nonacoustic vibration only. The modifications can be any of the following:
+a. Change the type of impingement protection. Various types of impingement protective devices are:
+(1) Round plate.
+(2) Square plate.
+(3) Annular distributor (costly).
+(4) Grid (somewhat costly, but the best and highly recommended).
+(5) A few rows of dummy tubes or dummy rows.
+(6) Impingement internal to nozzle (should be avoided).
+b. Remove a few tubes at the inlet/outlet zones to reduce local velocities.
+c. Provide a support plate at the nozzle center line to support four to five tube rows.
+11. Reduce Tube-to-Baffle Clearance
+This is a design change that is useful for remedying nonacoustic vibration by approximating a clamped condition to reduce
+baffle and collision damage due to tube vibration. (This corrective action might result in tube failure similar to clamping
+damage at the tubesheet.) There are two ways of achieving this:
+a. Specify lower baffle hole clearance. This is a costly option. All fabrication shops are geared to drill baffles to standard
+TEMA clearances and any change from the norm not only costs more, but also increases the chances of
+noncompliance or errors.
+b. Use of collared sleeves. This option is used for tantalum tubes because they are very thin and softer than the baffle
+material. The sleeves are normally made of synthetic nonmetallic materials and, in most cases, will not be compatible
+with the shell side fluids. This option is also very expensive.
+12. Use a Detuning Baffle
+This is basically a design change. For square tube field layouts this can be a field change. This remedy is useful for
+acoustic vibration problems only. A detuning baffle is a longitudinal plate parallel to both the tube centerline and cross flow
+direction that breaks the stationary sound wave (see Figure 10). The exact location and number of plates depends on the
+wave mode.
+13. Interchange Streams
+This can be either a field change or a design change used for both acoustic and nonacoustic vibration problems. In some
+cases simply interchanging shell side and tube side fluids can solve the vibration problem. This is a very attractive option
+if the material of construction requirements and design temperatures and pressures are identical for both fluids. This
+option is not used in most cases.
+14. Add a Shell in Parallel
+This can be either a field change or a design change. Addition of a shell in parallel will result in lower shell side velocities.
+This will also reduce the heat transfer coefficients. For most cases this is the most expensive option. This remedy can
+solve both acoustic and nonacoustic vibration problems.
+15. Bypass Shell Side Fluid
+This is strictly a field change and is normally a temporary fix. Part of the shell side fluid can be bypassed to reduce shell
+side fluid velocities. Use of this option will result in lower duty being performed by the exchanger. If some other exchanger
+in the train can overcome this reduction in the duty, or if the process can tolerate it, this option can be one of the most
+attractive temporary fixes. This remedy can solve both acoustic and nonacoustic vibration problems.
+16. Lower Throughput
+This is strictly a temporary field fix. In this option the flow rate of fluid on the shell side is reduced. Using this option results
+in lowered production rate, and it is therefore one of the least desired remedies. This option can solve both acoustic and
+nonacoustic vibration problems.
+17. Change Fluid Characteristics
+This is a very specialized solution used to solve inter/after-cooler acoustic vibration problems. In this option subcooled
+condensate is injected at the inlet to the exchanger. This makes shell side inlet a two-phase fluid instead of an all-gas
+phase; therefore, the problem of acoustic vibration is solved. This is a field fix only, and has been used successfully but is
+not guaranteed. The amount of condensate subcooling required must be calculated and, if needed, a small subcooler may
+be added.
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 20 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+IX-C 20 of 37 DESIGN CONSIDERATIONS FOR
+SHELL AND TUBE EXCHANGERS DESIGN PRACTICES
+December, 2001
+FLOW INDUCED VIBRATION (Cont)
+18. Provide U-bend Supports
+This is a design or field change that corrects nonacoustic vibration problems. This option is very inexpensive and should
+be specified for all U-bends at the design stage.
+19. Provide Additional Tube Supports
+This is mainly a field change. Many different tube supports (see Figure 9) are available for use in existing bundles to
+remedy nonacoustic vibration problems. Some of these devices are proprietary and are covered by patents. A brief
+summary of these is as follows:
+a. Metal Wires or Metal Straps - These are used to tie the tubes and create a nest. They should be used only as a
+temporary fix. Due to small cross-section, these fatigue in a shorter period of time. Once permanently elongated, they
+no longer support the tubes.
+b. Grid Supports - These are made of flat bars or round rods. The bars may be straight, for square or rotated square
+pitch, or helical (corkscrew) for triangular pitches. These are harder to install than are wires or straps, but they offer a
+permanent solution. Individual grid members do not have to be in tension to provide tube support. The grids are
+normally arranged in pairs, with each grid providing support to alternating tubes. These supports work similarly to rod
+baffles in the window area and, if used between baffles, would act like support plate.
+c. Expandable Flexible Lath - This device is basically a flattened elastomer tubing. After the flattened tube is passed
+through the bundle, the end can be opened to inflate the tubing, which then could expand and touch the exchanger
+tube. This works not by supporting the exchanger tube, but rather by dampening vibration and thus reducing the
+vibration amplitude. The dampening capacity is directly related to the resilience of the material, which decreases with
+time. The aging process is dependent on temperature and stress. These devices have provided very satisfactory
+service in the utility industry for moderate services. Material compatibility and aging should be checked thoroughly
+before use in chemical or petroleum streams.
+DESIGN GUIDELINES
+Adhering to the following guidelines will alleviate the majority of vibration-related problems.
+1. Keep unsupported tube spans to less than 80% of the “Maximum Unsupported Straight Tube Spans" of the TEMA Table
+RCB-4.52.
+2. Always specify an impingement protection device at the shell inlet for all shell and tube exchangers.
+3. Always satisfy the requirements of TEMA Paragraph RCG-4.62, except that the bundle entrance area shall, in no case, be
+less than the flow area of the shell inlet nozzle.
+4. Check the two-phase pressure drop at the shell outlet for a partial condenser, to ensure against excessive liquid buildup.
+5. Size reboiler inlets liberally to ensure against flashing due to pressure drop at the inlet nozzle.
+6. For all gas phase flow on the shell side, avoid using rotated square tube pitch.
+7. Always specify U-bend support whenever U-tubes are used, except for kettle reboilers.
+8. Check the exchanger after completion of the mechanical design, using actual geometry parameters (such as inlet and
+outlet spacings, heights under the shell nozzles, etc.) to ensure that the vibration parameters are calculated properly.
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 21 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+DESIGN CONSIDERATIONS FOR IX-C 21 of 37
+DESIGN PRACTICES SHELL AND TUBE EXCHANGERS
+December, 2001
+TABLE 1
+EXCHANGER TUBE DATA
+(cid:1) = WALL THICKNESS EXTERNAL SURFACE
+do = OD OF TUBING (NOMINAL) di = ID OF TUBING INTERNAL FLOW AREA PER UNIT LENGTH
+in. mm in. mm in. mm in.2 mm2 ft2/ft m2/m
+0.75 19.05 0.109 2.77 0.532 13.51 0.222 143.4 0.1963 0.05985
+0.75 19.05 0.083(1) 2.11 0.584 14.83 0.268 172.8 0.1963 0.05985
+0.75 19.05 0.065(2) 1.65 0.620 15.75 0.302 194.8 0.1963 0.05985
+0.75 19.05 0.049 1.24 0.652 16.57 0.334 215.4 0.1963 0.05985
+1.00 25.4 0.134 3.4 0.732 18.6 0.421 271.5 0.2618 0.0798
+1.00 25.4 0.109(1) 2.77 0.782 19.86 0.479 309.9 0.2618 0.0798
+1.00 25.4 0.083(2) 2.11 0.834 21.18 0.546 352.4 0.2618 0.0798
+1.00 25.4 0.065 1.65 0.870 22.1 0.594 383.5 0.2618 0.0798
+1.25 31.75 0.134 3.4 0.982 24.95 0.757 488.6 0.3272 0.09975
+1.25 31.75 0.109(1) 2.77 1.032 26.21 0.836 539.7 0.3272 0.09975
+1.25 31.75 0.083(2) 2.11 1.084 27.53 0.923 595.4 0.3272 0.09975
+1.25 31.75 0.065 1.65 1.112 28.45 0.985 635.6 0.3272 0.09975
+1.50 38.1 0.134 3.4 1.232 31.3 1.192 769.1 0.3927 0.1197
+1.50 38.1 0.109 2.77 1.282 32.56 1.291 832.8 0.3927 0.1197
+1.50 38.1 0.083 2.11 1.334 33.88 1.397 901.7 0.3927 0.1197
+Notes:
+(1) Preferred wall thickness for carbon steel tubes.
+(2) Preferred wall thickness for copper alloy tubes.
+(3) Titanium can come thin walled.
+GAGE EQUIVALENTS
+in. mm BWG
+0.165 4.19 8
+0.148 3.76 9
+0.134 3.4 10
+0.120 3.05 11
+0.109 2.77 12
+0.095 2.41 13
+0.083 2.11 14
+0.072 1.83 15
+0.065 1.65 16
+0.058 1.47 17
+0.049 1.24 18
+0.042 1.07 19
+0.035 0.89 20
+0.028 0.71 22
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 22 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+IX-C 22 of 37 DESIGN CONSIDERATIONS FOR
+SHELL AND TUBE EXCHANGERS DESIGN PRACTICES
+December, 2001
+TABLE 2
+THERMAL CONDUCTIVITIES
+THERMAL CONDUCTIVITY, k
+MATERIAL COMPOSITION
+Btu/hr-ft-°°°°F (W/m°°°°C)
+Admiralty* 71 Cu-28 Zn-1 Sn 64 (110.7)
+Type 316 stainless steel 17 Cr-12 Ni-2 Mo 9 (15.58)
+Type 304 stainless steel 18 Cr-8 Ni 9 (15.58)
+Brass 70 Cu-30 Zn 57 (98.67)
+Red Brass 85 Cu-15 Zn 92 (159.25)
+Aluminum Brass 75 Cu-21 Zn-2 Al 58 (100.40)
+Cupro-Nickel 90 Cu-10 Ni 41 (70.97)
+Cupro-Nickel 70 Cu-30 Ni 17 (29.43)
+Monel 67 Ni-30 Cu-1.4 Fe 15 (25.97)
+Inconel — 11 (19.04)
+Aluminum — 117 (202.53)
+Carbon Steel — 26 (45.01)
+Carbon-Moly 0.5 Mo 25 (43.28)
+Copper — 223 (386.01)
+Lead — 20 (34.62)
+Nickel — 36 (62.32)
+Titanium — 11 (19.04)
+Chrome-Moly St 1 Cr-0.5 Mo 24 (41.54)
+2-1/4 Cr-0.5 Mo 22 (38.08)
+5 Cr-0.5 Mo 20 (34.62)
+12 Cr-1 Mo 16 (27.70)
+* These values are valid for all tube metal temperatures normally encountered in exchanger design.
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 23 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+DESIGN CONSIDERATIONS FOR IX-C 23 of 37
+DESIGN PRACTICES SHELL AND TUBE EXCHANGERS
+December, 2001
+TABLE 3
+TEMA HEAD TYPE SELECTION
+FOULING FACTORS
+hr-ft2-°°°°F/Btu CLEANING FRONT END
+(m2-°°°°C/W) BUNDLE METHOD(1) STATIONARY HEAD REAR END
+TYPE TYPE(2) (CHANNEL) HEAD (SHELL)
+TUBE SIDE SHELL SIDE TUBE SHELL
+≤ 0.001 All U-tube — C or M A or B(3) U
+(≤ 0.00018)
+≤ 0.002 All U-tube C C or M A or B(3) U
+(≤ 0.00035)
+M(4) C or M A U
+Removable C C A or B(3) S or T(5)(6)
+M C A S or T(5)(7)
+C M A or B(3) S or T(5)
+M M A S or T(5)
+≤ 0.002 Fixed C C A, B or C(8) L, M or N(9)(10)
+(≤ 0.00035)
+M C A L
+> 0.002 All U-tube M(4) C or M A U
+(> 0.00035)
+Removable C or M C A S or T(5)
+C or M M A S or T(5)
+≤ 0.002 Fixed C or M C A L
+(≤ 0.00035)
+Notes:
+(1) C-Chemical, M-Mechanical including high-pressure water jetting.
+(2) A-head preferred when tube side or shell side corrosion allowance (CA) 1/8 in. (3 mm) or more.
+(3) B-head normally more economical.
+(4) Only used in cooling water service where tubes are to be cleaned by high-pressure jetting.
+(5) Use S-head unless affiliate has preference for T-Head.
+(6) Integral shell cover may be used with T-head when shell side fouling factor ≤ 0.002 hr-ft2-°F/Btu (0.00035 m2-°C/W).
+(7) Integral shell cover may be used with T-head when shell side fouling factor ≤ 0.002 hr-ft2-°F/Btu (0.00035 m2-°C/W) and tube
+side to be cleaned by high-pressure water jetting.
+(8) B or C-heads normally more economical than A-head.
+(9) M or N-heads normally more economical than L-head.
+(10) L-head preferred when tube side CA 1/8 in. (3 mm) or more.
+TABLE 4
+MAXIMUM NUMBER OF TUBE PASSES
+SHELL ID RECOMMENDED MAXIMUM
+NUMBER OF TUBE PASSES
+in. mm
+< 10 < 254 4
+10 - < 20 254 - < 508 6
+20 - < 30 508 - < 762 8
+30 - < 40 762 - < 1016 10
+40 - < 50 1016 - < 1270 12
+50 - < 60 1270 - < 1524 14
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 24 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+IX-C 24 of 37 DESIGN CONSIDERATIONS FOR
+SHELL AND TUBE EXCHANGERS DESIGN PRACTICES
+December, 2001
+TABLE 5
+MANUAL ESTIMATION OF TUBE COUNT
+The tube count depends on shell diameter, type of exchanger, number to tube passes, tube diameter, tube pitch and shell side
+nozzle size. Various computer programs are available to estimate the number of tubes. The following is a “good practice"
+method to estimate number of tubes (or tube count) manually.
+It should be noted that, up to 24 in. (610 mm) diameter, the shells are normally constructed of standard pipe. Therefore, the
+shell ID depends on pipe schedule and thickness that meet TEMA and design code requirements. Rolled plate shell diameters
+above 24 in. (610 mm) normally refer to shell ID and, as a standard industry practice, are nominally specified in integer in.
+Therefore, when selecting a shell size, use pipe ID up to 24 in. (610 mm) and whole in. (in increments of 5 mm) for sizes above
+24 in. (610 mm).
+The following is a step-by-step procedure to estimate the tube count:
+1. Estimate Outer Tube Limit (OTL), which is the diameter of a circle such that any entire tube is within the circle:
+SHELL SIZE EQUATION FOR OTL
+TYPE
+in. (mm) in. (mm)
+Fixed Tubesheet ≤ 50 (1270) Shell ID - 0.5 ID - (13)
+& U-type Tube 51 to 62 (1295) (1575) Shell ID - 0.625 ID - (16)
+Bundles 63 to 75 (1600) (1905) Shell ID - 0.75 ID - (19)
+> 75 (1905) Consult Heat Transfer Equipment Section
+Split Ring Tube ≤ 22 (560) Shell ID - 1.25 ID - (32)
+Floating Head 24 (610) Shell ID - 1.375 ID - (35)
+Bundle 26 to 31 (660 to 790) Shell ID - 1.625 ID - (41)
+32 to 42 (810 to 1065) Shell ID - 1.75 ID - (44)
+43 to 60 (1090 to 1525) Shell ID - 1.875 ID - (48)
+Note: For estimation of the OTL of pull-through tube bundles, use Figure 7.
+2. Determine the Safe Circle Diameter (SCD)
+Safe Circle Diameter can be determined as the circle such that if any tube hole center falls within it that tube can be
+included in the tube count.
+For all exchangers SCD = OTL - Tube diameter
+3. Determine distance “h" across pass partition
+I I I
+Pass
+Partition h
+Groove
+DP9CT5 I I I
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 25 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+DESIGN CONSIDERATIONS FOR IX-C 25 of 37
+DESIGN PRACTICES SHELL AND TUBE EXCHANGERS
+December, 2001
+TABLE 5 (Cont)
+MANUAL ESTIMATION OF TUBE COUNT
+Distance “h" across pass partition for nonrotated square pitch is obtained as follows:
+h = Tube OD + F1 + F2 + F3
+where: F1 = 0.5 in. for shells up to 24 in.
+F1 = 0.625 in. for all other shells
+F2 = 0 if tubes are not welded to the tubesheet
+F2 = 1/8 in. for seal-welded tubes
+F2 = 2 x (tube wall thickness + 1/16 in.) in. for strength welded tubes
+F3 = 0 for all shells except C or D channels
+F3 = 1/8 in. where C or D channels are used
+For Rotated Square Pitch
+h = 1.414 x Tube Pitch
+➧ 4. Determine U-tube Correction Factor (CU) by using the SCD and Tube Pitch (PT). Since U-tubes cannot be bent to a very
+small diameter due to TEMA and manufacturing requirements, distance across U-bends is normally larger than that across
+the pass partition.
+2SCD
+CU = (if U-bends of inner rows are in the parallel pattern)
+PT
+SCD
+CU = (if U-bends of inner rows are in the crossed pattern)
+PT
+It is always recommended to cross U-bends for these shell side flows which have no change of phase.
+5. Tube pass correction Factor C :
+1
+Tube Passes 1 2 4 6 8 10 12 14 16
+C1 0 1.0 2.9 3.5 4.3 5.3 6.2 6.9 7.5
+6. Shell Nozzle Correction Factor C
+2
+C corrects the tube count to provide the required bundle entrance and exit areas and also to correct for the impingement
+2
+plate.
+D = (Inlet Nozzle ID / 1.5) for U-tubes where the shell inlet is beyond U-bend or for all exchangers with vapor
+1
+belts
+D = Inlet Nozzle ID for all other units
+1
+D = (Outlet Nozzle ID / 1.5) for all units
+2
+Shell nozzle factor D = D x D
+1 2
+Determine Shell Nozzle Correction Factor C from Figure 8.
+2
+7. Equation for Tube Count
+For Square or Rotated Square Pitch
+(cid:6) 0.785 ( SCD )2 − C ( h − PT ) SCD (cid:3)
+N = (cid:4) 1 × C (cid:1) − CU
+(cid:4)(cid:5) ( PT )2 2 (cid:1)(cid:2)
+For Triangular Pitch
+(cid:6) 0.907 ( SCD )2 − C ( h − 0.84 PT ) SCD (cid:3)
+N = (cid:4) 1 x C (cid:1) − CU
+(cid:4)(cid:5) ( PT )2 2 (cid:1)(cid:2)
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 26 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+IX-C 26 of 37 DESIGN CONSIDERATIONS FOR
+SHELL AND TUBE EXCHANGERS DESIGN PRACTICES
+December, 2001
+TABLE 6
+HEAT EXCHANGER SPECIFICATION SHEET
+1 Job No.:
+2 Customer: Reference No.:
+3 Address: Proposal No.:
+4 Plant Location: Date: Rev.:
+5 Service of Unit: Item No.:
+6 Size: Type: Connected in: Parallel Series
+7 Surf./Unit (Eff.): ft2; Shells/Unit: Surf/Shell (Eff.): ft2
+8 Performance of One Unit
+9 Fluid Allocation Shell Side Tube Side
+10 Fluid Name
+11 Fluid Quantity, total lb/hr
+12 Vapor (In/Out) lb/hr
+13 Liquid (In/Out) lb/hr
+14 Steam (In/Out) lb/hr
+15 Water (In/Out) lb/hr
+16 Noncondensable (In/Out) lb/hr
+17 Temperature (In/Out) °F
+18 Density (In/Out) Liq./Vap. lb/ft3
+19 Viscosity, (In/Out) Liq./Vap. cP
+20 Mol. Wt., Vapor (In/Out)
+21 Mol. Wt., Noncondensable (In/Out)
+22 Specific Heat (In/Out) Liq./Vap. Btu/lb °F
+23 Thermal Conductivity Btu/hr ft °F
+24 Latent Heat Btu/lb @ @
+25 Inlet Pressure psig
+26 Velocity ft/sec
+27 Pressure Drop, Allow/Calc psi
+28 Fouling Resistance hr ft2 °F/Btu
+29 Heat Exchanged: Btu/hr MTD (Corrected): °F
+30 Transfer Rate Service: Clean: Btu/hr ft2 °F
+31 Construction of Shell Sketch (Bundle/Nozzle Orientation)
+32 Shell Side Tube Side
+33 Design/Test Press. psig
+34 Design Temperature °F
+35 Tubesheet Design Temperature °F
+36 No. Passes per Shell
+37 Corrosion Allowance in.
+38 Connections In in./Cl
+39 Size and Out in./Cl
+40 Rating Intermed. in./Cl
+41 Tube No.: OD: In; Thk. (Min): In; Length: ft; Pitch: In
+42 Tube Type: Material: Layout Angle: degrees
+43 Shell Material: ID: OD: In; Shell Cover Material:
+44 Channel or Bonnet Material: Channel Cover Material:
+45 Tubesheet (Stationary) Material: Tubesheet (Floating) Material:
+46 Floating Head Cover Material: – Impingement Protection:
+47 Baff. (Cross) No.: Type: % Cut (Diam)(Area): Spac.: c/c Inlet In
+48 Baffles (Longitudinal) Seal Type
+49 Supports Tube: U-Bend: Type:
+50 Bypass Seal Arrangement: Tube-Tubesheet Joint:
+51 Expansion Joint Type:
+52 ρV2, lb/ft sec2 Inlet Nozzle: Bundle Entrance: Bundle Exit:
+53 Gaskets Shell Side: Tube Side:
+54 Floating Head:
+55 Code Requirements: TEMA Class:
+56 Weight/Shell: Filled With Water: Bundle: lb
+Notes:
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 27 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+DESIGN CONSIDERATIONS FOR IX-C 27 of 37
+DESIGN PRACTICES SHELL AND TUBE EXCHANGERS
+December, 2001
+TABLE 7
+HEAT EXCHANGER MAINTENANCE GOOD PRACTICE DESIGNER'S CHECKLIST
+RECOMMENDED MECHANICAL DESIGN FEATURES
+CONTROLLED ALTERNATIVE
+GIRTH TORQUE FOR ENHANCE- TO THE
+MOST COMMON IMPINGEMENT FLANGE THE GIRTH MENT TO CONVENTIONAL
+EXCHANGER MAINTENANCE TEMA TUBE TUBE PROTECTION GASKET FLANGE THE TEMA SHELL-AND-TUBE
+SERVICE PROBLEM TYPE OD LAYOUT DEVICE TYPE STUDS EXCHANGER EXCHANGER
+Overhead Corrosion AET 1 in. Square Make DJ(1) No need RBE(6) or Spiral heat
+Condensers and/or fouling or “dummy" the IFT(7) exchanger
+BET
+on the tube side Rotated top half circle OMC(5)
+(TS). Shell side AJT Square of the
+(SS) fouling BJT outermost
+caused by tubes
+upstream
+sources.
+Cooling Tower Fouling, TS. AET 1 in. All Any Comp, or No need OMC(5) Spiral or plate heat
+Water (CTW) DJ(1) exchanger
+Coolers
+Reboilers with 1. Erosion to tube BKU 3/4 or Square Distributor SWG(3) Mandatory NBT(4) Spiral heat
+Steam in the TS ends. 1 in. only or better exchanger
+2. Fouling on SS.
+3. Girth flange
+joint leaks.
+Inter/After Coolers 1. Corrosion AET 1 in. Any Any Any No need TP(2) or Spiral heat
+and/or fouling OMC(5) or exchanger
+TS. Corrosion RBE(6)
+SS,
+2. Vibration.
+Pumparound Flange joint AET 3/4 or Square Any SWG(3) Mandatory TP(2) or Spiral or plate heat
+Coolers leaks. 1 in. preferred or better OMC(5) exchanger
+Feed/Effluent Heat 1. Flange joint BET 3/4 or Any Any SWG(3) Mandatory RBE(6) Spiral heat
+Exchangers at leaks. BEU 1 in. or better IFT(7) exchangers
+POWERFORMING
+2. Vibration. Welded plate
+Units and CEU
+Hydrocrackers 3. Expansion “Texas Tower"
+flange joint (long vertical shell-
+leaks. and-tube)
+Notes:
+(1) Double jacketed fiber filled.
+(2) Turbulence promoters (SPIRELF or TURBOTAL or other).
+(3) Spiral Wound Gasket with two retainers.
+(4) Nucleate Boiling Tubes.
+(5) On-Line-Mechanical Cleaning Device.
+(6) Rod Baffle Exchanger.
+(7) Integrally Finned Tubes.
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 28 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+IX-C 28 of 37 DESIGN CONSIDERATIONS FOR
+SHELL AND TUBE EXCHANGERS DESIGN PRACTICES
+December, 2001
+FIGURE 1
+COMPONENTS OF SHELL AND TUBE EXCHANGERS
+13
+21
+5
+16
+15
+14 11
+22 1
+4 9
+8
+21
+17
+6
+7
+12
+10
+13
+3
+20
+20
+2
+19
+18
+5
+1. Shell 8. Floating Head Cover Flange 15. Transverse Baffles or Support Plates
+2. Shell Cover 9. Channel Partition Plate 16. Impingement Baffle
+3. Shell Flange 10. Stationary Tubesheet 17. Vent Connection
+4. Shell Cover End Flange 11. Channel 18. Drain Connection
+5. Shell Nozzle
+12. Channel Cover 19. Test Connection
+6. Floating Head Tubesheet
+13. Channel Nozzle 20. Suppport Saddles
+7. Floating Head Cover
+14. Tie Rods and Spacers 21. Lifting Ring
+22. Split Ring DP9CF01
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 29 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+DESIGN CONSIDERATIONS FOR IX-C 29 of 37
+DESIGN PRACTICES SHELL AND TUBE EXCHANGERS
+December, 2001
+FIGURE 2
+TEMA HEAT EXCHANGER NOMENCLATURE
+(1) (2)
+Front End Rear End
+Shell Types
+Stationary Head Types Head Types
+E L
+Fixed Tubesheet
+A One Pass Shell Like "A" Stationary Head
+Channel
+and Removable Cover F M
+Fixed Tubesheet
+Two Pass Shell
+Like "B" Stationary Head
+With Longitudinal Baffle
+B N
+G
+Fixed Tubesheet
+(3) Like "N" Stationary Head
+Bonnet (Integral Cover) Split Flow
+P
+H
+Outside Packed Floating Head
+C REMOVABLE (4)
+TUBE Double Split Flow
+BUNDLE
+ONLY
+Channel Integral with Tube- S
+Sheet and Removable Cover
+Floating Head
+J
+with Backing Device
+Divided Flow
+T
+N
+Pull Through Floating Head
+K
+Channel Integral with Tube-
+Sheet and Removable Cover
+Kettle Type Reboiler U
+U-Tube Bundle
+D
+X
+W
+Special High Externally Sealed
+Cross Flow
+Pressure Closure Floating Tubesheet
+DP9CF02
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 30 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+IX-C 30 of 37 DESIGN CONSIDERATIONS FOR
+SHELL AND TUBE EXCHANGERS DESIGN PRACTICES
+December, 2001
+FIGURE 3
+COMMON TUBE LAYOUTS
+T
+P
+Flow
+PT
+Square Rotated Square
+(90°) (45°)
+T
+P
+T
+P
+Flow
+Triangular Rotated Triangular
+(30°) (60°)
+DP9CF03
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 31 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+DESIGN CONSIDERATIONS FOR IX-C 31 of 37
+DESIGN PRACTICES SHELL AND TUBE EXCHANGERS
+December, 2001
+FIGURE 4
+TYPES OF SHELL BAFFFLES
+Segmental (Vertical Cut)
+Double Segmental
+(Modified Disk & Donut, Vertical Cut)
+DP9Cf04
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 32 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+IX-C 32 of 37 DESIGN CONSIDERATIONS FOR
+SHELL AND TUBE EXCHANGERS DESIGN PRACTICES
+December, 2001
+FIGURE 5
+COMMON SHELL TYPES OF SHELL AND TUBE EXCHANGERS
+FIGURE 5A FIGURE 5B
+SINGLE PASS SHELL (TEMA TYPE AES) DIVIDED FLOW SHELL (TEMA TYPE AJS)
+Baffle Cut Baffle Cut
+(Horizontal) (Horizontal)
+DP9CF05
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 33 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+DESIGN CONSIDERATIONS FOR IX-C 33 of 37
+DESIGN PRACTICES SHELL AND TUBE EXCHANGERS
+December, 2001
+FIGURE 5C
+TWO PASS SHELL (TEMA TYPE AFS)
+Baffle Cut
+(Vertical)
+Baffle Cut
+Longitudinal
+Baffle
+DP9CF5C
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 34 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+IX-C 34 of 37 DESIGN CONSIDERATIONS FOR
+SHELL AND TUBE EXCHANGERS DESIGN PRACTICES
+December, 2001
+FIGURE 6
+LOCATION OF BUNDLE SEAL STRIPS
+Shell Diameter
+Bundle Diameter
+Seal Strip
+Baffle Cut
+DP9CF6
+FIGURE 7
+OUTERMOST TUBE LIMIT (OTL) FOR THE PULL
+THROUGH FLOATING HEAD TUBE BUNDLE
+mm: 254 508 762 1016 1270 1524 1778 2032
+153
+127
+102
+76
+50
+ExxonMobil Research and Engineering Company – Fairfax, VA
+mm
+,ecnaraelC
+retemaiD
+6.0
+5.0
+4.0
+3.0
+2.0
+1.0
+0 10 20 30 40 50 60 70 80
+OTL, Inches
+.D.I
+llehS
+neewteB
+ecnaraelC
+lartemaiD
+sehcnI
+,LTO
+eldnuB
+dna
+Des
+H
+ig
+e
+n
+a
+P
+t E re x s c s h u a re n g e 6 r 0
+4
+M 0
+5
+a p
+0
+x s
+p
+i i m g
+s i
+u (
+g
+4 m 2
+(3
+k
+2
+g
+k
+/s
+g
+q
+/s
+c
+q
+m
+c
+)
+m)
+300 psig (21 kg/sq cm )
+150 psig (16 kg/sq cm)
+DP9CF7
+--- PAGE 35 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+DESIGN CONSIDERATIONS FOR IX-C 35 of 37
+DESIGN PRACTICES SHELL AND TUBE EXCHANGERS
+December, 2001
+FIGURE 8
+SHELL NOZZLE CORRECTION FACTOR (C )
+2
+0.1
+1.00
+0.2
+0.3
+.95
+0.4
+0.5
+.90
+C
+2
+0.6
+.85 D + 1" (25 mm)
+Shell I.D.
+0.7
+.80
+.75
+1.0 .9 .8 .7 .6 .5 .4
+OTL – D
+DP9CF8 0
+Shell
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 36 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+IX-C 36 of 37 DESIGN CONSIDERATIONS FOR
+SHELL AND TUBE EXCHANGERS DESIGN PRACTICES
+December, 2001
+FIGURE 9
+ANTIVIBRATION TUBE SUPPORTS
+Silts
+Helical Bars Flat Bars (Egg Crate)
+Installed Deflated Lath
+Lath After Expansion DP9CF09
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 37 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+DESIGN CONSIDERATIONS FOR IX-C 37 of 37
+DESIGN PRACTICES SHELL AND TUBE EXCHANGERS
+December, 2001
+FIGURE 10
+DETUNING BAFFLE
+Flow
+Baffles
+DP9CF10
+ExxonMobil Research and Engineering Company – Fairfax, VA

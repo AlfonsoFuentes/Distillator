@@ -14,6 +14,16 @@
     <div class="design-toolbar">
         <button type="button" class="primary-action" @onclick="CreateDesign">Create Design</button>
 
+        <div class="unit-system-picker">
+            <span>Method</span>
+            <select value="@selectedCalculationStandard" @onchange="OnCalculationStandardChanged" aria-label="Design calculation method">
+                @foreach (var option in CalculationStandardOptions)
+                {
+                    <option value="@option.Value">@option.Label</option>
+                }
+            </select>
+        </div>
+
         @if (Equipment.Designs.Count > 0)
         {
             <div class="design-tabs" role="tablist" aria-label="Designs">
@@ -87,13 +97,14 @@
                         <DesignAmountRow T="Diameter" Label="Tube OD" Variable="variables.TubeOuterDiameter" ValueChanged="SetTubeOuterDiameter" />
                         <DesignAmountRow T="Diameter" Label="Tube ID" Variable="variables.TubeInnerDiameter" ReadOnly="true" />
                         <DesignSelectRow Label="Gauge" Value="@GetGaugeValue(variables)" Options="TubeGaugeOptions" ValueChanged="OnTubeGaugeChanged" />
+                        <DesignSelectRow Label="Material" Value="@variables.TubeMaterial.ToString()" Options="TubeMaterialOptions" ValueChanged="OnTubeMaterialChanged" />
                     </div>
                 </article>
 
                 <article class="design-card">
                     <div class="card-title">
                         <h3>Tube Layout</h3>
-                        <span>Kern/TEMA</span>
+                        <span>@GetCalculationStandardLabel(variables.CalculationStandard)</span>
                     </div>
 
                     <svg class="layout-svg" viewBox="0 0 260 232" role="img" aria-label="Tube layout">
@@ -124,6 +135,10 @@
                         }
                         <DesignValueRow Label="@GetTubeCountRowLabel()" Value="@GetUnitLessValue(variables.ActualTubeCount)" Integer="true" ValueChanged="value => SetUnitLess(variables.ActualTubeCount, value)" />
                         <DesignValueRow Label="Tubes that fit" Value="@GetUnitLessValue(variables.MaximumTubeCount)" Integer="true" ReadOnly="true" />
+                        <DesignValueRow Label="Tube count correction" Value="@GetUnitLessValue(variables.TubeCountCorrectionFactor)" ReadOnly="true" />
+                        <DesignValueRow Label="U-bend tube loss" Value="@GetUnitLessValue(variables.UTubeBendTubeLossFraction)" ReadOnly="true" />
+                        <DesignValueRow Label="Impingement tube loss" Value="@GetUnitLessValue(variables.ImpingementTubeLossFraction)" ReadOnly="true" />
+                        <DesignValueRow Label="Shell nozzle tube loss" Value="@GetUnitLessValue(variables.ShellNozzleTubeLossFraction)" ReadOnly="true" />
                         <DesignAmountRow T="Diameter" Label="Pitch" Variable="variables.TubePitch" ValueChanged="value => SetDiameter(variables.TubePitch, value)" />
                         <DesignSelectRow Label="Layout" Value="@variables.TubeLayout.ToString()" Options="TubeLayoutOptions" ValueChanged="OnTubeLayoutChanged" />
                     </div>
@@ -160,17 +175,30 @@
                     </svg>
 
                     <div class="tema-selector">
-                        <button type="button" class="tema-letter">B<span>Bonnet</span></button>
-                        <button type="button" class="tema-letter">E<span>One-pass shell</span></button>
+                        <button type="button" class="tema-letter">@GetFrontHeadLetter()<span>@GetFrontHeadLabel()</span></button>
+                        <button type="button" class="tema-letter">@GetShellTypeLetter()<span>@GetShellTypeLabel()</span></button>
                         <button type="button" class="tema-letter">@GetRearHeadLetter()<span>@GetRearHeadLabel()</span></button>
                     </div>
 
                     <div class="property-table">
-                        <DesignSelectRow Label="Tube construction" Value="@tubeConstruction" Options="TubeConstructionOptions" ValueChanged="OnTubeConstructionChanged" />
+                        <DesignSelectRow Label="Tube construction" Value="@variables.TubeConstruction.ToString()" Options="TubeConstructionOptions" ValueChanged="OnTubeConstructionChanged" />
+                        <DesignSelectRow Label="Front head" Value="@variables.FrontHeadType.ToString()" Options="FrontHeadOptions" ValueChanged="OnFrontHeadChanged" />
+                        <DesignSelectRow Label="Shell type" Value="@variables.ShellType.ToString()" Options="ShellTypeOptions" ValueChanged="OnShellTypeChanged" />
+                        <DesignSelectRow Label="Rear head" Value="@variables.RearHeadType.ToString()" Options="RearHeadOptions" ValueChanged="OnRearHeadChanged" />
+                        <DesignSelectRow Label="Tube cleaning" Value="@variables.TubeSideCleaningMethod.ToString()" Options="CleaningMethodOptions" ValueChanged="OnTubeCleaningMethodChanged" />
+                        <DesignSelectRow Label="Shell cleaning" Value="@variables.ShellSideCleaningMethod.ToString()" Options="CleaningMethodOptions" ValueChanged="OnShellCleaningMethodChanged" />
+                        <DesignAmountRow T="Length" Label="Tube corrosion allowance" Variable="variables.TubeSideCorrosionAllowance" ValueChanged="value => SetLength(variables.TubeSideCorrosionAllowance, value)" />
+                        <DesignAmountRow T="Length" Label="Shell corrosion allowance" Variable="variables.ShellSideCorrosionAllowance" ValueChanged="value => SetLength(variables.ShellSideCorrosionAllowance, value)" />
+                        <DesignSelectRow Label="Reboiler type" Value="@variables.ReboilerType.ToString()" Options="ReboilerTypeOptions" ValueChanged="OnReboilerTypeChanged" />
+                        <DesignSelectRow Label="Cooling water" Value="@variables.CoolingWaterType.ToString()" Options="CoolingWaterTypeOptions" ValueChanged="OnCoolingWaterTypeChanged" />
+                        <DesignSelectRow Label="Condenser arrangement" Value="@variables.CondenserArrangement.ToString()" Options="CondenserArrangementOptions" ValueChanged="OnCondenserArrangementChanged" />
+                        <DesignSelectRow Label="Enhanced heat transfer" Value="@variables.EnhancedHeatTransferType.ToString()" Options="EnhancedHeatTransferOptions" ValueChanged="OnEnhancedHeatTransferChanged" />
                         <DesignValueRow Label="Tube passes" Value="@GetUnitLessValue(variables.TubePasses)" Integer="true" ValueChanged="value => SetUnitLess(variables.TubePasses, value)" />
                         <DesignValueRow Label="Shell passes" Value="@GetUnitLessValue(variables.ShellPasses)" Integer="true" ValueChanged="value => SetUnitLess(variables.ShellPasses, value)" />
                         <DesignAmountRow T="Length" Label="Length" Variable="variables.TubeLength" ValueChanged="value => SetLength(variables.TubeLength, value)" />
                         <DesignAmountRow T="Length" Label="Baffle spacing" Variable="variables.BaffleSpacing" ValueChanged="value => SetLength(variables.BaffleSpacing, value)" />
+                        <DesignSelectRow Label="Baffle type" Value="@variables.BaffleType.ToString()" Options="BaffleTypeOptions" ValueChanged="OnBaffleTypeChanged" />
+                        <DesignValueRow Label="Baffle cut %" Value="@GetUnitLessValue(variables.BaffleCutPercent)" ValueChanged="value => SetUnitLess(variables.BaffleCutPercent, value)" />
                     </div>
                 </article>
             </div>
@@ -217,13 +245,13 @@
                         <tr>
                             <td>Tube pressure drop</td>
                             <td><DesignAmountCell T="PressureDrop" Variable="variables.TubeSidePressureDrop" /></td>
-                            <td>&lt;= @FormatAmount(new PressureDrop(5d, PressureDropUnits.psi), variables.TubeSidePressureDrop.DisplayUnit) @variables.TubeSidePressureDrop.DisplayUnit.Symbol</td>
+                            <td>&lt;= @FormatAmount(GetAllowedPressureDrop(variables.TubeSideAllowedPressureDrop), variables.TubeSidePressureDrop.DisplayUnit) @variables.TubeSidePressureDrop.DisplayUnit.Symbol</td>
                             <td class="@GetStatusClass(IsTubePressureDropValid(variables))">@FormatStatus(IsTubePressureDropValid(variables))</td>
                         </tr>
                         <tr>
                             <td>Shell pressure drop</td>
                             <td><DesignAmountCell T="PressureDrop" Variable="variables.ShellSidePressureDrop" /></td>
-                            <td>&lt;= @FormatAmount(new PressureDrop(5d, PressureDropUnits.psi), variables.ShellSidePressureDrop.DisplayUnit) @variables.ShellSidePressureDrop.DisplayUnit.Symbol</td>
+                            <td>&lt;= @FormatAmount(GetAllowedPressureDrop(variables.ShellSideAllowedPressureDrop), variables.ShellSidePressureDrop.DisplayUnit) @variables.ShellSidePressureDrop.DisplayUnit.Symbol</td>
                             <td class="@GetStatusClass(IsShellPressureDropValid(variables))">@FormatStatus(IsShellPressureDropValid(variables))</td>
                         </tr>
                         <tr>
@@ -254,13 +282,100 @@
                         <div class="property-table datasheet-properties">
                             <DesignAmountRow T="EnergyFlow" Label="Heat Duty" Variable="variables.HeatDuty" ReadOnly="true" />
                             <DesignAmountRow T="Temperature" Label="LMTD" Variable="variables.LogMeanTemperatureDifference" ReadOnly="true" />
+                            <DesignValueRow Label="LMTD Correction Factor" Value="@GetUnitLessValue(variables.LogMeanTemperatureCorrectionFactor)" ReadOnly="true" />
+                            <DesignAmountRow T="HeatTransferCoefficient" Label="Typical U Min" Variable="variables.TypicalOverallCoefficientMinimum" ReadOnly="true" />
+                            <DesignAmountRow T="HeatTransferCoefficient" Label="Typical U Max" Variable="variables.TypicalOverallCoefficientMaximum" ReadOnly="true" />
                             <DesignAmountRow T="Area" Label="Required Area" Variable="variables.RequiredArea" ReadOnly="true" />
                             <DesignAmountRow T="Area" Label="Actual Area" Variable="variables.ActualArea" ReadOnly="true" />
+                            <DesignValueRow Label="Area Overdesign %" Value="@GetUnitLessValue(variables.AreaOverdesignPercent)" ReadOnly="true" />
+                            <DesignAmountRow T="HeatSurfaceFlow" Label="Heat Flux" Variable="variables.HeatFlux" ReadOnly="true" />
+                            <DesignAmountRow T="Pressure" Label="Vaporizing Critical Pressure" Variable="variables.VaporizingSideCriticalPressure" ValueChanged="value => SetPressure(variables.VaporizingSideCriticalPressure, value)" />
+                            <DesignAmountRow T="Temperature" Label="Vaporizing Boiling Range" Variable="variables.VaporizingSideBoilingRange" ValueChanged="value => SetTemperature(variables.VaporizingSideBoilingRange, value)" />
+                            <DesignAmountRow T="HeatSurfaceFlow" Label="Single Tube Maximum Heat Flux" Variable="variables.SingleTubeMaximumHeatFlux" ReadOnly="true" />
+                            <DesignValueRow Label="Bundle Heat Flux Correction" Value="@GetUnitLessValue(variables.BundleHeatFluxCorrectionFactor)" ReadOnly="true" />
+                            <DesignAmountRow T="HeatSurfaceFlow" Label="Bundle Maximum Heat Flux" Variable="variables.BundleMaximumHeatFlux" ReadOnly="true" />
+                            <DesignAmountRow T="HeatTransferCoefficient" Label="Single Tube Nucleate Boiling Reference Coefficient" Variable="variables.SingleTubeNucleateBoilingReferenceCoefficient" ReadOnly="true" />
+                            <DesignValueRow Label="Nucleate Boiling Pressure Correction" Value="@GetUnitLessValue(variables.NucleateBoilingPressureCorrectionFactor)" ReadOnly="true" />
+                            <DesignValueRow Label="Vapor/Liquid Density Ratio" Value="@GetUnitLessValue(variables.NucleateBoilingVaporToLiquidDensityRatio)" ReadOnly="true" />
+                            <DesignAmountRow T="Temperature" Label="Effective Temperature Range" Variable="variables.NucleateBoilingEffectiveTemperatureRange" ReadOnly="true" />
+                            <DesignAmountRow T="HeatSurfaceFlow" Label="Effective Minimum Heat Flux" Variable="variables.NucleateBoilingEffectiveMinimumHeatFlux" ReadOnly="true" />
+                            <DesignValueRow Label="Boiling Range Parameter" Value="@GetUnitLessValue(variables.NucleateBoilingRangeParameter)" ReadOnly="true" />
+                            <DesignValueRow Label="Nucleate Boiling Mixture Correction" Value="@GetUnitLessValue(variables.NucleateBoilingMixtureCorrectionFactor)" ReadOnly="true" />
+                            <DesignAmountRow T="HeatTransferCoefficient" Label="Corrected Nucleate Boiling Coefficient" Variable="variables.SingleTubeNucleateBoilingCoefficient" ReadOnly="true" />
+                            <DesignValueRow Label="Bundle Boiling Correction" Value="@GetUnitLessValue(variables.BundleNucleateBoilingCorrectionFactor)" ReadOnly="true" />
+                            <DesignAmountRow T="HeatTransferCoefficient" Label="Bundle Nucleate Boiling Coefficient" Variable="variables.BundleNucleateBoilingCoefficient" ReadOnly="true" />
+                            <DesignValueRow Label="Finned Tube Surface Factor" Value="@GetUnitLessValue(variables.FinnedTubeSurfaceFactor)" ReadOnly="true" />
+                            <DesignValueRow Label="Fin Efficiency Factor" Value="@GetUnitLessValue(variables.FinEfficiencyFactor)" ReadOnly="true" />
+                            <DesignValueRow Label="Finned Tube Correction Factor" Value="@GetUnitLessValue(variables.FinnedTubeCorrectionFactor)" ReadOnly="true" />
+                            <DesignAmountRow T="HeatTransferCoefficient" Label="Finned Tube Corrected Bundle Boiling Coefficient" Variable="variables.FinnedTubeCorrectedBundleBoilingCoefficient" ReadOnly="true" />
+                            <DesignAmountRow T="HeatSurfaceFlow" Label="Vertical Thermosiphon Choke Reference Heat Flux" Variable="variables.VerticalThermosiphonChokeReferenceMaximumHeatFlux" ReadOnly="true" />
+                            <DesignValueRow Label="Vertical Thermosiphon Tube Geometry Correction" Value="@GetUnitLessValue(variables.VerticalThermosiphonTubeGeometryCorrectionFactor)" ReadOnly="true" />
+                            <DesignAmountRow T="HeatSurfaceFlow" Label="Vertical Thermosiphon Choke Heat Flux Limit" Variable="variables.VerticalThermosiphonChokeMaximumHeatFlux" ReadOnly="true" />
+                            <DesignValueRow Label="Vertical Thermosiphon Choke Utilization" Value="@GetUnitLessValue(variables.VerticalThermosiphonChokeHeatFluxUtilization)" ReadOnly="true" />
+                            <DesignAmountRow T="HeatTransferCoefficient" Label="Vertical Thermosiphon Natural Convection Coefficient" Variable="variables.VerticalThermosiphonNaturalConvectionCoefficient" ReadOnly="true" />
+                            <DesignValueRow Label="Vertical Thermosiphon Reduced Heat Flux" Value="@GetUnitLessValue(variables.VerticalThermosiphonReducedHeatFlux)" ReadOnly="true" />
+                            <DesignAmountRow T="Velocity" Label="Vertical Thermosiphon Inlet Velocity" Variable="variables.VerticalThermosiphonInletVelocity" ReadOnly="true" />
+                            <DesignValueRow Label="Vertical Thermosiphon Figure A17 Vapor Fraction Limit" Value="@GetUnitLessValue(variables.VerticalThermosiphonFigureA17OutletVaporFractionLimit)" ReadOnly="true" />
+                            <DesignValueRow Label="Vertical Thermosiphon Figure A17 Vapor Fraction Utilization" Value="@GetUnitLessValue(variables.VerticalThermosiphonFigureA17OutletVaporFractionUtilization)" ReadOnly="true" />
+                            <DesignAmountRow T="Diameter" Label="Reboiler Liquid Line Recommended Diameter" Variable="variables.ReboilerLiquidLineRecommendedDiameter" ReadOnly="true" />
+                            <DesignAmountRow T="HeatSurfaceFlow" Label="Maximum Allowable Heat Flux" Variable="variables.MaximumAllowableHeatFlux" ValueChanged="value => SetHeatSurfaceFlow(variables.MaximumAllowableHeatFlux, value)" />
+                            <DesignAmountRow T="HeatSurfaceFlow" Label="Design Heat Flux Limit" Variable="variables.DesignHeatFluxLimit" ReadOnly="true" />
+                            <DesignValueRow Label="Heat Flux Utilization" Value="@GetUnitLessValue(variables.HeatFluxUtilization)" ReadOnly="true" />
+                            <DesignValueRow Label="Vaporized Fraction" Value="@GetUnitLessValue(variables.VaporizedFraction)" ReadOnly="true" />
+                            <DesignValueRow Label="Vaporized Fraction Limit" Value="@GetUnitLessValue(variables.VaporizedFractionLimit)" ReadOnly="true" />
+                            <DesignValueRow Label="Vaporized Fraction Utilization" Value="@GetUnitLessValue(variables.VaporizedFractionUtilization)" ReadOnly="true" />
+                            <DesignAmountRow T="PressureDrop" Label="Vaporizing Side Pressure Drop" Variable="variables.VaporizingSidePressureDrop" ReadOnly="true" />
+                            <DesignAmountRow T="Length" Label="Available Reboiler Tower Elevation" Variable="variables.ReboilerAvailableTowerElevation" ValueChanged="value => SetLength(variables.ReboilerAvailableTowerElevation, value)" />
+                            <DesignAmountRow T="Diameter" Label="Reboiler Liquid Line Diameter" Variable="variables.ReboilerLiquidLineDiameter" ValueChanged="value => SetDiameter(variables.ReboilerLiquidLineDiameter, value)" />
+                            <DesignValueRow Label="Reboiler Liquid Line K" Value="@GetUnitLessValue(variables.ReboilerLiquidLineResistanceCoefficient)" ValueChanged="value => SetUnitLess(variables.ReboilerLiquidLineResistanceCoefficient, value)" />
+                            <DesignAmountRow T="Diameter" Label="Reboiler Vapor Line Diameter" Variable="variables.ReboilerVaporLineDiameter" ValueChanged="value => SetDiameter(variables.ReboilerVaporLineDiameter, value)" />
+                            <DesignValueRow Label="Reboiler Vapor Line K" Value="@GetUnitLessValue(variables.ReboilerVaporLineResistanceCoefficient)" ValueChanged="value => SetUnitLess(variables.ReboilerVaporLineResistanceCoefficient, value)" />
+                            <DesignAmountRow T="PressureDrop" Label="Reboiler Liquid Line Pressure Drop" Variable="variables.ReboilerLiquidLinePressureDrop" ReadOnly="true" />
+                            <DesignAmountRow T="PressureDrop" Label="Reboiler Vapor Line Pressure Drop" Variable="variables.ReboilerVaporLinePressureDrop" ReadOnly="true" />
+                            <DesignAmountRow T="PressureDrop" Label="Reboiler Circuit Pressure Drop" Variable="variables.ReboilerCircuitPressureDrop" ReadOnly="true" />
+                            <DesignAmountRow T="Length" Label="Required Reboiler Tower Elevation" Variable="variables.ReboilerRequiredTowerElevation" ReadOnly="true" />
+                            <DesignAmountRow T="PressureDrop" Label="Required Reboiler Static Head" Variable="variables.ReboilerRequiredStaticHead" ReadOnly="true" />
+                            <DesignAmountRow T="PressureDrop" Label="Available Reboiler Static Head" Variable="variables.ReboilerAvailableStaticHead" ReadOnly="true" />
+                            <DesignValueRow Label="Reboiler Static Head Margin" Value="@GetUnitLessValue(variables.ReboilerStaticHeadMargin)" ReadOnly="true" />
+                            <DesignAmountRow T="Length" Label="Reboiler Min Tower Elevation" Variable="variables.ReboilerMinimumTowerElevation" ReadOnly="true" />
+                            <DesignAmountRow T="Length" Label="Reboiler Max Tower Elevation" Variable="variables.ReboilerMaximumTowerElevation" ReadOnly="true" />
+                            <DesignValueRow Label="Pump-Through Circulation Ratio" Value="@GetUnitLessValue(variables.PumpThroughRecommendedCirculationRatio)" ReadOnly="true" />
+                            <DesignValueRow Label="Condensation Zones" Value="@GetUnitLessValue(variables.CondensationZoneCount)" Integer="true" ReadOnly="true" />
+                            <DesignValueRow Label="Desuperheating Duty Fraction" Value="@GetUnitLessValue(variables.DesuperheatingDutyFraction)" ReadOnly="true" />
+                            <DesignValueRow Label="Condensation Duty Fraction" Value="@GetUnitLessValue(variables.CondensationDutyFraction)" ReadOnly="true" />
+                            <DesignValueRow Label="Subcooling Duty Fraction" Value="@GetUnitLessValue(variables.SubcoolingDutyFraction)" ReadOnly="true" />
+                            <DesignValueRow Label="Desuperheating Area Fraction" Value="@GetUnitLessValue(variables.DesuperheatingAreaFraction)" ReadOnly="true" />
+                            <DesignValueRow Label="Condensation Area Fraction" Value="@GetUnitLessValue(variables.CondensationAreaFraction)" ReadOnly="true" />
+                            <DesignValueRow Label="Subcooling Area Fraction" Value="@GetUnitLessValue(variables.SubcoolingAreaFraction)" ReadOnly="true" />
+                            <DesignAmountRow T="HeatTransferCoefficient" Label="Vapor Cooling Coefficient" Variable="variables.VaporCoolingZoneHeatTransferCoefficient" ReadOnly="true" />
+                            <DesignAmountRow T="HeatTransferCoefficient" Label="Condensing Zone Coefficient" Variable="variables.CondensingZoneHeatTransferCoefficient" ReadOnly="true" />
+                            <DesignAmountRow T="HeatTransferCoefficient" Label="Liquid Cooling Coefficient" Variable="variables.LiquidCoolingZoneHeatTransferCoefficient" ReadOnly="true" />
+                            <DesignAmountRow T="HeatTransferCoefficient" Label="Bottom Flow Liquid Coefficient" Variable="variables.BottomFlowLiquidCoolingHeatTransferCoefficient" ReadOnly="true" />
+                            <DesignAmountRow T="HeatTransferCoefficient" Label="Drip Cooling Coefficient" Variable="variables.DripCoolingHeatTransferCoefficient" ReadOnly="true" />
+                            <DesignValueRow Label="Condensing Area Iterations" Value="@GetUnitLessValue(variables.CondensingAreaIterationCount)" Integer="true" ReadOnly="true" />
+                            <DesignAmountRow T="Area" Label="Condensing Iterated Required Area" Variable="variables.CondensingIteratedRequiredArea" ReadOnly="true" />
+                            <DesignValueRow Label="Condensing Vapor Free Area Fraction" Value="@GetUnitLessValue(variables.CondensingVaporFreeAreaFraction)" ReadOnly="true" />
+                            <DesignValueRow Label="Condensing Vapor Mass Velocity lb/s-ft2" Value="@GetUnitLessValue(variables.CondensingVaporMassVelocity)" ReadOnly="true" />
+                            <DesignValueRow Label="Condensing Two-Phase Density lb/ft3" Value="@GetUnitLessValue(variables.CondensingTwoPhaseAverageDensity)" ReadOnly="true" />
+                            <DesignValueRow Label="Condensing DP Density Factor" Value="@GetUnitLessValue(variables.CondensingPressureDropDensityCorrectionFactor)" ReadOnly="true" />
+                            <DesignAmountRow T="HeatTransferCoefficient" Label="Duty Weighted Condensing Coefficient" Variable="variables.DutyWeightedCondensingSideHeatTransferCoefficient" ReadOnly="true" />
+                            <DesignValueRow Label="Drumless Surface Factor" Value="@GetUnitLessValue(variables.DrumlessCondenserSurfaceAllowanceFactor)" ReadOnly="true" />
+                            <DesignAmountRow T="Area" Label="Drumless Required Surface" Variable="variables.DrumlessCondenserRequiredSurface" ReadOnly="true" />
+                            <DesignAmountRow T="Diameter" Label="Drumless Vent Diameter" Variable="variables.DrumlessCondenserVentDiameter" ReadOnly="true" />
+                            <DesignAmountRow T="Diameter" Label="Drumless Pot Diameter" Variable="variables.DrumlessCondenserSeparatorPotDiameter" ReadOnly="true" />
+                            <DesignAmountRow T="Length" Label="Drumless Pot Min Length" Variable="variables.DrumlessCondenserSeparatorPotMinimumLength" ReadOnly="true" />
+                            <DesignAmountRow T="Length" Label="Drumless Pot Max Length" Variable="variables.DrumlessCondenserSeparatorPotMaximumLength" ReadOnly="true" />
+                            <DesignAmountRow T="Length" Label="Drumless Min Elevation" Variable="variables.DrumlessCondenserMinimumElevation" ReadOnly="true" />
+                            <DesignAmountRow T="Temperature" Label="Cooling Water Outlet Limit" Variable="variables.CoolingWaterOutletBulkTemperatureLimit" ReadOnly="true" />
+                            <DesignAmountRow T="Temperature" Label="Cooling Water Wall Temperature" Variable="variables.CoolingWaterEstimatedTubeWallTemperature" ReadOnly="true" />
+                            <DesignAmountRow T="Temperature" Label="Cooling Water Film Temperature" Variable="variables.CoolingWaterEstimatedFilmTemperature" ReadOnly="true" />
+                            <DesignAmountRow T="Temperature" Label="Cooling Water Film Limit" Variable="variables.CoolingWaterFilmTemperatureLimit" ReadOnly="true" />
                             <DesignAmountRow T="HeatTransferCoefficient" Label="Clean U" Variable="variables.CleanOverallCoefficient" ReadOnly="true" />
                             <DesignAmountRow T="HeatTransferCoefficient" Label="Actual U" Variable="variables.ActualOverallCoefficient" ReadOnly="true" />
                             <DesignAmountRow T="HeatTransferCoefficient" Label="Dirty U" Variable="variables.CalculatedDirtyOverallCoefficient" ReadOnly="true" />
                             <DesignValueRow Label="Fouling Resistance" Value="@GetUnitLessValue(variables.CalculatedFoulingResistance)" ReadOnly="true" />
                             <DesignValueRow Label="Allowed Fouling" Value="@GetUnitLessValue(variables.AllowedFoulingResistance)" ReadOnly="true" />
+                            <DesignValueRow Label="Fouling Resistance Fraction" Value="@GetUnitLessValue(variables.FoulingResistanceFraction)" ReadOnly="true" />
                         </div>
                     </article>
 
@@ -268,10 +383,23 @@
                         <h4>Tube Side</h4>
                         <div class="property-table datasheet-properties">
                             <DesignAmountRow T="Velocity" Label="Velocity" Variable="variables.TubeVelocity" ReadOnly="true" />
+                            <DesignAmountRow T="Velocity" Label="Cooling Water Min Velocity" Variable="variables.CoolingWaterMinimumTubeVelocity" ReadOnly="true" />
+                            <DesignAmountRow T="Velocity" Label="Cooling Water Max Velocity" Variable="variables.CoolingWaterMaximumTubeVelocity" ReadOnly="true" />
                             <DesignAmountRow T="PressureDrop" Label="Pressure Drop" Variable="variables.TubeSidePressureDrop" ReadOnly="true" />
+                            <DesignAmountRow T="PressureDrop" Label="Allowed Pressure Drop" Variable="variables.TubeSideAllowedPressureDrop" ReadOnly="true" />
+                            <DesignValueRow Label="Pressure Drop Utilization" Value="@GetUnitLessValue(variables.TubeSidePressureDropUtilization)" ReadOnly="true" />
+                            <DesignAmountRow T="Diameter" Label="Nozzle Diameter" Variable="variables.TubeSideNozzleDiameter" ValueChanged="value => SetDiameter(variables.TubeSideNozzleDiameter, value)" />
+                            <DesignAmountRow T="Velocity" Label="Nozzle Velocity" Variable="variables.TubeSideNozzleVelocity" ReadOnly="true" />
+                            <DesignAmountRow T="PressureDrop" Label="Nozzle Pressure Drop" Variable="variables.TubeSideNozzlePressureDrop" ReadOnly="true" />
                             <DesignAmountRow T="HeatTransferCoefficient" Label="Heat Transfer Coefficient" Variable="variables.TubeSideHeatTransferCoefficient" ReadOnly="true" />
                             <DesignValueRow Label="Reynolds Number" Value="@GetUnitLessValue(variables.TubeSideReynoldsNumber)" ReadOnly="true" />
+                            <DesignValueRow Label="Prandtl Number" Value="@GetUnitLessValue(variables.TubeSidePrandtlNumber)" ReadOnly="true" />
+                            <DesignValueRow Label="Natural Convection Factor" Value="@GetUnitLessValue(variables.TubeSideNaturalConvectionFactor)" ReadOnly="true" />
+                            <DesignValueRow Label="Short Tube Correction" Value="@GetUnitLessValue(variables.TubeSideShortTubeCorrectionFactor)" ReadOnly="true" />
+                            <DesignValueRow Label="Laminar Length Factor" Value="@GetUnitLessValue(variables.TubeSideLaminarLengthFactor)" ReadOnly="true" />
                             <DesignValueRow Label="Friction Factor" Value="@GetUnitLessValue(variables.TubeSideFrictionFactor)" ReadOnly="true" />
+                            <DesignValueRow Label="Viscosity Gradient Factor" Value="@GetUnitLessValue(variables.TubeSideViscosityGradientCorrectionFactor)" ReadOnly="true" />
+                            <DesignValueRow Label="Natural Convection DP Factor" Value="@GetUnitLessValue(variables.TubeSidePressureDropNaturalConvectionCorrectionFactor)" ReadOnly="true" />
                             <DesignValueRow Label="Allowed Fouling" Value="@GetUnitLessValue(variables.TubeSideAllowedFoulingResistance)" ValueChanged="value => SetFoulingResistance(variables.TubeSideAllowedFoulingResistance, value)" />
                         </div>
                     </article>
@@ -281,9 +409,17 @@
                         <div class="property-table datasheet-properties">
                             <DesignAmountRow T="Velocity" Label="Velocity" Variable="variables.ShellSideVelocity" ReadOnly="true" />
                             <DesignAmountRow T="PressureDrop" Label="Pressure Drop" Variable="variables.ShellSidePressureDrop" ReadOnly="true" />
+                            <DesignAmountRow T="PressureDrop" Label="Allowed Pressure Drop" Variable="variables.ShellSideAllowedPressureDrop" ReadOnly="true" />
+                            <DesignValueRow Label="Pressure Drop Utilization" Value="@GetUnitLessValue(variables.ShellSidePressureDropUtilization)" ReadOnly="true" />
+                            <DesignAmountRow T="Diameter" Label="Nozzle Diameter" Variable="variables.ShellSideNozzleDiameter" ValueChanged="value => SetDiameter(variables.ShellSideNozzleDiameter, value)" />
+                            <DesignAmountRow T="Velocity" Label="Nozzle Velocity" Variable="variables.ShellSideNozzleVelocity" ReadOnly="true" />
+                            <DesignAmountRow T="PressureDrop" Label="Nozzle Pressure Drop" Variable="variables.ShellSideNozzlePressureDrop" ReadOnly="true" />
                             <DesignAmountRow T="HeatTransferCoefficient" Label="Heat Transfer Coefficient" Variable="variables.ShellSideHeatTransferCoefficient" ReadOnly="true" />
                             <DesignAmountRow T="Diameter" Label="Equivalent Diameter" Variable="variables.ShellEquivalentDiameter" ReadOnly="true" />
                             <DesignAmountRow T="Area" Label="Flow Area" Variable="variables.ShellFlowArea" ReadOnly="true" />
+                            <DesignValueRow Label="Prandtl Number" Value="@GetUnitLessValue(variables.ShellSidePrandtlNumber)" ReadOnly="true" />
+                            <DesignValueRow Label="Nominal Crossflow Fraction" Value="@GetUnitLessValue(variables.ShellSideNominalCrossflowFraction)" ReadOnly="true" />
+                            <DesignValueRow Label="Heat Transfer Crossflow Fraction" Value="@GetUnitLessValue(variables.ShellSideHeatTransferCrossflowFraction)" ReadOnly="true" />
                             <DesignValueRow Label="Allowed Fouling" Value="@GetUnitLessValue(variables.ShellSideAllowedFoulingResistance)" ValueChanged="value => SetFoulingResistance(variables.ShellSideAllowedFoulingResistance, value)" />
                         </div>
                     </article>
@@ -303,6 +439,20 @@
                     </ul>
                 </section>
             }
+
+            @if (selectedDesign.Result is HeatExchangerDesignResult dpResult && dpResult.Recommendations.Count > 0)
+            {
+                <section class="pending-methods">
+                    <h3>Design Practices Review</h3>
+                    <p>These DP09 recommendations are active for the selected shell-and-tube design.</p>
+                    <ul>
+                        @foreach (var recommendation in dpResult.Recommendations)
+                        {
+                            <li>@recommendation</li>
+                        }
+                    </ul>
+                </section>
+            }
         </div>
     }
 </section>
@@ -315,8 +465,8 @@
     private IEquipmentDesign? selectedDesign;
     private string? errorMessage;
     private string? selectedUnitSystemName;
+    private string selectedCalculationStandard = ShellAndTubeCalculationStandard.Kern.ToString();
     private string tubeStandard = "Kern";
-    private string tubeConstruction = "U-tube";
     private static readonly IReadOnlyList<DesignSelectOption> TubeStandardOptions =
     [
         new("Kern", "Kern"),
@@ -368,9 +518,120 @@
 
     private static readonly IReadOnlyList<DesignSelectOption> TubeConstructionOptions =
     [
-        new("Straight", "Straight"),
-        new("U-tube", "U-tube")
+        new(ShellAndTubeTubeConstruction.Straight.ToString(), "Straight"),
+        new(ShellAndTubeTubeConstruction.UTube.ToString(), "U-tube")
     ];
+
+    private static readonly IReadOnlyList<DesignSelectOption> FrontHeadOptions =
+    [
+        new(ShellAndTubeFrontHeadType.RemovableChannelAndCover.ToString(), "A - Removable channel and cover"),
+        new(ShellAndTubeFrontHeadType.Bonnet.ToString(), "B - Bonnet"),
+        new(ShellAndTubeFrontHeadType.IntegralTubesheetRemovableCover.ToString(), "C - Integral tubesheet with removable cover")
+    ];
+
+    private static readonly IReadOnlyList<DesignSelectOption> RearHeadOptions =
+    [
+        new(Dp09dRearHeadType.FixedTubesheet.ToString(), "Fixed tubesheet"),
+        new(Dp09dRearHeadType.SplitRingFloatingHead.ToString(), "Split-ring floating head"),
+        new(Dp09dRearHeadType.PullThroughFloatingHead.ToString(), "Pull-through floating head")
+    ];
+
+    private static readonly IReadOnlyList<DesignSelectOption> CleaningMethodOptions =
+    [
+        new(ShellAndTubeCleaningMethod.NotSpecified.ToString(), "Not specified"),
+        new(ShellAndTubeCleaningMethod.Chemical.ToString(), "Chemical"),
+        new(ShellAndTubeCleaningMethod.Mechanical.ToString(), "Mechanical"),
+        new(ShellAndTubeCleaningMethod.ChemicalOrMechanical.ToString(), "Chemical or mechanical")
+    ];
+
+    private static readonly IReadOnlyList<DesignSelectOption> ShellTypeOptions =
+    [
+        new(ShellAndTubeShellType.OnePass.ToString(), "E - One-pass shell"),
+        new(ShellAndTubeShellType.TwoPass.ToString(), "F - Two-pass shell"),
+        new(ShellAndTubeShellType.SplitFlow.ToString(), "G - Split-flow shell"),
+        new(ShellAndTubeShellType.DoubleSplitFlow.ToString(), "H - Double split-flow shell"),
+        new(ShellAndTubeShellType.DividedFlow.ToString(), "J - Divided-flow shell"),
+        new(ShellAndTubeShellType.CrossFlow.ToString(), "X - Cross-flow shell")
+    ];
+
+    private static readonly IReadOnlyList<DesignSelectOption> BaffleTypeOptions =
+    [
+        new(ShellAndTubeBaffleType.SingleSegmental.ToString(), "Single segmental"),
+        new(ShellAndTubeBaffleType.DoubleSegmental.ToString(), "Double segmental"),
+        new(ShellAndTubeBaffleType.RodBaffle.ToString(), "Rod baffle"),
+        new(ShellAndTubeBaffleType.HelicalBaffle.ToString(), "Helical baffle"),
+        new(ShellAndTubeBaffleType.NoTubesInWindow.ToString(), "No tubes in window")
+    ];
+
+    private static readonly IReadOnlyList<DesignSelectOption> ReboilerTypeOptions =
+    [
+        new(ShellAndTubeReboilerType.Kettle.ToString(), "Kettle"),
+        new(ShellAndTubeReboilerType.Internal.ToString(), "Internal"),
+        new(ShellAndTubeReboilerType.VerticalThermosiphon.ToString(), "Vertical thermosiphon"),
+        new(ShellAndTubeReboilerType.HorizontalThermosiphon.ToString(), "Horizontal thermosiphon"),
+        new(ShellAndTubeReboilerType.PumpThrough.ToString(), "Pump-through")
+    ];
+
+    private static readonly IReadOnlyList<DesignSelectOption> CoolingWaterTypeOptions =
+    [
+        new(ShellAndTubeCoolingWaterType.None.ToString(), "None"),
+        new(ShellAndTubeCoolingWaterType.FreshWater.ToString(), "Fresh water"),
+        new(ShellAndTubeCoolingWaterType.BrackishWater.ToString(), "Brackish water"),
+        new(ShellAndTubeCoolingWaterType.SaltWater.ToString(), "Salt water")
+    ];
+
+    private static readonly IReadOnlyList<DesignSelectOption> EnhancedHeatTransferOptions =
+    [
+        new(ShellAndTubeEnhancedHeatTransferType.None.ToString(), "None"),
+        new(ShellAndTubeEnhancedHeatTransferType.IntegralFinnedTubes.ToString(), "Integral finned tubes"),
+        new(ShellAndTubeEnhancedHeatTransferType.NucleateBoilingTubes.ToString(), "Nucleate boiling tubes"),
+        new(ShellAndTubeEnhancedHeatTransferType.TurbulencePromoters.ToString(), "Turbulence promoters"),
+        new(ShellAndTubeEnhancedHeatTransferType.OnlineMechanicalCleaning.ToString(), "Online mechanical cleaning"),
+        new(ShellAndTubeEnhancedHeatTransferType.RodBaffles.ToString(), "Rod baffles"),
+        new(ShellAndTubeEnhancedHeatTransferType.HelicalBaffles.ToString(), "Helical baffles"),
+        new(ShellAndTubeEnhancedHeatTransferType.TwistedTubes.ToString(), "Twisted tubes")
+    ];
+
+    private static readonly IReadOnlyList<DesignSelectOption> CondenserArrangementOptions =
+    [
+        new(ShellAndTubeCondenserArrangement.NotSpecified.ToString(), "Not specified"),
+        new(ShellAndTubeCondenserArrangement.ConventionalWithAccumulator.ToString(), "Conventional with accumulator"),
+        new(ShellAndTubeCondenserArrangement.ElevatedAboveReceiver.ToString(), "Elevated above receiver"),
+        new(ShellAndTubeCondenserArrangement.DrumlessCondenser.ToString(), "Drumless condenser"),
+        new(ShellAndTubeCondenserArrangement.SurfaceCondenser.ToString(), "Surface condenser")
+    ];
+
+    private static readonly IReadOnlyList<DesignSelectOption> TubeMaterialOptions =
+    [
+        new(ShellAndTubeTubeMaterial.CarbonSteel.ToString(), "Carbon steel"),
+        new(ShellAndTubeTubeMaterial.Type304StainlessSteel.ToString(), "304 stainless steel"),
+        new(ShellAndTubeTubeMaterial.Type316StainlessSteel.ToString(), "316 stainless steel"),
+        new(ShellAndTubeTubeMaterial.Admiralty.ToString(), "Admiralty"),
+        new(ShellAndTubeTubeMaterial.Brass.ToString(), "Brass"),
+        new(ShellAndTubeTubeMaterial.RedBrass.ToString(), "Red brass"),
+        new(ShellAndTubeTubeMaterial.AluminumBrass.ToString(), "Aluminum brass"),
+        new(ShellAndTubeTubeMaterial.CuproNickel9010.ToString(), "90-10 cupronickel"),
+        new(ShellAndTubeTubeMaterial.CuproNickel7030.ToString(), "70-30 cupronickel"),
+        new(ShellAndTubeTubeMaterial.Monel.ToString(), "Monel"),
+        new(ShellAndTubeTubeMaterial.Inconel.ToString(), "Inconel"),
+        new(ShellAndTubeTubeMaterial.Aluminum.ToString(), "Aluminum"),
+        new(ShellAndTubeTubeMaterial.CarbonMoly.ToString(), "Carbon moly"),
+        new(ShellAndTubeTubeMaterial.Titanium.ToString(), "Titanium"),
+        new(ShellAndTubeTubeMaterial.Copper.ToString(), "Copper"),
+        new(ShellAndTubeTubeMaterial.Lead.ToString(), "Lead"),
+        new(ShellAndTubeTubeMaterial.Nickel.ToString(), "Nickel"),
+        new(ShellAndTubeTubeMaterial.ChromeMoly1CrHalfMo.ToString(), "1Cr-1/2Mo"),
+        new(ShellAndTubeTubeMaterial.ChromeMoly214CrHalfMo.ToString(), "2-1/4Cr-1/2Mo"),
+        new(ShellAndTubeTubeMaterial.ChromeMoly5CrHalfMo.ToString(), "5Cr-1/2Mo"),
+        new(ShellAndTubeTubeMaterial.ChromeMoly12Cr1Mo.ToString(), "12Cr-1Mo")
+    ];
+
+    private static readonly IReadOnlyList<DesignSelectOption> CalculationStandardOptions =
+    [
+        new(ShellAndTubeCalculationStandard.Kern.ToString(), "Kern"),
+        new(ShellAndTubeCalculationStandard.DesignPractices.ToString(), "Design Practices")
+    ];
+
     private ShellAndTubeDesignVariables? Variables => selectedDesign?.Variables as ShellAndTubeDesignVariables;
 
     protected override void OnInitialized()
@@ -398,6 +659,7 @@
         if (selectedDesign is null && Equipment.Designs.Count > 0)
         {
             selectedDesign = Equipment.Designs[^1];
+            selectedCalculationStandard = Variables?.CalculationStandard.ToString() ?? ShellAndTubeCalculationStandard.Kern.ToString();
             ApplySelectedUnitSystem();
         }
     }
@@ -408,7 +670,8 @@
 
         try
         {
-            selectedDesign = Equipment.CreateDesign();
+            selectedDesign = Equipment.CreateDesign(GetSelectedCalculationStandard());
+            selectedCalculationStandard = Variables?.CalculationStandard.ToString() ?? selectedCalculationStandard;
             ApplySelectedUnitSystem();
         }
         catch (Exception ex)
@@ -421,6 +684,7 @@
     {
         selectedDesign = design;
         errorMessage = null;
+        selectedCalculationStandard = Variables?.CalculationStandard.ToString() ?? ShellAndTubeCalculationStandard.Kern.ToString();
         ApplySelectedUnitSystem();
     }
 
@@ -441,6 +705,53 @@
         {
             errorMessage = ex.Message;
         }
+    }
+
+    private void ApplySelectedCalculationStandard()
+    {
+        if (Variables is null)
+        {
+            return;
+        }
+
+        Variables.CalculationStandard = GetSelectedCalculationStandard();
+
+        try
+        {
+            selectedDesign = Equipment.RecalculateDesign(selectedDesign!);
+            selectedCalculationStandard = Variables?.CalculationStandard.ToString() ?? selectedCalculationStandard;
+            errorMessage = null;
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ex.Message;
+        }
+    }
+
+    private ShellAndTubeCalculationStandard GetSelectedCalculationStandard()
+    {
+        if (Enum.TryParse<ShellAndTubeCalculationStandard>(selectedCalculationStandard, out var standard))
+        {
+            return standard;
+        }
+
+        return string.Equals(selectedCalculationStandard, "Design Practices", StringComparison.OrdinalIgnoreCase)
+            ? ShellAndTubeCalculationStandard.DesignPractices
+            : ShellAndTubeCalculationStandard.Kern;
+    }
+
+    private void OnCalculationStandardChanged(ChangeEventArgs e)
+    {
+        selectedCalculationStandard = Convert.ToString(e.Value, CultureInfo.InvariantCulture)
+            ?? ShellAndTubeCalculationStandard.Kern.ToString();
+
+        if (Variables is null)
+        {
+            return;
+        }
+
+        ApplySelectedCalculationStandard();
+        ApplySelectedUnitSystem();
     }
 
     private void SetDiameter(Variable<Diameter> variable, ChangeEventArgs e, UnitMeasure unit)
@@ -511,6 +822,24 @@
         RecalculateSelectedDesign();
     }
 
+    private void SetHeatSurfaceFlow(Variable<HeatSurfaceFlow> variable, double value)
+    {
+        variable.SetValue(new HeatSurfaceFlow(value, variable.DisplayUnit), VariableDefinedBy.UserInput);
+        RecalculateSelectedDesign();
+    }
+
+    private void SetPressure(Variable<Pressure> variable, double value)
+    {
+        variable.SetValue(new Pressure(value, variable.DisplayUnit), VariableDefinedBy.UserInput);
+        RecalculateSelectedDesign();
+    }
+
+    private void SetTemperature(Variable<Temperature> variable, double value)
+    {
+        variable.SetValue(new Temperature(value, variable.DisplayUnit), VariableDefinedBy.UserInput);
+        RecalculateSelectedDesign();
+    }
+
     private Task OnTubeLayoutChanged(string value)
     {
         if (Variables is null)
@@ -548,9 +877,201 @@
         return Task.CompletedTask;
     }
 
+    private Task OnTubeMaterialChanged(string value)
+    {
+        if (Variables is null)
+        {
+            return Task.CompletedTask;
+        }
+
+        if (Enum.TryParse<ShellAndTubeTubeMaterial>(value, out var material))
+        {
+            Variables.TubeMaterial = material;
+            RecalculateSelectedDesign();
+        }
+
+        return Task.CompletedTask;
+    }
+
     private Task OnTubeConstructionChanged(string value)
     {
-        tubeConstruction = value;
+        if (Variables is null)
+        {
+            return Task.CompletedTask;
+        }
+
+        if (Enum.TryParse<ShellAndTubeTubeConstruction>(value, out var construction))
+        {
+            Variables.TubeConstruction = construction;
+            if (construction == ShellAndTubeTubeConstruction.UTube &&
+                Variables.RearHeadType == Dp09dRearHeadType.FixedTubesheet)
+            {
+                Variables.RearHeadType = Dp09dRearHeadType.PullThroughFloatingHead;
+            }
+
+            RecalculateSelectedDesign();
+        }
+
+        return Task.CompletedTask;
+    }
+
+    private Task OnFrontHeadChanged(string value)
+    {
+        if (Variables is null)
+        {
+            return Task.CompletedTask;
+        }
+
+        if (Enum.TryParse<ShellAndTubeFrontHeadType>(value, out var frontHeadType))
+        {
+            Variables.FrontHeadType = frontHeadType;
+            RecalculateSelectedDesign();
+        }
+
+        return Task.CompletedTask;
+    }
+
+    private Task OnRearHeadChanged(string value)
+    {
+        if (Variables is null)
+        {
+            return Task.CompletedTask;
+        }
+
+        if (Enum.TryParse<Dp09dRearHeadType>(value, out var rearHeadType))
+        {
+            Variables.RearHeadType = rearHeadType;
+            RecalculateSelectedDesign();
+        }
+
+        return Task.CompletedTask;
+    }
+
+    private Task OnTubeCleaningMethodChanged(string value)
+    {
+        if (Variables is null)
+        {
+            return Task.CompletedTask;
+        }
+
+        if (Enum.TryParse<ShellAndTubeCleaningMethod>(value, out var cleaningMethod))
+        {
+            Variables.TubeSideCleaningMethod = cleaningMethod;
+            RecalculateSelectedDesign();
+        }
+
+        return Task.CompletedTask;
+    }
+
+    private Task OnShellCleaningMethodChanged(string value)
+    {
+        if (Variables is null)
+        {
+            return Task.CompletedTask;
+        }
+
+        if (Enum.TryParse<ShellAndTubeCleaningMethod>(value, out var cleaningMethod))
+        {
+            Variables.ShellSideCleaningMethod = cleaningMethod;
+            RecalculateSelectedDesign();
+        }
+
+        return Task.CompletedTask;
+    }
+
+    private Task OnShellTypeChanged(string value)
+    {
+        if (Variables is null)
+        {
+            return Task.CompletedTask;
+        }
+
+        if (Enum.TryParse<ShellAndTubeShellType>(value, out var shellType))
+        {
+            Variables.ShellType = shellType;
+            RecalculateSelectedDesign();
+        }
+
+        return Task.CompletedTask;
+    }
+
+    private Task OnBaffleTypeChanged(string value)
+    {
+        if (Variables is null)
+        {
+            return Task.CompletedTask;
+        }
+
+        if (Enum.TryParse<ShellAndTubeBaffleType>(value, out var baffleType))
+        {
+            Variables.BaffleType = baffleType;
+            RecalculateSelectedDesign();
+        }
+
+        return Task.CompletedTask;
+    }
+
+    private Task OnEnhancedHeatTransferChanged(string value)
+    {
+        if (Variables is null)
+        {
+            return Task.CompletedTask;
+        }
+
+        if (Enum.TryParse<ShellAndTubeEnhancedHeatTransferType>(value, out var enhancedHeatTransferType))
+        {
+            Variables.EnhancedHeatTransferType = enhancedHeatTransferType;
+            RecalculateSelectedDesign();
+        }
+
+        return Task.CompletedTask;
+    }
+
+    private Task OnReboilerTypeChanged(string value)
+    {
+        if (Variables is null)
+        {
+            return Task.CompletedTask;
+        }
+
+        if (Enum.TryParse<ShellAndTubeReboilerType>(value, out var reboilerType))
+        {
+            Variables.ReboilerType = reboilerType;
+            RecalculateSelectedDesign();
+        }
+
+        return Task.CompletedTask;
+    }
+
+    private Task OnCondenserArrangementChanged(string value)
+    {
+        if (Variables is null)
+        {
+            return Task.CompletedTask;
+        }
+
+        if (Enum.TryParse<ShellAndTubeCondenserArrangement>(value, out var condenserArrangement))
+        {
+            Variables.CondenserArrangement = condenserArrangement;
+            RecalculateSelectedDesign();
+        }
+
+        return Task.CompletedTask;
+    }
+
+    private Task OnCoolingWaterTypeChanged(string value)
+    {
+        if (Variables is null)
+        {
+            return Task.CompletedTask;
+        }
+
+        if (Enum.TryParse<ShellAndTubeCoolingWaterType>(value, out var coolingWaterType))
+        {
+            Variables.CoolingWaterType = coolingWaterType;
+            RecalculateSelectedDesign();
+        }
+
         return Task.CompletedTask;
     }
 
@@ -584,6 +1105,14 @@
 
     private static double GetAmountValue<T>(Variable<T> variable, UnitMeasure unit)
         where T : Amount => variable.IsDefined ? variable.Value.GetValue(unit) : 0d;
+
+    private static PressureDrop GetAllowedPressureDrop(Variable<PressureDrop> variable) =>
+        new(GetAllowedPressureDropPsi(variable), PressureDropUnits.psi);
+
+    private static double GetAllowedPressureDropPsi(Variable<PressureDrop> variable) =>
+        variable.IsDefined && variable.Value.GetValue(PressureDropUnits.psi) > 0d
+            ? variable.Value.GetValue(PressureDropUnits.psi)
+            : 5d;
 
     private static double GetUnitLessValue(Variable<UnitLess> variable) =>
         variable.IsDefined ? variable.Value.GetValue(UnitLessUnits.None) : 0d;
@@ -686,10 +1215,10 @@
         GetAmountValue(variables.TubeVelocity, VelocityUnits.FeetPerSecond) <= 10d;
 
     private static bool IsTubePressureDropValid(ShellAndTubeDesignVariables variables) =>
-        GetAmountValue(variables.TubeSidePressureDrop, PressureDropUnits.psi) <= 5d;
+        GetAmountValue(variables.TubeSidePressureDrop, PressureDropUnits.psi) <= GetAllowedPressureDropPsi(variables.TubeSideAllowedPressureDrop);
 
     private static bool IsShellPressureDropValid(ShellAndTubeDesignVariables variables) =>
-        GetAmountValue(variables.ShellSidePressureDrop, PressureDropUnits.psi) <= 5d;
+        GetAmountValue(variables.ShellSidePressureDrop, PressureDropUnits.psi) <= GetAllowedPressureDropPsi(variables.ShellSideAllowedPressureDrop);
 
     private static bool IsFoulingResistanceValid(ShellAndTubeDesignVariables variables) =>
         GetUnitLessValue(variables.CalculatedFoulingResistance) >= GetUnitLessValue(variables.AllowedFoulingResistance);
@@ -701,14 +1230,61 @@
         return odInches <= 0d || pitchInches >= 1.25d * odInches;
     }
 
-    private string GetTemaType() => tubeConstruction == "U-tube" ? "B-E-U" : "B-E-M";
+    private string GetTemaType() => $"{GetFrontHeadLetter()}-{GetShellTypeLetter()}-{GetRearHeadLetter()}";
 
-    private string GetRearHeadLetter() => tubeConstruction == "U-tube" ? "U" : "M";
+    private static string GetCalculationStandardLabel(ShellAndTubeCalculationStandard standard) =>
+        standard == ShellAndTubeCalculationStandard.DesignPractices ? "Design Practices" : "Kern";
 
-    private string GetRearHeadLabel() => tubeConstruction == "U-tube" ? "U-tube bundle" : "Fixed tubesheet";
+    private string GetFrontHeadLetter() => Variables?.FrontHeadType switch
+    {
+        ShellAndTubeFrontHeadType.RemovableChannelAndCover => "A",
+        ShellAndTubeFrontHeadType.IntegralTubesheetRemovableCover => "C",
+        _ => "B"
+    };
+
+    private string GetFrontHeadLabel() => Variables?.FrontHeadType switch
+    {
+        ShellAndTubeFrontHeadType.RemovableChannelAndCover => "Removable channel",
+        ShellAndTubeFrontHeadType.IntegralTubesheetRemovableCover => "Integral tubesheet",
+        _ => "Bonnet"
+    };
+
+    private string GetRearHeadLetter() => Variables?.RearHeadType switch
+    {
+        Dp09dRearHeadType.SplitRingFloatingHead => "S",
+        Dp09dRearHeadType.PullThroughFloatingHead => IsUTubeConstruction() ? "U" : "T",
+        _ => "M"
+    };
+
+    private string GetShellTypeLetter() => Variables?.ShellType switch
+    {
+        ShellAndTubeShellType.TwoPass => "F",
+        ShellAndTubeShellType.SplitFlow => "G",
+        ShellAndTubeShellType.DoubleSplitFlow => "H",
+        ShellAndTubeShellType.DividedFlow => "J",
+        ShellAndTubeShellType.CrossFlow => "X",
+        _ => "E"
+    };
+
+    private string GetShellTypeLabel() => Variables?.ShellType switch
+    {
+        ShellAndTubeShellType.TwoPass => "Two-pass shell",
+        ShellAndTubeShellType.SplitFlow => "Split-flow shell",
+        ShellAndTubeShellType.DoubleSplitFlow => "Double split-flow shell",
+        ShellAndTubeShellType.DividedFlow => "Divided-flow shell",
+        ShellAndTubeShellType.CrossFlow => "Cross-flow shell",
+        _ => "One-pass shell"
+    };
+
+    private string GetRearHeadLabel() => Variables?.RearHeadType switch
+    {
+        Dp09dRearHeadType.SplitRingFloatingHead => "Split-ring floating head",
+        Dp09dRearHeadType.PullThroughFloatingHead => IsUTubeConstruction() ? "U-tube bundle" : "Pull-through floating head",
+        _ => "Fixed tubesheet"
+    };
 
     private bool IsUTubeConstruction() =>
-        string.Equals(tubeConstruction, "U-tube", StringComparison.OrdinalIgnoreCase);
+        Variables?.TubeConstruction == ShellAndTubeTubeConstruction.UTube;
 
     private string GetTubeLayoutSummary(ShellAndTubeDesignVariables variables)
     {
@@ -840,16 +1416,18 @@
         var shellDrop = GetAmountValue(variables.ShellSidePressureDrop, variables.ShellSidePressureDrop.DisplayUnit);
         var pitch = GetDiameterValue(variables.TubePitch, pitchUnit);
         var maxTubeVelocity = new Velocity(10d, VelocityUnits.FeetPerSecond).GetValue(velocityUnit);
-        var maxTubeDrop = new PressureDrop(5d, PressureDropUnits.psi).GetValue(pressureDropUnit);
-        var maxShellDrop = new PressureDrop(5d, PressureDropUnits.psi).GetValue(variables.ShellSidePressureDrop.DisplayUnit);
+        var tubeAllowedPressureDropPsi = GetAllowedPressureDropPsi(variables.TubeSideAllowedPressureDrop);
+        var shellAllowedPressureDropPsi = GetAllowedPressureDropPsi(variables.ShellSideAllowedPressureDrop);
+        var maxTubeDrop = new PressureDrop(tubeAllowedPressureDropPsi, PressureDropUnits.psi).GetValue(pressureDropUnit);
+        var maxShellDrop = new PressureDrop(shellAllowedPressureDropPsi, PressureDropUnits.psi).GetValue(variables.ShellSidePressureDrop.DisplayUnit);
         var minimumTemaPitch = new Diameter(1.25d * odInches, DiameterUnits.Inch).GetValue(pitchUnit);
 
         yield return BuildCheck("Tube count for shell", $"{FormatInteger(actualTubes)} tubes", $"<= {FormatInteger(maxTubes)} tubes", actualTubes <= maxTubes);
         yield return BuildCheck("Installed area", $"{FormatNumber(actualArea)} {areaUnit.Symbol}", $">= {FormatNumber(requiredArea)} {variables.RequiredArea.DisplayUnit.Symbol}", actualAreaSquareFeet >= requiredAreaSquareFeet);
         yield return BuildCheck("Tube velocity min", $"{FormatNumber(tubeVelocity)} {velocityUnit.Symbol}", $">= {FormatNumber(minTubeVelocity)} {variables.MinimumTubeVelocity.DisplayUnit.Symbol}", tubeVelocityFeetPerSecond >= minTubeVelocityFeetPerSecond);
         yield return BuildCheck("Tube velocity max", $"{FormatNumber(tubeVelocity)} {velocityUnit.Symbol}", $"<= {FormatNumber(maxTubeVelocity)} {velocityUnit.Symbol}", tubeVelocityFeetPerSecond <= 10d);
-        yield return BuildCheck("Tube pressure drop", $"{FormatNumber(tubeDrop)} {pressureDropUnit.Symbol}", $"<= {FormatNumber(maxTubeDrop)} {pressureDropUnit.Symbol}", tubeDropPsi <= 5d);
-        yield return BuildCheck("Shell pressure drop", $"{FormatNumber(shellDrop)} {variables.ShellSidePressureDrop.DisplayUnit.Symbol}", $"<= {FormatNumber(maxShellDrop)} {variables.ShellSidePressureDrop.DisplayUnit.Symbol}", shellDropPsi <= 5d);
+        yield return BuildCheck("Tube pressure drop", $"{FormatNumber(tubeDrop)} {pressureDropUnit.Symbol}", $"<= {FormatNumber(maxTubeDrop)} {pressureDropUnit.Symbol}", tubeDropPsi <= tubeAllowedPressureDropPsi);
+        yield return BuildCheck("Shell pressure drop", $"{FormatNumber(shellDrop)} {variables.ShellSidePressureDrop.DisplayUnit.Symbol}", $"<= {FormatNumber(maxShellDrop)} {variables.ShellSidePressureDrop.DisplayUnit.Symbol}", shellDropPsi <= shellAllowedPressureDropPsi);
         yield return BuildCheck("Fouling resistance", $"{FormatNumber(fouling)} hr ft2 F/BTU", $">= {FormatNumber(allowedFouling)} hr ft2 F/BTU", fouling >= allowedFouling);
         yield return BuildCheck("TEMA pitch", $"{FormatNumber(pitch)} {pitchUnit.Symbol}", $">= {FormatNumber(minimumTemaPitch)} {pitchUnit.Symbol}", odInches <= 0d || pitchInches >= 1.25d * odInches);
     }

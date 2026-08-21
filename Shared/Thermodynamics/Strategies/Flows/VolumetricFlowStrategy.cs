@@ -41,7 +41,7 @@ namespace Shared.Thermodynamics.Strategies.Flows
 
             double totalMassFlow = volumetricFlow * density;
             var totalMassAmount = new MassFlow(totalMassFlow, MassFlowUnits.Kg_sg);
-            _facade.MassFlow.SetValue(totalMassAmount, SolverConsecutive.VariableDefinedBy.StreamCalculated);
+            CalculatedVariableSetter.SetStreamCalculated(_facade.MassFlow, totalMassAmount);
 
             // 3. Calcular flujo molar total
             double molecularWeight = _facade.MaterialStream.MolecularWeight;
@@ -49,7 +49,7 @@ namespace Shared.Thermodynamics.Strategies.Flows
             {
                 double totalMolarFlow = totalMassFlow / molecularWeight;
                 var totalMolarAmount = new MolarFlow(totalMolarFlow, MolarFlowUnits.Kgmol_sg);
-                _facade.MolarFlow.SetValue(totalMolarAmount, SolverConsecutive.VariableDefinedBy.StreamCalculated);
+                CalculatedVariableSetter.SetStreamCalculated(_facade.MolarFlow, totalMolarAmount);
             }
 
             // 4. Calcular flujo de entalpía
@@ -58,7 +58,7 @@ namespace Shared.Thermodynamics.Strategies.Flows
                 double massEnthalpy = _facade.MaterialStream.MassEnthalpy.GetValue(MassEnergyUnits.KJ_Kg);
                 double energyFlow = totalMassFlow * massEnthalpy;
                 var energyAmount = new EnergyFlow(energyFlow, EnergyFlowUnits.KJ_sg);
-                _facade.EnthalpyFlow.SetValue(energyAmount, SolverConsecutive.VariableDefinedBy.StreamCalculated);
+                CalculatedVariableSetter.SetStreamCalculated(_facade.EnthalpyFlow, energyAmount);
             }
 
             if(!_facade.Composition.IsValid)   
@@ -74,14 +74,14 @@ namespace Shared.Thermodynamics.Strategies.Flows
                     double compMassFlow = totalMassFlow * massFrac;
 
                     var compMassAmount = new MassFlow(compMassFlow, MassFlowUnits.Kg_sg);
-                    comp.MassFlow.SetValue(compMassAmount, SolverConsecutive.VariableDefinedBy.StreamCalculated);
+                    CalculatedVariableSetter.SetStreamCalculated(comp.MassFlow, compMassAmount);
 
                     // Calcular flujo molar del componente
                     if (!comp.MolarFlow.ShouldTriggerRecalculation && molecularWeight > 0)
                     {
                         double compMolarFlow = compMassFlow / comp.MolecularWeight;
                         var compMolarAmount = new MolarFlow(compMolarFlow, MolarFlowUnits.Kgmol_sg);
-                        comp.MolarFlow.SetValue(compMolarAmount, SolverConsecutive.VariableDefinedBy.StreamCalculated);
+                        CalculatedVariableSetter.SetStreamCalculated(comp.MolarFlow, compMolarAmount);
                     }
                 }
             }

@@ -53,6 +53,7 @@ public class ProjectSessionService
     private readonly ProjectHydrationPublicationGate _hydrationPublicationGate = new();
     private readonly ProjectWorkspaceSelectionService _workspaceSelectionService = new();
     private readonly SemaphoreSlim _realtimeReloadLock = new(1, 1);
+    private readonly Dictionary<Guid, HashSet<Guid>> _sanitizedHydrationFlowsheetIds = new();
     private CancellationTokenSource? _connectionRecoveryCts;
     private bool _isConnectionRecoveryRunning;
     private long _currentProjectVersion;
@@ -209,8 +210,11 @@ public class ProjectSessionService
             project.CreateFlowsheet("PFD 1", "PFD");
         }
 
-        var selection = _workspaceSelectionService.SelectProject(project);
+        var session = await GetOrCreateWorkspaceStateAsync();
+        var preferredFlowsheetId = _workspaceSelectionService.ResolvePreferredFlowsheetId(project.Id, session);
+        var selection = _workspaceSelectionService.SelectProject(project, preferredFlowsheetId);
         PublishHydratedProject(project, selection.Flowsheet?.Id);
+        await PersistSanitizedHydrationAsync(project);
         await ConfirmCurrentProjectDocumentAsync(project.Id);
         await SaveSessionAsync(ActiveFlowsheet?.Id);
         await JoinRealtimeProjectAsync(project.Id);
@@ -276,11 +280,18 @@ public class ProjectSessionService
         }
 
         _projectRoles.Clear();
+        var summaries = summariesResult.Data.OrderByDescending(project => project.UpdatedOnUtc).ToList();
+        var session = await LoadWorkspaceStateAsync();
+        _workspaceState = session;
+        var projectIdToHydrate = ResolveInitialProjectId(summaries, session);
         var projects = new List<Project>();
-        foreach (var summary in summariesResult.Data.OrderByDescending(project => project.UpdatedOnUtc))
+        foreach (var summary in summaries)
         {
             _projectRoles[summary.Id] = summary.CurrentUserRole;
-            var project = await LoadProjectForListAsync(summary.Id);
+            var project = summary.Id == projectIdToHydrate
+                ? await LoadProjectForListAsync(summary.Id)
+                : CreateProjectSummary(summary, CurrentUser);
+
             if (project != null)
             {
                 projects.Add(project);
@@ -321,6 +332,34 @@ public class ProjectSessionService
         }
 
         return await FromPersistenceDtoAsync(document, CurrentUser, recalculate: true, updateSessionState: false);
+    }
+
+    private static Guid? ResolveInitialProjectId(
+        IReadOnlyList<ProjectSummaryDto> summaries,
+        IUserSessionState session)
+    {
+        if (summaries.Count == 0)
+        {
+            return null;
+        }
+
+        if (session.LastProjectId is { } lastProjectId &&
+            summaries.Any(summary => summary.Id == lastProjectId))
+        {
+            return lastProjectId;
+        }
+
+        return summaries[0].Id;
+    }
+
+    private static Project CreateProjectSummary(ProjectSummaryDto summary, User currentUser)
+    {
+        var owner = CreateProjectOwner(summary, currentUser);
+        return new Project(
+            summary.Name,
+            owner,
+            id: summary.Id,
+            createdAt: summary.CreatedOn);
     }
 
     public async Task<ProjectSharingDto?> GetProjectSharingAsync(Guid projectId)
@@ -625,7 +664,10 @@ public class ProjectSessionService
 
         session.LastProjectId = CurrentProject.Id;
         if (lastFlowsheetId != null)
+        {
             session.LastFlowsheetId = lastFlowsheetId;
+            session.LastFlowsheetIdsByProject[CurrentProject.Id] = lastFlowsheetId.Value;
+        }
         session.LastAccessAt = DateTime.UtcNow;
 
         await SaveWorkspaceStateAsync(session);
@@ -923,6 +965,7 @@ public class ProjectSessionService
 
     private void PublishHydratedProject(Project project, Guid? preferredFlowsheetId)
     {
+        ConfigureProjectTrace(project);
         if (CurrentProject?.Id != project.Id)
         {
             _lastRenderedProjectVersion = 0;
@@ -933,6 +976,20 @@ public class ProjectSessionService
             ? CurrentProject.GetFlowsheet(preferredFlowsheetId.Value)
             : null;
         ActiveFlowsheet ??= CurrentProject.Flowsheets.FirstOrDefault();
+    }
+
+    private void ConfigureProjectTrace(Project project)
+    {
+        project.SimulationService.Solver.TraceSink = _activityLog;
+    }
+
+    private void ApplyHydratedProjectConfiguration(Project project)
+    {
+        ProjectUnitSystemApplier.ApplyToProject(project);
+        project.SimulationService.ApplyProjectConfiguration(project);
+        LogHydrationTrace(
+            "Hydrated project configuration applied",
+            $"activeUnitSystem={project.Configuration.ActiveUnitSystemName}; plantElevation={project.Configuration.PlantElevation}; atmosphericPressure={project.SimulationService.Solver.AtmosphericPressure}");
     }
 
     private void ClearProjectAccessAfterRemoteLoss(Guid projectId)
@@ -1605,6 +1662,7 @@ public class ProjectSessionService
         {
             LastProjectId = dto.LastProjectId,
             LastFlowsheetId = dto.LastFlowsheetId,
+            LastFlowsheetIdsByProject = dto.LastFlowsheetIdsByProject ?? new Dictionary<Guid, Guid>(),
             IsProjectExplorerCollapsed = dto.IsProjectExplorerCollapsed,
             IsDiagramExplorerCollapsed = dto.IsDiagramExplorerCollapsed,
             ExpandedDiagramTypeCodes = dto.ExpandedDiagramTypeCodes,
@@ -1618,6 +1676,7 @@ public class ProjectSessionService
         {
             LastProjectId = session.LastProjectId,
             LastFlowsheetId = session.LastFlowsheetId,
+            LastFlowsheetIdsByProject = session.LastFlowsheetIdsByProject,
             IsProjectExplorerCollapsed = session.IsProjectExplorerCollapsed,
             IsDiagramExplorerCollapsed = session.IsDiagramExplorerCollapsed,
             ExpandedDiagramTypeCodes = session.ExpandedDiagramTypeCodes,
@@ -1663,8 +1722,12 @@ public class ProjectSessionService
                     }
                 };
 
+            LogHydrationTrace(
+                "Project load trace started",
+                $"project={document.Name}; version={document.Version}; diagrams={diagrams.Count}; recalculate={recalculate}");
             SetProjectHydration(true, "Restoring diagrams...");
             IFlowsheet? createdDefaultFlowsheet = null;
+            var pendingFormulaSpecifications = new List<PendingFormulaSpecificationHydration>();
             foreach (var diagram in diagrams)
             {
                 var flowsheet = project.CreateFlowsheet(
@@ -1681,7 +1744,10 @@ public class ProjectSessionService
                     diagram.CanvasStateJson,
                     _equipmentHydrationRegistry,
                     _pipeHydrationService,
-                    _formulaHydrationService);
+                    pendingFormulaSpecifications);
+                LogHydrationTrace(
+                    $"Diagram restored: {flowsheet.Name}",
+                    $"elements={flowsheet.Elements.Count}; pipes={flowsheet.Pipes.Count}; streams={project.SimulationService.Solver.Streams.Count}; equipment={project.SimulationService.Solver.Equipments.Count}; pending formulas={CountPendingFormulaSpecifications(pendingFormulaSpecifications)}");
 
                 if (createdDefaultDiagram)
                 {
@@ -1696,12 +1762,48 @@ public class ProjectSessionService
                     ToDiagramDto(createdDefaultFlowsheet, GetFlowsheetOrder(project, createdDefaultFlowsheet)));
             }
 
-            _interFlowsheetConnectionHydrationService.Restore(project);
+            LogWatchedStreams(project, "after diagram restore");
+            var beforeInterFlowsheetRestore = CaptureStreamSnapshots(project);
+            var restoredConnections = _interFlowsheetConnectionHydrationService.Restore(project);
+            ConfigureProjectTrace(project);
+            ApplyHydratedProjectConfiguration(project);
+            LogHydrationTrace(
+                "Inter-diagram connections restored",
+                $"restored={restoredConnections}; registered={project.InterFlowsheetConnections.Count}");
+            LogStreamChanges(beforeInterFlowsheetRestore, project, "inter-diagram restore");
+            LogWatchedStreams(project, "after inter-diagram restore");
+            var sanitizedFlowsheets = SanitizeHydratedTopology(project);
+            if (sanitizedFlowsheets.Count > 0)
+            {
+                RememberSanitizedHydration(project, sanitizedFlowsheets);
+            }
+
+            var pendingFormulaCount = CountPendingFormulaSpecifications(pendingFormulaSpecifications);
+            var restoredFormulaCount = RestorePendingFormulaSpecifications(project, pendingFormulaSpecifications, _formulaHydrationService);
+            var clearedFormulaTargetCount = ClearRestoredFormulaSpecificationTargets(project);
+            LogHydrationTrace(
+                "Formula specifications restored",
+                $"restored={restoredFormulaCount}/{pendingFormulaCount}; cleared persisted targets={clearedFormulaTargetCount}");
+            LogFormulaSpecifications(project, "after formula restore");
+            LogWatchedStreams(project, "after formula restore");
+
+            var beforeStreamRecalculation = CaptureStreamSnapshots(project);
+            RecalculateHydratedStreams(project);
+            LogStreamChanges(beforeStreamRecalculation, project, "hydrated stream recalculation");
+            LogWatchedStreams(project, "after hydrated stream recalculation");
 
             if (recalculate)
             {
                 SetProjectHydration(true, "Recalculating simulation...");
-                await project.RunSimulationAsync();
+                LogFormulaSpecifications(project, "before solver recalculation");
+                var beforeSolverRecalculation = CaptureStreamSnapshots(project);
+                var simulationResult = await project.RunSimulationAsync();
+                LogHydrationTrace(
+                    "Simulation recalculated",
+                    $"status={simulationResult.Status}; converged={simulationResult.Converged}; diagnostics={simulationResult.Diagnostics.Count}");
+                LogFormulaSpecifications(project, "after solver recalculation");
+                LogStreamChanges(beforeSolverRecalculation, project, "solver recalculation");
+                LogWatchedStreams(project, "after solver recalculation");
             }
 
             return project;
@@ -1722,14 +1824,16 @@ public class ProjectSessionService
         return result.Succeeded ? result.Data : null;
     }
 
-    private static User CreateProjectOwner(ProjectDocumentDto document, User currentUser)
+    private static User CreateProjectOwner(ProjectSummaryDto project, User currentUser)
     {
-        if (!Guid.TryParse(document.OwnerUserId, out var ownerId) || ownerId == currentUser.Id)
+        if (!Guid.TryParse(project.OwnerUserId, out var ownerId) || ownerId == currentUser.Id)
         {
             return currentUser;
         }
 
-        var ownerCollaborator = document.Collaborators.FirstOrDefault(collaborator => collaborator.UserId == document.OwnerUserId);
+        var ownerCollaborator = project is ProjectDocumentDto document
+            ? document.Collaborators.FirstOrDefault(collaborator => collaborator.UserId == project.OwnerUserId)
+            : null;
         var (firstName, lastName) = SplitDisplayName(ownerCollaborator?.DisplayName);
         return new User(ownerId, ownerCollaborator?.Email ?? string.Empty, firstName, lastName, false, currentUser.DefaultPreferences);
     }
@@ -2230,12 +2334,9 @@ public class ProjectSessionService
         string? canvasStateJson,
         ProjectEquipmentHydrationRegistry equipmentHydrationRegistry,
         ProjectPipeHydrationService pipeHydrationService,
-        ProjectFormulaHydrationService formulaHydrationService)
+        List<PendingFormulaSpecificationHydration> pendingFormulaSpecifications)
     {
         var state = Deserialize(canvasStateJson ?? "{}", new DiagramCanvasStateSnapshot());
-        var pendingFormulaSpecifications = new List<(
-            SolverEquipmentBase Equipment,
-            List<FormulaSpecificationSnapshot> Specifications)>();
         flowsheet.Zoom = state.Camera.Zoom <= 0 ? flowsheet.Zoom : state.Camera.Zoom;
         flowsheet.PanX = state.Camera.PanX;
         flowsheet.PanY = state.Camera.PanY;
@@ -2300,6 +2401,7 @@ public class ProjectSessionService
             }
 
             FacadeStateSerializer.Apply(element.Facade, elementSnapshot.FacadeStateJson);
+            FacadeStateSerializer.ClearPersistedCalculatedState(element.Facade);
             if (element.Facade is IFacadeStream streamFacade &&
                 !string.IsNullOrWhiteSpace(elementSnapshot.FacadeStateJson) &&
                 elementSnapshot.FacadeStateJson.Contains("Composition", StringComparison.Ordinal))
@@ -2310,7 +2412,9 @@ public class ProjectSessionService
             if (element.Facade is SolverEquipmentBase solverEquipment
                 && elementSnapshot.FormulaSpecifications is { Count: > 0 })
             {
-                pendingFormulaSpecifications.Add((solverEquipment, elementSnapshot.FormulaSpecifications));
+                pendingFormulaSpecifications.Add(new PendingFormulaSpecificationHydration(
+                    solverEquipment,
+                    elementSnapshot.FormulaSpecifications));
             }
 
             IFlowsheetElementReference reference = elementSnapshot.OffPageConnector == null
@@ -2347,14 +2451,595 @@ public class ProjectSessionService
                 pipeSnapshot.TargetPortName));
         }
 
+    }
+
+    private int RestorePendingFormulaSpecifications(
+        Project project,
+        IEnumerable<PendingFormulaSpecificationHydration> pendingFormulaSpecifications,
+        ProjectFormulaHydrationService formulaHydrationService)
+    {
+        var restoredCount = 0;
         foreach (var pending in pendingFormulaSpecifications)
         {
-            formulaHydrationService.Restore(
+            restoredCount += formulaHydrationService.Restore(
                 pending.Equipment,
                 pending.Specifications.Select(ToFormulaHydrationSnapshot),
                 project.SimulationService.Solver.Streams);
         }
+
+        return restoredCount;
     }
+
+    private static int ClearRestoredFormulaSpecificationTargets(Project project)
+    {
+        var clearedCount = 0;
+        var targets = project.SimulationService.Solver.Equipments
+            .SelectMany(equipment => equipment.Specifications.OfType<FormulaSpecification>())
+            .SelectMany(specification => specification.GetTargetVariables())
+            .Distinct()
+            .ToList();
+
+        foreach (var target in targets)
+        {
+            if (target.DataProcedence != VariableDefinedBy.Specification)
+            {
+                continue;
+            }
+
+            ResetSeedAwayFromPreviousSolution(target);
+            target.Clear(VariableDefinedBy.Specification);
+            clearedCount++;
+        }
+
+        return clearedCount;
+    }
+
+    private static void ResetSeedAwayFromPreviousSolution(IVariable variable)
+    {
+        var current = variable.GetSolverValue();
+        if (!double.IsFinite(current))
+        {
+            return;
+        }
+
+        var seed = Math.Abs(current) > 1e-9
+            ? current * (current > 0 ? 0.95 : 1.05)
+            : 1.0;
+
+        variable.SetValueFromSolver(seed, VariableDefinedBy.Undefined);
+    }
+
+    private static void RecalculateHydratedStreams(Project project)
+    {
+        foreach (var stream in project.SimulationService.Solver.Streams)
+        {
+            stream.RecalculateFromCurrentState();
+        }
+    }
+
+    private IReadOnlyCollection<IFlowsheet> SanitizeHydratedTopology(Project project)
+    {
+        var changedFlowsheets = new Dictionary<Guid, IFlowsheet>();
+        var changed = true;
+
+        while (changed)
+        {
+            changed = false;
+            changed |= RemoveInvalidInterFlowsheetConnections(project, changedFlowsheets);
+            changed |= RemoveInvalidPipes(project, changedFlowsheets);
+            changed |= RemoveInvalidOffPageConnectors(project, changedFlowsheets);
+            changed |= RemoveInvalidElementReferences(project, changedFlowsheets);
+            changed |= DisconnectInvalidPorts(project, changedFlowsheets);
+        }
+
+        return changedFlowsheets.Values.ToArray();
+    }
+
+    private static bool RemoveInvalidInterFlowsheetConnections(
+        Project project,
+        IDictionary<Guid, IFlowsheet> changedFlowsheets)
+    {
+        var changed = false;
+        foreach (var connection in project.InterFlowsheetConnections.ToList())
+        {
+            var sourceFlowsheet = project.GetFlowsheet(connection.SourceFlowsheetId);
+            var targetFlowsheet = project.GetFlowsheet(connection.TargetFlowsheetId);
+            var isInvalid =
+                sourceFlowsheet == null ||
+                targetFlowsheet == null ||
+                project.GetEquipment(connection.SourceConnectorId) is not OffPageConnectorElement ||
+                project.GetEquipment(connection.TargetConnectorId) is not OffPageConnectorElement ||
+                sourceFlowsheet.GetElementReference(connection.SourceConnectorId) == null ||
+                targetFlowsheet.GetElementReference(connection.TargetConnectorId) == null;
+
+            if (!isInvalid)
+            {
+                continue;
+            }
+
+            if (sourceFlowsheet != null)
+            {
+                RemoveConnectorArtifacts(project, sourceFlowsheet, connection.SourceConnectorId, changedFlowsheets);
+            }
+
+            if (targetFlowsheet != null)
+            {
+                RemoveConnectorArtifacts(project, targetFlowsheet, connection.TargetConnectorId, changedFlowsheets);
+            }
+
+            project.RemoveInterFlowsheetConnection(connection.Id);
+            changed = true;
+        }
+
+        return changed;
+    }
+
+    private static bool RemoveInvalidPipes(
+        Project project,
+        IDictionary<Guid, IFlowsheet> changedFlowsheets)
+    {
+        var changed = false;
+        foreach (var flowsheet in project.Flowsheets)
+        {
+            foreach (var pipe in flowsheet.Pipes.ToList())
+            {
+                var source = project.GetEquipment(pipe.SourceElementId);
+                var target = project.GetEquipment(pipe.TargetElementId);
+                if (source != null && target != null)
+                {
+                    continue;
+                }
+
+                source?.Disconnect(pipe.SourcePortName);
+                target?.Disconnect(pipe.TargetPortName);
+                flowsheet.RemovePipe(pipe.Id);
+                MarkChanged(changedFlowsheets, flowsheet);
+                changed = true;
+            }
+        }
+
+        return changed;
+    }
+
+    private static bool RemoveInvalidOffPageConnectors(
+        Project project,
+        IDictionary<Guid, IFlowsheet> changedFlowsheets)
+    {
+        var changed = false;
+        foreach (var flowsheet in project.Flowsheets)
+        {
+            foreach (var reference in flowsheet.Elements.OfType<IOffPageConnectorReference>().ToList())
+            {
+                var connector = project.GetEquipment(reference.ElementId) as OffPageConnectorElement;
+                var targetFlowsheet = reference.TargetFlowsheetId.HasValue
+                    ? project.GetFlowsheet(reference.TargetFlowsheetId.Value)
+                    : null;
+                var targetConnector = reference.TargetConnectorId.HasValue
+                    ? project.GetEquipment(reference.TargetConnectorId.Value) as OffPageConnectorElement
+                    : null;
+                var localPipe = flowsheet.Pipes.FirstOrDefault(pipe =>
+                    pipe.SourceElementId == reference.ElementId ||
+                    pipe.TargetElementId == reference.ElementId);
+                var targetPipe = targetFlowsheet?.Pipes.FirstOrDefault(pipe =>
+                    reference.TargetConnectorId.HasValue &&
+                    (pipe.SourceElementId == reference.TargetConnectorId.Value ||
+                     pipe.TargetElementId == reference.TargetConnectorId.Value));
+
+                if (connector != null &&
+                    targetFlowsheet != null &&
+                    targetConnector != null &&
+                    targetFlowsheet.GetElementReference(targetConnector.Id) != null &&
+                    localPipe != null &&
+                    targetPipe != null)
+                {
+                    continue;
+                }
+
+                RemoveConnectorArtifacts(project, flowsheet, reference.ElementId, changedFlowsheets);
+                if (targetFlowsheet != null && reference.TargetConnectorId.HasValue)
+                {
+                    RemoveConnectorArtifacts(project, targetFlowsheet, reference.TargetConnectorId.Value, changedFlowsheets);
+                }
+
+                RemoveInterFlowsheetConnectionByConnector(project, reference.ElementId);
+                if (reference.TargetConnectorId.HasValue)
+                {
+                    RemoveInterFlowsheetConnectionByConnector(project, reference.TargetConnectorId.Value);
+                }
+
+                changed = true;
+            }
+        }
+
+        return changed;
+    }
+
+    private static bool RemoveInvalidElementReferences(
+        Project project,
+        IDictionary<Guid, IFlowsheet> changedFlowsheets)
+    {
+        var changed = false;
+        foreach (var flowsheet in project.Flowsheets)
+        {
+            foreach (var reference in flowsheet.Elements.ToList())
+            {
+                if (project.GetEquipment(reference.ElementId) != null)
+                {
+                    continue;
+                }
+
+                flowsheet.RemoveElementReference(reference.ElementId);
+                MarkChanged(changedFlowsheets, flowsheet);
+                changed = true;
+            }
+        }
+
+        return changed;
+    }
+
+    private static bool DisconnectInvalidPorts(
+        Project project,
+        IDictionary<Guid, IFlowsheet> changedFlowsheets)
+    {
+        var changed = false;
+        foreach (var flowsheet in project.Flowsheets)
+        {
+            foreach (var reference in flowsheet.Elements)
+            {
+                var element = project.GetEquipment(reference.ElementId);
+                if (element == null)
+                {
+                    continue;
+                }
+
+                foreach (var port in element.Ports.Where(port => port.ConnectedElementId.HasValue).ToList())
+                {
+                    var connectedElementId = port.ConnectedElementId!.Value;
+                    var hasConnectedElement = project.GetEquipment(connectedElementId) != null;
+                    var hasPipe = flowsheet.Pipes.Any(pipe =>
+                        (pipe.SourceElementId == element.Id && pipe.SourcePortName == port.Name) ||
+                        (pipe.TargetElementId == element.Id && pipe.TargetPortName == port.Name));
+
+                    if (hasConnectedElement && hasPipe)
+                    {
+                        continue;
+                    }
+
+                    element.Disconnect(port.Name);
+                    MarkChanged(changedFlowsheets, flowsheet);
+                    changed = true;
+                }
+            }
+        }
+
+        return changed;
+    }
+
+    private static void RemoveConnectorArtifacts(
+        Project project,
+        IFlowsheet flowsheet,
+        Guid connectorId,
+        IDictionary<Guid, IFlowsheet> changedFlowsheets)
+    {
+        foreach (var pipe in flowsheet.Pipes
+                     .Where(candidate => candidate.SourceElementId == connectorId || candidate.TargetElementId == connectorId)
+                     .ToList())
+        {
+            var endpointId = pipe.SourceElementId == connectorId
+                ? pipe.TargetElementId
+                : pipe.SourceElementId;
+            var endpointPortName = pipe.SourceElementId == connectorId
+                ? pipe.TargetPortName
+                : pipe.SourcePortName;
+            project.GetEquipment(endpointId)?.Disconnect(endpointPortName);
+            flowsheet.RemovePipe(pipe.Id);
+        }
+
+        flowsheet.RemoveElementReference(connectorId);
+        project.RemoveEquipment(connectorId);
+        MarkChanged(changedFlowsheets, flowsheet);
+    }
+
+    private static void RemoveInterFlowsheetConnectionByConnector(Project project, Guid connectorId)
+    {
+        var connections = project.InterFlowsheetConnections
+            .Where(connection =>
+                connection.SourceConnectorId == connectorId ||
+                connection.TargetConnectorId == connectorId)
+            .Select(connection => connection.Id)
+            .ToList();
+
+        foreach (var connectionId in connections)
+        {
+            project.RemoveInterFlowsheetConnection(connectionId);
+        }
+    }
+
+    private void RememberSanitizedHydration(Project project, IReadOnlyCollection<IFlowsheet> flowsheets)
+    {
+        if (flowsheets.Count == 0)
+        {
+            return;
+        }
+
+        if (!_sanitizedHydrationFlowsheetIds.TryGetValue(project.Id, out var flowsheetIds))
+        {
+            flowsheetIds = new HashSet<Guid>();
+            _sanitizedHydrationFlowsheetIds[project.Id] = flowsheetIds;
+        }
+
+        foreach (var flowsheet in flowsheets)
+        {
+            flowsheetIds.Add(flowsheet.Id);
+        }
+    }
+
+    private async Task PersistSanitizedHydrationAsync(Project project)
+    {
+        if (!_sanitizedHydrationFlowsheetIds.Remove(project.Id, out var flowsheetIds) ||
+            flowsheetIds.Count == 0 ||
+            CurrentProject?.Id != project.Id ||
+            !CanCurrentUserEditProject(project))
+        {
+            return;
+        }
+
+        var flowsheets = project.Flowsheets
+            .Where(flowsheet => flowsheetIds.Contains(flowsheet.Id))
+            .ToList();
+        if (flowsheets.Count == 0)
+        {
+            return;
+        }
+
+        _activityLog?.Add("Hydration", "Invalid topology repaired", $"{flowsheets.Count} diagram(s)");
+        await PersistDiagramVisualStatesAsync(flowsheets);
+    }
+
+    private static void MarkChanged(IDictionary<Guid, IFlowsheet> changedFlowsheets, IFlowsheet flowsheet)
+    {
+        changedFlowsheets[flowsheet.Id] = flowsheet;
+    }
+
+    private void LogHydrationTrace(string message, string? detail = null)
+    {
+    }
+
+    private void LogWatchedStreams(Project project, string stage)
+    {
+        foreach (var streamName in new[] { "S-139" })
+        {
+            var stream = project.SimulationService.Solver.Streams
+                .FirstOrDefault(candidate => string.Equals(candidate.Name, streamName, StringComparison.OrdinalIgnoreCase));
+            if (stream == null)
+            {
+                LogHydrationTrace($"Watch {streamName}: {stage}", "stream not found");
+                continue;
+            }
+
+            LogHydrationTrace($"Watch {streamName}: {stage}", DescribeStream(CaptureStreamSnapshot(stream)));
+        }
+    }
+
+    private void LogStreamChanges(
+        IReadOnlyDictionary<string, StreamHydrationSnapshot> before,
+        Project project,
+        string stage)
+    {
+        var changes = new List<string>();
+        foreach (var stream in project.SimulationService.Solver.Streams)
+        {
+            var after = CaptureStreamSnapshot(stream);
+            if (!before.TryGetValue(after.Name, out var previous))
+            {
+                changes.Add($"{after.Name}: added; {DescribeStream(after)}");
+                continue;
+            }
+
+            var change = DescribeStreamChange(previous, after);
+            if (!string.IsNullOrWhiteSpace(change))
+            {
+                changes.Add($"{after.Name}: {change}");
+            }
+        }
+
+        if (changes.Count == 0)
+        {
+            LogHydrationTrace($"No stream changes after {stage}");
+            return;
+        }
+
+        foreach (var chunk in changes.Take(12).Chunk(3))
+        {
+            LogHydrationTrace($"Stream changes after {stage}", string.Join(" | ", chunk));
+        }
+
+        if (changes.Count > 12)
+        {
+            LogHydrationTrace($"Stream changes after {stage}", $"{changes.Count - 12} additional stream changes hidden.");
+        }
+    }
+
+    private void LogFormulaSpecifications(Project project, string stage)
+    {
+        var formulaSpecifications = project.SimulationService.Solver.Equipments
+            .SelectMany(equipment => equipment.Specifications
+                .OfType<FormulaSpecification>()
+                .Select(specification => new
+                {
+                    Equipment = equipment.Name,
+                    Specification = specification
+                }))
+            .ToList();
+
+        if (formulaSpecifications.Count == 0)
+        {
+            LogHydrationTrace($"Formula trace {stage}", "no formula specifications");
+            return;
+        }
+
+        var watchedSpecifications = formulaSpecifications
+            .Where(item => IsWatchedFormula(item.Specification))
+            .ToList();
+        var specificationsToLog = watchedSpecifications.Count > 0
+            ? watchedSpecifications
+            : formulaSpecifications.Take(8).ToList();
+
+        LogHydrationTrace(
+            $"Formula trace {stage}",
+            $"total={formulaSpecifications.Count}; watched={watchedSpecifications.Count}; logged={specificationsToLog.Count}");
+
+        foreach (var item in specificationsToLog)
+        {
+            LogHydrationTrace(
+                $"Formula {stage}: {item.Equipment}",
+                DescribeFormulaSpecification(item.Specification));
+        }
+    }
+
+    private static bool IsWatchedFormula(FormulaSpecification specification)
+    {
+        var formula = specification.Formula;
+        return ContainsDiagnosticStream(formula)
+            || formula.Contains("S-145", StringComparison.OrdinalIgnoreCase)
+            || formula.Contains("S-123", StringComparison.OrdinalIgnoreCase)
+            || specification.GetVariables().Any(variable =>
+                ContainsDiagnosticStream(variable.Name) ||
+                variable.Name.Contains("S-145", StringComparison.OrdinalIgnoreCase) ||
+                variable.Name.Contains("S-123", StringComparison.OrdinalIgnoreCase));
+    }
+
+    private static bool ContainsDiagnosticStream(string? value)
+    {
+        return value?.Contains("S-139", StringComparison.OrdinalIgnoreCase) == true;
+    }
+
+    private static string DescribeFormulaSpecification(FormulaSpecification specification)
+    {
+        var residual = specification.Equation.TryGetResidual(out var value) && double.IsFinite(value)
+            ? value.ToString("G6")
+            : "not evaluable";
+        var targets = string.Join(", ", specification.GetTargetVariables().Select(DescribeNamedVariable));
+        var variables = string.Join(", ", specification.GetVariables().Distinct().Select(DescribeNamedVariable));
+
+        return $"formula={specification.Formula}; canEvaluate={specification.CanEvaluate}; residual={residual}; targets=[{targets}]; variables=[{variables}]";
+    }
+
+    private static string DescribeNamedVariable(IVariable variable)
+    {
+        return $"{variable.Name}={DescribeVariable(CaptureVariableSnapshot(variable))}";
+    }
+
+    private static IReadOnlyDictionary<string, StreamHydrationSnapshot> CaptureStreamSnapshots(Project project)
+    {
+        return project.SimulationService.Solver.Streams
+            .Select(CaptureStreamSnapshot)
+            .ToDictionary(snapshot => snapshot.Name, StringComparer.OrdinalIgnoreCase);
+    }
+
+    private static StreamHydrationSnapshot CaptureStreamSnapshot(IFacadeStream stream)
+    {
+        return new StreamHydrationSnapshot(
+            stream.Name,
+            stream.State,
+            CaptureVariableSnapshot(stream.VaporFraction),
+            CaptureVariableSnapshot(stream.Temperature),
+            CaptureVariableSnapshot(stream.Pressure),
+            CaptureVariableSnapshot(stream.MassFlow),
+            CaptureVariableSnapshot(stream.MolarFlow),
+            CaptureVariableSnapshot(stream.VolumetricFlow),
+            CaptureVariableSnapshot(stream.EnthalpyFlow),
+            CaptureVariableSnapshot(stream.MassEnthalpy));
+    }
+
+    private static VariableHydrationSnapshot CaptureVariableSnapshot(IVariable variable)
+    {
+        return variable.IsDefined
+            ? new VariableHydrationSnapshot(variable.GetSolverValue(), variable.ToUiString("F2"), variable.DataProcedence)
+            : new VariableHydrationSnapshot(double.NaN, "<Not defined>", variable.DataProcedence);
+    }
+
+    private static string DescribeStream(StreamHydrationSnapshot snapshot)
+    {
+        return $"state={snapshot.State}; VF={DescribeVariable(snapshot.VaporFraction)}; T={DescribeVariable(snapshot.Temperature)}; P={DescribeVariable(snapshot.Pressure)}; MF={DescribeVariable(snapshot.MassFlow)}; MolF={DescribeVariable(snapshot.MolarFlow)}; VFw={DescribeVariable(snapshot.VolumetricFlow)}; Q={DescribeVariable(snapshot.EnthalpyFlow)}; Hm={DescribeVariable(snapshot.MassEnthalpy)}";
+    }
+
+    private static string DescribeVariable(VariableHydrationSnapshot snapshot)
+    {
+        return $"{snapshot.Text} [{snapshot.Source}]";
+    }
+
+    private static string DescribeStreamChange(StreamHydrationSnapshot before, StreamHydrationSnapshot after)
+    {
+        var changes = new List<string>();
+        if (before.State != after.State)
+        {
+            changes.Add($"state {before.State}->{after.State}");
+        }
+
+        AddVariableChange(changes, "VF", before.VaporFraction, after.VaporFraction);
+        AddVariableChange(changes, "T", before.Temperature, after.Temperature);
+        AddVariableChange(changes, "P", before.Pressure, after.Pressure);
+        AddVariableChange(changes, "MF", before.MassFlow, after.MassFlow);
+        AddVariableChange(changes, "MolF", before.MolarFlow, after.MolarFlow);
+        AddVariableChange(changes, "VFw", before.VolumetricFlow, after.VolumetricFlow);
+        AddVariableChange(changes, "Q", before.EnthalpyFlow, after.EnthalpyFlow);
+        AddVariableChange(changes, "Hm", before.MassEnthalpy, after.MassEnthalpy);
+        return string.Join(", ", changes);
+    }
+
+    private static void AddVariableChange(
+        List<string> changes,
+        string label,
+        VariableHydrationSnapshot before,
+        VariableHydrationSnapshot after)
+    {
+        if (before.Source == after.Source && !HasSignificantChange(before.SolverValue, after.SolverValue))
+        {
+            return;
+        }
+
+        changes.Add($"{label} {DescribeVariable(before)}->{DescribeVariable(after)}");
+    }
+
+    private static bool HasSignificantChange(double before, double after)
+    {
+        if (double.IsNaN(before) || double.IsNaN(after))
+        {
+            return double.IsNaN(before) != double.IsNaN(after);
+        }
+
+        var absoluteDelta = Math.Abs(before - after);
+        if (absoluteDelta > 1e-7)
+        {
+            return true;
+        }
+
+        var scale = Math.Max(1.0, Math.Max(Math.Abs(before), Math.Abs(after)));
+        return absoluteDelta / scale > 1e-6;
+    }
+
+    private static int CountPendingFormulaSpecifications(IEnumerable<PendingFormulaSpecificationHydration> pendingFormulaSpecifications)
+    {
+        return pendingFormulaSpecifications.Sum(pending => pending.Specifications.Count);
+    }
+
+    private sealed record StreamHydrationSnapshot(
+        string Name,
+        StreamStateType State,
+        VariableHydrationSnapshot VaporFraction,
+        VariableHydrationSnapshot Temperature,
+        VariableHydrationSnapshot Pressure,
+        VariableHydrationSnapshot MassFlow,
+        VariableHydrationSnapshot MolarFlow,
+        VariableHydrationSnapshot VolumetricFlow,
+        VariableHydrationSnapshot EnthalpyFlow,
+        VariableHydrationSnapshot MassEnthalpy);
+
+    private sealed record VariableHydrationSnapshot(
+        double SolverValue,
+        string Text,
+        VariableDefinedBy Source);
 
     private static FormulaSpecificationHydrationSnapshot ToFormulaHydrationSnapshot(FormulaSpecificationSnapshot snapshot)
     {
@@ -2593,6 +3278,10 @@ public class ProjectSessionService
         bool ShowLabel,
         bool IsLocked,
         OffPageConnectorSnapshot? OffPageConnector = null);
+
+    private sealed record PendingFormulaSpecificationHydration(
+        SolverEquipmentBase Equipment,
+        List<FormulaSpecificationSnapshot> Specifications);
 
     private sealed record OffPageConnectorSnapshot(
         Guid? TargetFlowsheetId,

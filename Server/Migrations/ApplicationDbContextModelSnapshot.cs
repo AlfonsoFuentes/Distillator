@@ -666,6 +666,9 @@ namespace Server.Migrations
                     b.Property<Guid?>("LastFlowsheetId")
                         .HasColumnType("uuid");
 
+                    b.Property<string>("LastFlowsheetIdsByProjectJson")
+                        .HasColumnType("jsonb");
+
                     b.Property<Guid?>("LastProjectId")
                         .HasColumnType("uuid");
 

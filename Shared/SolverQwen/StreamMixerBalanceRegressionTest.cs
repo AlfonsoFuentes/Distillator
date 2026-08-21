@@ -199,7 +199,7 @@ public sealed class StreamMixerBalanceRegressionTest
 
     private static void RunSimulation(MainSolver solver)
     {
-        solver.RunSimulation();
+        solver.RunSimulationAsync().GetAwaiter().GetResult();
         Thread.Sleep(250);
     }
 

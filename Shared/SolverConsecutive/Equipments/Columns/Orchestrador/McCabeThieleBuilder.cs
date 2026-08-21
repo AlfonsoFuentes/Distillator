@@ -15,13 +15,23 @@ namespace Shared.SolverConsecutive.Equipments.Columns.Orchestrador
 
         public async Task CalculateAsync(CancellationToken cancellationToken = default)
         {
-            if (_column.Orchestrator == null) return;
+            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+            Trace("McCabeThiele started", $"FUGChanged={_column.Orchestrator?.FUGChanged}; VLEChanged={_column.Orchestrator?.VLEChanged}; PlatesChanged={_column.Orchestrator?.PlatesChanged}");
+
+            if (_column.Orchestrator == null)
+            {
+                stopwatch.Stop();
+                Trace("McCabeThiele skipped", $"reason=no orchestrator; elapsedMs={stopwatch.ElapsedMilliseconds}");
+                return;
+            }
 
             // Caché si no hay cambios relevantes
             if (!_column.Orchestrator.FUGChanged &&
                 !_column.Orchestrator.VLEChanged &&
                 !_column.Orchestrator.PlatesChanged)
             {
+                stopwatch.Stop();
+                Trace("McCabeThiele skipped", $"reason=no input changed; elapsedMs={stopwatch.ElapsedMilliseconds}");
                 return;
             }
 
@@ -29,6 +39,8 @@ namespace Shared.SolverConsecutive.Equipments.Columns.Orchestrador
             if (columnResult == null)
             {
                 _column.Orchestrator.SetMcCabeThieleData(CreateEmptyData());
+                stopwatch.Stop();
+                Trace("McCabeThiele skipped", $"reason=no column result; elapsedMs={stopwatch.ElapsedMilliseconds}");
                 return;
             }
 
@@ -45,7 +57,8 @@ namespace Shared.SolverConsecutive.Equipments.Columns.Orchestrador
 
                     if (!vlePoints.Any())
                     {
-                        _column.Orchestrator?.SetMcCabeThieleData(CreateEmptyData());
+                        _column.Orchestrator?.SetMcCabeThieleData(
+                            CreatePartialData(diagonalLine, vlePoints, "VLE curve data is not available."));
                         return;
                     }
 
@@ -94,8 +107,13 @@ namespace Shared.SolverConsecutive.Equipments.Columns.Orchestrador
                     }
 
                     // Validación básica
-                    if (xD <= 0 || xB <= 0 || R <= 0 || zF <= 0)
+                    if (xD <= 0 || xB < 0 || R <= 0 || zF <= 0)
                     {
+                        _column.Orchestrator?.SetMcCabeThieleData(
+                            CreatePartialData(
+                                diagonalLine,
+                                vlePoints,
+                                $"Insufficient McCabe-Thiele inputs: xD={xD:F4}, xB={xB:F4}, R={R:F4}, zF={zF:F4}."));
                         return;
                     }
 
@@ -159,6 +177,15 @@ namespace Shared.SolverConsecutive.Equipments.Columns.Orchestrador
                     _column.Orchestrator?.SetMcCabeThieleData(CreateEmptyData());
                 }
             }, cancellationToken);
+
+            stopwatch.Stop();
+            var mcCabeThiele = _column.Orchestrator.CurrentResult.McCabeThiele;
+            Trace("McCabeThiele finished", $"elapsedMs={stopwatch.ElapsedMilliseconds}; vlePoints={mcCabeThiele?.VLECurve.Count ?? 0}; stages={mcCabeThiele?.StaircaseSteps.Count ?? 0}");
+        }
+
+        private void Trace(string message, string? detail = null)
+        {
+            _column.TraceSink?.TraceSolver($"Column {_column.Name}: {message}", detail);
         }
 
         /// <summary>
@@ -352,9 +379,12 @@ namespace Shared.SolverConsecutive.Equipments.Columns.Orchestrador
                 if (inRectifying && x_vle <= x_int) inRectifying = false;
 
                 double x_op_next = x_vle;
+                var strippingDenominator = x_int - xB;
                 double y_op_next = inRectifying
                     ? (R / (R + 1.0)) * x_op_next + xD / (R + 1.0)
-                    : ((y_int - xB) / (x_int - xB)) * (x_op_next - xB) + xB;
+                    : Math.Abs(strippingDenominator) < 1e-12
+                        ? xB
+                        : ((y_int - xB) / strippingDenominator) * (x_op_next - xB) + xB;
 
                 var point3 = (x_op_next, y_op_next);
                 steps.Add(new StaircaseStep { StageNumber = stageNum, Points = new List<(double x, double y)> { point1, point2, point3 }, StageType = inRectifying ? "Rectifying" : "Stripping" });
@@ -407,10 +437,21 @@ namespace Shared.SolverConsecutive.Equipments.Columns.Orchestrador
 
         private McCabeThieleData CreateEmptyData()
         {
+            return CreatePartialData(
+                new List<(double x, double y)> { (0, 0), (1, 1) },
+                new List<(double x, double y)>(),
+                string.Empty);
+        }
+
+        private McCabeThieleData CreatePartialData(
+            List<(double x, double y)> diagonalLine,
+            List<(double x, double y)> vleCurve,
+            string chartSubtitle)
+        {
             return new McCabeThieleData
             {
-                DiagonalLine = new List<(double x, double y)>(),
-                VLECurve = new List<(double x, double y)>(),
+                DiagonalLine = diagonalLine,
+                VLECurve = vleCurve,
                 RectifyingLine = new List<(double x, double y)>(),
                 StrippingLine = new List<(double x, double y)>(),
                 StaircaseSteps = new List<StaircaseStep>(),
@@ -424,7 +465,7 @@ namespace Shared.SolverConsecutive.Equipments.Columns.Orchestrador
                 ProjectionLinesIntersectToY = new(),      // ✅ NUEVO
                 MinRefluxRatio = 0,
                 ChartTitle = "McCabe-Thiele Diagram",
-                ChartSubtitle = string.Empty
+                ChartSubtitle = chartSubtitle
             };
         }
     }

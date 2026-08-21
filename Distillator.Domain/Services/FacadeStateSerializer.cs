@@ -11,18 +11,25 @@ public static class FacadeStateSerializer
 {
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 
-    public static string Serialize(IFacade? facade, bool includeTransientState = false)
+    public static string Serialize(
+        IFacade? facade,
+        bool includeTransientState = false,
+        IReadOnlyCollection<IVariable>? excludedVariables = null)
     {
         if (facade == null) return "{}";
 
         var variables = new List<FacadeVariableState>();
         var properties = new List<FacadePropertyState>();
+        var excludedVariableSet = excludedVariables is { Count: > 0 }
+            ? excludedVariables.ToHashSet()
+            : new HashSet<IVariable>();
         CaptureObject(
             facade,
             string.Empty,
             variables,
             properties,
             includeTransientState,
+            excludedVariableSet,
             new HashSet<object>(ReferenceEqualityComparer.Instance));
 
         return JsonSerializer.Serialize(new FacadeStateSnapshot(1, variables, properties), JsonOptions);
@@ -71,6 +78,15 @@ public static class FacadeStateSerializer
                 // El estado viejo o incompatible se ignora para mantener compatibilidad.
             }
         }
+    }
+
+    public static void ClearPersistedCalculatedState(IFacade? facade)
+    {
+        if (facade == null) return;
+
+        ClearPersistedCalculatedState(
+            facade,
+            new HashSet<object>(ReferenceEqualityComparer.Instance));
     }
 
     public static bool ApplyNewerUserInputStates(
@@ -132,6 +148,7 @@ public static class FacadeStateSerializer
         List<FacadeVariableState> variables,
         List<FacadePropertyState> properties,
         bool includeTransientState,
+        HashSet<IVariable> excludedVariables,
         HashSet<object> visited)
     {
         if (value == null || value is string or Amount or UnitMeasure) return;
@@ -140,7 +157,8 @@ public static class FacadeStateSerializer
 
         if (value is IVariable variable)
         {
-            if (includeTransientState || ShouldPersistVariable(variable))
+            if ((includeTransientState || ShouldPersistVariable(variable)) &&
+                !excludedVariables.Contains(variable))
             {
                 variables.Add(ToState(path, variable));
             }
@@ -154,7 +172,7 @@ public static class FacadeStateSerializer
             var index = 0;
             foreach (var item in enumerable)
             {
-                CaptureObject(item, $"{path}[{index}]", variables, properties, includeTransientState, visited);
+                CaptureObject(item, $"{path}[{index}]", variables, properties, includeTransientState, excludedVariables, visited);
                 index++;
             }
 
@@ -169,8 +187,60 @@ public static class FacadeStateSerializer
 
             var propertyValue = ReadProperty(property, value);
             var propertyPath = string.IsNullOrWhiteSpace(path) ? property.Name : $"{path}.{property.Name}";
-            CaptureObject(propertyValue, propertyPath, variables, properties, includeTransientState, visited);
+            CaptureObject(propertyValue, propertyPath, variables, properties, includeTransientState, excludedVariables, visited);
         }
+    }
+
+    private static void ClearPersistedCalculatedState(object? value, HashSet<object> visited)
+    {
+        if (value == null || value is string or Amount or UnitMeasure) return;
+        var valueType = value.GetType();
+        if (valueType.IsValueType || !visited.Add(value)) return;
+
+        if (value is IVariable variable)
+        {
+            ClearCalculatedVariable(variable, VariableDefinedBy.Solver);
+            ClearCalculatedVariable(variable, VariableDefinedBy.Equipment);
+            ClearCalculatedVariable(variable, VariableDefinedBy.Specification);
+            return;
+        }
+
+        if (value is IEnumerable enumerable)
+        {
+            foreach (var item in enumerable)
+            {
+                ClearPersistedCalculatedState(item, visited);
+            }
+
+            return;
+        }
+
+        if (!ShouldInspectType(valueType)) return;
+
+        foreach (var property in valueType.GetProperties(BindingFlags.Instance | BindingFlags.Public))
+        {
+            if (!ShouldInspectProperty(property)) continue;
+
+            var propertyValue = ReadProperty(property, value);
+            ClearPersistedCalculatedState(propertyValue, visited);
+        }
+    }
+
+    private static void ClearCalculatedVariable(IVariable variable, VariableDefinedBy procedence)
+    {
+        if (variable.DataProcedence != procedence)
+        {
+            return;
+        }
+
+        ResetToDeterministicInitialSeed(variable);
+        variable.Clear(procedence);
+    }
+
+    private static void ResetToDeterministicInitialSeed(IVariable variable)
+    {
+        // Prueba de diagnostico: no reutilizar valores calculados persistidos como semilla.
+        variable.SetValueFromSolver(1.0, VariableDefinedBy.Undefined);
     }
 
     private static void IndexStateTargets(

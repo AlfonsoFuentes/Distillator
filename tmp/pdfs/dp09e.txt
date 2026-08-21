@@ -1,0 +1,4664 @@
+
+--- PAGE 1 ---
+ExxonMobil Proprietary
+RESTRICTED ACCESS NOTICE
+DESIGN PRACTICES DUE TO THIRD PARTY PROPRIETARY INFORMATION
+This practice may contain third party information with confidentiality
+and use restrictions. EMRE's Law Department should be consulted
+prior to its release to any entity other than a 50% or more owned
+affiliate of Exxon Mobil Corporation who has an appropriate
+agreement (e.g. Standard Research Agreement, Upstream Cost
+Sharing Agreement) in place and their employees (this does not
+include in-house contractors, consultants, etc.)
+Any questions regarding Third Party Restricted Access should be
+directed to the appropriate contact in EMRE's Legal Department. A
+list of contacts can be found at:
+http:\\159.70.37.160\patents\assignresp91800.pdf
+To continue within this practice CLICK HERE
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 2 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+CALCULATION PROCEDURE, VAPORIZATION IX-E 1 of 94
+DESIGN PRACTICES
+December, 2000
+Changes shown by ➧
+CONTENTS
+Section Page
+SCOPE ............................................................................................................................................................ 4
+REFERENCES ................................................................................................................................................ 4
+HTRI........................................................................................................................................................ 4
+EQUIPMENT TYPES AND APPLICATIONS .................................................................................................. 4
+REBOILER TYPES ................................................................................................................................. 4
+General ................................................................................................................................................ 4
+Kettle Reboilers.................................................................................................................................... 4
+Vertical Thermosiphon Reboilers ......................................................................................................... 5
+Horizontal Thermosiphon Reboilers ..................................................................................................... 6
+Pump-Through Reboilers ..................................................................................................................... 6
+Internal Reboilers ................................................................................................................................. 6
+REBOILERS AND TOWER ELEVATION................................................................................................ 6
+REBOILER STAGE EFFICIENCY........................................................................................................... 7
+CHILLERS .............................................................................................................................................. 7
+PREHEATERS........................................................................................................................................ 7
+WASTE HEAT BOILERS ........................................................................................................................ 7
+Applications.......................................................................................................................................... 7
+Types of Units ...................................................................................................................................... 7
+DESIGN CONSIDERATIONS.......................................................................................................................... 8
+MAXIMUM AND DESIGN HEAT FLUX (FILM BOILING, VAPOR BLANKETING, CHOKE FLOW)........ 8
+Pool Boiling .......................................................................................................................................... 8
+Flow Boiling.......................................................................................................................................... 9
+VERY LOW TEMPERATURE DIFFERENCE ......................................................................................... 9
+VERY HIGH TEMPERATURE DIFFERENCE......................................................................................... 9
+FOULING ................................................................................................................................................ 9
+CALCULATION PROCEDURES................................................................................................................... 10
+KETTLE AND INTERNAL REBOILERS................................................................................................ 10
+Heat Transfer ..................................................................................................................................... 10
+Kettle Sizing ....................................................................................................................................... 11
+Hydraulic Balance .............................................................................................................................. 11
+VERTICAL THERMOSIPHON TUBESIDE REBOILERS ...................................................................... 11
+Heat Transfer ..................................................................................................................................... 11
+Hydraulic Balance .............................................................................................................................. 11
+HORIZONTAL THERMOSIPHON SHELLSIDE REBOILERS............................................................... 12
+Heat Transfer ..................................................................................................................................... 12
+Hydraulic Balance .............................................................................................................................. 12
+PUMP-THROUGH REBOILERS ........................................................................................................... 12
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 3 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+IX-E 2 of 94 CALCULATION PROCEDURE, VAPORIZATION
+DESIGN PRACTICES
+December, 2000
+CONTENTS (Cont)
+Section Page
+WASTE HEAT BOILERS ...................................................................................................................... 12
+Tube Selection ................................................................................................................................... 12
+Steam Generation on Shell Side........................................................................................................ 13
+Steam Generation on Tube Side........................................................................................................ 13
+Overall Heat Transfer Rate ................................................................................................................ 14
+NOMENCLATURE........................................................................................................................................ 15
+APPENDIX A - HEAT TRANSFER CALCULATION FORM FOR KETTLE AND INTERNAL
+REBOILERS ........................................................................................................................ 20
+APPENDIX B - HEAT TRANSFER CALCULATION FORM FOR KETTLE AND INTERNAL
+REBOILERS (SAMPLE) ...................................................................................................... 29
+APPENDIX C - HEAT TRANSFER CALCULATION FORM FOR VERTICAL TUBESIDE
+THERMOSIPHON REBOILERS .......................................................................................... 38
+APPENDIX D - HEAT TRANSFER CALCULATION FORM FOR VERTICAL TUBESIDE
+THERMOSIPHON REBOILERS (SAMPLE) ........................................................................ 44
+APPENDIX E - HEAT TRANSFER CALCULATION FORM FOR TUBESIDE PUMP-
+THROUGH REBOILERS ..................................................................................................... 50
+APPENDIX F - HYDRAULIC BALANCE CALCULATION FORM FOR KETTLE REBOILERS................... 51
+APPENDIX G - HYDRAULIC BALANCE CALCULATION FORM FOR KETTLE REBOILERS
+(SAMPLE) ............................................................................................................................ 55
+APPENDIX H - HYDRAULIC BALANCE CALCULATION FORM FOR VERTICAL TUBESIDE
+REBOILERS ........................................................................................................................ 59
+APPENDIX I - HYDRAULIC BALANCE CALCULATION FORM FOR VERTICAL TUBESIDE
+REBOILERS (SAMPLE)........................................................................................................ 65
+APPENDIX J - HYDRAULIC BALANCE CALCULATION FORM FOR HORIZONTAL SHELLSIDE
+REBOILERS .......................................................................................................................... 71
+TABLES
+Table 1 Operational Characteristics For Vertical Thermosiphon Reboilers ................................... 18
+Table 2 Design Suggestions For Vertical Thermosiphon Reboilers .............................................. 19
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 4 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+CALCULATION PROCEDURE, VAPORIZATION IX-E 3 of 94
+DESIGN PRACTICES
+December, 2000
+CONTENTS (Cont)
+Section Page
+FIGURES
+Reboiler Selection Chart ...................................................................................................................... 5
+Typical Pool Boiling Curve ................................................................................................................... 8
+Figure A1 Reboiler Types........................................................................................................... 76
+Figure A2 Components Of A Kettle Reboiler .............................................................................. 77
+Figure A3A Single Tube Maximum Heat Flux (Customary) .......................................................... 78
+Figure A3B Single Tube Maximum Heat Flux (Metric).................................................................. 78
+Figure A4 Bundle Correction Factor (Cb) ................................................................................... 79
+Figure A5A Single Tube Nucleate Boiling Coefficients (Customary)............................................. 80
+Figure A5B Single Tube Nucleate Boiling Coefficients (Metric) .................................................... 80
+Figure A6 Nucleate Boiling Pressure Correction, Fp .................................................................. 81
+Figure A7 Effective Temperature Range, Dr .............................................................................. 82
+Figure A8 Mixture Correction, Fc................................................................................................82
+Figure A9 Bundle Correction Factor, Fb..................................................................................... 83
+Figure A10A Finned Tube Surface Factor, Fs, For Pure Hydrocarbons (Customary)..................... 84
+Figure A10B Finned Tube Surface Factor, Fs, For Pure Hydrocarbons (Metric) ............................ 84
+Figure A11A Finned Tube Surface Factor, Fs, For Mixed Hydrocarbons (Customary)................... 85
+Figure A11B Finned Tube Surface Factor, Fs, For Mixed Hydrocarbons (Metric) .......................... 85
+Figure A12A Fin Efficiency Factor, Fe (Customary)........................................................................ 86
+Figure A12B Fin Efficiency Factor, Fe (Metric) ............................................................................... 86
+Figure A13 Kettle Flow Areas....................................................................................................... 87
+Figure A14A Choke Flow Reference Maximum Heat Flux For Vertical Thermosiphon Reboilers... 88
+Figure A14B Choke Flow Reference Maximum Heat Flux For Vertical Thermosiphon Reboilers... 88
+Figure A15A Tube Geometry Correction To Maximum Heat Flux (Customary) .............................. 89
+Figure A15B Tube Geometry Correction To Maximum Heat Flux (Metric)...................................... 89
+Figure A16A Natural Convention Coefficient (Customary).............................................................. 90
+Figure A16B Natural Convention Coefficient (Metric) ..................................................................... 90
+Figure A17A Outlet Vapor Fraction, Yo, As A Function Of Reduced Heat Flux And Inlet Velocity
+(Customary) ............................................................................................................... 91
+Figure A17B Outlet Vapor Fraction, Yo, As A Function Of Reduced Heat Flux And Inlet Velocity
+(Metric).......................................................................................................................92
+Figure A18A Reboiler Liquid Pipe Size (Customary) ...................................................................... 93
+Figure A18B Reboiler Liquid Pipe Size (Metric).............................................................................. 94
+Revision Memo
+12/00 General revision of all text sections, along with editorial changes to entire practice.
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 5 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+IX-E 4 of 94 CALCULATION PROCEDURE, VAPORIZATION
+DESIGN PRACTICES
+December, 2000
+SCOPE
+This section describes vaporizing equipment, provides design guidelines, and presents simplified hand calculation procedures
+for the heat transfer and hydraulic balance of vaporizers. The calculation procedures are based on methods presented in the
+Heat Transfer Research, Inc., (HTRI) Design Manual, Volumes 2 and 3, and Design Practices Section XIV, Fluid Flow. The
+recommended design procedure is to use the appropriate computer program as described in Section IX-K. Tube selection,
+circulation rate, and general design criteria for steam generators are also covered in this section. Sections IX-A, B, and C
+describe basic vaporizer considerations such as tube size and pitch, fouling factors, etc. Section IX-A also includes a brief
+description of enhanced boiling tubes that can be used to increase the nucleate boiling coefficient.
+REFERENCES
+HTRI
+Report BG1-1, Nucleate Pool Boiling of Hydrocarbon Mixtures, May 1983
+Report BT-1, Boiling Heat Transfer in a Vertical Thermosiphon Reboiler, May 1978
+Report BT-3, Boiling of Mixtures inside Vertical Tubes, Sept. 1978
+Report BT-4, Two-Phase Flow Instability in Vertical Thermosiphon Reboilers, Dec. 1978
+Report BK-1-1, Thermal Design of Kettle Reboiler Bundles, July 1969
+Design Manual, Volumes 2 and 3
+EQUIPMENT TYPES AND APPLICATIONS
+REBOILER TYPES
+General
+Distillation column reboilers can be divided into three groups according to their method of fluid circulation:
+1. Thermosiphon or natural circulation reboilers - The driving force is provided by the liquid head from the bottom of the
+tower. The available head must be sufficient to overcome pressure drops in the inlet and outlet piping and in the
+exchanger. The boiling fluid can be placed on the tubeside, or on the shell side of a conventional shell-and-tube
+exchanger, or on the shell side of a kettle type exchanger.
+2. Pump-through or forced circulation reboilers - A pump is used to circulate the boiling fluid through the exchanger and back
+to the tower. The boiling fluid is generally placed on the tubeside of a conventional shell-and-tube exchanger .
+3. Internal or stab-in reboilers - A tube bundle is inserted into the tower eliminating the need to provide for circulation of the
+fluid.
+Figure A1 shows sketches of different reboiler types and lists the advantages and disadvantages of each. The selection of the
+type of unit is based on the heat transfer performance, fouling tendency, and the economics of the design; hydrodynamic
+performance varies widely for the different types of exchangers, and is an important consideration. The economic factors
+include foundation and piping costs, exchanger shell and bundle costs, tower elevation, and operating costs. The performance
+factors are the rate of heat transfer and vaporization, pressure drop, and flow stability. The Reboiler Selection Chart below is a
+guide to equipment selection. This is a rough guide and the ultimate selection depends on many more specific criteria.
+Kettle Reboilers
+The components of a typical kettle reboiler are shown in Figure A2. The bundles are normally two-pass, and U tubes if a clean
+heating fluid such as steam is used, or a pull through floating head (T type) if the heating fluid is fouling. The bundle is inserted
+in an enlarged shell to provide vapor-liquid disengaging space above the bundle. An overflow weir is normally provided to
+maintain the liquid level above the top of the tubes.
+Kettle reboilers may have 100% vaporization for clean fluids such as refrigerants. If the boiling fluid tends to foul then an
+intermittent blowdown connection is provided at the bottom of the shell to remove fouling material accumulating at the bottom of
+the shell.
+With kettle reboilers the bottom section of the column is simplified. Product hold-up or vapor-liquid disengaging space is not
+required in the tower, so internal baffling is minimized. If the necessary liquid hold-up beyond the weir in the exchanger
+requires more than 4 ft of shell length a thermosiphon should be considered. Kettles require the lowest tower elevation of the
+various reboiler types and so find application where the tower bottoms are not pumped away.
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 6 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+CALCULATION PROCEDURE, VAPORIZATION IX-E 5 of 94
+DESIGN PRACTICES
+December, 2000
+EQUIPMENT TYPES AND APPLICATIONS (Cont)
+Kettles are more expensive than the other types of reboiler units because of the enlarged shell. Their use is, therefore, limited
+to process conditions that find it more suitable, i.e. fluids with narrow boiling range, heat-sensitive materials, vacuum services,
+low temperature difference to the heating medium. Kettle reboilers are not well suited for fluids with wide boiling range and high
+pressure conditions.
+REBOILER SELECTION CHART
+Fouling Service Fluid Fouling Relatively clean service
+Characteristics
+Low to Low to
+Very Heavy Extent of moderately heavy Very High moderately high
+Viscosity
+Fouling
+Less than Greater than Small to
+Atmospheric Pressure Atmospheric Moderate Area Large
+Required
+Pump- Kettle Vertical Pump- Internal Kettle
+Through Reboiler Thermosiphon Through Reboiler Reboiler
+Reboiler Reboiler
+Pump-Through Horizontal Vertical Horizontal
+Reboiler Thermosiphon Thermosiphon Thermosiphon
+(critical
+Kettle
+operations)
+Reboiler
+DP9Ef0a
+Vertical Thermosiphon Reboilers
+These are usually single tube-pass units with vaporization in the tubes. Installation costs are low since the exchanger may be
+directly mounted on the tower minimizing foundation, structures, and plot area; on the other hand, if independently supported in
+the vertical orientation, these installation costs are probably the same as a horizontal unit or sometimes even higher. Bottoms
+product hold-up and vapor-liquid disengaging space are provided in the tower bottom. Piping must be short but of large
+diameter to reduce the pressure drop and ensure flow stability. The shell side fluid should be non-fouling so as to reduce the
+cost of having to remove the bundle vertically and to permit fixed tubesheet construction.
+Vertical thermosiphons should be restricted to a maximum of 50% vaporization because at higher rates of vaporization
+hydrodynamic head losses may exceed the available driving force and cause unstable flow by creating temporary backflow of
+vapor. It is common industrial practice to limit vaporization to 30%.
+Flow instability can be prevented by increasing tube diameter, especially for low pressure services. Tubes of 3/4 in.
+(19.05 mm) OD should be avoided if possible. Increasing tube length may promote instability by increasing pressure drop.
+Rules of thumb to obtain a stable design are: (a) the pressure drop in the exit piping should be less than 0.3 times the total
+driving head, (b) the flow area of the exit piping should be no less than the total flow area of the tubes, and (c) the flow area of
+the inlet piping should be in the range of 0.1 to 0.3 times the total flow area of the tubes.
+Detailed information on operational characteristics and design suggestions are given in Tables 1 and 2. Thermosiphons
+should be avoided for viscous fluids and for operations where the available liquid head is variable.
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 7 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+IX-E 6 of 94 CALCULATION PROCEDURE, VAPORIZATION
+DESIGN PRACTICES
+December, 2000
+EQUIPMENT TYPES AND APPLICATIONS (Cont)
+Horizontal Thermosiphon Reboilers
+The boiling fluid is placed on the shell side and multiple inlets and outlets, and split horizontal baffles are often used to provide
+good distribution and higher velocities. Bottoms product hold-up and vapor-liquid disengaging are provided in the bottom of the
+tower. This type is limited to moderately fouling services and the use of a removable bundle with square tube pitch is
+recommended.
+Horizontal thermosiphons require separate foundations, more plot area than vertical units, and more complex piping. Thus
+their overall cost is generally higher than vertical thermosiphons.
+Vaporization should be restricted to 50% for hydrocarbons and 10% for aqueous solutions for clean services and 25% for
+relatively more fouling services. The advantage of horizontal thermosiphons is their lower pressure drop and larger liquid
+volume hold-up than the vertical thermosiphons, that allows for greater operational flexibility and their lower head requirements.
+Horizontal thermosiphons can handle fluid mixtures with wider boiling range; however, viscous services and those with variable
+liquid head should be avoided.
+Pump-Through Reboilers
+In a pump-through reboiler the vaporizing fluid is circulated by a pump accommodating a higher pressure drop and
+correspondingly higher heat transfer coefficients. Piping diameters may be smaller than for other reboiler types and the
+exchanger can be located away from the tower. Initial pump costs and operating costs are high, but they can be justified under
+the following circumstances:
+1. The service is very viscous or highly fouling.
+2. A high circulation rate, about 10:1, or a low increase in temperature is required to prevent thermal degradation of the
+bottoms product.
+3. The liquid head available from the tower is limited. However, tower elevation must be high enough to provide the required
+NPSH.
+In highly fouling services the vapor fraction at the outlet should be limited to about 5% by weight.
+Internal Reboilers
+An internal reboiler consists of a tube bundle inserted directly into the tower using a flange in the side of the tower. This
+eliminates the costs of a shell and piping. The flange can be relatively expensive, but on an installed cost per square foot basis
+internal reboilers are frequently the least expensive of all the types. A major limitation of this type is that the length of the
+bundle is restricted by the tower diameter, so that an uneconomically large bundle diameter may be required. As a rule of
+thumb, if the bundle diameter is 36 in. (914 mm) or greater, internal reboilers should not be considered. The major
+disadvantage of internal reboilers is that they cannot be serviced and cleaned without shutting the tower down. For that reason
+welded tube-to-tubesheet joints should be provided.
+In sizing the bundle and the flange connection, sufficient clearance should be provided between the bundle and the flange neck
+inside diameter to allow vapor to escape into the tower and avoid vapor blanketing of that portion of the tubes. Fouling
+tendencies of internal reboilers are similar to kettles.
+REBOILERS AND TOWER ELEVATION
+The bottom of the shell of a reboiler is located at the minimum practical distance above grade. This distance is set by space
+requirements for piping, and is usually about 3 ft (1 m).
+For natural-circulation reboilers a pressure balance through the reboiler circuit determines the exact tower elevation. The usual
+points of reference for the pressure balance are the bottom tangent line of the tower and the bottom of the reboiler shell or the
+bottom tubesheet for a vertical thermosiphon reboiler. As a rough guide, the distance between these points will normally be 6
+to 10 ft (1.8 to 3 m) for kettle reboilers and 8 to 20 ft (2.4 to 6.1 m) for thermosiphon reboilers.
+For forced-circulation reboilers, the tower is normally elevated 15 ft (4.6 m) above grade to provide an adequate pump NPSH.
+If necessary this elevation can be decreased by reducing the pump NPSH requirement to a minimum consistent with pump
+availability. However, this will usually cause a considerable increase in the cost of the pump.
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 8 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+CALCULATION PROCEDURE, VAPORIZATION IX-E 7 of 94
+DESIGN PRACTICES
+December, 2000
+EQUIPMENT TYPES AND APPLICATIONS (Cont)
+REBOILER STAGE EFFICIENCY
+The stage efficiency of recirculating type reboilers (that are not baffled to prevent bottom tray liquid from bypassing the reboiler)
+may be estimated from the following equation.
+S = (1− N / (N K / A + B)) / (1− N / (N K + B))
+F L v L v
+where: A = 1 + y (K - 1)
+B = Bottoms product rate, moles/hr
+S = Fraction of theoretical stage
+F
+K = Equilibrium constant of light key component
+N = Liquid rate from bottom tray, moles/hr
+L
+N = Vapor rate from reboiler, moles/hr
+V
+y = Mole fraction vaporized in the reboiler
+CHILLERS
+The operation of a chiller is like that of a reboiler. The fluid being cooled on the tube side vaporizes refrigerant on the shell
+side. A chiller is normally constructed like a kettle reboiler, but without a weir. It may also be made from a regular shell and
+tube exchanger by eliminating tubes in the top portion of the shell to provide a space for vapor-liquid disengaging. The
+calculation procedure for chillers is the same as for kettle reboilers.
+PREHEATERS
+A preheater, like a pump-through reboiler, consists of a conventional shell-and-tube exchanger with the liquid to be vaporized
+fed either by a pump or pressurized from upstream equipment. Most preheaters add both latent heat and sensible heat to the
+fluid being vaporized (one exception would be the vaporization of a pure component under very little back pressure). The fluid
+to be vaporized is generally placed in the tubes to avoid potential phase separation that would occur if fluid is placed on the
+shellside. Preheaters are most often used for feed streams to distillation columns. A lower level of heat can be used in tower
+feed preheating rather than in reboilers. Also, tower loadings can be balanced by trading off between feed preheat and heat
+input to the reboiler.
+WASTE HEAT BOILERS
+Applications
+Waste heat boilers (steam generators) are commonly used to recover heat from catalytic cracker regenerator flue gas, thermal
+reactor and condensers in a sulfur plant, reformer effluent, gas turbine exhaust, catalyst-oil slurries, and fixed bed reactors.
+Types of Units
+There are two types of units used for waste heat boilers (WHB): firetube or water tube. In firetube units (the more common
+type) the heating fluid passes through the tubes and steam is generated outside the tubes (shell side).
+Firetube Units
+Firetube units usually come as thermosiphon or kettle type waste heat boilers. Generally, kettles are provided for
+such services as hot product coolers (Resid, FCC Bottoms), or for Sulfur Condensers. Maximum heat flux normally
+does not exceed 35,000 Btu/hr ft2 (110,000 W/m2) and maximum process inlet temperature is 800°F (430°C). Where
+the maximum heat flux is greater than 40,000 Btu/hr ft2 (125,000 W/m2) and where the process inlet temperature is
+greater than 900°F (480°C), a thermosiphon type WHB is generally recommended. In a thermosiphon type WHB,
+steam is generated on the shellside of a tube bundle but the steam disengagement occurs in a separate shell, called
+the Steam Drum. Flow between the WHB and the Steam Drum is maintained by natural circulation because of the
+large density difference between the water “leg”, i.e., the downcomer, and the steam “leg”, i.e., the riser. The
+circulation rate for thermosiphon-type WHB, is generally between 15 to 20:1, depending on the severity of the process
+and the design maximum heat flux. Reliable designs for the WHB would take into account the possibility of vapor
+blanketing at the hot end, where the maximum heat flux is encountered. WHB having a high inlet process
+temperature, > 1000°F (535°C), are supplied with a protective refractory lining inside the inlet channel and on the
+tubesheet; metallic or ceramic ferrules are supplied at each tube end.
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 9 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+IX-E 8 of 94 CALCULATION PROCEDURE, VAPORIZATION
+DESIGN PRACTICES
+December, 2000
+EQUIPMENT TYPES AND APPLICATIONS (Cont)
+Water Tube Units
+Water tube units which generate steam inside the tubes are commonly used in flue gas exhaust from gas turbines, CO
+boilers, FCC units, etc., resulting in a low gas pressure drop. Water-tube WHB are normally built into three sections:
+a steam generator, a superheater and an economizer. For process streams with catalyst fines, i.e. FCC Gas Cooler,
+maximum gas velocity across the tube bank should not exceed 100 fps; a deresonating baffle is also furnished to
+prevent acoustic vibration; cleaning lanes are provided for steam lancing.
+DESIGN CONSIDERATIONS
+MAXIMUM AND DESIGN HEAT FLUX (FILM BOILING, VAPOR BLANKETING, CHOKE FLOW)
+Pool Boiling
+This type of boiling takes place when the heating surface is surrounded by a pool of liquid which is not flowing at any
+appreciable velocity. The main boiling mechanism is the formation of bubbles and is known as nucleation. Kettles and internal
+reboilers operate in pool boiling. The typical pool boiling curve, plotted as heat flux vs. the temperature driving force (∆T), is
+shown in the figure below. As ∆T is increased heat transfer takes place by natural convection and eventually bubbles are
+formed at the tube wall and are carried away by convection and buoyancy. This is known as nucleate boiling. Liquid fills in the
+space vacated by the bubbles so that the tube wall always has liquid in contact with it. As ∆T is further increased (usually in the
+range of 40 - 90°F for pure hydrocarbons, 22 - 50°C) liquid can no longer exist in contact with the metal surface. Bubbles are
+formed faster than they can be removed and a vapor film blankets the tube surface. This is known as film boiling. The
+transition region between nucleate boiling and stable film boiling consists of unstable nucleate and unstable film boiling. This
+transition begins when the maximum heat flux possible in nucleate boiling, also called the critical heat flux, is reached.
+Because heat transfer coefficients are highest in the nucleate boiling region for practical values of ∆T, the film boiling region is
+avoided in design. To ensure operation in nucleate boiling the design heat flux should be limited to 70% of the calculated
+maximum flux. If the design ∆T is such that film boiling cannot be avoided then the heat flux should be kept above the
+minimum value required for stable film boiling.
+TYPICAL POOL BOILING CURVE
+Interface
+Evaporation Bubbles Film
+Log ∆ T
+ExxonMobil Research and Engineering Company – Fairfax, VA
+xulF
+taeH
+goL
+noitcevnoC
+larutaN
+gnilioB
+tneipicnI
+gnilioB
+etaelcuN
+noitisnarT
+gnilioB
+mliF
+elbatS
+gnilioB
+mliF
+gnisaercnI
+htiw
+noitatidaR
+DP09Efob
+--- PAGE 10 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+CALCULATION PROCEDURE, VAPORIZATION IX-E 9 of 94
+DESIGN PRACTICES
+December, 2000
+DESIGN CONSIDERATIONS (Cont)
+Flow Boiling
+In flow boiling, two-phase fluid is forced over the heating surface. Vertical thermosiphons and pump-through reboilers operate
+in flow boiling. The same principles of boiling apply to pool and flow boiling. The major difference is that due to the two-phase
+flow, usually occurring in a restricted channel like a tube, hydrodynamic effects are more pronounced in flow boiling. The
+limitations on the hydrodynamic effects become even greater at low pressure. The maximum heat flux is limited not only by
+transition to film boiling but also by mist flow and potential flow instability.
+Mist flow occurs when the shear force of the vapor at the vapor-liquid interface is sufficient to strip the liquid film from the wall,
+producing a dry wall condition. This can be prevented by keeping the exit vapor weight fraction (y ) less than 0.5. When the
+o
+pressure drop required for vaporization (acceleration loss) exceeds the available driving head, a backflow condition results that
+causes flow instability (also known as choke flow). The maximum heat flux under such condition is a function of the operating
+pressure and a geometry correction factor. The film boiling phenomenon is the same as in pool boiling except that the
+maximum heat flux may be lower. The calculation procedure for vertical tubeside boiling shows calculations for the mist flow
+limit ( y ) and the maximum heat flux ( q ). For good operation keep y ≤ y and q ≤ (0.6) q .
+mist max o mist max
+VERY LOW TEMPERATURE DIFFERENCE
+When process conditions or economics require the use of a very low ∆T (8°F, 4°C), the ability to produce bubbles may differ
+drastically for different surfaces. This makes design, performance prediction, and operation difficult. One possible solution is to
+use tube surfaces which enhance nucleate boiling. Special coatings and specially formed fins are commercially available as
+described in Section IX-A.
+In thermosiphons, a low temperature difference will suppress the pumping action and cause low circulation rates. For vertical
+tubeside thermosiphons, it is recommended to maintain a minimum heat flux of 2000 Btu/hr ft2 (6000 W/m2) to provide good
+circulation. At lower flux levels it is preferable to use a kettle type exchanger.
+VERY HIGH TEMPERATURE DIFFERENCE
+A transition flow regime and mist flow condition can occur in reboilers operating at a high temperature difference, leading to
+local hot spots and thermal cycling; such operating conditions should be avoided. In the transition region, small shifts in
+operating conditions can cause large changes in performance. Also, this region has reverse control characteristics. That is,
+because of a mixture of nucleate and film boiling conditions an increase in ∆T may sometimes cause a decrease in the heat
+transfer. If the reboiler must be designed for film boiling it should be designed to operate in the stable region and not in the
+transition region.
+FOULING
+Design fouling factors have a major impact on the operation of reboilers, especially under clean start-up conditions. If a large
+fouling factor is used, the unit may be so oversurfaced at start-up that the required ∆T will be too small for proper operation.
+Also, if the design ∆T is applied at start-up it may cause excessively high heat fluxes resulting in film boiling and higher than
+normal tube wall temperatures, which may promote fouling.
+Realistic fouling factors suggested by HTRI are shown in the table below (also refer to Table 3, Section IX-B). Fouling can be
+minimized by ensuring good flow distribution on the shell side. Some ways to prevent bad distribution are: use Double Split
+Flow (TEMA type H) design, avoid large bypass areas, avoid stagnant zones. For fluids with high fouling tendencies, keeping
+the vapor fraction below 0.2 also helps to minimize fouling.
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 11 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+IX-E 10 of 94 CALCULATION PROCEDURE, VAPORIZATION
+DESIGN PRACTICES
+December, 2000
+DESIGN CONSIDERATIONS (Cont)
+SUGGESTED FOULING FACTOR RANGES
+FOULING RESISTANCE, RF
+SERVICE
+ft2 F hr/Btu m2K/W
+Boiling Side
+C – C normal hydrocarbons 0 - 0.0015 0 - 0.00026
+1 8
+Heavier normal hydrocarbons 0.002 - 0.003 0.00036 - 0.0005
+Diolefins and polymerizing hydrocarbons 0.003 - 0.005 0.0005 - 0.0009
+Heating Side
+Condensing steam 0 - 0.0005 0 - 0.00009
+Condensing organics 0.0005 - 0.001 0.00009 - 0.00018
+Sensible heating, organic liquids 0.001 - 0.002 0.00018 - 0.00035
+CALCULATION PROCEDURES
+KETTLE AND INTERNAL REBOILERS
+The calculation forms for heat transfer and hydraulic balance for kettle and internal reboilers are given in the Appendix. The
+heat transfer method is taken from the HTRI Design Manual.
+Heat Transfer
+The heat transfer procedure assumes a known geometry and calculates the nucleate and film boiling curves for clean and
+fouled conditions. To rate an existing exchanger, perform the calculation and estimate the required temperature driving force
+(∆T) for a given heat duty, or if the ∆T is known, estimate the heat duty. A sample rating calculation is shown following the
+blank calculation forms. To size a kettle reboiler (design calculation) an iterative procedure is required, as outlined in the steps
+below. Reboilers should be designed for a heat flux less than 70% of the calculated maximum for nucleate boiling or greater
+than the calculated minimum for film boiling.
+1. Estimate an overall heat transfer coefficient (U, Btu/hr ft2 °F or W/m2 K) from Table 1, Section IX-B.
+2. Calculate the required area (A, ft2 or m2 )
+A = Q /(U ∆T)
+T
+where: Q is the total heat duty (Btu/hr or W)
+T
+∆T is the difference between the average temperature of the heating medium and the exit vapor
+temperature (°F or °C)
+3. Calculate the number of tubes (NTT) required to provide the area A
+NTT = 12(A) /(π d L) or NTT =1000(A) /(π d L)
+o o
+where: d is the tube outside diameter (in. or mm)
+O
+L is the tube length (ft or m)
+4. Perform the calculations and construct a boiling curve.
+5. Use the ∆T from step 2 to find an operating heat flux, q (Btu/hr ft2 or W/m2), using the curve constructed in Step 4.
+6. Calculate the required area ( A )
+r
+A = Q / q(ft2 or m2)
+r T
+7. If A r doesn't match A repeat steps 3-6 using A r to calculate NTT.
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 12 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+CALCULATION PROCEDURE, VAPORIZATION IX-E 11 of 94
+DESIGN PRACTICES
+December, 2000
+CALCULATION PROCEDURES (Cont)
+Kettle Sizing
+The calculation for kettle diameter sizing assumes a known maximum permissible entrainment ratio and calculates the
+maximum permissible velocity and the actual velocities. For design calculations the kettle size should be guessed and the
+calculation repeated until the calculated velocities are less than the maximum.
+In addition to sizing the kettle diameter to ensure that liquid entrainment is maintained below the design criterion, splash baffles
+may be provided to prevent splashing of the liquid into the nozzle entrance area. Other methods, such as the “dry-pipe” are
+widely used in the industry to assure splashed water does not get the outlet nozzle and also achieve a vapor quality of 95%.
+Higher quality can be achieved by the use of demisters. The size and locations of the splash baffles are shown in Figure A13,
+along with other recommended dimensions for kettle designs. The area A should be about 40% of the area S . The 18 in.
+2 h
+minimum spacing in the shell should be from the top of the liquid level which is usually at the top of the weir. For high liquid
+flow rates, it is necessary to calculate a liquid crest height above the weir and size the area S above this crest level.
+h
+Hydraulic Balance
+The hydraulic balance procedure calculates the elevation required for a given mass flow rate. The variable (or unknown)
+dimension is the height from the tower bottom tangent to the top of the shell. For existing piping, the calculated height should
+be checked against the actual. For new designs, if the calculated height is greater than desired, line sizes should be increased
+and a new value calculated.
+VERTICAL THERMOSIPHON TUBESIDE REBOILERS
+The calculation forms for heat transfer and hydraulic balance for vertical tubeside thermosiphon reboilers are given in the
+Appendix. The heat transfer method is taken from the HTRI Design Manual.
+Heat Transfer
+The heat transfer procedure calculates the area required for a given heat flux. To rate an existing exchanger, compare the
+calculated area to the actual area. A sample rating calculation is shown following the blank calculation forms. To size a new
+exchanger (design calculation) a geometry must be assumed and an iterative calculation done according to the steps below.
+Vertical thermosiphons should be designed such that the outlet vapor fraction is less than that required for mist flow and the
+heat flux is less than 70% of the calculated maximum for choke flow.
+1. Estimate an overall heat transfer coefficient (U, Btu/hr ft2 F or W/m2 K) from Table 1, Section IX-B.
+2. Calculate the heat flux (q) and the area (A)
+q = U ∆T (Btu / hr ft2 or W / m2 )
+A = Q / q (ft2 or m2 )
+T
+where: Q is the total heat duty (Btu/hr or W)
+T
+∆T is the temperature driving force (defined in the calculation)
+3. Calculate the number of tubes (NTT) required to provide the area A
+NTT = 12(A) / (π d L) or NTT = 1000(A) / (π d L)
+o o
+where: d is the tube outside diameter (in. or mm)
+o
+L is the tube length (ft or m)
+4. Perform the calculations and find the actual overall heat transfer coefficient ( U ) and required area ( A ).
+o r
+5. If A doesn't match A repeat steps 2-4 using U to calculate q.
+r o
+Hydraulic Balance
+The hydraulic balance procedure calculates the elevation required for a given mass flow rate. The variable (or unknown)
+dimension is the height from the tower bottom tangent to the bottom of the bundle. For existing piping, the calculated height
+should be checked against the actual. For new designs, if the calculated height is greater than desired, line sizes should be
+increased and a new value calculated.
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 13 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+IX-E 12 of 94 CALCULATION PROCEDURE, VAPORIZATION
+DESIGN PRACTICES
+December, 2000
+CALCULATION PROCEDURES (Cont)
+HORIZONTAL THERMOSIPHON SHELLSIDE REBOILERS
+Heat Transfer
+The hand calculation method for heat transfer in horizontal shell side thermosiphon reboilers is the same as for kettle reboilers.
+Additional convective effects due to the flow are usually small but can be significant at high flow rates. These effects are
+neglected as a safety factor.
+For horizontal thermosiphons the heat flux should be limited to 70% of the calculated maximum heat flux to ensure operation in
+nucleate boiling, and the weight fraction vaporized should be in the range of 0.1 to 0.5 to prevent slug flow at lower weight
+fractions and mist flow at higher weight fractions.
+Hydraulic Balance
+The form for hand calculation of the hydraulic balance for shellside reboilers is given in the Appendix. The procedure
+calculates the elevation required for a given mass flow rate. The variable (or unknown) dimension is the height from the tower
+bottom tangent to the bottom of the bundle. For existing piping, the calculated height should be checked against the actual.
+For new designs, if the calculated height is greater than desired, line sizes should be increased and a new value calculated.
+PUMP-THROUGH REBOILERS
+The calculation form for heat transfer calculations for tubeside pump-through reboilers is given in the Appendix. The method is
+the same as that for vertical tubeside thermosiphons except that the correction to the boiling coefficient due to the subcooled
+liquid zone is calculated differently.
+WASTE HEAT BOILERS
+The following procedure is based on steam generation using conventional tubes (no extended surface).
+Exchanger Orientation - The units can be installed in either a vertical or horizontal position, and can have one or more tube
+passes. In general, one tube pass vertical units have been used most successfully in the past (in cat regenerator flue gas and
+fixed bed reactor service). However, in recent years, one tube pass horizontal units have been used with increasing frequency
+(e.g., reformer effluent waste heat boilers).
+Shell Side or Tube Side Vaporization - Steam is normally generated in the shell (firetube design) for the following reasons:
+1. The hot fluid is frequently so fouling that it must be passed through the tubes.
+2. With clean boiler water, it is permissible to use a non-removable tube bundle (fixed tube sheet unit) with triangular tube
+pitch. This type of construction results in a compact unit with a low initial cost.
+3. There is less differential expansion between the tube and the shell.
+Tube Selection
+1. For installations that recover heat from cat regenerator flue gases or reformer effluent, the number of tubes is based on
+maintaining an inlet gas velocity of 100 ft/sec (31 m/s). For cat regenerator flue gases use 2-1/2 in. (63.5 mm) O.D., 5
+BWG tubes. For reformer effluent, the minimum nominal tube size is 1-1/2 in. (50.8 mm) O.D., 10 BWG. The length of
+the tubes will vary for each installation, depending on the surface area required. If necessary, the tube length may be 25 ft
+(7.6 m) or more (see Section IX-C).
+2. Fixed-bed reactors for exothermic processes are often constructed as shell-and-tube exchangers. In these units, the
+hydrocarbon passes through the tubes, which are filled with catalyst. Steam is generated on the shell side. For this
+service, use 2-1/2 in. (63.5 mm) O.D., 5 BWG tubes. The number and length of tubes will vary for each installation,
+depending on process requirements as well as on heat transfer requirements. Steam generator-reactors for
+polymerization plants have been designed with 4 ft (1.2 m) I.D. shells, and 180 (9.1 m) thirty-foot-long tubes.
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 14 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+CALCULATION PROCEDURE, VAPORIZATION IX-E 13 of 94
+DESIGN PRACTICES
+December, 2000
+CALCULATION PROCEDURES (Cont)
+Water Circulation Rate - To eliminate the possibility of dry tubes, design for a water/steam weight ratio of approximately 15/1
+for a heat density of 40,000 Btu/hr ft2 (125,000 W/m2). A Baton Rouge design with extended surface tubes requires a 40/1
+circulation rate to ensure a wetted wall condition at a heat density of 100,000 Btu/hr ft2 (315,000 W/m2). (Note that a wetted
+wall condition is dependent upon other variables, such as: temperature difference, geometry, orientation, etc., in addition to the
+circulation rate). Proprietary designs that assure wet-wall conditions at the hot tubesheet for severe services of high
+temperature and high steam pressure are available from vendors such as Borsig and Schmidchte. Transfer line exchangers
+(TLE), which fall in this category, and are designed for very high heat flux, > 80,000 Btu/hr ft2 (250,000 W/m2), are usually
+specified as double pipes.
+Elevation of Steam Disengaging Drum - It is necessary to calculate a detailed pressure balance through the water-steam
+circuit to determine the elevation of the steam drum above the generator. See the applicable (horizontal or vertical
+thermosiphon) hydraulic balance calculation form.
+Steam Generation on Shell Side
+1. Tube Side Design - Follow the calculation procedure outlined for no change of phase, Section IX-D, or for condensation,
+Section IX-F, assuming an overall coefficient, area, etc.
+2. Shell Side Design
+a. Shell Side Pressure Drop - Calculate the shell side pressure drop using the procedure for reboilers.
+b. Shell Side Heat Transfer Coefficient, h - (See Equation 1.)
+o
+1 = h o = 80    Q    3 2 P3 1 (Customary) Eq. (1)
+R  1000 A 
+o s
+OR
+= 353.2    Q    3 2 P3 1 (Metric)
+ 5680 A 
+s
+ hr ft2 ° F m2 K 
+where: R = Outside film resistance to heat transfer corrected to outside area  or 
+O
+ Btu W 
+ 
+Btu W
+h = Outside film coefficient  or 
+O hr ft2 °F m2 K 
+Q = Total rate of heat transfer, [Btu/hr or W]
+P = Average pressure in boiler, [psia or kPa abs]
+Steam Generation on Tube Side
+1. Tube Side Design
+a. Tube Side Pressure Drop - Calculate the tube side pressure drop using the procedure for reboilers.
+b. Tube Side Heat Transfer Coefficient, h
+io
+ 
+1 Btu
+h = = 1000  
+io R
+io
+hr ft2 °F 
+OR
+ 
+W
+= 5680  
+m 2 K 
+2. Shell Side Design - Follow the calculation procedure outlined for no change of phase, Section IX-D, or for condensation,
+Section IX-F, assuming and overall coefficient, area, etc.
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 15 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+IX-E 14 of 94 CALCULATION PROCEDURE, VAPORIZATION
+DESIGN PRACTICES
+December, 2000
+CALCULATION PROCEDURES (Cont)
+Overall Heat Transfer Rate
+1. Calculate U , the overall heat transfer coefficient:
+o
+1
+= R = R + r + r + r + R Eq. (2)
+t io io w o o
+U
+o
+where: U = Overall coefficient of heat transfer, [Btu/hr ft2 °F or W/ m2 K]
+o
+ hr ft2 ° F 
+R = Total resistance (duty) to heat transfer,  or m2K / W
+t
+ Btu 
+ hr ft2 ° F m2K 
+R = Inside film resistance to heat transfer corrected to outside area,  or 
+io
+ Btu W 
+ hr ft2 ° F m2K 
+r = Inside fouling factor referred to the outside surface area, +  or 
+io
+ Btu W 
+ hr ft2 ° F m2K 
+r = Resistance of tube wall metal at average wall temperature,  or 
+w
+ Btu W 
+ hr ft2 ° F m2K 
+r = Outside fouling factor,  or 
+o
+ Btu W 
+ hr ft2 ° F m2K 
+R = Outside film resistance to heat transfer based on outside area,  or 
+o
+ Btu W 
+2. If U (calculated) does not agree with U (assumed), repeat the calculations with a new U (assumed) until agreement is
+o o o
+reached.
+3. In all cases the designer should satisfy himself that a reasonably good economic balance has been obtained between
+pressure drop and transfer surface area (see Section IX-C).
+4. Determine the mechanical design features as outlined in Sections IX-C and IX-D.
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 16 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+CALCULATION PROCEDURE, VAPORIZATION IX-E 15 of 94
+DESIGN PRACTICES
+December, 2000
+NOMENCLATURE
+A Heat transfer surface area, [ft2, m2]
+AOI Ratio of outside to inside surface area
+A Required heat transfer surface area, [ft2, m2]
+r
+BR Boiling range, [°F, °C]
+CB Bundle correction factor
+C Heat capacity of bottoms drawoff, [Btu/lb °F, kJ/kg K]
+pb
+C Liquid heat capacity, [Btu/lb °F, kJ/kg K]
+pl
+DR Effective temperature range, [°F, °C]
+D Bundle diameter, [in., mm]
+b
+D Shell diameter, [in., mm]
+s
+d Tube inside diameter, [in., mm]
+i
+d Tube outside diameter, [in., mm]
+o
+dT/dP Slope of vapor pressure curve, [°F/psi, °C/kPa]
+d Inlet line inside diameter, [in., mm]
+1
+d Outlet line inside diameter, [in., mm]
+2
+E Entrainment ratio, [lb liquid/lb vapor, kg liquid/kg vapor]
+F Bundle convection correction factor
+b
+F Boiling range (mixture) correction factor
+c
+F Sensible heating correction factor
+d
+F Fin tube correction factor
+f
+F Pressure correction factor for nucleate boiling
+p
+F Subcooled liquid zone correction for intube boiling
+lz
+f Two-phase friction factor
+2
+f Liquid friction factor
+l
+f Vapor friction factor
+v
+H Weir height, [in., mm]
+W
+∆H Head losses as defined in calculation forms, [ft, m]
+∆H Sum of fixed head losses in hydraulic balance calculations, [ft, m]
+F
+h Single tube nucleate boiling coefficient, [Btu/hr ft2 °F, W/m2 K]
+1
+h Single tube boiling reference coefficient, [Btu/hr ft2 °F, W/m2 K]
+1r
+h Average boiling heat transfer coefficient, [Btu/hr ft2 °F, W/m2 K]
+ab
+h Heating medium heat transfer coefficient, [Btu/hr ft2 °F, W/m2 K]
+h
+h Liquid phase heat transfer coefficient, [Btu/hr ft2 °F, W/m2 K]
+l
+h Intube nucleate boiling coefficient, [Btu/hr ft2 °F, W/m2 K]
+nb
+h Natural convection heat transfer coefficient, [Btu/hr ft2 °F, W/m2 K]
+nc
+h Convective boiling heat transfer coefficient, [Btu/hr ft2 °F, W/m2 K]
+tp
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 17 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+IX-E 16 of 94 CALCULATION PROCEDURE, VAPORIZATION
+DESIGN PRACTICES
+December, 2000
+NOMENCLATURE (Cont)
+J Friction head loss in unknown elevation X, [ft, m]
+J′ Head gain in fixed lengths, [ft, m]
+K Total inlet piping resistance coefficient
+i
+K Total outlet piping resistance coefficient
+o
+k Liquid thermal conductivity, [Btu/hr ft °F, W/m K]
+l
+k Tube wall thermal conductivity, [Btu/hr ft °F, W/m K]
+w
+L Tube length, [ft, m]
+L Chord length above weir, [in., mm]
+c
+NN Number of exit nozzles
+NTT Number of tube holes in tubesheet
+P Pressure, [psi, kPa]
+P Critical pressure, [psi, kPa]
+c
+P Inlet liquid pressure drop per 100 ft (per 1 m) of line, [psi, kPa]
+l
+P Reduced pressure
+r
+P Outlet vapor pressure drop per 100 ft (per 1 m) of line, [psi, kPa]
+v
+Pr Prandtl Number, dimensionless
+PR Tube pitch ratio
+∆P Static pressure head [psi, kPa]
+h
+∆P Inlet line head loss per foot (per m) of line, [ft, m]
+1
+∆P Outlet line head loss per foot (per m) of line, [ft, m]
+2
+Q Sensible heat duty [Btu/hr, W]
+s
+Q Total heat duty [Btu/hr, W]
+T
+Q Volume flow rate, [gpm, dm3/s]
+V
+q Heat flux, [Btu/hr ft2, W/m2]
+q First reference heat flux, [Btu/hr ft2, W/m2]
+1
+q Second reference heat flux, [Btu/hr ft2, W/m2]
+2
+q Maximum allowable heat flux, [Btu/hr ft2, W/m2]
+max
+q Choke flow reference maximum heat flux, [Btu/hr ft2, W/m2]
+maxr
+q Single tube maximum allowable heat flux, [Btu/hr ft2, W/m2]
+1max
+q Bundle maximum allowable heat flux, [Btu/hr ft2, W/m2]
+bmax
+q Minimum film boiling heat flux, [Btu/hr ft2, W/m2]
+bmin
+q Effective minimum heat flux for nucleate boiling, [Btu/hr ft2, W/m2]
+n
+Re Liquid Reynolds number
+l
+Re Vapor Reynolds number
+v
+r Inside fouling resistance, [hr ft2 °F/Btu, m2 K/W]
+fi
+r Outside fouling resistance, [hr ft2 °F/Btu, m2 K/W]
+fo
+r Tube wall resistance, [hr ft2 °F/Btu, m2 K/W]
+w
+S Horizontal velocity area, [ft2, m2]
+h
+S Vertical velocity area, [ft2, m2]
+v
+S1-S3,
+S4, S6 Distances as defined in calculation forms, [ft, m]
+S2 Equivalent length of inlet fittings, [ft, m]
+S5 Equivalent length of outlet fittings, [ft, m]
+T Boiling side inlet temperature [°F, °C]
+bi
+T Boiling side outlet temperature [°F, °C]
+bo
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 18 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+CALCULATION PROCEDURE, VAPORIZATION IX-E 17 of 94
+DESIGN PRACTICES
+December, 2000
+NOMENCLATURE (Cont)
+T Boiling side saturation temperature [°F, °C]
+bs
+T Bottoms drawoff temperature [°F, °C]
+d
+T Feed temperature [°F, °C]
+f
+T Heating medium inlet temperature [°F, °C]
+hi
+T Heating medium outlet temperature [°F, °C]
+ho
+T Heating medium saturation temperature [°F, °C]
+hs
+T Average heating medium temperature [°F, °C]
+h
+T Bubble point temperature [°F, °C]
+s
+T Exit vapor temperature [°F, °C]
+v
+∆T Temperature driving force, [°F, °C]
+∆T Available temperature driving force, [°F, °C]
+a
+∆T Clean required nucleate boiling temperature driving force, [°F, °C]
+c
+∆T Fouled required nucleate boiling temperature driving force, [°F, °C]
+f
+∆T Clean required film boiling temperature driving force, [°F, °C]
+fc
+∆T Fouled required film boiling temperature driving force, [°F, °C]
+ff
+U Overall heat transfer coefficient [Btu/hr ft2 °F, W/m2 K]
+U Clean overall heat transfer coefficient [Btu/hr ft2 °F, W/m2 K]
+c
+U Fouled overall heat transfer coefficient [Btu/hr ft2 °F, W/m2 K]
+f
+U Actual overall heat transfer coefficient [Btu/hr ft2 °F, W/m2 K]
+o
+V Effective velocity for entrainment, [ft/s, m/s]
+e
+V Horizontal velocity for entrainment, [ft/s, m/s]
+h
+V Liquid inlet velocity, [ft/s, m/s]
+i
+V Maximum velocity for entrainment, [ft/s, m/s]
+max
+V Vertical velocity for entrainment, or vapor velocity, [ft/s, m/s]
+v
+W Bottoms drawoff flowrate [lb/hr, kg/hr or kg/s]
+B
+W Total flowrate [lb/hr, kg/hr or kg/s]
+T
+W Vapor flowrate [lb/hr, kg/hr or kg/s]
+V
+X Unknown elevation in hydraulic balance calculations, [ft, m]
+X Martinelli parameter for two-phase flow
+tt
+x Vapor to liquid density ratio
+r
+y Weight fraction vapor
+y Average weight fraction vapor
+a
+y Weight fraction vapor at outlet
+o
+y Weight fraction vapor limit for mist flow
+mist
+Λ Correction to q
+maxr
+ρ Liquid density, [lb/ft3, kg/m3]
+l
+ρ Vapor density, [lb/ft3, kg/m3]
+v
+ρ Average two-phase mixture density, [lb/ft3, kg/m3]
+x
+µ Liquid viscosity, [lb/ft hr, kg/m-s]
+l
+µ Vapor viscosity, [lb/ft hr, kg/m-s]
+v
+σ Surface tension, [dynes/cm]
+θ Chord angle
+λ Latent heat, [Btu/lb, kJ/kg]
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 19 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+IX-E 18 of 94 CALCULATION PROCEDURE, VAPORIZATION
+DESIGN PRACTICES
+December, 2000
+TABLE 1
+OPERATIONAL CHARACTERISTICS FOR VERTICAL THERMOSIPHON REBOILERS
+CATEGORY CHARACTERISTICS
+(Examples are Given in Heat Transfer Maximum Heat Flux Mean Temperature
+Circulation Rate Fouling
+Parentheses) Coefficients Limit Difference
+1. Narrow boiling range saturated Fairly high High High, usually limited by No problems Low
+hydrocarbons, moderate pressure film boiling
+(C5-C7, 100 psia)
+2. Narrow boiling range, aqueous High High High Usually non-ideal VLE. Usually very low
+solution of organics (alcohols and Should be carefully
+water) calculated
+3. Vacuum reboilers with heavy Low. Long non-boiling Low. High friction, Low. Instability or mist Nonlinear. Maximum bulk May be high if mist flow is
+hydrocarbons (mixed xylenes, zone. Suppressed momentum and liquid flow limitation temp. at top of liquid zone permitted
+1 psia) nucleation zone static heat losses
+4. Very high pressure (near critical). Very high. Nucleate low Low due to decreased Low. Film boiling limit Boiling temp. profile may Usually low
+Light hydrocarbon due to boiling controlled. net driving head. High be difficult to predict
+Low if in film boiling, but vapor density. because of uncertainty in
+more predictable. VLE data
+5. Wide boiling range mixtures, low to Fairly low. Nucleate Can be high with good Can be fairly high Function of circulation rate. Moderate
+moderate viscosity (pentane- boiling suppressed. design Exit temp. increases with
+octane, or water glycol) Convection controlled. vapor fraction
+6. Very wide boiling range, high Very low, < 50 Btu/hr Very low Low. Early film boiling Nonequilibrium effects. Can be high (high wall
+viscosity (pentane and 1400 MW ft2°F (< 280 w/m2°C. due to hindered vapor Difficult to calculate temperature)
+butylene polymer oil) BR > 400°F, Nucleate boiling release
+viscosity > 50 cP suppressed. Poor radial
+mixing
+7. Sparged reboilers (steam injected Can be high, but may Greatly increased by Mist flow limitation at too Boiling temp. a function of Lower wall temp. can decrease
+rerun column reboiler) have mass transfer sparging high sparge rate partial pressure of sparge fouling
+limitations at too high gas
+sparge rate
+8. Total vaporization (LNG Part of tube in mist flow Forced flow Top of tube above mist Nonlinear, superheating Suitable only for non-fouling
+revaporizer) (special cases only). with low coefficient. flow limit above mist flow boundary fluids
+Not recommended for general
+design.
+9. Polymerizing (unsaturated High High High Limit wall temp. Can be very rapid above
+hydrocarbons (butene-butadiene certain wall temp. and certain
+mixture) vapor fraction
+10. Aqueous solutions of inorganic salts High, similar to water. High High Similar to water except at Inverse solubility salts deposits
+(aluminum sulfate solution) Solids do not impede very high solids on surface similarly to case of
+boiling process except at concentration single phase flow. Regular
+very high solids solubility salts may deposit at
+concentration high vapor fraction
+11. Heavy hydrocarbon mixture with Fairly low Can be low. Should Fairly high. But, due to May be a function of Fouling factor usually
+heavy fouling (solvent cleanup be made as high as very high design fouling circulation rate. > 0.005 hr ft2°F/Btu.
+column bottoms) possible. factor, startup with full Sedimentation, polymerization
+steam pressure can coking. Sensitive to temp.,
+cause film boiling. velocity, and trace elements
+12. Low temp. boiler-condensers Moderately high. Boiling Can be high High Very low producing low Very low except for the effects
+(boiling ethylene-condensing side sensitive to surface design heat flux of compressor lubricants
+propylene) characteristics due to
+low T. Condensing side
+resistance also
+significant.
+13. Refrigerants (R11, R22, R113) Fairly high Generally high but High No problems if good vapor Very low except for the effects
+may be lower than pressure data are used of compressor lubricants
+hydrocarbons due to
+higher vapor density
+14. Cryogenics (boiling O2 with May be about the same Expected to be high T’s may be high so watch Adjust for design either in Very low
+condensing N2) as light hydrocarbons for film boiling complete nucleate or
+complete film boiling, not
+partial film boiling
+15. Waste heat boiler (steam from hot Very high for boiling side. High for good design Carefully check for mist Use concurrent flow to Usually low
+gas) Heating medium flow and film boiling as T provide maximum T at
+resistance is controlling. may be very high bottom of tube
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 20 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+CALCULATION PROCEDURE, VAPORIZATION IX-E 19 of 94
+DESIGN PRACTICES
+December, 2000
+TABLE 2
+DESIGN SUGGESTIONS FOR VERTICAL THERMOSIPHON REBOILERS
+CATEGORY RECOMMENDATIONS (SUGGESTED RANGES AND COMMENTS)
+(Examples are Given in
+Tube Diameter Tube Length Static Head General Comments
+Parentheses)
+1. Narrow boiling range saturated 3/4 - 1 in. Up to 20 ft (6.1 m) if exit Equal to tube length. Few problems and generally good operation
+hydrocarbons, moderate pressure (19.1 - 25.4 mm) weight fraction vapor
+(C -C , 100 psia) < 0.35
+5 7
+2. Narrow boiling range, aqueous 3/4 - 1 in. Up to 20 ft (6.1 m) if exit Equal to tube length. High heat transfer coefficients cause design to be
+solution of organics (alcohols and (19.1 - 25.4 mm) weight fraction vapor sensitive to fouling factor. Feed in boiling
+water) < 0.35 temperature profile available.
+3. Vacuum reboilers with heavy 1-1/4 - 1-3/4 in. Usually 12 ft (3.65 m) Less than tube length. Limit exit vapor weight fraction to less than 0.5.
+hydrocarbons (mixed xylenes, (31.8 - 44.5 mm) or less Optimum exists Check for instability. Increase inlet resistance if
+1 psia) unstable.
+4. Very high pressure (near critical). 1 - 1-1/4 in. Usually 12 ft (3.65 m) As large as possible Low confidence in physical properties. Operation is
+Light hydrocarbon (25.4 - 31.8 mm) or less sensitive to pressure level. Some safety factor is
+required. May be better to design for film boiling in
+critical cases.
+5. Wide boiling range mixtures, low 1 - 1-1/2 in. Short enough to allow As large as possible Design for low exit vapor weight fraction
+to moderate viscosity (pentane- (25.4 - 38.1 mm). high circulation with (0.1 to 0.25). This increases h, MTD, and confidence
+octane, or water glycol) Large enough to allow tube diameter used in prediction. Always specify boiling range.
+high circulation rate
+6. Very wide boiling range, high 1-3/4 - 2 in. Short As large as possible. Thermosiphon reboilers do not operate effectively for
+viscosity (pentane and 1400 MW (44.5 - 50.8 mm) Forced circulation or these extreme conditions. Consider also shellside
+butylene polymer oil) BR > 400°F, sparging may be horizontal thermosiphons (possibly better mixing) or
+viscosity > 50 cP necessary falling film evaporators.
+7. Sparged reboilers (steam injected 1 - 1-1/4 in. Usually 12 ft (3.65 m) Equal to tube length. Evaluate downstream handling problems. Carefully
+rerun column reboiler) (25.4 - 31.8 mm) or less calculate bulk temperature profile.
+8. Total vaporization (LNG 3/4 - 1 in. Length above mist flow Forced flow only Use valve in inlet line to damp out instability and
+revaporizer) (special cases only). (19.1 - 25.4 mm) boundary is very regulate location of mist flow boundary. Specify
+Not recommended for general ineffective some excess capacity.
+design.
+9. Polymerizing (unsaturated 1 - 1-1/4 in. 8 ft (2.4 m) or more. Equal to tube length. Limit wall temperature and exit vapor fraction below
+hydrocarbons (butene-butadiene (25.4 - 31.8 mm) Limited by rapid polymerization threshold
+mixture) recommended exit
+vapor fraction
+10. Aqueous solutions of inorganic 1 - 1-1/4 in. Can be long if exit Equal to tube length. Design to low vapor fraction. Limit tube wall
+salts (aluminum sulfate solution) (25.4 - 31.8 mm) vapor fraction not temperature for inverse solubility.
+above 0.1
+11. Heavy hydrocarbon mixture with 1-1/4 - 2 in. 12 ft (3.65 m) or less May need forced flow Design for as high velocity as possible with low vapor
+heavy fouling (solvent cleanup (31.8 - 50.8 mm) for extreme cases fraction and low wall temperature. Provide spare
+column bottoms) reboiler in critical cases with low P valves to isolate
+unit for cleaning.
+12. Low temp. boiler-condensers 3/4 - 1-1/4 in. Can be long if exit Equal to tube length. Evaluate as a condenser also on CST Program.
+(boiling ethylene-condensing (19.1 - 31.8 mm) vapor fraction is less Feed in nucleate boiling curve if available. Consider
+propylene) than 0.35 enhanced surface for both boiling and condensing
+sides.
+13. Refrigerants (R11, R22, R113) 3/4 - 1-1/4 in. Can be long if exit Equal to tube length. Be specific with properties. Operation near critical
+(19.1 - 31.8 mm) vapor fraction is less pressure is very uncertain due to limited data.
+than 0.35
+14. Cryogenics (boiling O with 3/4 - 1 in. Can be long if exit Equal to tube length. Little field experience available in applying process
+2
+condensing N ) (19.1 - 25.4 mm) vapor fraction is less reboiler methods to cryogenics. Feed in nucleate
+2
+than 0.35 boiling curve if available. Check against field
+experience where possible.
+15. Waste heat boiler (steam from hot 1 - 1-1/4 in. Can be long if exit Can be large if Design for around 10 weight percent vapor. Check
+gas) (25.4 - 31.8 mm) vapor fraction is low subcooled liquid zone is instability. Provide additional inlet piping resistance if
+not greater than 1/4 of necessary. Watch for mist flow and for film boiling at
+the tube length high T end. If boiling is shellside, use strip baffles.
+Design for even flow distribution and eliminate vapor
+accumulation regions.
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 21 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+IX-E 20 of 94 CALCULATION PROCEDURE, VAPORIZATION
+DESIGN PRACTICES
+December, 2000
+APPENDIX A
+HEAT TRANSFER CALCULATION FORM FOR KETTLE AND INTERNAL REBOILERS
+Exchanger No. E - Plant Done by
+Service Date
+Customary Metric
+A. BOILING SIDE SPECIFICATIONS
+1. Pressure, P psia kPa
+2. Exit Vapor Temperature, T °F °C
+v
+3. Feed Temperature, T °F °C
+f
+4. Bottoms Drawoff Temperature, T °F °C
+d
+5. Bottoms Drawoff Flowrate, WB lb/hr kg/hr
+6. Average Heating Medium
+Temperature, T °F °C
+h
+7. Available Temperature
+Driving Force, ∆T = T – T °F °C
+a h v
+B. BOILING FLUID PROPERTIES
+1. Boiling Range, BR °F °C
+2. Bubble Point, T °F °C
+s
+3. Critical Pressure, P psia kPa
+c
+4. Heat Capacity of Bottoms Drawoff, C Btu/lb-°F kJ/kg-K
+pb
+5. Reduced Pressure, (P / P )
+c
+6. Average Vapor Density, ρ lb/ft3 kg/m3
+v
+7. Average Liquid Density, ρ
+l
+lb/ft3 kg/m3
+8. Average Latent Heat, λ Btu/lb kJ/kg
+9. Liquid Surface Tension, σ
+At exit Temperature
+[Required for kettle sizing only] dynes/cm dynes/cm
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 22 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+CALCULATION PROCEDURE, VAPORIZATION IX-E 21 of 94
+DESIGN PRACTICES
+December, 2000
+HEAT TRANSFER CALCULATION FORM FOR KETTLE AND INTERNAL REBOILERS (Cont)
+C. EXCHANGER GEOMETRY
+1. Number of Tube Holes in Tubesheet,
+NTT
+2. Bundle Length, L ft m
+3. Tube Inside Diameter, d i in. mm
+4. Ratio of Outside to Inside Surface
+Area, AOI
+5. Tube Pitch Ratio, PR
+6. Number of Vapor Exit Nozzles, NN
+7. Tube Wall Thermal Conductivity, k w Btu/hr-ft-°F W/m-K
+D. FOULING RESISTANCES
+1. Tubeside, r fi hr-ft2-°F/Btu m2-K/W
+2. Shellside, r fo hr-ft2-°F/Btu m2-K/W
+E. NUCLEATE BOILING CALCULATIONS
+1. Single Tube Maximum Heat Flux,
+q , Figure A3 Btu/hr-ft2 W/m2
+1max
+2. Bundle Correction Factor, CB,
+Figure A4
+3. Bundle Maximum Heat Flux, q bmax =
+CB (q ) Btu/hr-ft2 W/m2
+1max
+4. Reference Heat Fluxes. Use two to construct a plot.
+q = 0.1(q ) Btu/hr-ft2 W/m2
+1 bmax
+q = 0.6(q ) Btu/hr-ft2 W/m2
+2 bmax
+5. Single Tube Nucleate boiling Reference Coefficient h 1r , Figure A5
+At q
+1
+, h
+1r1
+Btu/hr-ft2-°F W/m2-K
+At q
+2
+, h
+1r2
+Btu/hr-ft2-°F W/m2-K
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 23 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+IX-E 22 of 94 CALCULATION PROCEDURE, VAPORIZATION
+DESIGN PRACTICES
+December, 2000
+HEAT TRANSFER CALCULATION FORM FOR KETTLE AND INTERNAL REBOILERS (Cont)
+6. Pressure Correction, F p ,
+Figure A6
+7. Mixture Correction, Fc
+7.1 Effective Minimum Heat Flux for Nucleate Boiling, q
+n
+24858 / (BR)0.8 78365 / (BR)0.8
+(if > 1000, use 1000) (if > 3150, use 3150)
+Btu/hr-ft2 W/m2
+7.2 (q/q ), for Figure A8
+n
+At q
+1
+At q
+2
+7.3 Density Ratio, x = (ρ / ρ ), Limit x ≤ 0.2
+r v l r
+7.4 Effective Temperature Range, DR, Figure A7
+°F °C
+7.5 (BR / DR)
+7.6 F , Figure A8
+c
+At q , F
+1 c1
+At q , F
+2 c2
+8. Single Tube Boiling Coefficients, h = (h )(F )(F )0.67
+1 1r p c
+At q
+1
+, h
+11
+Btu/hr-ft2-°F W/m2-K
+At q , h Btu/hr-ft2-°F W/m2-K
+2 12
+9. Bundle Convection Correction, F ,
+b
+Figure A9
+10. Sensible Heating Correction, F
+d
+10.1 Sensible Heat Duty, Q
+s
+(WB)(C )(T - T ) (WB)(C )(T - T ) / 3.6
+pb d f pb d f
+Btu/hr W
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 24 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+CALCULATION PROCEDURE, VAPORIZATION IX-E 23 of 94
+DESIGN PRACTICES
+December, 2000
+HEAT TRANSFER CALCULATION FORM FOR KETTLE AND INTERNAL REBOILERS (Cont)
+10.2 Bundle Surface Area, A
+0.262(d )(AOI)(L)(NTT) 0.00314(d )(AOI)(L)(NTT)
+i i
+ft2 m2
+10.3 Sensible Heating Correction, F = (1 – Q / (q A)) 1/3
+d s
+[If ≤ 0, return to step E4, change q to 0.2(q ) and repeat]
+1 bmax
+At q = q ,
+1
+At q = q ,
+2
+11. Finned Tube Correction, F
+f
+= (F
+e
+) (F
+s
+), Figures A10 or A11, and A12. Use 1.0 for Plain Tubes
+12. Average Bundle Boiling Coefficients (Including 0.75 Safety Factor)
+h = (h )(F )(F )(F )(0.75)
+ab 1 b d f
+At q
+1
+, h
+ab1
+Btu/hr-ft2-°F W/m2-K
+At q
+2
+, h
+ab2
+Btu/hr-ft2-°F W/m2-K
+13. Wall Resistance, r , Plain or Finned Tubes
+w
+Carbon Steel 0.0004 hr-ft2-°F/Btu 0.00007 m2-K/W
+Other 0.0004 (28/k ) 0.00007(48/k )
+w w
+hr-ft2-°F/Btu m2-K/W
+14. Tubeside Heat Transfer Coefficient, h
+h
+14.1 For Steam 2000 + 0.033[(q)(L)]0.8 11357 + 0.193[(q)(L)]0.8
+At q Btu/hr-ft2-°F W/m2-K
+1
+At q Btu/hr-ft2-°F W/m2-K
+2
+14.2 Other than Steam, Section IX-F
+At q Btu/hr-ft2-°F W/m2-K
+1
+At q Btu/hr-ft2-°F W/m2-K
+2
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 25 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+IX-E 24 of 94 CALCULATION PROCEDURE, VAPORIZATION
+DESIGN PRACTICES
+December, 2000
+HEAT TRANSFER CALCULATION FORM FOR KETTLE AND INTERNAL REBOILERS (Cont)
+15. Overall Heat Transfer Coefficients
+15.1 Clean
+1
+U =
+C 1 AOI
++ + R
+w
+h h
+ab h
+At q 1 U c1 = Btu/hr-ft2-°F W/m2-K
+At q 2 U c2 = Btu/hr-ft2-°F W/m2-K
+15.2 Fouled
+1
+U =
+f 1
++ (AOI)(r ) + (r )
+fi fo
+U
+c
+At q 1 U f1 = Btu/hr-ft2-°F W/m2-K
+At q U = Btu/hr-ft2-°F W/m2-K
+2 f2
+F. OVERALL ∆∆∆∆T CALCULATION FOR NUCLEATE BOILING
+∆T is the difference between the average heating medium (or condensing) temperature and the exit vapor temperature.
+1. Clean
+∆T = q / U
+c c
+At q = q 1 ∆T c1 = °F °C
+At q = q 2 ∆T c2 = °F °C
+2. Fouled
+∆T
+f
+= q / U
+f
+At q = q 1 ∆T f1 = °F °C
+At q = q 2 ∆T f2 = °F °C
+G. OVERALL ∆∆∆∆T CALCULATION FOR FILM BOILING
+[Calculations may be skipped if ∆T is in the nucleate boiling region]
+a
+1. Minimum Film Boiling Heat Flux, q bmin2
+q = (q )(0.12) Btu/hr-ft2 W/m2
+bmin 1max
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 26 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+CALCULATION PROCEDURE, VAPORIZATION IX-E 25 of 94
+DESIGN PRACTICES
+December, 2000
+HEAT TRANSFER CALCULATION FORM FOR KETTLE AND INTERNAL REBOILERS (Cont)
+2. Film Boiling Heat Transfer Coefficients, h
+fb
+At q , h 50 (P )0.25 (P/P )0.43 176 (P )0.25 (P/P )0.43
+bmin fb1 c c c c
+Btu/hr-ft2-°F W/m2-K
+At (2)(q
+bmin
+), h
+fb2
+= 0.71(h
+fb1
+) Btu/hr-ft2-°F W/m2-K
+3. Clean ∆T (with the approximation U = h )
+fb
+∆T = q / h °F °C
+fc1 bmin fb1
+∆T = (2)(q ) / h °F °C
+fc2 bmin fb2
+4. Fouled ∆T
+∆T = ∆T + q [(AOI) (r ) + r ] °F °C
+ff1 fc1 bmin fi fo
+∆T = ∆T + 2 (∆T - ∆T ) °F °C
+ff2 fc2 ff1 fc1
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 27 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+IX-E 26 of 94 CALCULATION PROCEDURE, VAPORIZATION
+DESIGN PRACTICES
+December, 2000
+HEAT TRANSFER CALCULATION FORM FOR KETTLE AND INTERNAL REBOILERS (Cont)
+H. CONSTRUCT PLOT
+1. Plot heat flux vs. overall ∆T on a log-log graph for each of the four ∆Ts in items F and G.
+1E+06
+1E+05
+1E+04
+1E+03
+1E+00 1E+01 1E+02 1E+03
+ExxonMobil Research and Engineering Company – Fairfax, VA
+)2m/W,2tf-rh/utB(
+xulF
+taeH
+T (°F, °C)
+DP09Ef0c
+I. CALCULATE HEAT DUTY AND VAPOR FLOW
+1. Heat Flux, q , at ∆T Btu/hr-ft2 W/m2
+a a
+2. Total Heat Duty, Q = (q )(A) Btu/hr W
+T a
+3. Vaporizing Duty Q = Q – Q Btu/hr W
+V T s
+4. Vapor Flow, W Q / λ Q / λ / 1000
+V v v
+lb/hr kg/s
+--- PAGE 28 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+CALCULATION PROCEDURE, VAPORIZATION IX-E 27 of 94
+DESIGN PRACTICES
+December, 2000
+HEAT TRANSFER CALCULATION FORM FOR KETTLE AND INTERNAL REBOILERS (Cont)
+J. KETTLE SIZE CALCULATION
+[See Figure A13]
+1. Maximum Permissible Entrainment Ratio, E, (lb (kg) liquid/lb (kg) vapor)
+2. Entrainment Coefficient, K = J2 (E)0.33 (σ / ( ρ - ρ ))0.25
+l v
+J2 = 0.916 J2 = 0.558
+ft/s m/s
+3. Maximum Velocity, V
+max
+= K( ρ
+l
+/ ρ
+v
+- 1)0.5
+ft/s m/s
+4. Bundle Diameter, D , in. mm
+b
+5. Kettle Diameter, D , in. mm
+s
+[guess for design]
+6. Weir Height, H in. mm
+w
+7. Chord Length above Weir,
+L
+c
+= (4H
+w
+(D
+s
+- H
+w
+))0.5 in. mm
+[If D > 2D , L = D ]
+s b c s
+8. Vertical Velocity Area, S (L )(L) / 12 (L )(L) / 1000
+v c c
+ft2 m2
+9. Chord Angle,
+θ' = 2 Sin-1 (L /D ) deg deg
+c s
+θ = θ' (π/180) rad rad
+10. Horizontal Velocity Area, S h D s 2 (θ - sinθ) / 1152 D s 2 (θ - sinθ) / (8 x 106)
+ft2 m2
+11. Vertical Velocity, V v W v / (3600 ρ v S v ) W v / (ρ v S v )
+ft/s m/s
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 29 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+IX-E 28 of 94 CALCULATION PROCEDURE, VAPORIZATION
+DESIGN PRACTICES
+December, 2000
+HEAT TRANSFER CALCULATION FORM FOR KETTLE AND INTERNAL REBOILERS (Cont)
+12. V ≤ V ?
+v max
+[If NO, then for design cases reguess D and repeat from step 7]
+s
+13. Horizontal Velocity, V h W v / (3600 ρ v S h 2 NN) W v / (ρ v S h 2 NN)
+ft/s m/s
+14. Effective Velocity, V = (V V )0.5 [limit V ≥ V ]
+e v h e v
+ft/s m/s
+15. V ≤ V ?
+e max
+[If NO, then for design cases reguess D and repeat from step J5]
+s
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 30 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+CALCULATION PROCEDURE, VAPORIZATION IX-E 29 of 94
+DESIGN PRACTICES
+December, 2000
+APPENDIX B
+HEAT TRANSFER CALCULATION FORM FOR KETTLE AND INTERNAL REBOILERS (SAMPLE)
+Exchanger No. E - (Example 1) Plant Done by
+Service Date
+Customary Metric
+A. BOILING SIDE SPECIFICATIONS
+1. Pressure, P 172 psia 1,187 kPa
+2. Exit Vapor Temperature, T 353 °F 179 °C
+v
+3. Feed Temperature, T f 337 °F 170 °C
+4. Bottoms Drawoff Temperature, T d 353 °F 179 °C
+5. Bottoms Drawoff Flowrate, WB 310,000 lb/hr 140,572 kg/hr
+6. Average Heating Medium
+Temperature, T 420 °F 216 °C
+h
+7. Available Temperature Driving
+Force, ∆T
+a
+= T
+h
+- T
+v
+67 °F 37 °C
+B. BOILING FLUID PROPERTIES
+1. Boiling Range, BR 64 °F 35 °C
+2. Bubble Point, T s 337 °F 170 °C
+3. Critical Pressure, P 456 psia 3145 kPa
+c
+4. Heat Capacity of 0.68 Btu/lb-°F 2.8 kJ/kg-K
+Bottoms Drawoff, C
+pb
+5. Reduced Pressure, (P / P ) 0.38 0.38
+c
+6. Average Vapor Density, ρ 2.05 lb/ft3 32.8 kg/m3
+v
+7. Average Liquid Density, ρ l 33.9 lb/ft3 542.8 kg/m3
+8. Average Latent Heat, λ 125.2 Btu/lb 291.0 kJ/kg
+9. Liquid Surface Tension, σ,
+At exit Temperature
+[Required for kettle sizing only] 5.5 dynes/cm 5.5 dynes/cm
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 31 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+IX-E 30 of 94 CALCULATION PROCEDURE, VAPORIZATION
+DESIGN PRACTICES
+December, 2000
+HEAT TRANSFER CALCULATION FORM FOR KETTLE AND INTERNAL REBOILERS
+(SAMPLE) (Cont)
+C. EXCHANGER GEOMETRY
+1. Number of Tube Holes
+in Tubesheet, NTT 270 270
+2. Bundle Length, L 12.6 ft 3.84 m
+3. Tube Inside Diameter, d 0.782 in. 19.86 mm
+i
+4. Ratio of Outside to Inside
+Surface Area, AOI 1.279 1.279
+5. Tube Pitch Ratio, PR 1.25 1.25
+6. Number of Vapor Exit Nozzles, NN 1 1
+7. Tube Wall Thermal Conductivity, k 28 Btu/hr-ft-°F 48.5 W/m-K
+w
+D. FOULING RESISTANCES
+1. Tubeside, r fi 0.002 hr-ft2-°F/Btu 0.00035 m2-K/W
+2. Shellside, r fo 0.001 hr-ft2-°F/Btu 0.00018 m2-K/W
+E. NUCLEATE BOILING CALCULATIONS
+1. Single Tube Maximum Heat Flux,
+q , Figure A3 1.7 X 105 Btu/hr-ft2 5.4 X 105 W/m2
+1max
+2. Bundle Correction Factor,
+CB, Figure A4 0.35 0.35
+3. Bundle Maximum Heat Flux,
+q = CB(q ) 59,500 Btu/hr-ft2 189,000 W/m2
+bmax 1max
+4. Reference Heat Fluxes. Use two to construct a plot.
+q = 0.1(q ) 5,950 Btu/hr-ft2 18,900 W/m2
+1 bmax
+q
+2
+= 0.6(q
+bmax
+) 35,700 Btu/hr-ft2 113,400 W/m2
+5. Single Tube Nucleate boiling Reference Coefficient h , Figure A5
+1r
+At q 1 , h 1r1 290 Btu/hr-ft2-°F 1,700 W/m2-K
+At q 2 , h 1r2 910 Btu/hr-ft2-°F 5,200 W/m2-K
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 32 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+CALCULATION PROCEDURE, VAPORIZATION IX-E 31 of 94
+DESIGN PRACTICES
+December, 2000
+HEAT TRANSFER CALCULATION FORM FOR KETTLE AND INTERNAL REBOILERS
+(SAMPLE) (Cont)
+6. Pressure Correction, F ,
+p
+Figure A6 2.6 2.6
+7. Mixture Correction, Fc
+7.1 Effective Minimum Heat Flux for Nucleate Boiling, q
+n
+24858 / (BR)0.8 78365 / (BR)0.8
+(if > 1000, use 1000) (if > 3150, use 3150)
+892 Btu/hr-ft2 3150 W/m2
+7.2 (q / q ), for Figure A8
+n
+At q 6.7 6
+1
+At q 40.0 36
+2
+7.3 Density Ratio, x
+r
+= (ρ
+v
+/ ρ
+l
+), Limit x
+r
+≤ 0.2
+0.06 0.06
+7.4 Effective Temperature
+Range, DR, Figure A7 90 °F 50 °C
+7.5 (BR / DR) 0.711 0.711
+7.6 F , Figure A8
+c
+At q , F 0.26 0.26
+1 c1
+At q , F 0.19 0.19
+2 c2
+8. Single Tube Boiling Coefficients, h = (h )(F )(F )0.67
+1 1r p c
+At q 1 , h 11 306 Btu/hr-ft2-°F 1,838 W/m2-K
+At q 2 , h 12 778 Btu/hr-ft2-°F 4,599 W/m2-K
+9. Bundle Convection Correction, F ,
+b
+Figure A9 1.8 1.8
+10. Sensible Heating Correction, F
+d
+10.1 Sensible Heat Duty, Q
+s
+(WB)(C )(T - T ) (WB)(C )(T - T )/3.6
+pb d f pb d f
+3,372,800 Btu/hr 973,000 W
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 33 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+IX-E 32 of 94 CALCULATION PROCEDURE, VAPORIZATION
+DESIGN PRACTICES
+December, 2000
+HEAT TRANSFER CALCULATION FORM FOR KETTLE AND INTERNAL REBOILERS
+(SAMPLE) (Cont)
+10.2 Bundle Surface Area, A
+0.262(d )(AOI)(L)(NTT) 0.00314(d )(AOI)(L)(NTT)
+i i
+891 ft2 82.7 m2
+10.3 Sensible Heating Correction, F = (1 - Q / (q A))1/3
+d s
+[If ≤ 0, return to step E4, change q to 0.2(q ) and repeat]
+1 bmax
+At q = q , 0.71 0.71
+1
+At q = q , 0.96 0.96
+2
+11. Finned Tube Correction, F = (F )(F ), Figures A10 or A11, and A12. Use 1.0 for Plain Tubes.
+f e s
+1.0 1.0
+12. Average Bundle Boiling Coefficients (Including 0.75 Safety Factor)
+h = (h )(F )(F )(F )(0.75)
+ab 1 b d f
+At q 1 , h ab1 293 Btu/hr-ft2-°F 1,837 W/m2-K
+At q 2 , h ab2 1,008 Btu/hr-ft2-°F 6,126 W/m2-K
+13. Wall Resistance, r , Plain or Finned Tubes
+w
+Carbon Steel 0.0004 hr-ft2-°F/Btu 0.00007 m2-K/W
+Other 0.0004 (28/k ) 0.00007 (48/k )
+w w
+-------- hr-ft2-°F/Btu -------- m2-K/W
+14. Tubeside Heat Transfer Coefficient, h
+h
+14.1 For Steam 2000 + 0.033[(q)(L)]0.8 11357 + 0.193[(q)(L)]0.8
+At q 2,262 Btu/hr-ft2-°F 12,850 W/m2-K
+1
+At q 3,099 Btu/hr-ft2-°F 17,616 W/m2-K
+2
+14.2 Other than Steam, Section IX-F
+At q -------- Btu/hr-ft2-°F -------- W/m2-K
+1
+At q -------- Btu/hr-ft2-°F -------- W/m2-K
+2
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 34 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+CALCULATION PROCEDURE, VAPORIZATION IX-E 33 of 94
+DESIGN PRACTICES
+December, 2000
+HEAT TRANSFER CALCULATION FORM FOR KETTLE AND INTERNAL REBOILERS
+(SAMPLE) (Cont)
+15. Overall Heat Transfer Coefficients
+15.1 Clean
+1
+U =
+C 1 AOI
++ + R
+w
+h h
+ab h
+At q U = 228 Btu/hr-ft2-°F 1,401 W/m2-K
+1 c1
+At q 2 U c2 = 554 Btu/hr-ft2-°F 3,270 W/m2-K
+15.2 Fouled
+1
+U =
+f 1
++ (AOI)(r ) + (r )
+fi fo
+U
+c
+At q 1 U f1 = 126 Btu/hr-ft2-°F 746 W/m2-K
+At q 2 U f2 = 186 Btu/hr-ft2-°F 1,073 W/m2-K
+F. OVERALL ∆∆∆∆T CALCULATION FOR NUCLEATE BOILING
+∆T is the difference between the average heating medium (or condensing) temperature and the exit vapor temperature.
+1. Clean
+∆T = q / U
+c c
+At q = q 1 ∆T c1 = 26.1 °F 13.5 °C
+At q = q 2 ∆T c2 = 64.4 °F 34.7 °C
+2. Fouled
+∆T = q / U
+f f
+At q = q 1 ∆T f1 = 47.2 °F 25.3 °C
+At q = q 2 ∆T f2 = 192.0 °F 105.7 °C
+G. OVERALL ∆∆∆∆T CALCULATION FOR FILM BOILING
+[Calculations may be skipped if ∆T is in the nucleate boiling region]
+a
+1. Minimum Film Boiling Heat Flux, q
+bmin2
+q = (q )(0.12) 20,400 Btu/hr-ft2 64,800 W/m2
+bmin 1max
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 35 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+IX-E 34 of 94 CALCULATION PROCEDURE, VAPORIZATION
+DESIGN PRACTICES
+December, 2000
+HEAT TRANSFER CALCULATION FORM FOR KETTLE AND INTERNAL REBOILERS
+(SAMPLE) (Cont)
+2. Film Boiling Heat Transfer Coefficients, h
+fb
+At q , h 50 (P )0.25 (P/P )0.43 176 (P )0.25 (P/P )0.43
+bmin fb1 c c c c
+152 Btu/hr-ft2-°F 869 W/m2-K
+At (2)(q ), h = 0.71(h ) 108 Btu/hr-ft2-°F 617 W/m2-K
+bmin fb2 fb1
+3. Clean ∆T (with the approximation U = h )
+fb
+∆T = q / h 134.2 °F 74.5 °C
+fc1 bmin fb1
+∆T = (2)(q ) / h 377.8 °F 209.9 °C
+fc2 bmin fb2
+4. Fouled ∆T
+∆T = ∆T + q [(AOI) (r ) + r ] 206.8 °F 115.0 °C
+ff1 fc1 bmin fi fo
+∆T = ∆T + 2 (∆T - ∆T ) 523.0 °F 290.0 °C
+ff2 fc2 ff1 fc1
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 36 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+CALCULATION PROCEDURE, VAPORIZATION IX-E 35 of 94
+DESIGN PRACTICES
+December, 2000
+HEAT TRANSFER CALCULATION FORM FOR KETTLE AND INTERNAL REBOILERS
+(SAMPLE) (Cont)
+H. CONSTRUCT PLOT
+1. Plot heat flux vs. overall ∆T on a log-log graph for each of the four ∆T’s in items F and G.
+1E+06
+1E+05
+1E+04
+1E+03
+1E+00 1E+01 1E+02 1E+03
+ExxonMobil Research and Engineering Company – Fairfax, VA
+)2m/W
+,2tf-rh/utB(
+xulF
+taeH
+Film
+Nucleate
+Clean(SI)
+Fouled (SI)
+Fouled (SI)
+Clean(SI)
+Clean
+Fouled
+Fouled
+Clean Film
+Nucleate
+T (°F, °C)
+DP09Ef0d
+I. CALCULATE HEAT DUTY AND VAPOR FLOW
+1. Heat Flux, q , at ∆T 9,200 Btu/hr-ft2 28,000 W/m2
+a a
+2. Total Heat Duty, Q = (q )(A) 8,197,200 Btu/hr 2,314,480 W
+T a
+3. Vaporizing Duty, Q = Q - Q 4,824,400 Btu/hr 1,341,480 W
+V T s
+4. Vapor Flow, W Q / λ Q / λ / 1000
+V v v
+38,534 lb/hr 4.61 kg/s
+--- PAGE 37 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+IX-E 36 of 94 CALCULATION PROCEDURE, VAPORIZATION
+DESIGN PRACTICES
+December, 2000
+HEAT TRANSFER CALCULATION FORM FOR KETTLE AND INTERNAL REBOILERS
+(SAMPLE) (Cont)
+J. KETTLE SIZE CALCULATION
+[See Figure A13]
+1. Maximum Permissible Entrainment Ratio, E, (lb (kg) liquid/lb (kg) vapor)
+0.01 0.01
+2. Entrainment Coefficient, K = J2 (E)0.33 (σ / ( ρ - ρ ))0.25
+l v
+J2 = 0.916 J2 = 0.558
+0.129 ft/s 0.039 m/s
+3. Maximum Velocity, V = K ( ρ / ρ - 1)0.5
+max l v
+0.51 ft/s 0.155 m/s
+4. Bundle Diameter, D , 26 in. 660 mm
+b
+5. Kettle Diameter, D ,
+s
+[guess for design] 52 in. 1,321 mm
+6. Weir Height, H 31 in. 787 mm
+w
+7. Chord Length above Weir, 51.0 in. 1,297 mm
+L = (4H (D - H ))0.5
+c w s w
+[If D > 2D , L = D ]
+s b c s
+8. Vertical Velocity Area S (L )(L) / 12 (L )(L) / 1000
+v c c
+53.6 ft2 4.98 m2
+9. Chord Angle,
+θ' = 2 Sin-1 (L /D ) 158 deg 158 deg
+c s
+θ = θ' (π/180) 2.75 rad 2.75 rad
+10. Horizontal Velocity Area, S h D s 2 (θ - sinθ) / 1152 D s 2 (θ - sinθ) / (8 x 106)
+5.56 ft2 0.517 m2
+11. Vertical Velocity, V v W v / (3600 ρ v S v ) W v / (ρ v S v )
+0.097 ft/s 0.030 m/s
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 38 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+CALCULATION PROCEDURE, VAPORIZATION IX-E 37 of 94
+DESIGN PRACTICES
+December, 2000
+HEAT TRANSFER CALCULATION FORM FOR KETTLE AND INTERNAL REBOILERS
+(SAMPLE) (Cont)
+12. V ≤ V ? yes yes
+v max
+[If NO, then for design cases reguess D and repeat from step 7]
+s
+13. Horizontal Velocity, V W / (3600 ρ S 2 NN) W / (ρ S 2 NN)
+h v v h v v h
+0.47 ft/s 0.14 m/s
+14. Effective Velocity, V = (V V )0.5 [limit V ≥ V ]
+e v h e v
+0.21 ft/s 0.065 m/s
+15. V ≤ V ? yes yes
+e max
+[If NO, then for design cases reguess D and repeat from step J5]
+s
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 39 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+IX-E 38 of 94 CALCULATION PROCEDURE, VAPORIZATION
+DESIGN PRACTICES
+December, 2000
+APPENDIX C
+HEAT TRANSFER CALCULATION FORM FOR VERTICAL TUBESIDE THERMOSIPHON REBOILERS
+Exchanger No. E - Plant Done by
+Service Date
+Customary Metric
+A. BOILING SIDE SPECIFICATIONS
+1. Pressure, P psia kPa
+2. Inlet Temperature, T °F °C
+bi
+3. Exit Temperature, T °F °C
+bo
+4. Saturation Temperature, T °F °C
+bs
+5. Total Heat Duty, Q Btu/hr kW
+T
+6. Flow Rate, W lb/hr kg/hr
+7. Outlet Vapor Fraction, y
+o
+[Enter either item 6 or item 7. The other will be calculated.]
+B. HEATING MEDIUM SPECIFICATIONS
+1. Inlet Temperature, T
+hi
+°F °C
+2. Exit Temperature, T
+ho
+°F °C
+3. Saturation Temperature, T
+hs
+(for condensing streams only) °F °C
+C. AVAILABLE ∆∆∆∆T
+[For pure component boiling vs. condensing heating medium use (average heating medium temp minus exit vapor temp); for
+mixture boiling vs. condensing heating medium use log-mean ∆T with hot inlet at saturation; for single phase heating
+medium use log-mean ∆T].
+°F °C
+D. BOILING FLUID PROPERTIES
+1. Boiling Range, BR,
+(Dew point - Bubble point)
+at inlet pressure °F °C
+2. Critical Pressure, P psia kPa
+c
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 40 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+CALCULATION PROCEDURE, VAPORIZATION IX-E 39 of 94
+DESIGN PRACTICES
+December, 2000
+HEAT TRANSFER CALCULATION FORM FOR VERTICAL TUBESIDE THERMOSIPHON REBOILERS (Cont)
+3. Latent Heat, λ Btu/lb kJ/kg
+4. Liquid Density, ρ lb/ft3 kg/m3
+l
+5. Vapor Density, ρ lb/ft3 kg/m3
+v
+6. Liquid Viscosity, µ lb/ft-hr kg/m-s
+l
+7. Vapor Viscosity, µ lb/ft-hr kg/m-s
+v
+8. Liquid Thermal Conductivity, k Btu/hr-ft-°F W/m-K
+l
+9. Liquid Heat Capacity, Cρ Btu/lb-°F kJ/kg-K
+l
+10. Liquid Prandtl Number,
+Pr = Cρ µ / k
+l l l l
+11. Reduced Pressure, P = P / P
+r c
+E. EXCHANGER GEOMETRY
+For design cases start with steps 1 - 3 in item B under the heading CALCULATION PROCEDURES, VERTICAL
+THERMOSIPHON TUBESIDE REBOILERS
+1. Number of Tubes, NTT
+2. Bundle Length, L ft m
+3. Tube Inside Diameter, d in. mm
+i
+4. Tube Outside Diameter, d
+o
+[Equivalent diameter for finned
+tubes] in. mm
+5. Outside Surface Area, A π (d / 12)(L)(NTT) π (d / 1000)(L)(NTT)
+o o
+ft2 m2
+6. Tube Wall Thermal Conductivity, k
+w
+Btu/hr-ft-°F W/m-K
+F. FOULING RESISTANCES
+1. Tubeside, r hr-ft2-°F/Btu m2-K/W
+fi
+2. Shellside, r hr-ft2-°F/Btu m2-K/W
+fo
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 41 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+IX-E 40 of 94 CALCULATION PROCEDURE, VAPORIZATION
+DESIGN PRACTICES
+December, 2000
+HEAT TRANSFER CALCULATION FORM FOR VERTICAL TUBESIDE THERMOSIPHON REBOILERS (Cont)
+G. CALCULATE OVERALL HEAT TRANSFER COEFFICIENT
+1. Heat Flux, q = Q / A Btu/hr-ft2 W/m2
+T
+2. Choke Flow Limit Heat Flux, q
+max
+2.1 Reference Maximum Btu/hr-ft2 W/m2
+q , Figure A14
+maxr
+2.2 Correction, Λ, Figure A15
+2.3 q = 0.7(q )Λ Btu/hr-ft2 W/m2
+max maxr
+2.4 q ≤ q ?
+max
+3. Mixture Correction, F
+c
+3.1 Effective Minimum Heat Flux for Nucleate Boiling, q
+n
+24858 / (BR)0.8 78365 / (BR)0.8
+(if > 1000, use 1000) (if > 3150, use 3150)
+Btu/hr-ft2 W/m2
+3.2 (q / q ), for Figure A8
+n
+3.3 Density Ratio, x = (ρ / ρ ), Limit x ≤ 0.2
+r v l r
+3.4 Effective Temperature Range, DR, Figure A7
+°F °C
+3.5 (BR / DR)
+3.6 F , Figure A8
+c
+4. Single Tube Nucleate Boiling Coefficient, h , Figure A5
+nb1
+Btu/hr-ft2-°F W/m2-K
+5. Natural Convection Coefficient, h , Figure A16
+nc
+Btu/hr-ft2-°F W/m2-K
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 42 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+CALCULATION PROCEDURE, VAPORIZATION IX-E 41 of 94
+DESIGN PRACTICES
+December, 2000
+HEAT TRANSFER CALCULATION FORM FOR VERTICAL TUBESIDE THERMOSIPHON REBOILERS (Cont)
+6. Nucleate Boiling Heat Transfer Coefficient, h
+nb
+= h
+nb1
+(F
+c
+)0.67 + h
+nc
+Btu/hr-ft2-°F W/m2-K
+7. Sensible Heat Duty, Q S (W)( C pl )(T bs - T bi ) (W)( C pl )(T bs - T bi ) / 3.6
+Btu/hr W
+8A. For known flow rate calculate outlet vapor fraction
+y = (Q - Q ) / (W λ) y = 3.6 (Q - Q ) / (W λ)
+o T S o T S
+8B. For known vapor fraction calculate flow rate, W = (Q - Q ) / (y λ)
+T S o
+9. Inlet Liquid Velocity, v i (0.051 W) / ( ρ l d i 2 NTT) (353.7 W) / ( ρ l d i 2 NTT)
+ft/s m/s
+10. For Figure A17 (q) / (λ ρ ) (q) / (λ ρ ) / 1000
+l l
+ft/hr m/s
+11. Check y for good operation, Figure A17
+o
+OK?
+12. Average Vapor Fraction, y = y / 2
+a o
+13. Estimated Mist Flow Vapor Fraction, y
+mist
+= 1 - J1 (q / λ)(L / d
+i
+)( ρ
+l
+/ ρ
+v
+)0.5
+J1 = 2.1E-05 J1 = 1.29E-03
+14. y ≤ y ?
+o mist
+15. Liquid Phase Reynolds Number, 15.28 W (1 - y ) / (d µ NTT) 0.353 W (1 - y ) / (d µ NTT)
+a i l a i l
+Re
+l
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 43 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+IX-E 42 of 94 CALCULATION PROCEDURE, VAPORIZATION
+DESIGN PRACTICES
+December, 2000
+HEAT TRANSFER CALCULATION FORM FOR VERTICAL TUBESIDE THERMOSIPHON REBOILERS (Cont)
+16. Liquid Phase Convective Heat Transfer Coefficient, h
+l
+0.264 ( Re )0.8 ( Pr )0.4 ( k / d ) 22 ( Re )0.8 ( Pr )0.4 ( k / d )
+l l l i l l l i
+Btu/hr-ft2-°F W/m2-K
+17. Martinelli Parameter, X = 1.3 [(1 - y ) / y ](ρ / ρ )0.5
+tt a a v l
+18. Two Phase Convection Factor, F = (1 + 3.4 / X )0.667
+tp tt
+19. Convective Boiling Heat Transfer Coefficient, h
+tp
+F = 1.0 (BR > 5°F, 3°C); 0.8 (BR 5-50°F, 3-28°C); 0.6 (BR > 50°F, 28°C)
+mv
+h tp = F mv F tp h l Btu/hr-ft2-°F W/m2-K
+20. Static Pressure Head, ∆P
+h
+L( ρ ) / 144 9.807 L ( ρ ) / 1000
+l l
+psi kPa
+21. Subcooled Liquid Zone Correction, F = 0.15 + 0.85 (P / (∆P + P))0.5
+lz h
+22. Average Boiling Heat Transfer Coefficient, h = (h + 0.6h ) F
+ab tp nb lz
+Btu/hr-ft2-°F W/m2-K
+23. Condensing Heating Medium Heat Transfer Coefficient based on Outside Area, h .
+h
+For steam use 1500 Btu/hr-ft2-°F, 8500 W/m2-K
+For other fluids
+h = 0.18 k ( ρ ( ρ - ρ ) g Pr / µ 2)1/3
+h l l l v l l
+where: g = acceleration of gravity, 4.17 x 108 ft/hr2, 9.81 m/s2
+Btu/hr-ft2-°F W/m2-K
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 44 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+CALCULATION PROCEDURE, VAPORIZATION IX-E 43 of 94
+DESIGN PRACTICES
+December, 2000
+HEAT TRANSFER CALCULATION FORM FOR VERTICAL TUBESIDE THERMOSIPHON REBOILERS (Cont)
+24. Wall Resistance, r , Plain or Finned Tubes
+w
+Carbon Steel 0.0004 hr-ft2-°F/Btu 0.00007 m2-K/W
+Other 0.0004 (28 / k ) 0.00007 (48 / k )
+w w
+hr-ft2-°F/Btu m2-K/W
+25. Overall Heat Transfer Coefficient based on Outside Area, U
+o
+U = ((d / d )(1 / h ) + (1 / h ) + (d / d ) r + r + r )-1
+o o i ab h o i fi fo w
+Btu/hr-ft2-°F W/m2-K
+26. Required Area, A = Q / (U ∆T)
+r T o
+ft2 m2
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 45 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+IX-E 44 of 94 CALCULATION PROCEDURE, VAPORIZATION
+DESIGN PRACTICES
+December, 2000
+APPENDIX D
+HEAT TRANSFER CALCULATION FORM FOR VERTICAL TUBESIDE THERMOSIPHON REBOILERS
+(SAMPLE)
+Exchanger No. E - (Example 2) Plant Done by
+Service Date
+Customary Metric
+A. BOILING SIDE SPECIFICATIONS
+1. Pressure, P 45 psia 310 kPa
+2. Inlet Temperature, T bi 199.0 °F 92.8 °C
+3. Exit Temperature, T bo 202.3 °F 94.6 °C
+4. Saturation Temperature, T 200.8 °F 93.8 °C
+bs
+5. Total Heat Duty, Q 33.306 x 106 Btu/hr 9,762 kW
+T
+6. Flow Rate, W 940,262 lb/hr 426,500 kg/hr
+T
+7. Outlet Vapor Fraction, y ---------- ----------
+o
+[Enter either item 6 or item 7. The other will be calculated.]
+B. HEATING MEDIUM SPECIFICATIONS
+1. Inlet Temperature, T hi 259.3 °F 126.3 °C
+2. Exit Temperature, T ho 257.6 °F 125.3 °C
+3. Saturation Temperature, T 259.3 °F 126.3 °C
+hs
+(for condensing streams only)
+C. AVAILABLE ∆∆∆∆T
+[For pure component boiling vs. condensing heating medium use (average heating medium temp minus exit vapor temp); for
+mixture boiling vs. condensing heating medium use log-mean ∆T with hot inlet at saturation; for single phase heating medium
+use log-mean ∆T].
+57.8 °F 32.1 °C
+D. BOILING FLUID PROPERTIES
+1. Boiling Range, BR,
+(Dew point - Bubble point)
+at inlet pressure 0.73 °F 0.41 °C
+2. Critical Pressure, P 499 psia 3,441 kPa
+c
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 46 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+CALCULATION PROCEDURE, VAPORIZATION IX-E 45 of 94
+DESIGN PRACTICES
+December, 2000
+HEAT TRANSFER CALCULATION FORM FOR VERTICAL TUBESIDE THERMOSIPHON REBOILERS
+(SAMPLE) (Cont)
+3. Latent Heat, λ 123.2 Btu/lb 286.5 kJ/kg
+4. Liquid Density, ρ 40.8 lb/ft3 653.9 kg/m3
+l
+5. Vapor Density, ρ 0.62 lb/ft3 9.85 kg/m3
+v
+6. Liquid Viscosity, µ 0.424 lb/ft-hr 0.175 x 10-3 kg/m-s
+l
+7. Vapor Viscosity, µ 0.0217 lb/ft-hr 0.009 x 10-3 kg/m-s
+v
+8. Liquid Thermal Conductivity, k 0.0472 Btu/hr-ft-°F 0.0817 W/m-K
+l
+9. Liquid Heat Capacity, C 0.568 Btu/lb-°F 2.376 kJ/kg-K
+pl
+10. Liquid Prandtl Number,
+Pr
+l
+= Cρ
+l
+µ
+l
+/ k
+l 5.1 5.1
+11. Reduced Pressure, P = P / P 0.09 0.09
+r c
+E. EXCHANGER GEOMETRY
+For design cases start with steps 1 - 3 in item B under the heading Calculation Procedures
+1. Number of Tubes, NTT 1,479 1,479
+2. Bundle Length, L 10.0 ft 3.048 m
+3. Tube Inside Diameter, d 0.834 in. 21.18 mm
+i
+4. Tube Outside Diameter, d
+o
+[Equivalent diameter for finned
+tubes] 1.00 in. 25.4 mm
+5. Outside Surface Area, A π (d / 12)(L)(NTT) π (d / 1000)(L)(NTT)
+o o
+3,872 ft2 360 m2
+6. Tube Wall Thermal Conductivity, k 28 Btu/hr-ft-°F 48 W/m-K
+w
+F. FOULING RESISTANCES
+1. Tubeside, r fi 0.002 hr-ft2-°F/Btu 0.0004 m2-K/W
+2. Shellside, r fo 0.0005 hr-ft2-°F/Btu 0.00009 m2-K/W
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 47 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+IX-E 46 of 94 CALCULATION PROCEDURE, VAPORIZATION
+DESIGN PRACTICES
+December, 2000
+HEAT TRANSFER CALCULATION FORM FOR VERTICAL TUBESIDE THERMOSIPHON REBOILERS
+(SAMPLE) (Cont)
+G. CALCULATE OVERALL HEAT TRANSFER COEFFICIENT
+1. Heat Flux, q = Q / A 8,602 Btu/hr-ft2 27,097 W/m2
+T
+2. Choke Flow Limit Heat Flux, q
+max
+2.1 Reference Maximum
+q , Figure A14 2.8 x 104 Btu/hr-ft2 90 x 103 W/m2
+maxr
+2.2 Correction, Λ, Figure A15 0.85 0.85
+2.3 q = 0.7(q ) Λ 16,660 Btu/hr-ft2 53,500 W/m2
+max maxr
+2.4 q ≤ q ? yes yes
+max
+3. Mixture Correction, F
+c
+3.1 Effective Minimum Heat Flux for Nucleate Boiling, q
+n
+24858 / (BR)0.8 78365 / (BR)0.8
+(if > 1000, use 1000) (if > 3150, use 3150)
+1,000 Btu/hr-ft2 3,150 W/m2
+3.2 (q / q ), for Figure A8 8.6 8.6
+n
+3.3 Density Ratio, x = (ρ / ρ ),Limit x ≤ 0.2
+r v l r
+0.015 0.015
+3.4 Effective Temperature Range, DR, Figure A7
+215 °F 119 °C
+3.5 (BR / DR)
+0.003 0.003
+3.6 F , Figure A8
+c
+1.0 1.0
+4. Single Tube Nucleate Boiling Coefficient, h , Figure A5
+nb1
+360 Btu/hr-ft2-°F 2,200 W/m2-K
+5. Natural Convection Coefficient, h , Figure A16
+nc
+65 Btu/hr-ft2-°F 369 W/m2-K
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 48 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+CALCULATION PROCEDURE, VAPORIZATION IX-E 47 of 94
+DESIGN PRACTICES
+December, 2000
+HEAT TRANSFER CALCULATION FORM FOR VERTICAL TUBESIDE THERMOSIPHON REBOILERS
+(SAMPLE) (Cont)
+6. Nucleate Boiling Heat Transfer Coefficient, h = h (F )0.67 + h
+nb nb1 c nc
+425 Btu/hr-ft2-F 2,569 W/m2-K
+7. Sensible Heat Duty, Q S (W)( C pl )(T bs - T bi ) (W)( C pl )(T bs - T bi ) / 3.6
+961,324 Btu/hr 281,490 W
+8A. For known flow rate calculate outlet vapor fraction
+y = (Q - Q ) / (W λ) y = 3.6(Q - Q ) / (W λ)
+o T S o T S
+0.279 0.279
+8B. For known vapor fraction calculate flow rate, W = (Q T - Q S ) / (y o λ)
+---------- ----------
+9. Inlet Liquid Velocity, v i (0.051 W) / ( ρ l d i 2 NTT) (353.7 W) / ( ρ l d i 2 NTT)
+1.14 ft/s 0.35 m/s
+10. For Figure A17 (q) / (λ ρ ) (q) / (λ ρ ) / 1000
+l l
+1.71 ft/hr 1.45 x 10-4 m/s
+11. Check y for good operation, Figure A17
+o
+OK? ok ok
+12. Average Vapor Fraction, y = y / 2 0.14 0.14
+a o
+13. Estimated Mist Flow Vapor Fraction, y
+mist
+= 1 - J1 (q / λ)(L / d
+i
+)( ρ
+l
+/ ρ
+v
+)0.5
+J1 = 2.1E-05 J1 = 1.29E-03
+0.86 0.86
+14. y ≤ y ? yes yes
+o mist
+15. Liquid Phase Reynolds Number, Re
+l
+15.28 W (1 - y ) / (d µ NTT) 0.353 W (1 - y ) / (d µ NTT)
+a i l a i l
+23,625 23,625
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 49 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+IX-E 48 of 94 CALCULATION PROCEDURE, VAPORIZATION
+DESIGN PRACTICES
+December, 2000
+HEAT TRANSFER CALCULATION FORM FOR VERTICAL TUBESIDE THERMOSIPHON REBOILERS
+(SAMPLE) (Cont)
+16. Liquid Phase Convective Heat Transfer Coefficient, h
+l
+0.264 ( Re )0.8 ( Pr )0.4 ( k / d ) 22 ( Re )0.8 ( Pr )0.4 ( k / d )
+l l l i l l l i
+90 Btu/hr-ft2-°F 513 W/m2-K
+17. Martinelli Parameter, X = 1.3 [(1 - y ) / y ](ρ / ρ )0.5
+tt a a v l
+0.98 0.98
+18. Two Phase Convection Factor
+F = (1 + 3.4 / X )0.667 271 271
+tp tt
+19. Convective Boiling Heat Transfer Coefficient, h
+tp
+F = 1.0 (BR < 5°F, 3°C); 0.8 (BR 5-50°F, 3-28°C); 0.6 (BR > 50°F, 28°C)
+mv
+h tp = F mv F tp h l 244 Btu/hr-ft2-°F 1,394 W/m2-K
+20. Static Pressure Head, ∆P h L( ρ ) / 144 9.807L( ρ ) / 1000
+l l
+2.833 psi 19.5 kPa
+21. Subcooled Liquid Zone Correction, F = 0.15 + 0.85 (P / (∆P + P))0.5
+lz h
+0.97 0.97
+22. Average Boiling Heat Transfer Coefficient, h = (h + 0.6h ) F
+ab tp nb lz
+484 Btu/hr-ft2-°F 2,847 W/m2-K
+23. Condensing Heating Medium Heat Transfer Coefficient based on Outside Area, h .
+h
+For steam use 1500 Btu/hr-ft2-°F, 8500 W/m2-K
+For other fluids
+h = 0.18 k ( ρ ( ρ - ρ ) g Pr / µ 2)1/3
+h l l l v l l
+where: g = acceleration of gravity, 4.17 x 108 ft/hr2, 9.81 m/s2
+1,500 Btu/hr-ft2-°F 8,500 W/m2-K
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 50 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+CALCULATION PROCEDURE, VAPORIZATION IX-E 49 of 94
+DESIGN PRACTICES
+December, 2000
+HEAT TRANSFER CALCULATION FORM FOR VERTICAL TUBESIDE THERMOSIPHON REBOILERS
+(SAMPLE) (Cont)
+24. Wall Resistance, r , Plain or Finned Tubes
+w
+Carbon Steel 0.0004 hr-ft2-°F/Btu 0.00007 m2-K/W
+Other 0.0004 (28 / k ) 0.00007 (48 / k )
+w w
+----- hr-ft2-°F/Btu ----- m2-K/W
+25. Overall Heat Transfer Coefficient based on Outside Area, U
+o
+U = ((d / d )(1h ) + ( 1/ h ) + (d / d ) r + r + r ) −1
+o o i ab h o i fi to w
+155 Btu/hr-ft2-°F 848 W/m2-K
+26. Required Area, A = Q / (U ∆T)
+r T o
+3,718 ft2 359 m2
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 51 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+IX-E 50 of 94 CALCULATION PROCEDURE, VAPORIZATION
+DESIGN PRACTICES
+December, 2000
+APPENDIX E
+HEAT TRANSFER CALCULATION FORM FOR TUBESIDE PUMP-THROUGH REBOILERS
+Exchanger No. E - Plant Done by
+Service Date
+A. FOLLOW STEPS A1 THROUGH F20 IN CALCULATION FORM FOR VERTICAL TUBESIDE
+THERMOSIPHON REBOILERS (APPENDIX C).
+B. CALCULATE AVERAGE BOILING HEAT TRANSFER COEFFICIENT
+Customary Metric
+1. Pressure Head
+Supplied by Pump, ∆P psi kPa
+h
+2. Fraction of Tube Length in Liquid Zone,
+L = 1 - (P / (∆P + P))0.5
+lz h
+3. Liquid Reynolds Number, Re
+lz
+15.28 W / d
+i
+/ µ
+l
+/ NTT 0.353 W / d
+i
+/ µ
+l
+/ NTT
+4. Liquid Convective Heat Transfer Coefficient, h
+lz
+0.264 ( Re )0.8 ( Pr )0.4 ( k /d ) 22 ( Re )0.8 ( Pr )0.4 ( k /d )
+lz l l i lz l l i
+Btu/hr-ft2-°F W/m2-K
+5. Average Boiling Heat Transfer Coefficient,
+h = (h + 0.6h ) (1 - L ) + h L
+ab tp nb lz lz lz
+Btu/hr-ft2-°F W/m2-K
+C. GO TO STEP G24 IN CALCULATION FORM FOR VERTICAL TUBESIDE THERMOSIPHON REBOILERS.
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 52 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+CALCULATION PROCEDURE, VAPORIZATION IX-E 51 of 94
+DESIGN PRACTICES
+December, 2000
+APPENDIX F
+HYDRAULIC BALANCE CALCULATION FORM FOR KETTLE REBOILERS
+Exchanger No. E - Plant Done by
+Service Date
+A. PIPING LAYOUT AND DIMENSIONS
+S
+7
+Customary Metric
+S1 = ft m
+S
+3
+S3 = ft m
+S S4 = ft m
+4
+S7 = ft m
+X
+X will be calculated
+D/12 Shell and Bundle Diameter
+m
+* D s = in. m
+m
+D = in.
+S b m
+1
+DP09Ef0e
+* This dimension is usually about 3ft (1m)
+B. INLET LINE (LIQUID) PIPE FITTING RESISTANCE COEFFICIENTS (SECTION XIV-B)
+1. Tower liquid outlet 0.5
+2. Exchanger inlet nozzle 2.0
+3. Total for bends, ells, and tees
+4. Total for valves
+5. Sum 1 - 4, K
+i
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 53 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+IX-E 52 of 94 CALCULATION PROCEDURE, VAPORIZATION
+DESIGN PRACTICES
+December, 2000
+HYDRAULIC BALANCE CALCULATION FORM FOR KETTLE REBOILERS (Cont)
+C. OUTLET LINE (VAPOR) PIPE FITTING RESISTANCE COEFFICIENTS (SECTION XIV-B)
+1. Tower vapor inlet 1.0
+2. Exchanger outlet nozzle 1.0
+3. Total for bends, ells, and tees
+4. Total for valves
+5. Sum 1 - 4, K
+o
+D. BOILING FLUID PROPERTIES
+1. Liquid Viscosity, µ lb/ft-hr kg/m-s
+l
+2. Vapor Viscosity, µ lb/ft-hr kg/m-s
+v
+3. Total Flow Rate, W = W + W , lb/hr kg/s
+T B V
+E. INLET LINE SIZE AND FRICTION PRESSURE DROP
+1. Line Diameter, d in. mm
+1
+[For design, estimate from Figure A18, based on 5 ft/s (1.52 m/s) liquid velocity]
+2. Liquid Velocity, V (0.0509 W ) / ( ρ d 2) (1.273 E6 W ) / ( ρ d 2)
+l T l 1 T l 1
+ft/s m/s
+3. Reynolds Number, Re (15.28 W ) / ( µ d ) (1.273E3 W ) / ( µ d )
+l T l 1 T l 1
+4. Friction Factor, f
+l
+[Figure 1 or 2, Section XIV-B]
+(K d ) / (48 f ) (K d ) / (4000 f )
+5. Equivalent Length of Fittings, S2 i 1 l i 1 l
+ft m
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 54 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+CALCULATION PROCEDURE, VAPORIZATION IX-E 53 of 94
+DESIGN PRACTICES
+December, 2000
+HYDRAULIC BALANCE CALCULATION FORM FOR KETTLE REBOILERS (Cont)
+6. Volume Flow Rate, Q V (0.125 W T ) / ( ρ l ) (1000 W T ) / ( ρ l )
+gpm dm3/s
+7. Pressure Drop per 100 ft (per 1 m), P , [Figure 3, Section XIV-B]
+l
+psi kPa
+8. Head Loss, ∆P , (ft (m) of liquid per foot (meter) of line)
+1
+(1.44 P ) / ( ρ ) (102 P ) / ( ρ )
+l l l l
+ft liquid m liquid
+F. OUTLET LINE SIZE AND FRICTION PRESSURE DROP
+1. Line Diameter, d in. mm
+2
+[For design, estimate one or two line sizes larger than d ]
+1
+2. Vapor Velocity, V (0.0509 W ) / (ρ d 2) (1.273E6 W ) / (ρ d 2)
+v V v 2 V v 2
+ft/s m/s
+3. Reynolds Number, Re (15.28 W ) / (µ d ) (1.273E3 W ) / (µ d )
+v V v 2 V v 2
+4. Friction Factor, f
+v
+[Figure 1 or 2, Section XIV-B]
+5. Equivalent Length of Fittings, S5 (K d ) / (48 f ) (K d ) / (4000 f )
+o 2 v o 2 v
+ft m
+6. Pressure Drop per 100 ft (per 1 m), P
+v
+(0.52 f ρ V 2) / d (2 f ρ V 2) / d
+v v v 2 v v v 2
+psi kPa
+7. Head Loss, ∆P , (ft (m) of liquid per foot (meter) of line)
+2
+(1.44 P ) / ( ρ ) (102 P ) / ( ρ )
+v l v l
+ft liquid m liquid
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 55 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+IX-E 54 of 94 CALCULATION PROCEDURE, VAPORIZATION
+DESIGN PRACTICES
+December, 2000
+HYDRAULIC BALANCE CALCULATION FORM FOR KETTLE REBOILERS (Cont)
+G. FIXED HEAD LOSSES
+1. Piping Low Point to top of Bundle, ∆H ,
+2
+(D / 12) + 2 (D / 1000) + 0.61
+b b
+ft liquid m liquid
+2. Tower Inlet to Tower Bottom Tangent, ∆H = (S3 + S4)(ρ / ρ )
+3 v l
+ft liquid m liquid
+3. Friction in Liquid Line, ∆H ,
+4
+∆P (S1 + S2 + (D / 12) + 4) ∆P (S1 + S2 + (D / 1000) + 1.22)
+1 s 1 s
+ft liquid m liquid
+4. Friction in Vapor Line, ∆H = ∆P (S3 + S4 + S5 + S7)
+5 2
+ft liquid m liquid
+Total Fixed Head Loss, ∆H , Sum 1-4 ft liquid m liquid
+F
+H. FIXED HEAD GAIN
+1. Liquid Head, J' (S4 + (D / 12) + 2) (S4 + (D / 1000) + 0.61)
+s s
+ft liquid m liquid
+I. VARIABLE (UNKNOWN) HEAD LOSSES
+1. Friction in Unknown Length X, per foot of line
+J = ∆P + ∆P + (ρ / ρ ) ft liquid m liquid
+1 2 v l
+J. UNKNOWN ELEVATION, X
+1. X = (∆H - J') / (1 - J) ft m
+F
+If required elevation is not acceptable repeat calculation with different line sizes.
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 56 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+CALCULATION PROCEDURE, VAPORIZATION IX-E 55 of 94
+DESIGN PRACTICES
+December, 2000
+APPENDIX G
+HYDRAULIC BALANCE CALCULATION FORM FOR KETTLE REBOILERS (SAMPLE)
+Exchanger No. E - (Example 3) Plant Done by
+Service Date
+A. PIPING LAYOUT AND DIMENSIONS
+S
+7
+Customary Metric
+S1 = 20 ft 6.1 m
+S
+3
+S3 = 10 ft 3.05 m
+S S4 = 1 ft 0.305 m
+4
+S7 = 15 ft 4.57 m
+X
+X will be calculated
+D/12 Shell and Bundle Diameter
+m
+* D = 52 in. 1321
+s m
+m
+D = 26 in. 660
+S b m
+1
+DP09Ef0f
+* This dimension is usually about 3ft (1m)
+B. INLET LINE (LIQUID) PIPE FITTING RESISTANCE COEFFICIENTS (SECTION XIV-B)
+1. Tower liquid outlet 0.5
+2. Exchanger inlet nozzle 2.0
+3. Total for bends, ells, and tees 3
+4. Total for valves 1
+5. Sum 1 - 4, K 6.5
+i
+C. OUTLET LINE (VAPOR) PIPE FITTING RESISTANCE COEFFICIENTS (SECTION XIV-B)
+1. Tower vapor inlet 1.0
+2. Exchanger outlet nozzle 1.0
+3. Total for bends, ells, and tees 3
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 57 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+IX-E 56 of 94 CALCULATION PROCEDURE, VAPORIZATION
+DESIGN PRACTICES
+December, 2000
+HYDRAULIC BALANCE CALCULATION FORM FOR KETTLE REBOILERS
+(SAMPLE) (Cont)
+4. Total for valves 1
+5. Sum 1 - 4, K 6.0
+o
+D. BOILING FLUID PROPERTIES
+1. Liquid Viscosity, µ l 0.264 lb/ft-hr 1.093 x 10-4 kg/m-s
+2. Vapor Viscosity, µ 0.0263 lb/ft-hr 1.087 x 10-5 kg/m-s
+v
+3. Total Flow Rate, W = W + W 348,534 lb/hr 43.7 kg/s
+T B V
+E. INLET LINE SIZE AND FRICTION PRESSURE DROP
+1. Line Diameter, d 10 in. 254 mm
+1
+[For design, estimate from Figure A18, based on 5 ft/s (1.52 m/s) liquid velocity]
+2. Liquid Velocity, V (0.0509 W ) / ( ρ d 2) (1.273E6 W ) / ( ρ d 2)
+l T l 1 T l 1
+5.23 ft/s 1.59 m/s
+3. Reynolds Number, Re (15.28 W ) / ( µ d ) (1.273E3 W ) / ( µ d )
+l T l 1 T l 1
+2,017,000 2,017,000
+4. Friction Factor, f
+l
+[Figure 1 or 2, Section XIV-B] 0.0034 0.0034
+5. Equivalent Length of Fittings, S2 (K d ) / (48 f ) (K d ) / (4000 f )
+i 1 l i 1 l
+398 ft 121 m
+6. Volume Flow Rate, Q V (0.125 W T ) / ( ρ l ) (1000 W T ) / ( ρ l )
+1285 gpm 80.5 dm3/s
+7. Pressure Drop per 100 ft (per 1 m), P , [Figure 3, Section XIV-B]
+l
+0.3 psi 0.065 kPa
+8. Head Loss, ∆P , (ft (m) of liquid per foot (meter) of line)
+1
+(1.44 P ) / ( ρ ) (102 P ) / ( ρ )
+l l l l
+0.0128 ft liquid 0.0122 m liquid
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 58 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+CALCULATION PROCEDURE, VAPORIZATION IX-E 57 of 94
+DESIGN PRACTICES
+December, 2000
+HYDRAULIC BALANCE CALCULATION FORM FOR KETTLE REBOILERS
+(SAMPLE) (Cont)
+F. OUTLET LINE SIZE AND FRICTION PRESSURE DROP
+1. Line Diameter, d 14 in. 355.6 mm
+2
+[For design, estimate one or two line sizes larger than d ]
+1
+2. Vapor Velocity, V (0.0509 W ) / (ρ d 2) (1.273E6 W ) / (ρ d 2)
+v v v 2 v v 2
+4.9 ft/s 1.415 m/s
+3. Reynolds Number, (15.28 W ) / (µ d ) (1.273E3 W ) / (µ d )
+v v 2 v v 2
+1,599,000 1,518,000
+4. Friction Factor, f 0.0034 0.0034
+v
+[Figure 1 or 2, Section XIV-B]
+5. Equivalent Length of Fittings, S5 (K d ) / (48 f ) (K d ) / (4000 f )
+o 2 v o 2 v
+515 ft 157 m
+6. Pressure Drop per 100 ft (per 1 m), P
+v
+(0.52 f ρ V 2) / d (2 f ρ V 2) / d
+v v v 2 v v v 2
+0.0062 psi 0.00162 kPa
+7. Head Loss, ∆P , (ft (m) of liquid per foot (meter) of line)
+2
+(1.44 P ) / ( ρ ) (102 P ) / ( ρ )
+v l v l
+0.00026 ft liquid 0.00024 m liquid
+G. FIXED HEAD LOSSES
+1. Piping Low Point to top of Bundle, (D / 12) + 2 (D / 1000) + 0.61
+b b
+∆H ,
+2
+4.2 ft liquid 1.27 m liquid
+2. Tower Inlet to Tower Bottom Tangent, ∆H = (S3 + S4)(ρ / ρ )
+3 v l
+0.67 ft liquid 0.203 m liquid
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 59 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+IX-E 58 of 94 CALCULATION PROCEDURE, VAPORIZATION
+DESIGN PRACTICES
+December, 2000
+HYDRAULIC BALANCE CALCULATION FORM FOR KETTLE REBOILERS
+(SAMPLE) (Cont)
+3. Friction in Liquid Line, ∆H ,
+4
+∆P (S1 + S2 + (D / 12) + 4) ∆P (S1 + S2 + (D / 1000) + 1.22)
+1 s 1 s
+5.46 ft liquid 1.58 m liquid
+4. Friction in Vapor Line, ∆H = ∆P (S3 + S4 + S5 + S7)
+5 2
+0.14 ft liquid 0.0396 m liquid
+Total Fixed Head Loss, ∆H , Sum 1 - 4
+F
+10.47 ft liquid 3.093 m liquid
+H. FIXED HEAD GAIN
+1. Liquid Head, J' (S4 + (D / 12) + 2) (S4 + (D / 1000) + 0.61)
+s s
+7.33 ft liquid 2.24 m liquid
+I. VARIABLE (UNKNOWN) HEAD LOSSES
+1. Friction in Unknown Length X, per foot of line
+J = ∆P + ∆P + (ρ / ρ )
+1 2 v l 0.0735 ft liquid 0.0729 m liquid
+J. UNKNOWN ELEVATION, X
+1. X = (∆H - J') / (1 - J) 3.39 ft 0.92 m
+F
+If required elevation is not acceptable repeat calculation with different line sizes.
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 60 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+CALCULATION PROCEDURE, VAPORIZATION IX-E 59 of 94
+DESIGN PRACTICES
+December, 2000
+APPENDIX H
+HYDRAULIC BALANCE CALCULATION FORM FOR VERTICAL TUBESIDE REBOILERS
+Exchanger No. E - Plant Done by
+Service Date
+A. PIPING LAYOUT AND DIMENSIONS
+S
+h
+S
+6
+S
+1
+ExxonMobil Research and Engineering Company – Fairfax, VA
+L
+S Customary Metric
+3
+S1 = ft m
+S
+4 S3 = ft m
+S4 = ft m
+S6 = ft m
+L-S L = ft m
+4
+S = ft m
+h
+X will be calculated
+X
+S
+h
+DP09Ef0g
+B. INLET LINE (LIQUID) PIPE FITTING RESISTANCE COEFFICIENTS (SECTION XIV-B)
+1. Tower liquid outlet 0.5
+2. Exchanger inlet nozzle 1.1
+3. Total for bends, ells, and tees
+4. Total for valves
+5. Sum 1 - 4, K
+i
+--- PAGE 61 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+IX-E 60 of 94 CALCULATION PROCEDURE, VAPORIZATION
+DESIGN PRACTICES
+December, 2000
+HYDRAULIC BALANCE CALCULATION FORM FOR VERTICAL TUBESIDE REBOILERS (Cont)
+C. OUTLET LINE (VAPOR) PIPE FITTING RESISTANCE COEFFICIENTS (SECTION XIV-B)
+1. Tower inlet
+(1.0 for flush nozzle)
+For a perforated pipe calculate pressure drop using Section XIV-D and enter in step G4.
+2. Exchanger outlet nozzle 0.7
+3. Total for bends, ells, and
+tees in vertical portion
+4. Total for valves in vertical portion
+5. Sum 1 - 4, K
+ov
+6. Total for bends, ells, and tees
+in horizontal portion
+7. Total for valves in horizontal portion
+8. Sum 6 -7, K
+oh
+D. BOILING FLUID PROPERTIES
+Note: For viscosity lb/ft-hr = 2.42 x cP, Kg/m-s = 0.001 x cP
+1. Liquid Viscosity, µ
+l lb/ft-hr kg/m-s
+2. Vapor Viscosity, µ lb/ft-hr kg/m-s
+v
+3. Total Flow Rate, W lb/hr kg/s
+4. Slope of Vapor Pressure Curve, °F/psi °C/kPa
+dT / dP
+E. INLET LINE SIZE AND FIXED PRESSURE DROP
+1. Line Diameter, d in. mm
+1
+For design, estimate d = 0.5 (d ) (NTT)0.5, round off to nearest standard size]
+1 i
+2. Liquid Velocity, V (0.0509 W) / ( ρ d 2) (1.273E6 W) / ( ρ d 2)
+l l 1 l 1
+ft/s m/s
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 62 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+CALCULATION PROCEDURE, VAPORIZATION IX-E 61 of 94
+DESIGN PRACTICES
+December, 2000
+HYDRAULIC BALANCE CALCULATION FORM FOR VERTICAL TUBESIDE REBOILERS (Cont)
+3. Reynolds Number, Re (15.28 W) / ( µ d ) (1.273E3 W) / ( µ d )
+l l 1 l 1
+4. Friction Factor, f
+l
+[Figure 1 or 2, Section XIV-B]
+5. Equivalent Length of Fittings, S2 (K d ) / (48 f ) (K d ) / (4000 f )
+i 1 l i 1 l
+ft m
+6. Volume Flow Rate, Q v (0.125 W T ) / ( ρ l ) (1000 W) / ( ρ l )
+gpm dm3/s
+7. Pressure Drop per ft (per m), P ,
+l
+f V2ρ 2f V 2ρ
+l l l l l l
+193 d d
+psi/ft kPa/m
+8. Head Loss, ∆P , (ft of liquid per ft of line, or m of liquid per m of line)
+1
+(144 P ) / ( ρ ) (102 P ) / ( ρ )
+l l l l
+ft liquid/ft m liquid/m
+9. Total
+∆H = ∆P [S1 + S2 + S6 + (L - S4) + S /2]
+i 1 h
+ft liquid m liquid
+[∆H recommended to be in the range of 0.3(L) to 0.5(L)]
+i
+F. OUTLET LINE SIZE AND FIXED PRESSURE DROP
+1. Line Diameter, d in. mm
+2
+[For design, estimate d = (d ) (NTT)0.5, round off to nearest standard size]
+2 i
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 63 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+IX-E 62 of 94 CALCULATION PROCEDURE, VAPORIZATION
+DESIGN PRACTICES
+December, 2000
+HYDRAULIC BALANCE CALCULATION FORM FOR VERTICAL TUBESIDE REBOILERS (Cont)
+2. Pressure drop in outlet piping. Calculate using Section XIV-D, Method B. Separate calculations are required for the
+horizontal (friction only) and vertical (friction and elevation) portions. Calculate pressure drops for a length of 1 ft or 1 m.
+Horizontal P psi/ft kPa/m
+h
+Vertical friction P psi/ft kPa/m
+vf
+Vertical elevation P psi/ft kPa/m
+ve
+3. Head losses, ft of liquid per ft of line or m of liquid per m of line.
+∆P = 144 P / ρ = 102 P / ρ m liquid/m
+h h l ft liquid/ft h l
+∆P
+vf
+= 144 P
+vf
+/ ρ
+l ft liquid/ft
+= 102 P
+vf
+/ ρ
+l
+m liquid/m
+∆P
+ve
+= 144 P
+ve
+/ ρ
+l ft liquid/ft
+=102 P
+ve
+/ ρ
+l
+m liquid/m
+4. Equivalent Lengths of Fittings
+S K d / 48 f K d / 4000 f
+5 oh 2 2h oh 2 2h
+ft m
+S K d / 48 f K d / 4000 f
+8 ov 2 2v ov 2 2v
+ft m
+f and f are the two phase friction factors, for horizontal and vertical flow respectively, calculated in step F2.
+2h 2v
+5. Total Head Loss
+∆H = ∆P (S1 + S5) + ∆P (S3 - S /2 + S8) + ∆P (S3 - S /2)
+o h vf h ve h
+ft liquid m liquid
+If the horizontal length of the return piping is different from S1, use the actual length.
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 64 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+CALCULATION PROCEDURE, VAPORIZATION IX-E 63 of 94
+DESIGN PRACTICES
+December, 2000
+HYDRAULIC BALANCE CALCULATION FORM FOR VERTICAL TUBESIDE REBOILERS (Cont)
+G. FIXED HEAD LOSSES
+1. Exchanger pressure drop. Calculate using Section XIV-D, Method B, or use value from a computer program output.
+Friction loss P psi kPa
+ef
+Elevation loss P psi kPa
+ee
+2. Friction Head Loss ∆H 1 144 P ef / ρ l 102 P ef / ρ l
+ft liquid m liquid
+3. Elevation Head Loss ∆H 2 144 P ee / ρ l 102 P ee / ρ l
+ft liquid m liquid
+4. Perforated pipe distributor pressure drop
+P psi kPa
+p
+Head loss ∆H p 144 P p / ρ l 102 P p / ρ l
+ft liquid m liquid
+H. TOTAL FIXED HEAD LOSS
+∆H = ∆H + ∆H + ∆H + ∆H + ∆H
+F i o 1 2 p
+ft liquid m liquid
+I. VARIABLE HEAD LOSSES
+1. Friction in Variable Length X, per foot (per m) of line
+J = ∆P + ∆P + ∆P ft liquid/ft m liquid/m
+1 vf ve
+J. FIXED HEAD GAIN
+(skip to item L for vacuum services or if the slope of the vapor pressure curve is > 0.16°°°°F/psi [0.013°°°°C/kPa])
+1. Liquid Head, J' = L ft liquid m liquid
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 65 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+IX-E 64 of 94 CALCULATION PROCEDURE, VAPORIZATION
+DESIGN PRACTICES
+December, 2000
+HYDRAULIC BALANCE CALCULATION FORM FOR VERTICAL TUBESIDE REBOILERS (Cont)
+K. VARIABLE ELEVATION, X
+1. X = (∆H - J') / (1 - J) ft m
+F
+If required elevation is not acceptable repeat calculation with different line sizes.
+L. FIXED HEAD GAIN
+(for vacuum services or if the slope of the vapor pressure curve is > 0.16°F/psi [0.013°C/kPa]
+1. Inlet Liquid Reynolds Number, Re 15.28 W / (d µ NTT) (1.273E3) W / (d µ NTT)
+l i l i l
+2. Liquid Convective Heat Transfer Coefficient, h
+l
+0.264 ( Re )0.8 ( Pr )0.4 ( k /d ) 22 ( Re )0.8 ( Pr )0.4 ( k /d )
+l l l i l l l i
+Btu/hr-ft2-°F W/m2-K
+3. Overall Heat Transfer Coefficient in liquid zone, U
+o
+U = ((d /d )(1/h ) + 1/h + (d /d ) r + r + r )-1
+o o i l h o i fi fo w
+Btu/hr-ft2-°F W/m2-K
+All variables are as defined in the heat transfer calculation form.
+4. Temperature increase per unit tube length
+dT/dL = (U πd NTT (T – T )) / (W C )
+o o ho bi pl
+°F/in. °C/mm
+5. Pressure change per unit length, dP/dL
+psi/ft kPa/m
+6. Length of liquid zone, Y = [(L) (dT/dP)] / [dT/dP + (dT/dL) / (dP/dL)]
+ft m
+M. VARIABLE ELEVATION, X
+1. X = (∆H - L + Y) / (1 - J)
+F
+ft m
+If required elevation is not acceptable repeat calculation with different line sizes.
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 66 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+CALCULATION PROCEDURE, VAPORIZATION IX-E 65 of 94
+DESIGN PRACTICES
+December, 2000
+APPENDIX I
+HYDRAULIC BALANCE CALCULATION FORM FOR VERTICAL TUBESIDE REBOILERS
+(SAMPLE)
+Exchanger No. E - (Example 4) Plant Done by
+Service Date
+A. PIPING LAYOUT AND DIMENSIONS
+S
+h
+S
+6
+S
+1
+ExxonMobil Research and Engineering Company – Fairfax, VA
+L
+S Customary Metric
+3
+S1 = 3 ft 0.9144 m
+S
+4 S3 = 1 ft 0.3048 m
+S4 = 6 ft 1.8288 m
+S6 = 4 ft 1.2192 m
+L-S L = 10 ft 3.048 m
+4
+S = 2 ft 0.6096 m
+h
+X will be calculated
+X
+DP09Ef0h
+S
+h
+B. INLET LINE (LIQUID) PIPE FITTING RESISTANCE COEFFICIENTS (SECTION XIV-B)
+1. Tower liquid outlet 0.5
+2. Exchanger inlet nozzle 1.1
+3. Total for bends, ells, and tees 0.3
+4. Total for valves 1.0
+5. Sum 1 - 4, K 2.9
+i
+C. OUTLET LINE (VAPOR) PIPE FITTING RESISTANCE COEFFICIENTS (SECTION XIV-B)
+1. Tower inlet 1.0
+(1.0 for flush nozzle)
+For a perforated pipe calculate pressure drop using Section XIV-D and enter in step G4.
+--- PAGE 67 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+IX-E 66 of 94 CALCULATION PROCEDURE, VAPORIZATION
+DESIGN PRACTICES
+December, 2000
+HYDRAULIC BALANCE CALCULATION FORM FOR VERTICAL TUBESIDE REBOILERS
+(SAMPLE) (Cont)
+2. Exchanger outlet nozzle 0.7
+3. Total for bends, ells, and tees in
+vertical portion 0.15
+4. Total for valves in vertical portion 0.0
+5. Sum 1 - 4, K 1.85
+ov
+6. Total for bends, ells, and tees
+in horizontal portion 0.15
+7. Total for valves in horizontal portion 0.0
+8. Sum 6 - 7, K 0.15
+oh
+D. BOILING FLUID PROPERTIES
+Note: For viscosity lb/ft-hr = 2.42 x cP, Kg/m-s = 0.001 x cP
+1. Liquid Viscosity, µ 0.424 lb/ft-hr 0.175 x 10-3 kg/m-s
+l
+2. Vapor Viscosity, µ 0.0217 lb/ft-hr 9.0 x 10-5 kg/m-s
+v
+3. Total Flow Rate, W 940,262 lb/hr 118.5 kg/s
+4. Slope of Vapor Pressure Curve, °F/psi °C/kPa
+dT/dP
+E. INLET LINE SIZE AND FIXED PRESSURE DROP
+1. Line Diameter, d 12 in. 304.8 mm
+1
+[For design, estimate d = 0.5 (d ) (NTT)0.5, round off to nearest standard size]
+1 i
+2. Liquid Velocity, V (0.0509 W) / ( ρ d 2) (1.273E6 W) / ( ρ d 2)
+l l 1 l 1
+8.15 ft/s 2.48 m/s
+3. Reynolds Number, Re (15.28 W) / ( µ d ) (1.273E3 W) / ( µ d )
+l l 1 l 1
+2,824,000 2,824,000
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 68 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+CALCULATION PROCEDURE, VAPORIZATION IX-E 67 of 94
+DESIGN PRACTICES
+December, 2000
+HYDRAULIC BALANCE CALCULATION FORM FOR VERTICAL TUBESIDE REBOILERS
+(SAMPLE) (Cont)
+4. Friction Factor, f
+l 0.0033 0.0033
+[Figure 1 or 2, Section XIV-B]
+5. Equivalent Length of Fittings, S2 (K d ) / (48 f ) (K d ) / (4000 f )
+i 1 l i 1 l
+220.0 ft 67.0 m
+6. Volume Flow Rate, Q V , (0.125 W) / ( ρ ) (1000 W) / ( ρ )
+l l
+2,881 gpm 181.2 dm3/s
+7. Pressure Drop per ft (per m), P ,
+l
+f V2ρ 2f V 2ρ
+l l l l l l
+193 d d
+0.0039 psi/ft 0.087 kPa/m
+8. Head Loss, ∆P , (ft of liquid per ft of line, or m of liquid per m of line)
+1
+(144 P ) / ( ρ ) (102 P ) / ( ρ )
+l l l l
+0.0136 ft liquid/ft 0.0136 m liquid/m
+9. Total
+∆H = ∆P [S1 + S2 + S6 + (L - S4) + S /2]
+i 1 h
+3.15 ft liquid 0.96 m liquid
+[∆H recommended to be in the range of 0.3(L) to 0.5(L)]
+i
+F. OUTLET LINE SIZE AND FIXED PRESSURE DROP
+1. Line Diameter, d 24 in. 609.6 mm
+2
+[For design, estimate d = (d ) (NTT)0.5, round off to nearest standard size]
+2 i
+2. Pressure drop in outlet piping. Calculate using Section XIV-D, method B. Separate calculations are required for the
+horizontal (friction only) and vertical (friction and elevation) portions. Calculate the pressure drops for a length of 1 ft or 1 m.
+Horizontal P 0.0035 psi/ft 0.0804 kPa/m
+h
+Vertical P 0.0032 psi/ft 0.0716 kPa/m
+vf
+Vertical elevation P 0.0169 psi/ft 0.381 kPa/m
+ve
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 69 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+IX-E 68 of 94 CALCULATION PROCEDURE, VAPORIZATION
+DESIGN PRACTICES
+December, 2000
+HYDRAULIC BALANCE CALCULATION FORM FOR VERTICAL TUBESIDE REBOILERS
+(SAMPLE) (Cont)
+3. Head losses, ft of liquid per ft of line or m of liquid per m of line.
+∆P
+h
+= 144 P
+h
+/ ρ
+l
+0.0125 ft liquid/ft = 102 P
+h
+/ ρ
+l
+0.0125 m liquid/m
+∆P
+vf
+= 144 P
+vf
+/ ρ
+l
+0.0112 ft liquid = 102 P
+vf
+/ ρ
+l
+0.0112 m liquid/m
+∆P = 144 P / ρ 0.0595 ft liquid = 102 P / ρ 0.0595 m liquid/m
+ve ve l ve l
+4. Equivalent Lengths of Fittings, S K d / 48 f K d / 4000 f
+5 oh 2 2h oh 2 2h
+14.9 ft 4.5 m
+S K d / 48 f K d / 4000 f
+8 ov 2 2v ov 2 2v
+181.4 ft 55.2 m
+f and f are the two phase friction factors, for horizontal and vertical flow respectively, calculated in step F2.
+2h 2v
+5. Total Head Loss
+∆H = ∆P (S1 + S5) + ∆P (S3 - S /2 + S8) + ∆P (S3 - S /2)
+o h vf h ve h
+2.26 ft liquid 0.685 m liquid
+If the horizontal length of the return piping is different from S1, use the actual length.
+G. FIXED HEAD LOSSES
+1. Exchanger pressure drop. Calculate using Section XIV-D, Method B, or use value from a computer program output.
+Friction loss P 1.86 psi 12.65 kPa
+ef
+Elevation loss P 0.24 psi 1.63 kPa
+ee
+2. Friction Head Loss ∆H 1 144 P ef / ρ l 102 P ef / ρ l
+6.56 ft liquid 2.0 m liquid
+3. Elevation Head Loss ∆H 2 144 P ee / ρ l 102 P ee / ρ l
+0.84 ft liquid 0.26 m liquid
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 70 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+CALCULATION PROCEDURE, VAPORIZATION IX-E 69 of 94
+DESIGN PRACTICES
+December, 2000
+HYDRAULIC BALANCE CALCULATION FORM FOR VERTICAL TUBESIDE REBOILERS
+(SAMPLE) (Cont)
+4. Perforated pipe distributor pressure drop
+P psi kPa
+p
+Head loss ∆Hρ 144 P p / ρ l 102 P p / ρ l
+ft liquid m liquid
+H. TOTAL FIXED HEAD LOSS
+∆H = ∆H + ∆H + ∆H + ∆H + ∆H
+F i 0 1 2 p
+12.81 ft liquid 3.94 m liquid
+I. VARIABLE HEAD LOSSES
+1. Friction in Variable Length X, per foot (m) of line
+J = ∆P + ∆P + ∆P 0.0843 ft liquid 0.0843 m liquid
+1 vf ve
+J. FIXED HEAD GAIN
+(skip to item L for vacuum services or if the slope of the vapor pressure curve is > 0.16°°°°F/psi [0.013°°°°C/kPa])
+1. Liquid Head, J' = L 10.0 ft liquid 3.05 m liquid
+K. VARIABLE ELEVATION, X
+1. X = (∆H - J') / (1 - J) 3.07 ft 0.97 m
+F
+If required elevation is not acceptable repeat calculation with different line sizes.
+L. FIXED HEAD GAIN
+(for vacuum services or if the slope of the vapor pressure curve is > 0.16F/psi [0.013°°°°C/kPa])
+1. Inlet Liquid Reynolds Number, Re
+l
+15.28 W / (d µ NTT) (1.273E3) W / (d µ NTT)
+i l i l
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 71 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+IX-E 70 of 94 CALCULATION PROCEDURE, VAPORIZATION
+DESIGN PRACTICES
+December, 2000
+HYDRAULIC BALANCE CALCULATION FORM FOR VERTICAL TUBESIDE REBOILERS
+(SAMPLE) (Cont)
+2. Liquid Convective Heat Transfer Coefficient, h
+l
+0.264 ( Re )0.8 ( Pr )0.4 ( k / d ) 22 ( Re )0.8 ( Pr )0.4 ( k / d )
+l l l i l l l i
+Btu/hr-ft2-°F W/m2-K
+3. Overall Heat Transfer Coefficient in liquid zone, U
+o
+U = ((d /d )(1/h ) + 1/h + (d /d ) r + r + r )-1
+o o i l h o i fi fo w
+Btu/hr-ft2-°F W/m2-K
+All variables are as defined in the heat transfer calculation form.
+4. Temperature increase per unit tube length
+dT / dL = (U π d NTT (T - T )) / (W C )
+o o ho bi pl
+°F/in. °C/mm
+5. Pressure change per unit length, dP / dL
+psi/ft kPa/m
+6. Length of liquid zone, Y = [(L) (dT/dP)] / [dT/dP + (dT/dL) / (dP/dL)]
+ft m
+M. VARIABLE ELEVATION, X
+1. X = (∆H - L + Y) / (1 - J)
+F
+ft m
+If required elevation is not acceptable repeat calculation with different line sizes.
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 72 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+CALCULATION PROCEDURE, VAPORIZATION IX-E 71 of 94
+DESIGN PRACTICES
+December, 2000
+APPENDIX J
+HYDRAULIC BALANCE CALCULATION FORM FOR HORIZONTAL SHELLSIDE REBOILERS
+Exchanger No. E - Plant Done by
+Service Date
+A. PIPING LAYOUT AND DIMENSIONS
+S
+7
+Customary Metric
+S
+3 S1 = ft m
+S2 = ft m
+S
+4 S
+6 S3 = ft m
+S4 = ft m
+X S6 = ft m
+S7 = ft m
+D
+S
+X will be calculated
+*
+Grade S
+1 DP09Ef0i
+* This dimension is usually about 3 ft (1 m).
+B. INLET LINE (LIQUID) PIPE FITTING RESISTANCE COEFFICIENTS (SECTION XIV-B)
+1. Tower liquid outlet 0.5
+2. Exchanger inlet nozzle 2.0
+3. Total for bends, ells, and tees
+4. Total for valves
+5. Sum 1 - 4, K
+i
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 73 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+IX-E 72 of 94 CALCULATION PROCEDURE, VAPORIZATION
+DESIGN PRACTICES
+December, 2000
+HYDRAULIC BALANCE CALCULATION FORM FOR HORIZONTAL SHELLSIDE REBOILERS (Cont)
+C. OUTLET LINE (VAPOR) PIPE FITTING RESISTANCE COEFFICIENTS (SECTION XIV-B)
+1. Tower inlet
+(1.0 for flush nozzle)
+For a perforated pipe calculate pressure drop using Section XIV-D and enter in step G4.
+2. Exchanger outlet nozzle 2.0
+3. Total for bends, ells, and tees in
+vertical portion
+4. Total for valves in vertical portion
+5. Sum 1 - 4, K
+ov
+6. Total for bends, ells, and tees
+in horizontal portion
+7. Total for valves in horizontal portion
+8. Sum 6 - 7, K
+oh
+D. BOILING FLUID PROPERTIES
+Note: For viscosity lb/ft-hr = 2.42 x cP, Kg/m-s = 0.001 x cP
+1. Liquid Viscosity, µ lb/ft-hr kg/m-s
+l
+2. Vapor Viscosity, µ lb/ft-hr kg/m-s
+v
+3. Total Flow Rate, W lb/hr kg/s
+E. INLET LINE SIZE AND FIXED PRESSURE DROP
+1. Line Diameter, d in. mm
+1
+[For design, estimate from Figure A18, based on 3 to 5 ft/s (0.91 to 1.52 m/s) liquid velocity]
+2. Liquid Velocity, V (0.0509 W) / ( ρ d 2) (1.273E6 W) / ( ρ d 2)
+l l 1 l 1
+ft/s m/s
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 74 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+CALCULATION PROCEDURE, VAPORIZATION IX-E 73 of 94
+DESIGN PRACTICES
+December, 2000
+HYDRAULIC BALANCE CALCULATION FORM FOR HORIZONTAL SHELLSIDE REBOILERS (Cont)
+3. Reynolds Number, Re (15.28 W) / ( µ d ) (1.273E3 W) / ( µ d )
+l l 1 l 1
+4. Friction Factor, f
+l
+[Figure 1 or 2, Section XIV-B]
+5. Equivalent Length of Fittings, S2 (K d ) / (48 f ) (K d ) / (4000 f )
+i 1 l i 1 l
+ft m
+6. Volume Flow Rate, Q V (0.125 W) / ( ρ ) (1000 W) / ( ρ )
+l l
+gpm dm3/s
+7. Pressure Drop per ft (per m), P ,
+l
+f V2ρ 2f V 2ρ
+l l l l l l
+193 d d
+psi/ft kPa/m
+8. Head Loss, ∆P , (ft of liquid per foot of line, or m of liquid per m of line)
+1
+(144 P ) / ( ρ ) (102 P ) / ( ρ )
+l l l l
+ft liquid/ft m liquid/m
+9. Total Inlet Line Friction Head Loss, ∆P (S1 + S2 + D /12 + 4 + S6) ∆P (S1 + S2 + D /1000 + 1.22 + S6)
+1 s 1 s
+∆H
+i
+ft liquid m liquid
+F. OUTLET LINE SIZE AND FIXED PRESSURE DROP (INCLUDING FITTINGS)
+Note: For TEMA J type shells with two outlets it is necessary to calculate the outlet pressure drop for only half the flow
+rate for part (or all) of the return piping, depending on how the return to the tower is designed.
+1. Line Diameter, d in. mm
+2
+[For design, estimate d to be two line sizes larger than d ]
+2 1
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 75 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+IX-E 74 of 94 CALCULATION PROCEDURE, VAPORIZATION
+DESIGN PRACTICES
+December, 2000
+HYDRAULIC BALANCE CALCULATION FORM FOR HORIZONTAL SHELLSIDE REBOILERS (Cont)
+2. Pressure drop in outlet piping. Calculate using Section XIV-D, Method B. Separate calculations are required for the
+horizontal (friction only) and vertical (friction and elevation) portions. Calculate the pressure drops for a length of 1 ft or 1 m.
+Horizontal P psi/ft kPa/m
+h
+Vertical friction P psi/ft kPa/m
+vf
+Vertical elevation P psi/ft kPa/m
+ve
+3. Head losses, ft of liquid per ft of line or m of liquid per m of line.
+∆P = 144 P / ρ ft liquid/ft = 102 P / ρ m liquid/m
+h h l h l
+∆P = 144 P / ρ ft liquid/ft = 102 P / ρ m liquid/m
+vf vf l vf l
+∆P = 144 P / ρ ft liquid/ft = 102 P / ρ m liquid/m
+ve ve l ve l
+4. Equivalent Lengths of Fittings, S5 K d / 48 f K d / 4000 f
+oh 2 2h oh 2 2h
+ft m
+S K d / 48 f K d / 4000 f
+8 ov 2 2v ov 2 2v
+ft m
+f and f are the two phase friction factors, for horizontal and vertical flow respectively, calculated in step F2.
+2h 2v
+5. Total Head Loss
+∆H = ∆P (S7 + S5) + ∆P (S3 + S4 + S8) + ∆P (S3 + S4)
+o h vf ve
+ft liquid m liquid
+G. OTHER FIXED HEAD LOSSES
+1. Exchanger pressure drop, ∆P (estimate or from CST2 computer program).
+f
+psi kPa
+2. Exchanger friction head loss, ∆H 1 . (144 ∆P f ) / ( ρ l ) (102 ∆P f / ( ρ l )
+ft liquid m liquid
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 76 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+CALCULATION PROCEDURE, VAPORIZATION IX-E 75 of 94
+DESIGN PRACTICES
+December, 2000
+HYDRAULIC BALANCE CALCULATION FORM FOR HORIZONTAL SHELLSIDE REBOILERS (Cont)
+3. Piping Low Point to top of Exchanger, ∆H .
+2
+Average mixture density, ρ = (W)/[W / ρ + 0.16(W )(1 - ρ / ρ ) / ρ ]
+x l v v l v
+lb/ft3 kg/m3
+∆H 2 (D s / 12)(ρ x / ρ l ) + 2 (D s / 1000)(ρ x / ρ l ) + 0.61
+ft liquid m liquid
+4. Perforated pipe distributor pressure drop,
+∆P = psi kPa
+p
+Head loss ∆H p 144 ∆P p / ρ l 102 ∆P p / ρ l
+ft liquid m liquid
+H. TOTAL FIXED HEAD LOSS
+Total Fixed Head Loss, ∆H = ∆H + ∆H + ∆H + ∆H + ∆H
+F i o 1 2 p
+ft liquid m liquid
+I. FIXED HEAD GAIN
+1. Liquid Head, J', S4 + D /12 + 2 S4 + D /1000 + 0.61
+s s
+ft liquid m liquid
+J. VARIABLE HEAD LOSSES
+1. Friction in Unknown Length X, per foot (per m) of line
+J = ∆P = ∆P + ∆P ft liquid/ft m liquid/m
+1 vf ve
+K. VARIABLE ELEVATION, X
+1. X = (∆H - J') / (1 - J) ft m
+F
+If required elevation is not acceptable repeat calculation with different line sizes.
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 77 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+IX-E 76 of 94 CALCULATION PROCEDURE, VAPORIZATION
+DESIGN PRACTICES
+December, 2000
+FIGURE A1 - REBOILER TYPES
+VERTICLE RECIRCULATING THERMOSIPHON HORIZONTAL RECIRCULATING THERMOSIPHON
+Advantages Disadvantages Advantages Disadvantages
+1. Cheapest (Normally). 1. Ciculation requires elevated tower. 1. Heating side easily cleaned. 1. Larger plot area required.
+2. Process side easily cleaned. 2. Requires fixed head of feed liquid. 2. Requires lower tower elevation 2. Vapor piping may be complex
+3. Compact plot area. 3. Tower requires internal baffling to than vehicle thermosiphon. (16 ft & 20 ft bundles should
+4. Easily supported. approach theoretical tray. 3. Low process side residence time. have two vapor outlets).
+5. Low process side residence 4. Should be limited to 50% max. 4. Good controllability (via valve in 3. Process side hard to clean.
+time (tends to be less fouling). vaporization. However, lower % feed line). 4. Should be limited to 50%
+6. Good controllability (via valve in gives smoother operation. vaporization.
+feed line). 5. Tower requires internal baffling
+to approach theoretical tray.
+ONCE THROUGH KETTLE REBOILER
+Advantages Disadvantages Advantages Disadvantages
+1. Same as recirculating. 1. Same as recirculating. 1. Can handle high vaporization 1. Expensive exchanger
+2. Equivalent to theoretical. 2. Danger of excessive loads (80%-normal feeds and construction.
+vaporization per pass (higher 100%-clean feeds). 2. Bottoms product holdup low.
+fouling). 2. Simple column internals. 3. High process fluid holdup (fouling).
+3. Provides theoretical tray. 4. Process side is difficult to clean.
+4. Requires lowest tower elevation. 5. Tends to be dirt trap.
+6. Requires larger plot area.
+INTERNAL REBOILER
+PUMP THROUGH REBOILER
+Advantages Disadvantages Advantages Disadvantages
+1. No shell required. 1. Bundle length limited. 1. Often best for fouling or viscous 1. Pumping costs.
+2. Circulation piping eliminated. 2. Larger column flange required. service. 2. Requires tower elevation for
+3. Simple column internals. 3. Process side difficult to clean. 2. Full control of circulation rate. pump suction head.
+4. No plot area required. 3. Capable of high circulation rate.
+4. Best for large surface requirements.
+5. Operable at very low circulation rates.
+6. Can use standard exchangers and
+smaller piping. DP09EfA1
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 78 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+CALCULATION PROCEDURE, VAPORIZATION IX-E 77 of 94
+DESIGN PRACTICES
+December, 2000
+FIGURE A2
+COMPONENTS OF A KETTLE REBOILER
+1 3 2 4 3 2 14
+6 5 8
+13
+7 9 10 11 12
+1 SHELL 6 CHANNEL PARTITION 11 U-TUBE RETURNS
+2 SHELL OUTLET NOZZLE (VAPOR) 7 CHANNEL OUTLET NOZZLE 12 WEIR
+3 ENTRAINMENT BAFFLES 8 TUBE SHEET 13 SHELL OUTLET NOZZLE (LIQUID)
+4 VAPOR DISENGAGEMENT SPACE 9 SHELL INLET NOZZLE 14 LIQUID HOLDUP (SURGE) SECTION
+5 CHANNEL INLET NOZZLE 10 TUBE SUPPORT PLATES
+DP9EfA2
+ExxonMobil Research and Engineering Company – Fairfax, VA
+--- PAGE 79 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+IX-E 78 of 94 CALCULATION PROCEDURE, VAPORIZATION
+DESIGN PRACTICES
+December, 2000
+FIGURE A3A
+SINGLE TUBE MAXIMUM HEAT FLUX (CUSTOMARY)
+10 -3 2 4 6 8 10 -2 2 4 6 8 10 -1 2 4 6 8 1.0
+Reduced Pressured, P
+r
+ExxonMobil Research and Engineering Company – Fairfax, VA
+2tf
+q
+xulF
+taeH
+mumixaM
+ebuT
+elgniS
+' xam1
+2
+Critical Pressure, psia
+106
+8 3200
+6
+2000
+4
+1400
+1000
+2
+600
+105 400
+8
+6
+200
+4
+2
+104
+DP09EfA3A
+FIGURE A3B
+SINGLE TUBE MAXIMUM HEAT FLUX (METRIC)
+10 -3 2 4 6 8 10 -2 2 4 6 8 10 -1 2 4 6 8 1.0
+Reduced Pressured, P
+r
+2m/W
+,
+q
+xulF
+taeH
+mumixaM
+ebuT
+elgniS
+xam1
+6
+Critical Pressure, kPa
+4
+22,100
+2
+13,800
+106
+9650
+8 6890
+6
+4140
+4
+2258
+2
+1379
+105
+8
+6
+4
+DP09EfA3B
+--- PAGE 80 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+CALCULATION PROCEDURE, VAPORIZATION IX-E 79 of 94
+DESIGN PRACTICES
+December, 2000
+FIGURE A4
+BUNDLE CORRECTION FACTOR (CB)
+1.0
+7
+5
+3
+0.1
+7
+5
+3
+0.01
+1.0 3 5 7 10 3 5 7 102 3 5 7 103 3 5 7 104
+Number of Tubes (Number of Tube Holes in One Sheet), NTT
+ExxonMobil Research and Engineering Company – Fairfax, VA
+noitcerroC
+eldnuB
+xulF
+taeh
+mumixaM
+3.0
+2.0
+1.5
+1
+.3 3
+Pitch Ratio 1
+.1
+0
+DP09EfA4
+--- PAGE 81 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+IX-E 80 of 94 CALCULATION PROCEDURE, VAPORIZATION
+DESIGN PRACTICES
+December, 2000
+FIGURE A5A
+SINGLE TUBE NUCLEATE BOILING COEFFICIENTS (CUSTOMARY)
+103 2 5 7 104 2 5 7 105
+Nucleate Boiling Heat Flux, Btu/hr ft2
+ExxonMobil Research and Engineering Company – Fairfax, VA
+F
+2tf
+rh/utB
+,
+h
+,tneiciffeoC
+refsnarT
+taeH
+r1
+104
+7
+5
+3
+2
+Pressure,
+psia
+103 Critical
+7
+5
+2
+3 3200
+1000
+800
+68 00 00
+400
+300200
+102
+7
+5
+DP09EfA5A
+FIGURE A5B
+SINGLE TUBE NUCLEATE BOILING COEFFICIENTS (METRIC)
+5
+3
+2
+104
+7
+5
+3
+2
+104
+7
+5
+3
+5 7 104 2 3 5 7 105 2
+Nucleate Boiling Heat Flux, W/m2
+K
+2m/W
+,
+h,tneiciffeoC
+refsnarT
+taeH
+r1
+Pa
+Pressure,
+k
+Critical
+22,
+7
+0
+,
+0
+0
+0
+00
+5,500 4,100
+2,750
+2,050 1,375
+DP09EfA5B
+--- PAGE 82 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+CALCULATION PROCEDURE, VAPORIZATION IX-E 81 of 94
+DESIGN PRACTICES
+December, 2000
+FIGURE A6
+NUCLEATE BOILING PRESSURE CORRECTION, Fp
+101
+7
+5
+2
+100
+7
+5
+2
+10-3 2 5 7 10-2 2 5 7 10-1 2 5 7 100
+Reduced Pressure, P
+r
+ExxonMobil Research and Engineering Company – Fairfax, VA
+F
+,rotcaF
+noitcerroC
+erusserP
+p
+10-1
+DP09EfA6
+--- PAGE 83 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+IX-E 82 of 94 CALCULATION PROCEDURE, VAPORIZATION
+DESIGN PRACTICES
+December, 2000
+FIGURE A7
+EFFECTIVE TEMPERATURE RANGE, DR
+250
+200
+150
+100
+50
+0
+ExxonMobil Research and Engineering Company – Fairfax, VA
+10.0 20.0 30.0 40.0 50.0 60.0 70.0 80.0 90.0 01.0 11.0 21.0 31.0 41.0 51.0 61.0 71.0 91.0 02.0
+x
+r
+)F
+.geD(
+RD
+Multiply by 0.555 to get Deg. C
+DP09EfA7
+81.0
+FIGURE A8
+MIXTURE CORRECTION, Fc
+1.0
+0.9
+0.8
+0.7
+0.6
+0.5
+0.4
+0.3
+0.2
+0.1
+0.2
+0 0.2 0.4 0.6 0.8 1.0 1.2
+DP09EfA8 Boiling Range Parameter, BR / DR
+F
+,noitcerroC
+erutxiM
+c
+q / q
+n = 1.1
+2.0
+10.0
+50.0
+--- PAGE 84 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+CALCULATION PROCEDURE, VAPORIZATION IX-E 83 of 94
+DESIGN PRACTICES
+December, 2000
+FIGURE A9
+BUNDLE CORRECTION FACTOR, Fb
+3.0
+2.5
+2.0
+1.5
+1.0
+1.0 3 5 7 10 0 3 5 7 102 3 5 7 103 3 5 7 104
+Number of Tubes (Number of Tube Holes in One tubesheet), NTT
+ExxonMobil Research and Engineering Company – Fairfax, VA
+F
+,noitcerroC
+eldnuB
+tneiciffeoC
+gnilioB
+b
+Do Not Extrapolate
+Pitch Ratio 1.1
+1.2
+1.5
+2.0
+3.0
+DP09EfA9
+--- PAGE 85 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+IX-E 84 of 94 CALCULATION PROCEDURE, VAPORIZATION
+DESIGN PRACTICES
+December, 2000
+FIGURE A10A
+FINNED TUBE SURFACE FACTOR, Fs, FOR PURE HYDROCARBONS (CUSTOMARY)
+4.0
+3.0
+2.0
+1.0
+0.0
+0.0 100 200 300 400 500
+Plain Surface Nucleate Boiling Heat Transfer Coefficient, h , Btu/hr ft2 F
+1r
+ExxonMobil Research and Engineering Company – Fairfax, VA
+F
+,rotcaF
+ecafruS
+ebuT
+denniF
+s
+etalopartxE
+toN
+oD
+Pure Hydrocarbons
+(MW = molecular weight)
+MW=
+50
+70
+100
+150
+200
+DP09EfA10A
+FIGURE A10B
+FINNED TUBE SURFACE FACTOR, Fs, FOR PURE HYDROCARBONS (METRIC)
+4.0
+3.0
+2.0
+1.0
+0.0
+0 400 800 1200 1600 2000 2400 2800
+Plain Surface Nucleate Boiling Heat Transfer Coefficient, h , W/m2 K
+1r
+F,rotcaF
+ecafruS
+ebuT
+denniF
+s
+Pure Hydrocarbons
+(MW = molecular weight)
+etalopartxE
+toN
+oD
+MW=
+50
+70
+100
+150
+200
+DP09EfA10B
+--- PAGE 86 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+CALCULATION PROCEDURE, VAPORIZATION IX-E 85 of 94
+DESIGN PRACTICES
+December, 2000
+FIGURE A11A
+FINNED TUBE SURFACE FACTOR, Fs, FOR MIXED HYDROCARBONS (CUSTOMARY)
+4.0
+3.0
+2.0
+1.0
+0.0
+0 100 200 300 400 500
+Plain Surface Nucleate Boiling Heat Transfer Coefficient, h , Btu/hr2 F
+nb1
+ExxonMobil Research and Engineering Company – Fairfax, VA
+F
+,rotcaF
+ecafruS
+ebuT
+denniF
+s
+etalopartxE
+toN
+oD
+Mixed Hydrocarbons
+BR = 20F
+50F
+100F
+200F
+DP09EfA11A
+FIGURE A11B
+FINNED TUBE SURFACE FACTOR, Fs, FOR MIXED HYDROCARBONS (METRIC)
+4.0
+3.0
+Mixed Hydrocarbons
+2.0
+1.0
+0.0
+0 400 800 1200 1600 2000 2400 2800
+DP09EfA11B Plain Surface Nucleate Boiling Heat Transfer Coefficient, h , W/m2 K
+nb1
+etalopartxE
+toN
+oD
+BR=11.1 C
+27.7 C
+55.5 C
+111.1 C
+F
+,rotcaF
+ecafruS
+ebuT
+denniF
+s
+--- PAGE 87 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+IX-E 86 of 94 CALCULATION PROCEDURE, VAPORIZATION
+DESIGN PRACTICES
+December, 2000
+FIGURE A12A
+FIN EFFICIENCY FACTOR, Fe (CUSTOMARY)
+103 4 6 8 104
+Heat Flux Based On Total Outside Tube Surface, q, Btu/hr f2t
+ExxonMobil Research and Engineering Company – Fairfax, VA
+F
+,gnilioB
+rof
+ycneiciffE
+niF
+e
+1.0
+65
+0.8
+28
+0.6
+9
+0.4
+Therma B
+l
+t
+C
+u
+o
+/h
+n
+r
+d
+F
+uctivity
+0.2
+0.1
+2 2
+DP09EfA12A
+FIGURE A12B
+FIN EFFICIENCY FACTOR, Fe (METRIC)
+4 6 8 104 2 4 6
+Heat Flux Based On Total Outside Tube Surface, q, W/m2
+DP09EfA12B
+F
+,gnilioB
+rof
+ycneiciffE
+niF
+e
+1.0
+0.8 112
+0.6 48
+15.6
+0.4
+Thermal W
+C
+/
+o
+m
+n
+k
+ductivity
+0.2
+0.1
+--- PAGE 88 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+CALCULATION PROCEDURE, VAPORIZATION IX-E 87 of 94
+DESIGN PRACTICES
+December, 2000
+FIGURE A13
+KETTLE FLOW AREAS
+S
+h
+L
+c
+Foam Clearance
+D
+s
+H
+w
+D
+b
+L
+L/4 L/2 L/4
+B 4N A 4N
+D D
+1N
+Min.
+B A
+2N
+3N
+Min. Min.
+Min.
+ExxonMobil Research and Engineering Company – Fairfax, VA
+.niM
+2CN
+1.5D Splash 1.5D Splash
+Baffle (Note 1) Baffle (Note 1)
+1CN
+1 in. HLL
+LLL
+Min.
+2CN
+Min.
+5N
+.ni
+9
+Liquid Level
+Weir (Note 1)
+6 in.
+Area A Splash
+Area Sh 2 Baffle
+Liquid Level
+Liquid Level Nozzles & Connections
+No. Service
+1N Channel inlet
+2N Channel Outlet
+3N H.C. Liquid inlet
+Section "A-A" Section "B-B"
+4N H.C. VaporOutlet
+Notes: 5N H.C. Liquid Outlet
+(1) Baffles extend across width of shell.
+1CN LIC (2) Note 2
+(2) Level taps may be either on the shell or on the head.
+2CN LG (2) Note 2
+DP9EfA13
+--- PAGE 89 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+IX-E 88 of 94 CALCULATION PROCEDURE, VAPORIZATION
+DESIGN PRACTICES
+December, 2000
+FIGURE A14A
+CHOKE FLOW REFERENCE MAXIMUM HEAT FLUX FOR VERTICAL THERMOSIPHON REBOILERS
+2
+105
+8
+6
+4
+2
+104
+8
+6
+4
+2
+103
+10-3 2 4 6 8 10-2 2 4 6 8 10-1 2 4 6 8 1.0
+DP09EfA14A Reduced Pressure, P
+r
+ExxonMobil Research and Engineering Company – Fairfax, VA
+2tf
+rh/utB
+,
+q
+,xulF
+taeH
+mumixaM
+ecnerefeR
+rxam
+Critical Pressure,
+(psia) 3200
+2000
+1000
+700
+500
+400
+300
+200
+FIGURE A14B
+CHOKE FLOW REFERENCE MAXIMUM HEAT FLUX FOR VERTICAL THERMOSIPHON REBOILERS
+2
+105
+8
+6
+4
+2
+104
+8
+6
+4
+2
+103
+10-3 2 4 6 8 10-2 2 4 6 8 10-1 2 4 6 8 1.0
+DP09EfA14B Reduced Pressure, P
+r
+2tf
+rh/utB
+,
+q
+,xulF
+taeH
+mumixaM
+ecnerefeR
+rxam
+Critical Pressure,
+(psia) 3200
+2000
+1000
+700
+500
+400
+300
+200
+--- PAGE 90 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+CALCULATION PROCEDURE, VAPORIZATION IX-E 89 of 94
+DESIGN PRACTICES
+December, 2000
+FIGURE A15A
+TUBE GEOMETRY CORRECTION TO MAXIMUM HEAT FLUX (CUSTOMARY)
+2.0
+1.0
+0.8
+0.6
+0.4
+0.2
+0.1 0.2 0.4 0.6 0.8 1.0 2.0 3.0
+Inside Tube Diameter (d ), in.
+i
+ExxonMobil Research and Engineering Company – Fairfax, VA
+nohpisomrehT
+lacitreV
+ot
+rotcaF
+noitcerroC
+yrtemoeG
+Λ
+,xulF
+taeH
+mumixaM
+h,
+ft.
+gt
+n
+e L
+e
+b u
+T 6
+8
+0 1
+2
+1
+6
+1
+0
+2
+DP9EfA15A
+FIGURE A15B
+TUBE GEOMETRY CORRECTION TO MAXIMUM HEAT FLUX (METRIC)
+2.0
+1.0
+0.8
+0.6
+0.4
+0.2
+5 10 15 30 30 40 50
+Inside Tube Diameter (d ), mm
+i
+nohpisomrehT
+lacitreV
+ot
+rotcaF
+noitcerroC
+yrtemoeG
+Λ
+,xulF
+taeH
+mimxaM
+m
+h, 3
+n
+gt
+1.
+8
+e
+b e
+L
+2. 4
+4
+u
+T 5 0
+3.
+6
+6
+3.
+8
+8
+4.
+0
+1
+6.
+DP09EfA15B
+--- PAGE 91 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+IX-E 90 of 94 CALCULATION PROCEDURE, VAPORIZATION
+DESIGN PRACTICES
+December, 2000
+FIGURE A16A
+NATURAL CONVENTION COEFFICIENT (CUSTOMARY)
+300
+250
+200
+150
+100
+50
+0
+0.0 10000 20000 30000 40000 50000 60000 70000 80000 90000 100000
+Heat Flux (Btu/hr-ft2)
+ExxonMobil Research and Engineering Company – Fairfax, VA
+)F-2tf-rh/utB(
+h
+cn
+1500
+1000
+800
+600
+400
+Pc = 300 psi
+DP09EfA16A
+FIGURE A16B
+NATURAL CONVENTION COEFFICIENT (METRIC)
+1600
+1400
+1200
+1000
+800
+600
+400
+200
+0
+0 50000 100000 150000 200000 250000 300000 350000
+Heat Flux (W/m2)
+)K-2m/W(
+h
+cn
+10300
+6900
+5500
+4100
+2800
+Pc = 2100 kPa
+DP9EfA16B
+--- PAGE 92 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+CALCULATION PROCEDURE, VAPORIZATION IX-E 91 of 94
+DESIGN PRACTICES
+December, 2000
+FIGURE A17A
+OUTLET VAPOR FRACTION, y , AS A FUNCTION OF
+o
+REDUCED HEAT FLUX AND INLET VELOCITY (CUSTOMARY)
+10
+8
+6 4
+2
+1.0
+8
+6
+4
+2
+1
+10-1 2 4 6 8 1.0 2 4 6 8 10
+ExxonMobil Research and Engineering Company – Fairfax, VA
+s/tf
+,V ,yticoleV
+telnI
+i
+uffici e P n u t m V a p p i n o g r A f o c r ti o n G o o d W O p a e t e r u r a s t a i o n S n d o , l uti o ns
+I ns G o o d 0. 0 2 A q u e o u m
+u
+ac
+V
+0. 0 5 bl e f
+or
+missi
+O u tle 0. 1 P er
+t
+V a p 0. 1
+5
+o r F 0. 2 ra
+ctio
+n
+0.
+3
+3
+5
+, Y
+o
+0. 0. 4
+0. 5
+w o
+Fl
+ns
+Mist
+o d
+O
+p
+er
+ati o n
+Hy dr
+oc ar b o
+U
+ns
+af
+e
+R e gi o
+n P
+ossi bl e
+o
+G
+Reduced Heat Flux, q / λ ρ , ft/hr
+DP09EfA17A 1
+--- PAGE 93 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+IX-E 92 of 94 CALCULATION PROCEDURE, VAPORIZATION
+DESIGN PRACTICES
+December, 2000
+FIGURE A17B
+OUTLET VAPOR FRACTION, y , AS A FUNCTION OF
+o
+REDUCED HEAT FLUX AND INLET VELOCITY ( METRIC)
+4
+10-5 2 6 8 10-4 2 4 6 8
+Reduced Heat Flux, q / λ ρ , m/sec
+1
+ExxonMobil Research and Engineering Company – Fairfax, VA
+ces/m
+,V
+,yticoleV
+telnI
+i
+2 uffici e
+P
+n u t m V p a i p n o g r A f o c r ti o n G o o d W O p a e t
+o
+e r u r a s t a i o n S n d o , l uti o ns
+1.0 I ns G o o d 0. 0 2 A q u e ac u u m
+V
+8 or
+6
+0.
+0 5
+missi
+bl e
+f
+4
+O u tle
+t
+V a p o
+0. 1
+0. 1 5
+P
+er
+r F ra 0. 2
+ctio
+3
+n , Y 0. 0. 3 5 4
+o 0. 5 2 0.
+w
+o
+Fl
+10-
+6
+8
+1
+o d
+O p
+er
+ati o
+n
+Hy
+dr
+oc ar b o
+ns
+U
+ns af
+e
+R e
+gi
+o
+n
+P
+ossi bl e
+Mist
+o
+G
+DP9EfA17B
+--- PAGE 94 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+CALCULATION PROCEDURE, VAPORIZATION IX-E 93 of 94
+DESIGN PRACTICES
+December, 2000
+FIGURE A18A
+REBOILER LIQUID PIPE SIZE (CUSTOMARY)
+10000
+8000
+6000
+5000
+4000
+3000
+2000
+1000
+800
+600
+500
+400
+300
+200
+100
+80
+60
+50
+40
+30
+20
+ExxonMobil Research and Engineering Company – Fairfax, VA
+.nim/laG
+,etaR
+wolF
+24
+20
+18
+16
+s
+6
+ft/
+14
+=
+y
+o
+cit
+6 12
+el
+V 5
+4 10
+3
+8
+0)
+4
+e
+ul d
+6 e
+h
+c
+S
+S
+(
+P
+5 N
+e,
+z
+Si
+e
+p
+Pi
+4
+3
+2
+DP9EfA18A
+--- PAGE 95 ---
+ExxonMobil Proprietary
+HEAT EXCHANGE EQUIPMENT
+Section Page
+IX-E 94 of 94 CALCULATION PROCEDURE, VAPORIZATION
+DESIGN PRACTICES
+December, 2000
+FIGURE A18B
+REBOILER LIQUID PIPE SIZE (METRIC)
+600
+500
+400
+300
+200
+100
+90
+80
+70
+60
+50
+40
+30
+20
+10
+9
+8
+7
+6
+5
+4
+3
+2
+1
+ExxonMobil Research and Engineering Company – Fairfax, VA
+301
+X
+s/3m
+,etaR
+wolF
+600
+500
+450
+400
+s
+m/
+= 350
+y
+V
+el o
+cit
+1. 8
+3
+300
+2 5
+1.
+250
+2
+2
+1.
+1
+9 0.
+200 0)
+4 e
+ul
+d
+e
+h
+c
+S
+150 m (
+m
+e,
+z 125 Si
+e p
+Pi
+100
+80
+50
+DP9EfA18B

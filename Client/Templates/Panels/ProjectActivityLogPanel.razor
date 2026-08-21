@@ -1,5 +1,6 @@
 @implements IDisposable
 @inject Client.Services.Diagnostics.ProjectActivityLogService ActivityLog
+@inject IJSRuntime JS
 
 <section class="activity-log-panel @(isExpanded ? "expanded" : "collapsed")">
     <button type="button" class="activity-log-header" @onclick="Toggle">
@@ -11,13 +12,45 @@
     @if (isExpanded)
     {
         <div class="activity-log-body">
+            <div class="activity-actions">
+                <button type="button" class="activity-action" @onclick="CopyVisibleAsync">Copy visible</button>
+                <button type="button" class="activity-action secondary" @onclick="ClearLog">Clear</button>
+                @if (!string.IsNullOrWhiteSpace(copyStatus))
+                {
+                    <span class="activity-copy-status">@copyStatus</span>
+                }
+            </div>
+            @if (ActivitySources.Count > 0)
+            {
+                <div class="activity-filters" aria-label="Activity filters">
+                    <button type="button"
+                            class="activity-filter @(selectedSource == null ? "selected" : "")"
+                            @onclick="() => SelectSource(null)">
+                        All
+                        <span>@Entries.Count</span>
+                    </button>
+                    @foreach (var source in ActivitySources)
+                    {
+                        <button type="button"
+                                class="activity-filter @(selectedSource == source.Name ? "selected" : "")"
+                                @onclick="() => SelectSource(source.Name)">
+                            @source.Name
+                            <span>@source.Count</span>
+                        </button>
+                    }
+                </div>
+            }
             @if (Entries.Count == 0)
             {
                 <div class="activity-empty">No background activity yet.</div>
             }
+            else if (FilteredEntries.Count == 0)
+            {
+                <div class="activity-empty">No activity for this filter.</div>
+            }
             else
             {
-                @foreach (var entry in Entries)
+                @foreach (var entry in FilteredEntries)
                 {
                     <div class="activity-entry">
                         <span class="activity-time">@entry.Timestamp.ToLocalTime().ToString("HH:mm:ss.fff")</span>
@@ -36,8 +69,30 @@
 
 @code {
     private bool isExpanded;
-    private System.Threading.Timer? timer;
+    private string copyStatus = string.Empty;
+    private string? selectedSource;
     private IReadOnlyList<Client.Services.Diagnostics.ProjectActivityLogEntry> Entries => ActivityLog.Entries;
+    private IReadOnlyList<Client.Services.Diagnostics.ProjectActivityLogEntry> FilteredEntries =>
+        string.IsNullOrWhiteSpace(selectedSource)
+            ? Entries
+            : Entries.Where(entry => entry.Source == selectedSource).ToList();
+    private IReadOnlyList<ActivitySourceFilter> ActivitySources
+    {
+        get
+        {
+            var priority = new[] { "Autosave", "Saved", "Error", "Hydration", "SignalR", "Facade", "Dialog" };
+            return Entries
+                .GroupBy(entry => entry.Source)
+                .Select(group => new ActivitySourceFilter(group.Key, group.Count()))
+                .OrderBy(source =>
+                {
+                    var index = Array.IndexOf(priority, source.Name);
+                    return index < 0 ? priority.Length : index;
+                })
+                .ThenBy(source => source.Name)
+                .ToList();
+        }
+    }
 
     private string StatusText
     {
@@ -48,7 +103,7 @@
                 var remaining = dueAt - DateTimeOffset.Now;
                 if (remaining > TimeSpan.Zero)
                 {
-                    return $"{ActivityLog.PendingAutosaveLabel}: {remaining.TotalMilliseconds:0} ms";
+                    return $"{ActivityLog.PendingAutosaveLabel}: waiting";
                 }
 
                 return $"{ActivityLog.PendingAutosaveLabel}: due now";
@@ -66,12 +121,60 @@
     protected override void OnInitialized()
     {
         ActivityLog.Changed += OnActivityChanged;
-        timer = new System.Threading.Timer(_ => InvokeAsync(StateHasChanged), null, 0, 250);
     }
 
     private void Toggle()
     {
         isExpanded = !isExpanded;
+    }
+
+    private Task CopyVisibleAsync()
+    {
+        return CopyEntriesAsync(FilteredEntries, "Visible activity copied.");
+    }
+
+    private async Task CopyEntriesAsync(
+        IEnumerable<Client.Services.Diagnostics.ProjectActivityLogEntry> entries,
+        string successMessage)
+    {
+        var text = FormatEntries(entries);
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            copyStatus = "Nothing to copy.";
+            return;
+        }
+
+        await JS.InvokeVoidAsync("navigator.clipboard.writeText", text);
+        copyStatus = successMessage;
+    }
+
+    private static string FormatEntries(IEnumerable<Client.Services.Diagnostics.ProjectActivityLogEntry> entries)
+    {
+        return string.Join(
+            Environment.NewLine,
+            entries
+                .Reverse()
+                .Select(entry =>
+                {
+                    var detail = string.IsNullOrWhiteSpace(entry.Detail)
+                        ? string.Empty
+                        : $" | {entry.Detail}";
+
+                    return $"{entry.Timestamp.ToLocalTime():HH:mm:ss.fff} | {entry.Source} | {entry.Message}{detail}";
+                }));
+    }
+
+    private void ClearLog()
+    {
+        ActivityLog.Clear();
+        copyStatus = string.Empty;
+        selectedSource = null;
+    }
+
+    private void SelectSource(string? source)
+    {
+        selectedSource = source;
+        copyStatus = string.Empty;
     }
 
     private void OnActivityChanged()
@@ -82,6 +185,7 @@
     public void Dispose()
     {
         ActivityLog.Changed -= OnActivityChanged;
-        timer?.Dispose();
     }
+
+    private sealed record ActivitySourceFilter(string Name, int Count);
 }

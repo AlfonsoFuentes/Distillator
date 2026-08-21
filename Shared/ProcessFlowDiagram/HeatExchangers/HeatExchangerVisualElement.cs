@@ -152,7 +152,13 @@ namespace Shared.ProcessFlowDiagram.HeatExchangers
         }
         public IEquipmentDesign CreateDesign()
         {
+            return CreateDesign(ShellAndTubeCalculationStandard.Kern);
+        }
+
+        public IEquipmentDesign CreateDesign(ShellAndTubeCalculationStandard calculationStandard)
+        {
             var variables = new ShellAndTubeDesignVariables();
+            variables.CalculationStandard = calculationStandard;
             var result = CalculateDesign(variables);
             var design = new EquipmentDesign
             {

@@ -71,9 +71,6 @@ public class InterFlowsheetConnectionService : IInterFlowsheetConnectionService
 
         try
         {
-            // Calcular dimensiones efectivas
-            double sourceEffectiveWidth = GetEffectiveWidth(sourceFlowsheet);
-            double targetEffectiveWidth = GetEffectiveWidth(targetFlowsheet);
             double arrowOffset = _placementRules.Snap(60, sourceFlowsheet.GridSize);
             double opcWidth = 200;
             var localAnchorSide = isFlowEnteringSource ? OffPageConnectorPortSide.Left : OffPageConnectorPortSide.Right;
@@ -82,7 +79,7 @@ public class InterFlowsheetConnectionService : IInterFlowsheetConnectionService
             var remotePortSide = GetInwardPortSide(remoteAnchorSide);
 
             // Crear OPC local
-            double localX = GetConnectorX(localAnchorSide, sourceEffectiveWidth, opcWidth, arrowOffset);
+            double localX = GetConnectorX(project, sourceFlowsheet, arrowOffset);
             double localY = _placementRules.Snap(sourceEquipment.Y, sourceFlowsheet.GridSize);
 
             localOpc = new OffPageConnectorElement(!isFlowEnteringSource, localPortSide)
@@ -92,14 +89,14 @@ public class InterFlowsheetConnectionService : IInterFlowsheetConnectionService
                 TargetConnectorId = Guid.NewGuid(),
                 Label = targetFlowsheet.Name,
                 TargetAreaName = targetFlowsheet.Name,
-                ConnectedEquipmentName = sourceEquipment.Label,
+                ConnectedEquipmentName = targetStream.Label,
                 X = localX,
                 Y = localY
             };
             localOpc.RefreshPorts();
 
             // Crear OPC remoto
-            double remoteX = GetConnectorX(remoteAnchorSide, targetEffectiveWidth, opcWidth, arrowOffset);
+            double remoteX = GetConnectorX(project, targetFlowsheet, arrowOffset);
             double remoteY = _placementRules.Snap(targetStream.Y, targetFlowsheet.GridSize);
 
             remoteOpc = new OffPageConnectorElement(isFlowEnteringSource, remotePortSide)
@@ -110,7 +107,7 @@ public class InterFlowsheetConnectionService : IInterFlowsheetConnectionService
                 Id = localOpc.TargetConnectorId.Value,
                 Label = sourceFlowsheet.Name,
                 TargetAreaName = sourceFlowsheet.Name,
-                ConnectedEquipmentName = targetStream.Label,
+                ConnectedEquipmentName = sourceEquipment.Label,
                 X = remoteX,
                 Y = remoteY
             };
@@ -131,14 +128,14 @@ public class InterFlowsheetConnectionService : IInterFlowsheetConnectionService
                 TargetFlowsheetId = targetFlowsheet.Id,
                 TargetConnectorId = remoteOpc.Id,
                 TargetFlowsheetName = targetFlowsheet.Name,
-                ConnectedEquipmentName = sourceEquipment.Label
+                ConnectedEquipmentName = targetStream.Label
             });
             targetFlowsheet.AddElementReference(new OffPageConnectorReference(remoteOpc.Id, remoteOpc.X, remoteOpc.Y, isFlowEnteringSource, remotePortSide)
             {
                 TargetFlowsheetId = sourceFlowsheet.Id,
                 TargetConnectorId = localOpc.Id,
                 TargetFlowsheetName = sourceFlowsheet.Name,
-                ConnectedEquipmentName = targetStream.Label
+                ConnectedEquipmentName = sourceEquipment.Label
             });
 
             // Conectar cerebros termodinámicos
@@ -289,24 +286,32 @@ public class InterFlowsheetConnectionService : IInterFlowsheetConnectionService
         project.RemoveInterFlowsheetConnection(connection.Id);
     }
 
-    private static double GetEffectiveWidth(IFlowsheet flowsheet)
+    private static double GetConnectorX(IProject project, IFlowsheet flowsheet, double offset)
     {
-        return Math.Max(
-            flowsheet.DiagramWidth,
-            flowsheet.Elements.Count > 0
-                ? flowsheet.Elements.Max(e => e.X + 100)
-                : 600);
+        var rightMostElement = flowsheet.Elements
+            .Where(reference => project.GetEquipment(reference.ElementId) is not OffPageConnectorElement)
+            .Select(reference => GetElementRightEdge(project, reference))
+            .DefaultIfEmpty(0)
+            .Max();
+
+        return Math.Max(offset, Snap(rightMostElement + offset, flowsheet.GridSize));
     }
 
-    private static double GetConnectorX(
-        OffPageConnectorPortSide anchorSide,
-        double effectiveWidth,
-        double connectorWidth,
-        double offset)
+    private static double GetElementRightEdge(IProject project, IFlowsheetElementReference reference)
     {
-        return anchorSide == OffPageConnectorPortSide.Left
-            ? offset
-            : effectiveWidth - connectorWidth - offset;
+        var element = project.GetEquipment(reference.ElementId);
+        var width = element?.Width > 0 ? element.Width : 100;
+        return reference.X + width;
+    }
+
+    private static double Snap(double value, double gridSize)
+    {
+        if (gridSize <= 0)
+        {
+            return value;
+        }
+
+        return Math.Round(value / gridSize) * gridSize;
     }
 
     private static OffPageConnectorPortSide GetInwardPortSide(OffPageConnectorPortSide anchorSide) =>

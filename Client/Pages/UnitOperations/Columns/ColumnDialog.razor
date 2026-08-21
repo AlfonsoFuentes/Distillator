@@ -3,7 +3,9 @@
 
 
 
-<EquipmentBaseDialog Equipment="Equipment" CanEdit="CanEdit">
+<EquipmentBaseDialog Equipment="Equipment"
+                     CanEdit="CanEdit"
+                     OnProfilesTabActivated="EnsureColumnProfilesCalculatedAsync">
     <MainSlot>
         <div class="column-canvas-layout">
 
@@ -141,6 +143,17 @@
     private void HandleTopologyChanged()
     {
         Equipment.RefreshDynamicPorts();
+        StateHasChanged();
+    }
+
+    private async Task EnsureColumnProfilesCalculatedAsync()
+    {
+        if (Equipment.Facade is not SolverColumn column)
+        {
+            return;
+        }
+
+        await column.EnsureProfilesCalculatedAsync();
         StateHasChanged();
     }
 

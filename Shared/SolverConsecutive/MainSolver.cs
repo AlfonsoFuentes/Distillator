@@ -1,6 +1,7 @@
 using Shared.PropertiesDtos.Methods;
 using Shared.SolverConsecutive.Equipments;
 using Shared.SolverQwen.Stream;
+using Shared.SolverQwen.Simlations;
 using Shared.UnitOperations.Basiss;
 using UnitSystem;
 
@@ -8,23 +9,29 @@ namespace Shared.SolverConsecutive
 {
     public sealed class MainSolver : IMainSolver, INewtonSolverObserver
     {
+        private const double ResidualSolvedTolerance = 1e-4;
+
         private static readonly SolverEquationType[] DefaultEquationTypes =
         [
             SolverEquationType.Pressure,
             SolverEquationType.Concentration,
             SolverEquationType.VaporFraction,
             SolverEquationType.Enthalpy,
+            SolverEquationType.Specification,
             SolverEquationType.MassBalance,
-            SolverEquationType.MassEnergyBalance,
-            SolverEquationType.Specification
+            SolverEquationType.MassEnergyBalance
         ];
+
+        private static readonly string[] DebugEquipmentNames = ["C-140", "C-101", "C-127"];
 
         private readonly INewtonSolver _solver;
         private readonly HashSet<IVariable> _solverCalculatedVariables = new();
+        private readonly List<string> _divergenceProbeRunEvents = new();
         private readonly object _simulationSyncRoot = new();
         private Task? _simulationCoordinatorTask;
         private bool _simulationRerunRequested;
         private TaskCompletionSource<SimulationRunResult>? _rerunCompletion;
+        private string? _activeSolverEquationName;
 
         public MainSolver()
             : this(new NewtonSolver())
@@ -34,7 +41,7 @@ namespace Shared.SolverConsecutive
         public MainSolver(INewtonSolver solver)
         {
             _solver = solver;
-            _solver.Subscribe(this);
+           
             AtmosphericPressure = new Pressure(101325, PressureUnits.Pascala);
             _altitude = new Length(0, LengthUnits.Meter);
         }
@@ -46,6 +53,24 @@ namespace Shared.SolverConsecutive
         public List<ISolverEquipment> Equipments { get; } = new();
 
         public ThermodynamicMethodFullDto ThermoMethod { get; set; } = null!;
+        private ISolverTraceSink? _traceSink;
+        public ISolverTraceSink? TraceSink
+        {
+            get => _traceSink;
+            set
+            {
+                _traceSink = value;
+                foreach (var stream in Streams)
+                {
+                    stream.TraceSink = value;
+                }
+
+                foreach (var equipment in Equipments.OfType<SolverEquipmentBase>())
+                {
+                    equipment.TraceSink = value;
+                }
+            }
+        }
 
         public Pressure AtmosphericPressure { get; set; }
 
@@ -62,6 +87,7 @@ namespace Shared.SolverConsecutive
 
         public void AddStream(IFacadeStream stream)
         {
+            stream.TraceSink = TraceSink;
             Streams.Add(stream);
         }
 
@@ -72,6 +98,11 @@ namespace Shared.SolverConsecutive
 
         public void AddEquipment(ISolverEquipment equipment)
         {
+            if (equipment is SolverEquipmentBase solverEquipment)
+            {
+                solverEquipment.TraceSink = TraceSink;
+            }
+
             Equipments.Add(equipment);
         }
 
@@ -128,23 +159,32 @@ namespace Shared.SolverConsecutive
             return new TaskCompletionSource<SimulationRunResult>(TaskCreationOptions.RunContinuationsAsynchronously);
         }
 
-        public void RunSimulation()
-        {
-            _ = RunSimulationAsync();
-        }
-
         private async Task<SimulationRunResult> ExecuteSimulationAsync()
         {
             var runId = Guid.NewGuid();
             var diagnostics = new List<string>();
             var converged = false;
+            _activeSolverEquationName = null;
+            _divergenceProbeRunEvents.Clear();
 
             try
             {
+                TraceSolver("Run started", $"streams={Streams.Count}; equipment={Equipments.Count}");
+                TraceDivergenceProbe("Run context", $"atmosphericPressure={DescribePressure(AtmosphericPressure)}; altitude={_altitude.GetValue(LengthUnits.Meter):G6} m");
+                TraceWatchedStreams("Before clear");
+                TraceCriticalBalances("Before clear");
                 ClearCalculatedBySolver();
+                TraceWatchedStreams("After clear");
+                TraceCriticalBalances("After clear");
                 var solvePlan = BuildFullSolvePlan();
+                TraceSolver("Solve plan built", string.Join(", ", solvePlan.EquationsByType.Select(pair => $"{pair.Key}:{pair.Value.Count}")));
+                TraceDivergenceProbe("Solve plan watch", DescribeWatchedSolvePlan(solvePlan));
                 converged = ExecuteSolvePlan(solvePlan, diagnostics);
                 var postSolveSucceeded = await ExecutePostSolveCalculationsAsync(diagnostics);
+                TraceWatchedStreams("Before run completed");
+                TraceCriticalBalances("Before run completed");
+                TraceDivergenceProbeSummary();
+                TraceSolver("Run completed", $"converged={converged}; postSolve={postSolveSucceeded}; diagnostics={diagnostics.Count}");
                 return postSolveSucceeded
                     ? SimulationRunResult.Completed(runId, converged, diagnostics)
                     : SimulationRunResult.Failed(runId, diagnostics);
@@ -153,6 +193,7 @@ namespace Shared.SolverConsecutive
             {
                 var message = $"[MainSolver] Error en simulacion: {ex.Message}";
                 diagnostics.Add(message);
+                TraceSolver("Run failed", ex.Message);
                 OnSimulationCompleted?.Invoke();
                 return SimulationRunResult.Failed(runId, diagnostics);
             }
@@ -432,6 +473,7 @@ namespace Shared.SolverConsecutive
         private bool ExecuteSolvePlan(SolvePlan solvePlan, List<string> diagnostics)
         {
             var pendingTypes = solvePlan.EquationTypesWithPendingWork().ToList();
+            var specificationTargetVariables = GetSpecificationTargetVariables();
             var hasGlobalProgress = true;
             var iteration = 0;
             const int maxIterations = 10;
@@ -443,8 +485,21 @@ namespace Shared.SolverConsecutive
                 foreach (var equationType in pendingTypes.ToList())
                 {
                     var equations = solvePlan.EquationsByType[equationType];
-                    var hasLocalProgress = ResolveEquationType(equations);
+                    var protectedVariables = equationType == SolverEquationType.Specification
+                        ? new HashSet<IVariable>()
+                        : specificationTargetVariables;
+                    if (equationType == SolverEquationType.Specification)
+                    {
+                        TraceSolver("Specifications started", $"equations={equations.Count}");
+                    }
+
+                    var hasLocalProgress = ResolveEquationType(equationType, equations, protectedVariables);
                     hasGlobalProgress |= hasLocalProgress;
+
+                    if (equationType == SolverEquationType.Specification)
+                    {
+                        TraceSolver("Specifications finished", $"remaining={equations.Count}; progress={hasLocalProgress}");
+                    }
 
                     if (equations.Count == 0)
                     {
@@ -463,7 +518,18 @@ namespace Shared.SolverConsecutive
             return LogSolvePlanResult(pendingTypes, iteration, diagnostics);
         }
 
-        private bool ResolveEquationType(List<ISolverEquation> equations)
+        private HashSet<IVariable> GetSpecificationTargetVariables()
+        {
+            return Equipments
+                .SelectMany(equipment => equipment.Specifications)
+                .SelectMany(specification => specification.GetTargetVariables())
+                .ToHashSet();
+        }
+
+        private bool ResolveEquationType(
+            SolverEquationType equationType,
+            List<ISolverEquation> equations,
+            HashSet<IVariable> protectedVariables)
         {
             var hasProgress = false;
             var hasLocalProgress = true;
@@ -476,14 +542,96 @@ namespace Shared.SolverConsecutive
                 for (var index = 0; index < clusteredEquations.Count;)
                 {
                     var equation = clusteredEquations[index];
+                    var shouldTraceEquation = ShouldTraceEquation(equationType, equation);
+                    var isDebugEquipmentEquation = IsDebugEquipmentEquation(equation);
+                    var shouldTraceDiagnosticEquation = ShouldTraceDiagnosticEquation(equation) || isDebugEquipmentEquation;
+                    if (isDebugEquipmentEquation)
+                    {
+                        TraceSolver("Debug equipment checkpoint", DescribeEquationCompact(equation));
+                    }
+
+                    if (ShouldDeferToSpecification(equation, protectedVariables))
+                    {
+                        if (shouldTraceEquation || shouldTraceDiagnosticEquation)
+                        {
+                            TraceSolver("Deferred to specification", DescribeEquationCompact(equation));
+                        }
+
+                        index++;
+                        continue;
+                    }
+
                     if (!equation.CanEvaluate)
                     {
+                        if (shouldTraceEquation || shouldTraceDiagnosticEquation)
+                        {
+                            TraceSolver("Equation not ready", DescribeEquationCompact(equation));
+                        }
+
                         index++;
                         continue;
                     }
 
                     equation.RefreshEquation();
-                    var result = _solver.Solve(equation);
+                    var beforeSolve = CaptureEquationSnapshot(equation);
+                    if (equation.AdjustableVariables().Count == 0)
+                    {
+                        if (IsResidualSolved(beforeSolve.ResidualNorm))
+                        {
+                            if (shouldTraceEquation || shouldTraceDiagnosticEquation)
+                            {
+                                TraceSolver("Equation satisfied", DescribeEquationCompact(equation));
+                            }
+
+                            RemoveSolvedEquation(equations, equation);
+                            clusteredEquations.RemoveAt(index);
+                            hasLocalProgress = true;
+                            hasProgress = true;
+                            continue;
+                        }
+
+                        if (shouldTraceEquation || shouldTraceDiagnosticEquation)
+                        {
+                            TraceSolver("Equation has no adjustable variables", DescribeNewtonStartCompact(equation, beforeSolve));
+                        }
+
+                        index++;
+                        continue;
+                    }
+
+                    if (shouldTraceEquation || shouldTraceDiagnosticEquation)
+                    {
+                        TraceSolver("Newton start", DescribeNewtonStartCompact(equation, beforeSolve));
+                    }
+
+                    if (IsWatchedEquation(equation))
+                    {
+                        TraceDivergenceProbe("Before equation", DescribeWatchedEquation(equation, beforeSolve));
+                    }
+
+                    SolverResult result;
+                    _activeSolverEquationName = equation.Name;
+                    try
+                    {
+                        result = _solver.Solve(equation);
+                    }
+                    finally
+                    {
+                        _activeSolverEquationName = null;
+                    }
+
+                    var afterSolve = CaptureEquationSnapshot(equation);
+                    if (IsWatchedEquation(equation))
+                    {
+                        TraceDivergenceProbe("After equation", DescribeWatchedEquationResult(equation, beforeSolve, afterSolve, result));
+                    }
+
+                    if (ShouldTraceNewtonResult(result, shouldTraceEquation, shouldTraceDiagnosticEquation, beforeSolve, afterSolve))
+                    {
+                        TraceSolver(
+                            result.Converged ? "Newton solved" : "Newton failed",
+                            DescribeNewtonResultCompact(equation, beforeSolve, afterSolve, result));
+                    }
 
                     if (!result.Converged)
                     {
@@ -499,6 +647,65 @@ namespace Shared.SolverConsecutive
             }
 
             return hasProgress;
+        }
+
+        private static bool IsResidualSolved(double residualNorm)
+        {
+            return double.IsFinite(residualNorm) && residualNorm < ResidualSolvedTolerance;
+        }
+
+        private static bool ShouldDeferToSpecification(
+            ISolverEquation equation,
+            HashSet<IVariable> protectedVariables)
+        {
+            return protectedVariables.Count > 0
+                && equation.EquationTypeModifer == SolverEquationTypeModifier.Regular
+                && equation.AdjustableVariables().Any(protectedVariables.Contains);
+        }
+
+        private static bool ShouldTraceEquation(SolverEquationType equationType, ISolverEquation equation)
+        {
+            return equationType == SolverEquationType.Specification ||
+                   equation.Name.Contains("Formula", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static bool ShouldTraceDiagnosticEquation(ISolverEquation equation)
+        {
+            return IsWatchedEquation(equation);
+        }
+
+        private static bool IsDebugEquipmentEquation(ISolverEquation equation)
+        {
+            return equation.EquationType == SolverEquationType.MassEnergyBalance
+                && DebugEquipmentNames.Any(name => equation.Name.Contains(name, StringComparison.OrdinalIgnoreCase));
+        }
+
+        private static bool IsWatchedEquation(ISolverEquation equation)
+        {
+            return WatchedEquationNames.Any(name => equation.Name.Contains(name, StringComparison.OrdinalIgnoreCase)) ||
+                   equation.Variables.Any(IsCriticalDiagnosticVariable);
+        }
+
+        private static bool ShouldTraceNewtonResult(
+            SolverResult result,
+            bool shouldTraceEquation,
+            bool shouldTraceDiagnosticEquation,
+            EquationSolveSnapshot before,
+            EquationSolveSnapshot after)
+        {
+            if (result.Converged)
+            {
+                return true;
+            }
+
+            if (shouldTraceEquation || shouldTraceDiagnosticEquation)
+            {
+                return true;
+            }
+
+            return after.Variables.Any(pair =>
+                IsDiagnosticVariable(pair.Key) &&
+                DescribeVariableChange(pair.Key.Name, before.Variables[pair.Key], pair.Value).Length > 0);
         }
 
         private static List<ISolverEquation> ClusterEquations(List<ISolverEquation> equations)
@@ -613,19 +820,546 @@ namespace Shared.SolverConsecutive
 
             foreach (var variable in variables)
             {
-                variable.Clear(VariableDefinedBy.Solver);
+                ClearCalculatedVariable(variable, VariableDefinedBy.Solver);
             }
 
             _solverCalculatedVariables.Clear();
+
+            foreach (var variable in GetAllSolverStateVariables().Distinct())
+            {
+                ClearCalculatedVariable(variable, VariableDefinedBy.Solver);
+                ClearCalculatedVariable(variable, VariableDefinedBy.Specification);
+                ClearCalculatedVariable(variable, VariableDefinedBy.Equipment);
+            }
+        }
+
+        private IEnumerable<IVariable> GetAllSolverStateVariables()
+        {
+            foreach (var stream in Streams)
+            {
+                foreach (var variable in GetStreamVariables(stream))
+                {
+                    yield return variable;
+                }
+            }
+
+            foreach (var equipment in Equipments)
+            {
+                foreach (var equation in equipment.Equations)
+                {
+                    foreach (var variable in equation.Variables)
+                    {
+                        yield return variable;
+                    }
+                }
+
+                foreach (var specification in equipment.Specifications)
+                {
+                    foreach (var variable in specification.GetVariables())
+                    {
+                        yield return variable;
+                    }
+                }
+            }
+        }
+
+        private void ClearCalculatedVariable(IVariable variable, VariableDefinedBy procedence)
+        {
+            if (variable.DataProcedence != procedence)
+            {
+                return;
+            }
+
+            var before = CaptureVariableSnapshot(variable);
+            ResetToDeterministicInitialSeed(variable);
+            variable.Clear(procedence);
+            if (IsDiagnosticVariable(variable))
+            {
+                TraceDivergenceProbe("Variable cleared", $"{variable.Name}; source={procedence}; before={DescribeVariableSnapshot(before)}; after={DescribeVariable(variable)}");
+            }
+        }
+
+        private static void ResetToDeterministicInitialSeed(IVariable variable)
+        {
+            // Prueba de diagnostico: no reutilizar la solucion anterior como semilla.
+            variable.SetValueFromSolver(1.0, VariableDefinedBy.Undefined);
         }
 
         public void OnVariableSolved(IVariable variable)
         {
-            if (variable.DataProcedence == VariableDefinedBy.Solver)
+            if (variable.DataProcedence is VariableDefinedBy.Solver or VariableDefinedBy.Specification)
             {
                 _solverCalculatedVariables.Add(variable);
             }
+
+            if (IsCriticalDiagnosticVariable(variable))
+            {
+                TraceDivergenceProbe("Variable solved", $"equation={_activeSolverEquationName ?? "<external>"}; {variable.Name}; value={DescribeVariable(variable)}");
+            }
         }
+
+        private void TraceSolver(string message, string? detail = null)
+        {
+            TraceSink?.TraceSolver(message, detail);
+        }
+
+        private void TraceDivergenceProbe(string message, string? detail = null)
+        {
+            TraceSink?.TraceSolver($"Watch {message}", detail);
+            AddDivergenceProbeRunEvent(message, detail);
+        }
+
+        private void TraceDivergenceProbeSummary()
+        {
+            if (_divergenceProbeRunEvents.Count == 0)
+            {
+                return;
+            }
+
+            TraceSink?.TraceSolver("Watch run summary", JoinLimited(_divergenceProbeRunEvents, 60));
+        }
+
+        private void AddDivergenceProbeRunEvent(string message, string? detail)
+        {
+            if (_divergenceProbeRunEvents.Count >= 80)
+            {
+                if (_divergenceProbeRunEvents.Count == 80)
+                {
+                    _divergenceProbeRunEvents.Add("+more watch events omitted");
+                }
+
+                return;
+            }
+
+            var compactDetail = string.IsNullOrWhiteSpace(detail)
+                ? string.Empty
+                : $": {CompactTraceDetail(detail)}";
+            _divergenceProbeRunEvents.Add($"{message}{compactDetail}");
+        }
+
+        private static string CompactTraceDetail(string detail)
+        {
+            const int maxLength = 700;
+            return detail.Length <= maxLength
+                ? detail
+                : $"{detail[..maxLength]}...";
+        }
+
+        private static string DescribeEquation(ISolverEquation equation)
+        {
+            var variables = string.Join(", ", equation.Variables.Select(variable => $"{variable.Name}={DescribeVariable(variable)}"));
+            var adjustable = string.Join(", ", equation.AdjustableVariables().Select(variable => variable.Name));
+            return $"{equation.Name}; type={equation.EquationType}; modifier={equation.EquationTypeModifer}; adjustable=[{adjustable}]; variables=[{variables}]";
+        }
+
+        private static string DescribeEquationCompact(ISolverEquation equation)
+        {
+            var adjustable = equation.AdjustableVariables().Select(variable => variable.Name);
+            var definedDiagnostic = equation.Variables
+                .Where(IsDiagnosticVariable)
+                .Where(variable => variable.IsDefined)
+                .Select(variable => $"{variable.Name}={DescribeVariable(variable)}");
+
+            return $"{equation.Name}; type={equation.EquationType}; modifier={equation.EquationTypeModifer}; adjustable=[{JoinLimited(adjustable, 8)}]; watch=[{JoinLimited(definedDiagnostic, 8)}]";
+        }
+
+        private EquationSolveSnapshot CaptureEquationSnapshot(ISolverEquation equation)
+        {
+            var residuals = equation.Residuals
+                .Where(double.IsFinite)
+                .ToArray();
+            var residualNorm = residuals.Length == 0
+                ? double.NaN
+                : Math.Sqrt(residuals.Sum(residual => residual * residual));
+
+            var variables = equation.Variables
+                .Distinct()
+                .ToDictionary(variable => variable, CaptureVariableSnapshot);
+
+            var streams = GetEquationStreams(equation)
+                .ToDictionary(stream => stream.Name, CaptureStreamSnapshot, StringComparer.OrdinalIgnoreCase);
+
+            return new EquationSolveSnapshot(residualNorm, variables, streams);
+        }
+
+        private string DescribeNewtonStart(ISolverEquation equation, EquationSolveSnapshot snapshot)
+        {
+            var adjustable = equation.AdjustableVariables()
+                .Select(variable => $"{variable.Name}={DescribeVariableSnapshot(snapshot.Variables[variable])}");
+            var defined = equation.Variables
+                .Distinct()
+                .Where(variable => variable.IsDefined)
+                .Select(variable => $"{variable.Name}={DescribeVariableSnapshot(snapshot.Variables[variable])}");
+            var streams = snapshot.Streams.Values.Select(DescribeStreamSnapshot);
+
+            return $"{equation.Name}; type={equation.EquationType}; modifier={equation.EquationTypeModifer}; residual={FormatDouble(snapshot.ResidualNorm)}; adjustable=[{JoinLimited(adjustable, 8)}]; defined=[{JoinLimited(defined, 8)}]; streams=[{JoinLimited(streams, 6)}]";
+        }
+
+        private string DescribeNewtonStartCompact(ISolverEquation equation, EquationSolveSnapshot snapshot)
+        {
+            var adjustable = equation.AdjustableVariables()
+                .Select(variable => $"{variable.Name}={DescribeVariableSnapshot(snapshot.Variables[variable])}");
+            var watchStreams = snapshot.Streams.Values
+                .Where(stream => IsDiagnosticStreamName(stream.Name))
+                .Select(DescribeStreamSnapshot);
+
+            return $"{equation.Name}; type={equation.EquationType}; modifier={equation.EquationTypeModifer}; residual={FormatDouble(snapshot.ResidualNorm)}; adjustable=[{JoinLimited(adjustable, 8)}]; watch=[{JoinLimited(watchStreams, 8)}]";
+        }
+
+        private string DescribeNewtonResult(
+            ISolverEquation equation,
+            EquationSolveSnapshot before,
+            EquationSolveSnapshot after,
+            SolverResult result)
+        {
+            var changes = equation.Variables
+                .Distinct()
+                .Select(variable => DescribeVariableChange(variable.Name, before.Variables[variable], after.Variables[variable]))
+                .Where(change => !string.IsNullOrWhiteSpace(change));
+            var streams = after.Streams.Values.Select(DescribeStreamSnapshot);
+
+            return $"{equation.Name}; converged={result.Converged}; iterations={result.Iterations}; error={result.FinalError:G6}; residual {FormatDouble(before.ResidualNorm)}->{FormatDouble(after.ResidualNorm)}; changed=[{JoinLimited(changes, 10)}]; streams=[{JoinLimited(streams, 6)}]";
+        }
+
+        private string DescribeNewtonResultCompact(
+            ISolverEquation equation,
+            EquationSolveSnapshot before,
+            EquationSolveSnapshot after,
+            SolverResult result)
+        {
+            var diagnosticChanges = equation.Variables
+                .Distinct()
+                .Select(variable => DescribeVariableChange(variable.Name, before.Variables[variable], after.Variables[variable]))
+                .Where(change => !string.IsNullOrWhiteSpace(change));
+
+            var watchStreams = after.Streams.Values
+                .Where(stream => IsDiagnosticStreamName(stream.Name))
+                .Select(DescribeStreamSnapshot);
+
+            return $"{equation.Name}; converged={result.Converged}; iterations={result.Iterations}; error={result.FinalError:G6}; residual {FormatDouble(before.ResidualNorm)}->{FormatDouble(after.ResidualNorm)}; changed=[{JoinLimited(diagnosticChanges, 8)}]; watch=[{JoinLimited(watchStreams, 8)}]";
+        }
+
+        private string DescribeWatchedEquation(ISolverEquation equation, EquationSolveSnapshot snapshot)
+        {
+            var adjustable = equation.AdjustableVariables()
+                .Select(variable => $"{variable.Name}={DescribeVariableSnapshot(snapshot.Variables[variable])}");
+            var equationVariables = equation.Variables
+                .Distinct()
+                .Where(IsDiagnosticVariable)
+                .Select(variable => $"{variable.Name}={DescribeVariableSnapshot(snapshot.Variables[variable])}");
+            var watchStreams = GetWatchedStreamSnapshots().Select(DescribeStreamSnapshot);
+
+            return $"{equation.Name}; type={equation.EquationType}; modifier={equation.EquationTypeModifer}; residual={FormatDouble(snapshot.ResidualNorm)}; adjustable=[{JoinLimited(adjustable, 12)}]; equationVars=[{JoinLimited(equationVariables, 12)}]; streams=[{JoinLimited(watchStreams, 18)}]";
+        }
+
+        private string DescribeWatchedEquationResult(
+            ISolverEquation equation,
+            EquationSolveSnapshot before,
+            EquationSolveSnapshot after,
+            SolverResult result)
+        {
+            var changes = equation.Variables
+                .Distinct()
+                .Where(IsDiagnosticVariable)
+                .Select(variable => DescribeVariableChange(variable.Name, before.Variables[variable], after.Variables[variable]))
+                .Where(change => !string.IsNullOrWhiteSpace(change));
+            var watchStreams = GetWatchedStreamSnapshots().Select(DescribeStreamSnapshot);
+
+            return $"{equation.Name}; converged={result.Converged}; iterations={result.Iterations}; error={result.FinalError:G6}; residual {FormatDouble(before.ResidualNorm)}->{FormatDouble(after.ResidualNorm)}; changed=[{JoinLimited(changes, 12)}]; streams=[{JoinLimited(watchStreams, 18)}]";
+        }
+
+        private void TraceWatchedStreams(string stage)
+        {
+            TraceDivergenceProbe(stage, string.Join(" | ", GetWatchedStreamSnapshots().Select(DescribeStreamSnapshot)));
+        }
+
+        private void TraceCriticalBalances(string stage)
+        {
+            var balances = new[]
+            {
+                DescribeMassBalance("SP-121", ("S-120", 1.0), ("S-122", -1.0), ("S-123", -1.0)),
+                DescribeMassBalance("SP-145", ("S-144", 1.0), ("S-146", -1.0), ("S-147", -1.0)),
+                DescribeFormulaBalance("Formula S-143=5*S-146", "S-143", 1.0, "S-146", -5.0),
+                DescribeMassBalance("C-127 external", ("S-131", 1.0), ("S-122", 1.0), ("S-128", -1.0), ("S-130", -1.0))
+            };
+
+            TraceDivergenceProbe($"{stage} balances", string.Join(" | ", balances));
+        }
+
+        private string DescribeMassBalance(string label, params (string StreamName, double Sign)[] terms)
+        {
+            var hasAllValues = true;
+            var residual = 0.0;
+            var values = new List<string>();
+
+            foreach (var term in terms)
+            {
+                if (TryGetMassFlow(term.StreamName, out var massFlow))
+                {
+                    residual += term.Sign * massFlow;
+                    values.Add($"{term.StreamName}={massFlow:G6}");
+                    continue;
+                }
+
+                hasAllValues = false;
+                values.Add($"{term.StreamName}=n/a");
+            }
+
+            var residualText = hasAllValues ? residual.ToString("G6") : "n/a";
+            return $"{label}: {string.Join(", ", values)}; residual={residualText}";
+        }
+
+        private string DescribeFormulaBalance(
+            string label,
+            string leftStreamName,
+            double leftFactor,
+            string rightStreamName,
+            double rightFactor)
+        {
+            var hasLeft = TryGetMassFlow(leftStreamName, out var leftMassFlow);
+            var hasRight = TryGetMassFlow(rightStreamName, out var rightMassFlow);
+            var residualText = hasLeft && hasRight
+                ? (leftFactor * leftMassFlow + rightFactor * rightMassFlow).ToString("G6")
+                : "n/a";
+
+            return $"{label}: {leftStreamName}={(hasLeft ? leftMassFlow.ToString("G6") : "n/a")}, {rightStreamName}={(hasRight ? rightMassFlow.ToString("G6") : "n/a")}; residual={residualText}";
+        }
+
+        private bool TryGetMassFlow(string streamName, out double massFlow)
+        {
+            var stream = Streams.FirstOrDefault(candidate => candidate.Name.Equals(streamName, StringComparison.OrdinalIgnoreCase));
+            if (stream?.MassFlow.IsDefined == true)
+            {
+                massFlow = stream.MassFlow.GetSolverValue();
+                return double.IsFinite(massFlow);
+            }
+
+            massFlow = double.NaN;
+            return false;
+        }
+
+        private IEnumerable<StreamSolveSnapshot> GetWatchedStreamSnapshots()
+        {
+            return DiagnosticStreamNames
+                .Select(name => Streams.FirstOrDefault(stream => stream.Name.Equals(name, StringComparison.OrdinalIgnoreCase)))
+                .Where(stream => stream != null)
+                .Select(stream => CaptureStreamSnapshot(stream!));
+        }
+
+        private string DescribeWatchedSolvePlan(SolvePlan solvePlan)
+        {
+            var equations = solvePlan.EquationsByType
+                .SelectMany(pair => pair.Value.Select(equation => (Type: pair.Key, Equation: equation)))
+                .Where(pair => IsWatchedEquation(pair.Equation))
+                .Select(pair => $"{pair.Type}:{pair.Equation.Name}; adjustable=[{JoinLimited(pair.Equation.AdjustableVariables().Select(variable => variable.Name), 10)}]; canEvaluate={pair.Equation.CanEvaluate}");
+
+            return JoinLimited(equations, 30);
+        }
+
+        private IEnumerable<IFacadeStream> GetEquationStreams(ISolverEquation equation)
+        {
+            var variables = equation.Variables.Distinct().ToList();
+            return Streams.Where(stream => variables.Any(variable => BelongsToStream(variable, stream)));
+        }
+
+        private static bool BelongsToStream(IVariable variable, IFacadeStream stream)
+        {
+            return variable.Name.StartsWith($"{stream.Name} ", StringComparison.OrdinalIgnoreCase) ||
+                   variable.Name.StartsWith($"{stream.Name}.", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static bool IsDiagnosticVariable(IVariable variable)
+        {
+            return DiagnosticStreamNames.Any(streamName =>
+                variable.Name.StartsWith($"{streamName} ", StringComparison.OrdinalIgnoreCase) ||
+                variable.Name.StartsWith($"{streamName}.", StringComparison.OrdinalIgnoreCase));
+        }
+
+        private static bool IsCriticalDiagnosticVariable(IVariable variable)
+        {
+            return CriticalDiagnosticStreamNames.Any(streamName =>
+                variable.Name.StartsWith($"{streamName} ", StringComparison.OrdinalIgnoreCase) ||
+                variable.Name.StartsWith($"{streamName}.", StringComparison.OrdinalIgnoreCase));
+        }
+
+        private static bool IsDiagnosticStreamName(string streamName) =>
+            DiagnosticStreamNames.Contains(streamName, StringComparer.OrdinalIgnoreCase);
+
+        private static readonly string[] DiagnosticStreamNames =
+        [
+            "S-112",
+            "S-117",
+            "S-118",
+            "S-120",
+            "S-122",
+            "S-123",
+            "S-125",
+            "S-126",
+            "S-128",
+            "S-129",
+            "S-130",
+            "S-131",
+            "S-132",
+            "S-138",
+            "S-139",
+            "S-143",
+            "S-144",
+            "S-145",
+            "S-146",
+            "S-147",
+            "S-148",
+            "S-149",
+            "S-150",
+            "S-151",
+            "S-155"
+        ];
+
+        private static readonly string[] WatchedEquationNames =
+        [
+            "SP-121",
+            "SP-137",
+            "SP-145",
+            "E-124",
+            "E-142",
+            "P-119",
+            "P-148",
+            "Formula: S-143",
+            "Formula: S-128",
+            "Formula: S-138"
+        ];
+
+        private static readonly string[] CriticalDiagnosticStreamNames =
+        [
+            "S-120",
+            "S-122",
+            "S-123",
+            "S-126",
+            "S-128",
+            "S-130",
+            "S-131",
+            "S-132",
+            "S-143",
+            "S-144",
+            "S-146",
+            "S-147"
+        ];
+
+        private static VariableSolveSnapshot CaptureVariableSnapshot(IVariable variable)
+        {
+            return variable.IsDefined
+                ? new VariableSolveSnapshot(variable.GetSolverValue(), variable.ToUiString("F2"), variable.DataProcedence)
+                : new VariableSolveSnapshot(double.NaN, "<Not defined>", variable.DataProcedence);
+        }
+
+        private static StreamSolveSnapshot CaptureStreamSnapshot(IFacadeStream stream)
+        {
+            return new StreamSolveSnapshot(
+                stream.Name,
+                stream.State,
+                CaptureVariableSnapshot(stream.Temperature),
+                CaptureVariableSnapshot(stream.Pressure),
+                CaptureVariableSnapshot(stream.VaporFraction),
+                CaptureVariableSnapshot(stream.MassFlow),
+                CaptureVariableSnapshot(stream.MolarFlow),
+                CaptureVariableSnapshot(stream.VolumetricFlow),
+                CaptureVariableSnapshot(stream.EnthalpyFlow),
+                CaptureVariableSnapshot(stream.MassEnthalpy));
+        }
+
+        private static string DescribeStreamSnapshot(StreamSolveSnapshot snapshot)
+        {
+            return $"{snapshot.Name}:{snapshot.State}; T={DescribeVariableSnapshot(snapshot.Temperature)}; P={DescribeVariableSnapshot(snapshot.Pressure)}; VF={DescribeVariableSnapshot(snapshot.VaporFraction)}; MF={DescribeVariableSnapshot(snapshot.MassFlow)}; MolF={DescribeVariableSnapshot(snapshot.MolarFlow)}; VFw={DescribeVariableSnapshot(snapshot.VolumetricFlow)}; Q={DescribeVariableSnapshot(snapshot.EnthalpyFlow)}; Hm={DescribeVariableSnapshot(snapshot.MassEnthalpy)}";
+        }
+
+        private static string DescribeVariableChange(
+            string variableName,
+            VariableSolveSnapshot before,
+            VariableSolveSnapshot after)
+        {
+            if (before.Source == after.Source && !HasSignificantChange(before.SolverValue, after.SolverValue))
+            {
+                return string.Empty;
+            }
+
+            return $"{variableName}: {DescribeVariableSnapshot(before)} -> {DescribeVariableSnapshot(after)}";
+        }
+
+        private static string DescribeVariableSnapshot(VariableSolveSnapshot snapshot)
+        {
+            return $"{snapshot.Text} [{snapshot.Source}]";
+        }
+
+        private static bool HasSignificantChange(double before, double after)
+        {
+            if (double.IsNaN(before) || double.IsNaN(after))
+            {
+                return double.IsNaN(before) != double.IsNaN(after);
+            }
+
+            var absoluteDelta = Math.Abs(before - after);
+            if (absoluteDelta > 1e-7)
+            {
+                return true;
+            }
+
+            var scale = Math.Max(1.0, Math.Max(Math.Abs(before), Math.Abs(after)));
+            return absoluteDelta / scale > 1e-6;
+        }
+
+        private static string FormatDouble(double value)
+        {
+            return double.IsFinite(value) ? value.ToString("G6") : "n/a";
+        }
+
+        private static string JoinLimited(IEnumerable<string> values, int maxItems)
+        {
+            var list = values.Where(value => !string.IsNullOrWhiteSpace(value)).Take(maxItems + 1).ToList();
+            if (list.Count == 0)
+            {
+                return string.Empty;
+            }
+
+            if (list.Count <= maxItems)
+            {
+                return string.Join("; ", list);
+            }
+
+            return $"{string.Join("; ", list.Take(maxItems))}; +more";
+        }
+
+        private static string DescribeVariable(IVariable variable)
+        {
+            return variable.IsDefined
+                ? $"{variable.ToUiString("F2")} [{variable.DataProcedence}]"
+                : "<Not defined> [Undefined]";
+        }
+
+        private static string DescribePressure(Pressure pressure)
+        {
+            return $"{pressure.GetValue(PressureUnits.Pascala):G8} Pa; {pressure.GetValue(PressureUnits.Bara):G8} bara";
+        }
+
+        private sealed record EquationSolveSnapshot(
+            double ResidualNorm,
+            IReadOnlyDictionary<IVariable, VariableSolveSnapshot> Variables,
+            IReadOnlyDictionary<string, StreamSolveSnapshot> Streams);
+
+        private sealed record VariableSolveSnapshot(
+            double SolverValue,
+            string Text,
+            VariableDefinedBy Source);
+
+        private sealed record StreamSolveSnapshot(
+            string Name,
+            StreamStateType State,
+            VariableSolveSnapshot Temperature,
+            VariableSolveSnapshot Pressure,
+            VariableSolveSnapshot VaporFraction,
+            VariableSolveSnapshot MassFlow,
+            VariableSolveSnapshot MolarFlow,
+            VariableSolveSnapshot VolumetricFlow,
+            VariableSolveSnapshot EnthalpyFlow,
+            VariableSolveSnapshot MassEnthalpy);
 
         public void ClearOrphanStream(IFacadeStream stream)
         {
@@ -677,7 +1411,7 @@ namespace Shared.SolverConsecutive
                 facades.AddRange(Equipments);
                 facades.AddRange(Streams);
 
-                await Task.WhenAll(facades.Select(facade => facade.PostSolveAsync()));
+                await Task.WhenAll(facades.Select(ExecuteFacadePostSolveAsync));
                 return true;
             }
             catch (Exception ex)
@@ -689,6 +1423,32 @@ namespace Shared.SolverConsecutive
             finally
             {
                 OnSimulationCompleted?.Invoke();
+            }
+        }
+
+        private async Task ExecuteFacadePostSolveAsync(IFacade facade)
+        {
+            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+            var name = facade switch
+            {
+                IEquipmentFacade equipment => equipment.Name,
+                IFacadeStream stream => stream.Name,
+                _ => facade.GetType().Name
+            };
+            TraceSolver("PostSolve started", $"{name}; type={facade.GetType().Name}");
+
+            try
+            {
+                await facade.PostSolveAsync();
+
+                stopwatch.Stop();
+                TraceSolver("PostSolve finished", $"{name}; type={facade.GetType().Name}; elapsedMs={stopwatch.ElapsedMilliseconds}");
+            }
+            catch (Exception ex)
+            {
+                stopwatch.Stop();
+                TraceSolver("PostSolve failed", $"{name}; type={facade.GetType().Name}; elapsedMs={stopwatch.ElapsedMilliseconds}; error={ex.Message}");
+                throw;
             }
         }
 
@@ -707,6 +1467,7 @@ namespace Shared.SolverConsecutive
             var pressure = seaLevelPressure * Math.Pow(1 - factor * altitudeMeters, exponent);
             AtmosphericPressure.SetValue(pressure, PressureUnits.Pascala);
             UnitManager.SetAtmosphericPressureReference(AtmosphericPressure);
+            TraceDivergenceProbe("Atmospheric pressure updated", $"altitude={altitudeMeters:G6} m; atmosphericPressure={DescribePressure(AtmosphericPressure)}");
         }
 
         private sealed class SolvePlan

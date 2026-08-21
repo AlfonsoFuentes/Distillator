@@ -22,10 +22,10 @@ namespace Shared.Thermodynamics.Strategies.Equlibriums
             Stream.PerformFlashPT();
 
 
-            _facade.VaporFraction.SetValue(Stream.VaporFraction, SolverConsecutive.VariableDefinedBy.StreamCalculated);
+            CalculatedVariableSetter.SetStreamCalculated(_facade.VaporFraction, Stream.VaporFraction);
 
             _facade.MaterialStream.CalculateBulkProperties();
-            _facade.MassEnthalpy.SetValue(_facade.MaterialStream.MassEnthalpy, SolverConsecutive.VariableDefinedBy.StreamCalculated);
+            CalculatedVariableSetter.SetStreamCalculated(_facade.MassEnthalpy, _facade.MaterialStream.MassEnthalpy);
 
         }
     }

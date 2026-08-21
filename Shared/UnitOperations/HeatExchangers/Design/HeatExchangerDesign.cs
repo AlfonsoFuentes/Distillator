@@ -1568,6 +1568,7 @@ public abstract class HeatExchangerDesign : IHeatExchangerDesign
         return new HeatExchangerDesignResult
         {
             DesignType = DesignType,
+            CalculationStandard = ShellAndTubeCalculationStandard.Kern,
             Message = State.Message,
             RequiredMethodImplementations = State.RequiredMethodImplementations.Distinct().ToArray()
         };

@@ -29,7 +29,7 @@ namespace Shared.Thermodynamics.Strategies.Flows
             {
                 double totalMassFlow = totalMolarFlow * molecularWeight;
                 var totalMassAmount = new MassFlow(totalMassFlow, MassFlowUnits.Kg_sg);
-                _facade.MassFlow.SetValue(totalMassAmount, SolverConsecutive.VariableDefinedBy.StreamCalculated);
+                CalculatedVariableSetter.SetStreamCalculated(_facade.MassFlow, totalMassAmount);
 
                 // 3. Calcular derivados si el equilibrio está resuelto
                 if (_facade.IsEquilibriumSolved)
@@ -42,7 +42,7 @@ namespace Shared.Thermodynamics.Strategies.Flows
                         {
                             double volumetricFlow = totalMassFlow / density;
                             var volAmount = new VolumetricFlow(volumetricFlow, VolumetricFlowUnits.m3_sg);
-                            _facade.VolumetricFlow.SetValue(volAmount, SolverConsecutive.VariableDefinedBy.StreamCalculated);
+                            CalculatedVariableSetter.SetStreamCalculated(_facade.VolumetricFlow, volAmount);
                         }
                     }
 
@@ -52,7 +52,7 @@ namespace Shared.Thermodynamics.Strategies.Flows
                         double molarEnthalpy = _facade.MaterialStream.MolarEnthalpy.GetValue(MolarEnergyUnits.KJ_Kgmol);
                         double energyFlow = totalMolarFlow * molarEnthalpy;
                         var energyAmount = new EnergyFlow(energyFlow, EnergyFlowUnits.KJ_sg);
-                        _facade.EnthalpyFlow.SetValue(energyAmount, SolverConsecutive.VariableDefinedBy.StreamCalculated);
+                        CalculatedVariableSetter.SetStreamCalculated(_facade.EnthalpyFlow, energyAmount);
                     }
                 }
                 if (!_facade.Composition.IsValid)
@@ -70,7 +70,7 @@ namespace Shared.Thermodynamics.Strategies.Flows
                     var compMassAmount = new MassFlow(compMassFlow, MassFlowUnits.Kg_sg);
                     if (!comp.MolarFlow.ShouldTriggerRecalculation)
                     {
-                        comp.MolarFlow.SetValue(compMolarAmount, SolverConsecutive.VariableDefinedBy.StreamCalculated);
+                        CalculatedVariableSetter.SetStreamCalculated(comp.MolarFlow, compMolarAmount);
 
                         // Calcular flujo másico del componente
 
@@ -78,7 +78,7 @@ namespace Shared.Thermodynamics.Strategies.Flows
                     if (!comp.MassFlow.ShouldTriggerRecalculation)
                     {
 
-                        comp.MassFlow.SetValue(compMassAmount, SolverConsecutive.VariableDefinedBy.StreamCalculated);
+                        CalculatedVariableSetter.SetStreamCalculated(comp.MassFlow, compMassAmount);
                     }
                 }
             }

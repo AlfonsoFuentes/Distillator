@@ -249,7 +249,7 @@ namespace Shared.SolverConsecutive.Equipments
             List<double> r = new();
             if (splitter.Inlet == null || splitter.Outlets.Count == 0) return r;
 
-            if (ShouldUseVaporFraction())
+            if (ShouldUseVaporFractionEquation())
             {
                 double vfIn = splitter.Inlet.VaporFraction.GetSolverValue();
                 foreach (var outlet in splitter.Outlets)
@@ -274,7 +274,7 @@ namespace Shared.SolverConsecutive.Equipments
             List<IVariable> v = new();
             if (splitter.Inlet == null || splitter.Outlets.Count == 0) return v;
 
-            if (ShouldUseVaporFraction())
+            if (ShouldUseVaporFractionEquation())
             {
                 v.Add(splitter.Inlet.VaporFraction);
                 foreach (var outlet in splitter.Outlets)
@@ -292,12 +292,40 @@ namespace Shared.SolverConsecutive.Equipments
             return v;
         }
 
-        private bool ShouldUseVaporFraction()
+        private bool ShouldUseVaporFractionEquation()
         {
             if (splitter.Inlet == null) return false;
 
+            if (CanSolveMassEnthalpyEquation())
+            {
+                return false;
+            }
+
+            return HasStrongVaporFractionSpecification()
+                && CountUndefinedVaporFractions() == splitter.Outlets.Count;
+        }
+
+        private bool CanSolveMassEnthalpyEquation()
+        {
+            return CountUndefinedMassEnthalpies() == splitter.Outlets.Count;
+        }
+
+        private bool HasStrongVaporFractionSpecification()
+        {
             return IsStrongVaporFractionSpecification(splitter.Inlet)
                 || splitter.Outlets.Any(IsStrongVaporFractionSpecification);
+        }
+
+        private int CountUndefinedMassEnthalpies()
+        {
+            var streams = splitter.Outlets.Prepend(splitter.Inlet);
+            return streams.Count(stream => !stream.MassEnthalpy.IsDefined);
+        }
+
+        private int CountUndefinedVaporFractions()
+        {
+            var streams = splitter.Outlets.Prepend(splitter.Inlet);
+            return streams.Count(stream => !stream.VaporFraction.IsDefined);
         }
 
         private static bool IsStrongVaporFractionSpecification(IFacadeStream stream)

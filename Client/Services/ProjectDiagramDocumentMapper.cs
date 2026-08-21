@@ -56,7 +56,9 @@ internal static class ProjectDiagramDocumentMapper
                             element.Type.ToString(),
                             element.Name,
                             element.Label,
-                            FacadeStateSerializer.Serialize(element.Facade),
+                            FacadeStateSerializer.Serialize(
+                                element.Facade,
+                                excludedVariables: GetFormulaSpecificationTargetVariables(element.Facade)),
                             ToFormulaSpecificationSnapshots(element.Facade),
                             reference.X,
                             reference.Y,
@@ -121,6 +123,17 @@ internal static class ProjectDiagramDocumentMapper
                     specification.DefinedByUserId,
                     specification.DefinedByUserName,
                     specification.DefinedAtUtc))
+                .ToList();
+    }
+
+    private static IReadOnlyCollection<IVariable> GetFormulaSpecificationTargetVariables(IFacade? facade)
+    {
+        return facade is not SolverEquipmentBase equipment
+            ? Array.Empty<IVariable>()
+            : equipment.Specifications
+                .OfType<FormulaSpecification>()
+                .SelectMany(specification => specification.GetTargetVariables())
+                .Distinct()
                 .ToList();
     }
 

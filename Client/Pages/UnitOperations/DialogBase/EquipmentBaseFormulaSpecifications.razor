@@ -156,12 +156,20 @@
         .OfType<FormulaSpecification>()
         .ToList() ?? new List<FormulaSpecification>();
 
-    private List<IFacadeStream> AvailableStreams => FSM.Elements
+    // Busqueda anterior: solo encontraba corrientes del diagrama activo.
+    // private List<IFacadeStream> AvailableStreams => FSM.Elements
+    //     .OfType<StreamVisualElement>()
+    //     .Select(element => element.Facade)
+    //     .OfType<IFacadeStream>()
+    //     .Distinct()
+    //     .ToList();
+
+    private List<IFacadeStream> AvailableStreams => FSM.CurrentProject?.EquipmentRegistry.AllEquipments
         .OfType<StreamVisualElement>()
         .Select(element => element.Facade)
         .OfType<IFacadeStream>()
         .Distinct()
-        .ToList();
+        .ToList() ?? new List<IFacadeStream>();
 
     private List<IFacadeStream> LocalStreams
     {

@@ -29,7 +29,7 @@ namespace Shared.Thermodynamics.Strategies.Flows
             {
                 double totalMolarFlow = totalMassFlow / molecularWeight;
                 var totalMolarAmount = new MolarFlow(totalMolarFlow, MolarFlowUnits.Kgmol_hr);
-                _facade.MolarFlow.SetValue(totalMolarAmount, SolverConsecutive.VariableDefinedBy.StreamCalculated);
+                CalculatedVariableSetter.SetStreamCalculated(_facade.MolarFlow, totalMolarAmount);
             }
 
             // 3. Calcular derivados si el equilibrio está resuelto
@@ -43,7 +43,7 @@ namespace Shared.Thermodynamics.Strategies.Flows
                     {
                         double volumetricFlow = totalMassFlow / density;
                         var volAmount = new VolumetricFlow(volumetricFlow, VolumetricFlowUnits.m3_hr);
-                        _facade.VolumetricFlow.SetValue(volAmount, SolverConsecutive.VariableDefinedBy.StreamCalculated);
+                        CalculatedVariableSetter.SetStreamCalculated(_facade.VolumetricFlow, volAmount);
                     }
                 }
 
@@ -53,7 +53,7 @@ namespace Shared.Thermodynamics.Strategies.Flows
                     double massEnthalpy = _facade.MaterialStream.MassEnthalpy.GetValue(MassEnergyUnits.KJ_Kg);
                     double energyFlow = totalMassFlow * massEnthalpy;
                     var energyAmount = new EnergyFlow(energyFlow, EnergyFlowUnits.KJ_hr);
-                    _facade.EnthalpyFlow.SetValue(energyAmount, SolverConsecutive.VariableDefinedBy.StreamCalculated);
+                    CalculatedVariableSetter.SetStreamCalculated(_facade.EnthalpyFlow, energyAmount);
                 }
             }
             if (!_facade.Composition.IsValid)
@@ -72,7 +72,7 @@ namespace Shared.Thermodynamics.Strategies.Flows
                 if (!comp.MassFlow.ShouldTriggerRecalculation)
                 {
 
-                    comp.MassFlow.SetValue(compMassAmount, SolverConsecutive.VariableDefinedBy.StreamCalculated);
+                    CalculatedVariableSetter.SetStreamCalculated(comp.MassFlow, compMassAmount);
 
                     // Calcular flujo molar del componente
 
@@ -80,7 +80,7 @@ namespace Shared.Thermodynamics.Strategies.Flows
                 if (!comp.MolarFlow.ShouldTriggerRecalculation && molecularWeight > 0)
                 {
 
-                    comp.MolarFlow.SetValue(compMolarAmount, SolverConsecutive.VariableDefinedBy.StreamCalculated);
+                    CalculatedVariableSetter.SetStreamCalculated(comp.MolarFlow, compMolarAmount);
                 }
             }
         }

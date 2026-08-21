@@ -1148,6 +1148,9 @@ namespace Server.Entities.Projects.EndPoints
         {
             state.LastProjectId = dto.LastProjectId;
             state.LastFlowsheetId = dto.LastFlowsheetId;
+            state.LastFlowsheetIdsByProjectJson = dto.LastFlowsheetIdsByProject.Count == 0
+                ? null
+                : JsonSerializer.Serialize(dto.LastFlowsheetIdsByProject);
             state.IsProjectExplorerCollapsed = dto.IsProjectExplorerCollapsed;
             state.IsDiagramExplorerCollapsed = dto.IsDiagramExplorerCollapsed;
             state.ExpandedDiagramTypeCodesJson = dto.ExpandedDiagramTypeCodes == null
@@ -1168,6 +1171,9 @@ namespace Server.Entities.Projects.EndPoints
             {
                 LastProjectId = state.LastProjectId,
                 LastFlowsheetId = state.LastFlowsheetId,
+                LastFlowsheetIdsByProject = string.IsNullOrWhiteSpace(state.LastFlowsheetIdsByProjectJson)
+                    ? new Dictionary<Guid, Guid>()
+                    : JsonSerializer.Deserialize<Dictionary<Guid, Guid>>(state.LastFlowsheetIdsByProjectJson) ?? new Dictionary<Guid, Guid>(),
                 IsProjectExplorerCollapsed = state.IsProjectExplorerCollapsed,
                 IsDiagramExplorerCollapsed = state.IsDiagramExplorerCollapsed,
                 ExpandedDiagramTypeCodes = string.IsNullOrWhiteSpace(state.ExpandedDiagramTypeCodesJson)

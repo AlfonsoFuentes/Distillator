@@ -18,6 +18,7 @@ namespace Server.Entities.Projects.Configurations
 
             builder.Property(x => x.TenantId).IsRequired().HasMaxLength(100);
             builder.Property(x => x.UserId).IsRequired().HasMaxLength(450);
+            builder.Property(x => x.LastFlowsheetIdsByProjectJson).HasColumnType("jsonb");
             builder.Property(x => x.ExpandedDiagramTypeCodesJson).HasColumnType("jsonb");
 
             builder.HasIndex(x => new { x.TenantId, x.UserId }).IsUnique();

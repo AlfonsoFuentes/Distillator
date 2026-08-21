@@ -15,6 +15,7 @@ namespace Shared.SolverConsecutive.Equipments
 
         double GetResidual();
         List<IVariable> GetVariables();
+        List<IVariable> GetTargetVariables();
     }
     public enum SpecificationType
     {
@@ -72,6 +73,18 @@ namespace Shared.SolverConsecutive.Equipments
             }
             return vars;
         }
+
+        public List<IVariable> GetTargetVariables()
+        {
+            return VariableType switch
+            {
+                SpecVariableType.TotalMassFlow => [Destination.MassFlow],
+                SpecVariableType.TotalMolarFlow => [Destination.MolarFlow],
+                SpecVariableType.TotalVolumetricFlow => [Destination.VolumetricFlow],
+                _ => []
+            };
+        }
+
         public SolverEquationType TargetEquationType => VariableType switch
         {
             SpecVariableType.TotalMassFlow => SolverEquationType.MassBalance,
@@ -179,9 +192,11 @@ namespace Shared.SolverConsecutive.Equipments
             _spec = spec;
         }
 
+        public ISpecification Specification => _spec;
+
         public string Name => _spec.Name; // 🔥 USA EL NOMBRE DE LA INTERFAZ
 
-        public SolverEquationType EquationType => SolverEquationType.MassBalance;
+        public SolverEquationType EquationType => _spec.TargetEquationType;
         public bool CanEvaluate => _spec.CanEvaluate;
         public List<double> Residuals => new List<double> { _spec.GetResidual() };
         public List<IVariable> Variables => _spec.GetVariables();

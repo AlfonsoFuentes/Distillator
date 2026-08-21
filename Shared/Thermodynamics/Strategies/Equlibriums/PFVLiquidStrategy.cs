@@ -30,9 +30,9 @@ namespace Shared.Thermodynamics.Strategies.Equlibriums
             Stream.SolveSaturationTemperature();
 
             // ✅ 4. Actualizar UI con resultado calculado
-            _facade.Temperature.SetValue(Stream.Temperature, SolverConsecutive.VariableDefinedBy.StreamCalculated);
+            CalculatedVariableSetter.SetStreamCalculated(_facade.Temperature, Stream.Temperature);
             Stream.CalculateBulkProperties();
-            _facade.MassEnthalpy.SetValue(Stream.MassEnthalpy, SolverConsecutive.VariableDefinedBy.StreamCalculated);
+            CalculatedVariableSetter.SetStreamCalculated(_facade.MassEnthalpy, Stream.MassEnthalpy);
 
         }
 

@@ -8,6 +8,7 @@ using Distillator.Domain.Services;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using OfficeOpenXml;
 using Shared.SolverConsecutive;
+using Shared.SolverConsecutive.SolverRemanufactured;
 using Shared.WorkSpaceManagers;
 using UnitSystem;
 
@@ -21,7 +22,7 @@ builder.Services.AddScoped<DragStateService>();
 builder.Services.AddSingleton<IEquipmentFactory, EquipmentFactory>();
 // builder.Services.AddScoped<WorkspaceManager>(); // --- LEGACY (comentado)
 builder.Services.AddScoped<FlowsheetManager>();
-builder.Services.AddScoped<IMainSolver,MainSolver>();
+builder.Services.AddScoped<IMainSolver, MainSolverRemanufactured>();
 builder.Services.AddScoped<VariableInputCommandHandler>();
 builder.Services.AddScoped<CompositionInputCommandHandler>();
 builder.Services.AddScoped<FormulaSpecificationCommandHandler>();

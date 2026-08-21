@@ -46,7 +46,6 @@ namespace Client.Services
 
             if (_joinedProjectId == projectId && _connection.State == HubConnectionState.Connected)
             {
-                _activityLog.Add("SignalR", "Active diagram updated", activeDiagramName);
                 await UpdateActiveDiagramAsync(activeDiagramId, activeDiagramName);
                 return;
             }
@@ -58,7 +57,6 @@ namespace Client.Services
 
             await _connection.SendAsync("JoinProject", projectId, _activeDiagramId, _activeDiagramName);
             _joinedProjectId = projectId;
-            _activityLog.Add("SignalR", "Project joined", projectId.ToString());
         }
 
         public async Task UpdateActiveDiagramAsync(Guid? activeDiagramId, string? activeDiagramName)
@@ -69,7 +67,6 @@ namespace Client.Services
             if (_connection?.State != HubConnectionState.Connected || !_joinedProjectId.HasValue) return;
 
             await _connection.SendAsync("UpdateActiveDiagram", _joinedProjectId.Value, _activeDiagramId, _activeDiagramName);
-            _activityLog.Add("SignalR", "Active diagram sent", _activeDiagramName);
         }
 
         public async Task LeaveCurrentProjectAsync()
@@ -79,7 +76,6 @@ namespace Client.Services
             if (_connection?.State == HubConnectionState.Connected && _joinedProjectId.HasValue)
             {
                 await _connection.SendAsync("LeaveProject", _joinedProjectId.Value);
-                _activityLog.Add("SignalR", "Project left", _joinedProjectId.Value.ToString());
             }
 
             _joinedProjectId = null;
@@ -130,9 +126,7 @@ namespace Client.Services
 
             if (_connection.State == HubConnectionState.Disconnected)
             {
-                _activityLog.Add("SignalR", "Connecting");
                 await _connection.StartAsync();
-                _activityLog.Add("SignalR", "Connected");
                 ConnectionStateChanged?.Invoke();
             }
 
@@ -260,7 +254,6 @@ namespace Client.Services
 
         private async Task OnProjectChangedAsync(ProjectRealtimeEventDto realtimeEvent)
         {
-            _activityLog.Add("SignalR", "ProjectChanged event", $"{realtimeEvent.ChangeType} v{realtimeEvent.Version}");
             var handlers = ProjectChangedReceived;
             if (handlers == null) return;
 
@@ -275,7 +268,6 @@ namespace Client.Services
             if (_joinedProjectId != projectId) return;
 
             CurrentPresence = presence;
-            _activityLog.Add("SignalR", "Presence changed", $"{presence.Count} user(s)");
             PresenceChangedReceived?.Invoke(CurrentPresence);
         }
 

@@ -8,6 +8,7 @@ namespace Server.Entities.Projects
         public string UserId { get; set; } = string.Empty;
         public Guid? LastProjectId { get; set; }
         public Guid? LastFlowsheetId { get; set; }
+        public string? LastFlowsheetIdsByProjectJson { get; set; }
         public bool IsProjectExplorerCollapsed { get; set; }
         public bool IsDiagramExplorerCollapsed { get; set; }
         public string? ExpandedDiagramTypeCodesJson { get; set; }

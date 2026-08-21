@@ -24,6 +24,7 @@ namespace Shared.SolverConsecutive.Equipments
     {
         public List<IFacadeStream> AllStreams => Inlets.Concat(Outlets).ToList();
         public string Name { get; set; } = string.Empty;
+        public ISolverTraceSink? TraceSink { get; set; }
         public abstract List<ISolverEquation> Equations { get; }
 
         public List<IFacadeStream> Inlets { get; private set; } = new();
@@ -1038,81 +1039,81 @@ namespace Shared.SolverConsecutive.Equipments
         }
     }
 
-    public class GlobalMassEnergyBalanceEquation2 : ISolverEquation
-    {
-        //Caso 3: Esta ecuacion sirve para resolver balance global de masa y energia, se asume que la composicion de los streams es conocida, y se resuelve el flujo masico y el flujo de energia de cada stream
-        //Se asume que la composicion de los streams es conocida, y se resuelve el flujo masico y el flujo de energia de cada stream
-        public SolverEquationTypeModifier EquationTypeModifer { get; } = SolverEquationTypeModifier.Regular;
-        ISolverEquipment eq;
-        public GlobalMassEnergyBalanceEquation2(ISolverEquipment _eq) => eq = _eq;
-        public string Name => $"{EquationType} - {eq.Name}";
-        public SolverEquationType EquationType => SolverEquationType.MassEnergyBalance;
+    //public class GlobalMassEnergyBalanceEquation2 : ISolverEquation
+    //{
+    //    //Caso 3: Esta ecuacion sirve para resolver balance global de masa y energia, se asume que la composicion de los streams es conocida, y se resuelve el flujo masico y el flujo de energia de cada stream
+    //    //Se asume que la composicion de los streams es conocida, y se resuelve el flujo masico y el flujo de energia de cada stream
+    //    public SolverEquationTypeModifier EquationTypeModifer { get; } = SolverEquationTypeModifier.Regular;
+    //    ISolverEquipment eq;
+    //    public GlobalMassEnergyBalanceEquation2(ISolverEquipment _eq) => eq = _eq;
+    //    public string Name => $"{EquationType} - {eq.Name}";
+    //    public SolverEquationType EquationType => SolverEquationType.MassEnergyBalance;
 
-        public List<double> Residuals => GetResiduals();
-        public List<IVariable> Variables => GetVariables();
+    //    public List<double> Residuals => GetResiduals();
+    //    public List<IVariable> Variables => GetVariables();
 
-        List<double> GetResiduals()
-        {
-            List<double> r = new();
-            if (eq.Inlets.Count == 0 || eq.Outlets.Count == 0) return r;
+    //    List<double> GetResiduals()
+    //    {
+    //        List<double> r = new();
+    //        if (eq.Inlets.Count == 0 || eq.Outlets.Count == 0) return r;
          
-            int ncomp = eq.GetComponentCount();
-            double massfraction = 0;
-            double massflow = 0;
-            var componentmasflow = new double[ncomp];
-            double energyflow = 0;
-            double massenthalpy = 0;
-            foreach (var inlet in eq.Inlets)
-            {
+    //        int ncomp = eq.GetComponentCount();
+    //        double massfraction = 0;
+    //        double massflow = 0;
+    //        var componentmasflow = new double[ncomp];
+    //        double energyflow = 0;
+    //        double massenthalpy = 0;
+    //        foreach (var inlet in eq.Inlets)
+    //        {
 
-                massflow = inlet.MassFlow.GetSolverValue();
-                massenthalpy = inlet.MassEnthalpy.GetSolverValue();
-                energyflow += massflow * massenthalpy;
+    //            massflow = inlet.MassFlow.GetSolverValue();
+    //            massenthalpy = inlet.MassEnthalpy.GetSolverValue();
+    //            energyflow += massflow * massenthalpy;
 
-                for (int i = 0; i < ncomp; i++)
-                {
-                    var compo = inlet.Composition.Components[i];
-                    massfraction = compo.MassFraction.GetSolverValue();
+    //            for (int i = 0; i < ncomp; i++)
+    //            {
+    //                var compo = inlet.Composition.Components[i];
+    //                massfraction = compo.MassFraction.GetSolverValue();
 
-                    componentmasflow[i] += massflow * massfraction;
+    //                componentmasflow[i] += massflow * massfraction;
 
-                }
-            }
-            foreach (var outlet in eq.Outlets)
-            {
-                massflow = outlet.MassFlow.GetSolverValue();
-                massenthalpy = outlet.MassEnthalpy.GetSolverValue();
-                energyflow -= massflow * massenthalpy;
-                for (int i = 0; i < ncomp; i++)
-                {
-                    var compo = outlet.Composition.Components[i];
-                    massfraction = compo.MassFraction.GetSolverValue();
+    //            }
+    //        }
+    //        foreach (var outlet in eq.Outlets)
+    //        {
+    //            massflow = outlet.MassFlow.GetSolverValue();
+    //            massenthalpy = outlet.MassEnthalpy.GetSolverValue();
+    //            energyflow -= massflow * massenthalpy;
+    //            for (int i = 0; i < ncomp; i++)
+    //            {
+    //                var compo = outlet.Composition.Components[i];
+    //                massfraction = compo.MassFraction.GetSolverValue();
 
 
-                    componentmasflow[i] -= massflow * massfraction;
-                }
-            }
-            foreach (var comp in componentmasflow)
-            {
-                r.Add(comp);
-            }
-            r.Add(energyflow);
+    //                componentmasflow[i] -= massflow * massfraction;
+    //            }
+    //        }
+    //        foreach (var comp in componentmasflow)
+    //        {
+    //            r.Add(comp);
+    //        }
+    //        r.Add(energyflow);
 
-            return r;
-        }
-        List<IVariable> GetVariables()
-        {
-            List<IVariable> v = new();
-            if (eq.Inlets.Count == 0 || eq.Outlets.Count == 0) return v;
+    //        return r;
+    //    }
+    //    List<IVariable> GetVariables()
+    //    {
+    //        List<IVariable> v = new();
+    //        if (eq.Inlets.Count == 0 || eq.Outlets.Count == 0) return v;
 
-            foreach (var stream in eq.AllStreams)
-            {
-                v.Add(stream.MassFlow);
-            }
+    //        foreach (var stream in eq.AllStreams)
+    //        {
+    //            v.Add(stream.MassFlow);
+    //        }
 
-            return v;
-        }
-    }
+    //        return v;
+    //    }
+    //}
 
 }
 
